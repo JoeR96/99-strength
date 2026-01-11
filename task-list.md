@@ -9,132 +9,132 @@ This document breaks down the strategic plan into explicit step-by-step tasks. E
 ### 0.1 Backend Project Setup
 
 #### Task 0.1.1: Create .NET Solution Structure
-- [ ] Create `src/` and `tests/` directories
-- [ ] Run `dotnet new sln -n A2S`
-- [ ] Run `dotnet new classlib -n A2S.Domain -o src/A2S.Domain`
-- [ ] Run `dotnet new classlib -n A2S.Application -o src/A2S.Application`
-- [ ] Run `dotnet new classlib -n A2S.Infrastructure -o src/A2S.Infrastructure`
-- [ ] Run `dotnet new webapi -n A2S.Api -o src/A2S.Api`
-- [ ] Add all projects to solution: `dotnet sln add src/**/*.csproj`
-- [ ] Run `dotnet build` to verify
-- [ ] **AC**: Solution builds successfully
+- [x] Create `src/` and `tests/` directories
+- [x] Run `dotnet new sln -n A2S`
+- [x] Run `dotnet new classlib -n A2S.Domain -o src/A2S.Domain`
+- [x] Run `dotnet new classlib -n A2S.Application -o src/A2S.Application`
+- [x] Run `dotnet new classlib -n A2S.Infrastructure -o src/A2S.Infrastructure`
+- [x] Run `dotnet new webapi -n A2S.Api -o src/A2S.Api`
+- [x] Add all projects to solution: `dotnet sln add src/**/*.csproj`
+- [x] Run `dotnet build` to verify
+- [x] **AC**: Solution builds successfully
 
 #### Task 0.1.2: Configure Project References
-- [ ] Add reference: `A2S.Application` → `A2S.Domain`
-- [ ] Add reference: `A2S.Infrastructure` → `A2S.Application`
-- [ ] Add reference: `A2S.Api` → `A2S.Application`
-- [ ] Add reference: `A2S.Api` → `A2S.Infrastructure`
-- [ ] Run `dotnet build` to verify dependencies
-- [ ] **AC**: No circular references, clean build
+- [x] Add reference: `A2S.Application` → `A2S.Domain`
+- [x] Add reference: `A2S.Infrastructure` → `A2S.Application`
+- [x] Add reference: `A2S.Api` → `A2S.Application`
+- [x] Add reference: `A2S.Api` → `A2S.Infrastructure`
+- [x] Run `dotnet build` to verify dependencies
+- [x] **AC**: No circular references, clean build
 
 #### Task 0.1.3: Create Test Projects
-- [ ] Run `dotnet new xunit -n A2S.Domain.Tests -o tests/A2S.Domain.Tests`
-- [ ] Run `dotnet new xunit -n A2S.Application.Tests -o tests/A2S.Application.Tests`
-- [ ] Run `dotnet new xunit -n A2S.Infrastructure.Tests -o tests/A2S.Infrastructure.Tests`
-- [ ] Run `dotnet new xunit -n A2S.Api.Tests -o tests/A2S.Api.Tests`
-- [ ] Add test projects to solution
-- [ ] Add project references (test → corresponding project)
-- [ ] Run `dotnet test` to verify
-- [ ] **AC**: All test projects run (0 tests)
+- [x] Run `dotnet new xunit -n A2S.Domain.Tests -o tests/A2S.Domain.Tests`
+- [x] Run `dotnet new xunit -n A2S.Application.Tests -o tests/A2S.Application.Tests`
+- [x] Run `dotnet new xunit -n A2S.Infrastructure.Tests -o tests/A2S.Infrastructure.Tests`
+- [x] Run `dotnet new xunit -n A2S.Api.Tests -o tests/A2S.Api.Tests`
+- [x] Add test projects to solution
+- [x] Add project references (test → corresponding project)
+- [x] Run `dotnet test` to verify
+- [x] **AC**: All test projects run (0 tests)
 
 #### Task 0.1.4: Install Core NuGet Packages - Domain
-- [ ] No external dependencies for Domain project
-- [ ] **AC**: Domain project has zero external dependencies (clean architecture)
+- [x] No external dependencies for Domain project
+- [x] **AC**: Domain project has zero external dependencies (clean architecture)
 
 #### Task 0.1.5: Install Core NuGet Packages - Application
-- [ ] Install `MediatR` (v12.x)
-- [ ] Install `FluentValidation` (v11.x)
-- [ ] Run `dotnet build` on A2S.Application
-- [ ] **AC**: Application project builds with MediatR and FluentValidation
+- [x] Install `MediatR` (v12.x)
+- [x] Install `FluentValidation` (v11.x)
+- [x] Run `dotnet build` on A2S.Application
+- [x] **AC**: Application project builds with MediatR and FluentValidation
 
 #### Task 0.1.6: Install Core NuGet Packages - Infrastructure
-- [ ] Install `Npgsql.EntityFrameworkCore.PostgreSQL` (v9.x)
-- [ ] Install `Microsoft.EntityFrameworkCore.Design` (v9.x)
-- [ ] Install `Microsoft.Extensions.Configuration`
-- [ ] Run `dotnet build` on A2S.Infrastructure
-- [ ] **AC**: Infrastructure project builds
+- [x] Install `Npgsql.EntityFrameworkCore.PostgreSQL` (v9.x)
+- [x] Install `Microsoft.EntityFrameworkCore.Design` (v9.x)
+- [x] Install `Microsoft.Extensions.Configuration`
+- [x] Run `dotnet build` on A2S.Infrastructure
+- [x] **AC**: Infrastructure project builds
 
 #### Task 0.1.7: Install Core NuGet Packages - API
 - [ ] Install `Microsoft.Identity.Web` (for Azure AD)
-- [ ] Install `Swashbuckle.AspNetCore` (v6.x)
-- [ ] Install `Serilog.AspNetCore`
-- [ ] Install `Asp.Versioning.Mvc`
-- [ ] Run `dotnet build` on A2S.Api
-- [ ] **AC**: API project builds
+- [x] Install `Swashbuckle.AspNetCore` (v6.x)
+- [x] Install `Serilog.AspNetCore`
+- [x] Install `Asp.Versioning.Mvc`
+- [x] Run `dotnet build` on A2S.Api
+- [x] **AC**: API project builds
 
 #### Task 0.1.8: Install Test Packages
-- [ ] Install in all test projects: `xunit`, `xunit.runner.visualstudio`
-- [ ] Install in all test projects: `FluentAssertions` (v6.x)
-- [ ] Install in all test projects: `NSubstitute` (v5.x)
-- [ ] Install in Infrastructure.Tests: `Testcontainers` (v3.x)
-- [ ] Install in Infrastructure.Tests: `Testcontainers.PostgreSql`
-- [ ] Install in Api.Tests: `Microsoft.AspNetCore.Mvc.Testing`
-- [ ] Run `dotnet test`
-- [ ] **AC**: All test projects build and run
+- [x] Install in all test projects: `xunit`, `xunit.runner.visualstudio`
+- [x] Install in all test projects: `FluentAssertions` (v6.x)
+- [x] Install in all test projects: `NSubstitute` (v5.x)
+- [x] Install in Infrastructure.Tests: `Testcontainers` (v3.x)
+- [x] Install in Infrastructure.Tests: `Testcontainers.PostgreSql`
+- [x] Install in Api.Tests: `Microsoft.AspNetCore.Mvc.Testing`
+- [x] Run `dotnet test`
+- [x] **AC**: All test projects build and run
 
 #### Task 0.1.9: Configure EditorConfig
-- [ ] Create `.editorconfig` at solution root
-- [ ] Configure C# code style (indentation, braces, naming)
-- [ ] Set line ending to CRLF (Windows) or LF (Unix)
-- [ ] Configure file encoding (UTF-8)
-- [ ] **AC**: Code style consistent across solution
+- [x] Create `.editorconfig` at solution root
+- [x] Configure C# code style (indentation, braces, naming)
+- [x] Set line ending to CRLF (Windows) or LF (Unix)
+- [x] Configure file encoding (UTF-8)
+- [x] **AC**: Code style consistent across solution
 
 #### Task 0.1.10: Create Directory Structure
-- [ ] Create `src/A2S.Domain/Entities/`
-- [ ] Create `src/A2S.Domain/ValueObjects/`
-- [ ] Create `src/A2S.Domain/Services/`
-- [ ] Create `src/A2S.Domain/Events/`
-- [ ] Create `src/A2S.Application/Commands/`
-- [ ] Create `src/A2S.Application/Queries/`
-- [ ] Create `src/A2S.Application/DTOs/`
-- [ ] Create `src/A2S.Infrastructure/Persistence/`
-- [ ] Create `src/A2S.Infrastructure/Repositories/`
-- [ ] **AC**: Folder structure follows clean architecture
+- [x] Create `src/A2S.Domain/Entities/`
+- [x] Create `src/A2S.Domain/ValueObjects/`
+- [x] Create `src/A2S.Domain/Services/`
+- [x] Create `src/A2S.Domain/Events/`
+- [x] Create `src/A2S.Application/Commands/`
+- [x] Create `src/A2S.Application/Queries/`
+- [x] Create `src/A2S.Application/DTOs/`
+- [x] Create `src/A2S.Infrastructure/Persistence/`
+- [x] Create `src/A2S.Infrastructure/Repositories/`
+- [x] **AC**: Folder structure follows clean architecture
 
 ### 0.2 Database Setup
 
 #### Task 0.2.1: Create Docker Compose for PostgreSQL
-- [ ] Create `docker-compose.yml` at solution root
-- [ ] Add PostgreSQL service (postgres:16-alpine)
-- [ ] Configure environment variables (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
-- [ ] Expose port 5432
-- [ ] Add volume for data persistence
-- [ ] Add pgAdmin service (optional, for dev)
-- [ ] Create `.env.example` file with template variables
-- [ ] **AC**: `docker-compose up -d` starts PostgreSQL
+- [x] Create `docker-compose.yml` at solution root
+- [x] Add PostgreSQL service (postgres:16-alpine)
+- [x] Configure environment variables (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB)
+- [x] Expose port 5432
+- [x] Add volume for data persistence
+- [x] Add pgAdmin service (optional, for dev)
+- [x] Create `.env.example` file with template variables
+- [x] **AC**: `docker-compose up -d` starts PostgreSQL
 
 #### Task 0.2.2: Test Database Connection
-- [ ] Run `docker-compose up -d`
-- [ ] Use `psql` or pgAdmin to connect to database
-- [ ] Create test table and insert row
-- [ ] Drop test table
-- [ ] **AC**: Can connect and execute SQL
+- [x] Run `docker-compose up -d`
+- [x] Use `psql` or pgAdmin to connect to database
+- [x] Create test table and insert row
+- [x] Drop test table
+- [x] **AC**: Can connect and execute SQL
 
 #### Task 0.2.3: Create DbContext Class
-- [ ] Create `A2SDbContext.cs` in Infrastructure/Persistence
-- [ ] Inherit from `DbContext`
-- [ ] Add constructor accepting `DbContextOptions<A2SDbContext>`
-- [ ] Override `OnModelCreating` method (empty for now)
-- [ ] **AC**: DbContext class compiles
+- [x] Create `A2SDbContext.cs` in Infrastructure/Persistence
+- [x] Inherit from `DbContext`
+- [x] Add constructor accepting `DbContextOptions<A2SDbContext>`
+- [x] Override `OnModelCreating` method (empty for now)
+- [x] **AC**: DbContext class compiles
 
 #### Task 0.2.4: Configure Connection String
-- [ ] Add connection string to `appsettings.Development.json` in API project
-- [ ] Format: `Host=localhost;Database=a2s_dev;Username=postgres;Password=***`
-- [ ] Add connection string configuration to `Program.cs`
-- [ ] Register DbContext in DI: `builder.Services.AddDbContext<A2SDbContext>`
-- [ ] **AC**: DbContext registered in DI container
+- [x] Add connection string to `appsettings.Development.json` in API project
+- [x] Format: `Host=localhost;Database=a2s_dev;Username=postgres;Password=***`
+- [x] Add connection string configuration to `Program.cs`
+- [x] Register DbContext in DI: `builder.Services.AddDbContext<A2SDbContext>`
+- [x] **AC**: DbContext registered in DI container
 
 #### Task 0.2.5: Install EF Core Tools
-- [ ] Install `dotnet-ef` globally: `dotnet tool install --global dotnet-ef`
-- [ ] Verify installation: `dotnet ef --version`
-- [ ] **AC**: EF Core tools available
+- [x] Install `dotnet-ef` globally: `dotnet tool install --global dotnet-ef`
+- [x] Verify installation: `dotnet ef --version`
+- [x] **AC**: EF Core tools available
 
 #### Task 0.2.6: Create Initial Migration
-- [ ] Run `dotnet ef migrations add Initial -p src/A2S.Infrastructure -s src/A2S.Api`
-- [ ] Review generated migration file (should be empty or minimal)
-- [ ] Run `dotnet ef database update -p src/A2S.Infrastructure -s src/A2S.Api`
-- [ ] Verify database created in PostgreSQL
-- [ ] **AC**: Migration applied, database exists
+- [x] Run `dotnet ef migrations add Initial -p src/A2S.Infrastructure -s src/A2S.Api`
+- [x] Review generated migration file (should be empty or minimal)
+- [x] Run `dotnet ef database update -p src/A2S.Infrastructure -s src/A2S.Api`
+- [x] Verify database created in PostgreSQL
+- [x] **AC**: Migration applied, database exists
 
 ### 0.3 MediatR and CQRS Setup
 

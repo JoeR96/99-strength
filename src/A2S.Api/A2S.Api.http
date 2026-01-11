@@ -1,0 +1,6 @@
+@A2S.Api_HostAddress = http://localhost:5123
+
+GET {{A2S.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
