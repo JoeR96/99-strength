@@ -42,7 +42,7 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.OrderInDay)
             .IsRequired();
 
-        builder.Property("WorkoutId")
+        builder.Property<Guid>("WorkoutId")
             .IsRequired();
 
         // ExerciseProgression relationship (one-to-one)

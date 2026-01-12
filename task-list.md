@@ -139,203 +139,222 @@ This document breaks down the strategic plan into explicit step-by-step tasks. E
 ### 0.3 MediatR and CQRS Setup
 
 #### Task 0.3.1: Register MediatR in DI
-- [ ] Open `Program.cs` in A2S.Api
-- [ ] Add `builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly))`
-- [ ] Add reference to Application assembly for handlers
-- [ ] **AC**: MediatR registered
+- [x] Open `Program.cs` in A2S.Api
+- [x] Add `builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly))`
+- [x] Add reference to Application assembly for handlers
+- [x] **AC**: MediatR registered
 
 #### Task 0.3.2: Create Base Command and Query Interfaces
-- [ ] Create `ICommand.cs` in A2S.Application
-- [ ] Create `ICommand<TResponse>.cs` interface inheriting `IRequest<TResponse>`
-- [ ] Create `IQuery<TResponse>.cs` interface inheriting `IRequest<TResponse>`
-- [ ] **AC**: Base interfaces defined
+- [x] Create `ICommand.cs` in A2S.Application
+- [x] Create `ICommand<TResponse>.cs` interface inheriting `IRequest<TResponse>`
+- [x] Create `IQuery<TResponse>.cs` interface inheriting `IRequest<TResponse>`
+- [x] **AC**: Base interfaces defined
 
 #### Task 0.3.3: Create Sample Command to Test MediatR
-- [ ] Create `PingCommand.cs` implementing `ICommand<string>`
-- [ ] Create `PingCommandHandler.cs` implementing `IRequestHandler<PingCommand, string>`
-- [ ] Handler returns "Pong"
-- [ ] **AC**: Sample command and handler compile
+- [x] Create `PingCommand.cs` implementing `ICommand<string>`
+- [x] Create `PingCommandHandler.cs` implementing `IRequestHandler<PingCommand, string>`
+- [x] Handler returns "Pong"
+- [x] **AC**: Sample command and handler compile
 
 #### Task 0.3.4: Create Test Controller for MediatR
-- [ ] Create `TestController.cs` in A2S.Api/Controllers
-- [ ] Inject `IMediator`
-- [ ] Create GET endpoint `/api/test/ping` that sends `PingCommand`
-- [ ] **AC**: Controller compiles
+- [x] Create `TestController.cs` in A2S.Api/Controllers
+- [x] Inject `IMediator`
+- [x] Create GET endpoint `/api/test/ping` that sends `PingCommand`
+- [x] **AC**: Controller compiles
 
 #### Task 0.3.5: Test MediatR End-to-End
-- [ ] Run API: `dotnet run --project src/A2S.Api`
-- [ ] Call `GET /api/test/ping` via browser or curl
-- [ ] Verify response: "Pong"
-- [ ] **AC**: MediatR pipeline works
+- [x] Run API: `dotnet run --project src/A2S.Api`
+- [x] Call `GET /api/test/ping` via browser or curl
+- [x] Verify response: "Pong"
+- [x] **AC**: MediatR pipeline works
 
 #### Task 0.3.6: Delete Test Code
-- [ ] Delete `PingCommand.cs`, `PingCommandHandler.cs`
-- [ ] Delete `TestController.cs`
-- [ ] **AC**: Test code removed, clean slate
+- [x] Delete `PingCommand.cs`, `PingCommandHandler.cs`
+- [x] Delete `TestController.cs`
+- [x] **AC**: Test code removed, clean slate
 
 ### 0.4 Validation Setup
 
 #### Task 0.4.1: Create Validation Pipeline Behavior
-- [ ] Create `ValidationBehavior.cs` in A2S.Application/Behaviors
-- [ ] Implement `IPipelineBehavior<TRequest, TResponse>`
-- [ ] Inject `IEnumerable<IValidator<TRequest>>`
-- [ ] Run all validators before handler execution
-- [ ] Throw `ValidationException` if validation fails
-- [ ] **AC**: Validation behavior compiles
+- [x] Create `ValidationBehavior.cs` in A2S.Application/Behaviors
+- [x] Implement `IPipelineBehavior<TRequest, TResponse>`
+- [x] Inject `IEnumerable<IValidator<TRequest>>`
+- [x] Run all validators before handler execution
+- [x] Throw `ValidationException` if validation fails
+- [x] **AC**: Validation behavior compiles
 
 #### Task 0.4.2: Create ValidationException
-- [ ] Create `ValidationException.cs` in A2S.Application/Exceptions
-- [ ] Include `IDictionary<string, string[]> Errors` property
-- [ ] Constructor accepts FluentValidation `ValidationResult`
-- [ ] **AC**: ValidationException defined
+- [x] Create `ValidationException.cs` in A2S.Application/Exceptions
+- [x] Include `IDictionary<string, string[]> Errors` property
+- [x] Constructor accepts FluentValidation `ValidationResult`
+- [x] **AC**: ValidationException defined
 
 #### Task 0.4.3: Register Validation Behavior
-- [ ] Register `ValidationBehavior` in MediatR pipeline
-- [ ] Update `Program.cs`: `cfg.AddOpenBehavior(typeof(ValidationBehavior<,>))`
-- [ ] **AC**: Validation behavior registered
+- [x] Register `ValidationBehavior` in MediatR pipeline
+- [x] Update `DependencyInjection.cs`: `cfg.AddOpenBehavior(typeof(ValidationBehavior<,>))`
+- [x] **AC**: Validation behavior registered
 
 #### Task 0.4.4: Register FluentValidation Validators
-- [ ] Add `builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyMarker).Assembly)`
-- [ ] Create `ApplicationAssemblyMarker.cs` empty class for assembly reference
-- [ ] **AC**: Validators auto-discovered and registered
+- [x] Add `services.AddValidatorsFromAssembly(assembly)` in DependencyInjection.cs
+- [x] Validators auto-discovered from Application assembly
+- [x] **AC**: Validators auto-discovered and registered
 
 ### 0.5 Logging Setup
 
 #### Task 0.5.1: Configure Serilog
-- [ ] Install `Serilog.Sinks.Console` and `Serilog.Sinks.File` in A2S.Api
-- [ ] Configure Serilog in `Program.cs` before `builder.Build()`
-- [ ] Set minimum level to Information
-- [ ] Add console sink with structured output
-- [ ] Add file sink to `logs/app-.log` (rolling daily)
-- [ ] **AC**: Serilog configured
+- [x] Install `Serilog.Sinks.Console` and `Serilog.Sinks.File` in A2S.Api
+- [x] Configure Serilog in `Program.cs` before `builder.Build()`
+- [x] Set minimum level to Information
+- [x] Add console sink with structured output
+- [x] Add file sink to `logs/app-.log` (rolling daily)
+- [x] **AC**: Serilog configured
 
 #### Task 0.5.2: Add Request Logging
-- [ ] Add `app.UseSerilogRequestLogging()` middleware
-- [ ] Run API and make test request
-- [ ] Check console and log file for request log
-- [ ] **AC**: HTTP requests logged
+- [x] Add `app.UseSerilogRequestLogging()` middleware
+- [x] Run API and make test request
+- [x] Check console and log file for request log
+- [x] **AC**: HTTP requests logged
 
 #### Task 0.5.3: Add Correlation ID Middleware
-- [ ] Create `CorrelationIdMiddleware.cs` in A2S.Api/Middleware
-- [ ] Generate or extract correlation ID from header
-- [ ] Add correlation ID to Serilog context
-- [ ] Add correlation ID to response headers
-- [ ] Register middleware in pipeline
-- [ ] **AC**: All logs include correlation ID
+- [x] Create `CorrelationIdMiddleware.cs` in A2S.Api/Middleware
+- [x] Generate or extract correlation ID from header
+- [x] Add correlation ID to Serilog context
+- [x] Add correlation ID to response headers
+- [x] Register middleware in pipeline
+- [x] **AC**: All logs include correlation ID
 
 ### 0.6 API Versioning and Swagger
 
 #### Task 0.6.1: Configure API Versioning
-- [ ] Install `Asp.Versioning.Mvc` in A2S.Api
-- [ ] Add `builder.Services.AddApiVersioning()` with URL versioning
-- [ ] Set default version to 1.0
-- [ ] **AC**: API versioning configured
+- [x] Install `Asp.Versioning.Mvc` in A2S.Api
+- [x] Add `builder.Services.AddApiVersioning()` with URL versioning
+- [x] Set default version to 1.0
+- [x] **AC**: API versioning configured
 
 #### Task 0.6.2: Configure Swagger
-- [ ] Add `builder.Services.AddSwaggerGen()` in `Program.cs`
-- [ ] Configure swagger to support API versions
-- [ ] Add XML documentation (enable in .csproj)
-- [ ] Add `app.UseSwagger()` and `app.UseSwaggerUI()`
-- [ ] **AC**: Swagger UI accessible at `/swagger`
+- [x] Add `builder.Services.AddSwaggerGen()` in `Program.cs`
+- [x] Configure swagger to support API versions
+- [x] Add XML documentation (enable in .csproj)
+- [x] Add `app.UseSwagger()` and `app.UseSwaggerUI()`
+- [x] **AC**: Swagger UI accessible at `/swagger`
 
 #### Task 0.6.3: Test Swagger
-- [ ] Run API
-- [ ] Navigate to `https://localhost:5001/swagger`
-- [ ] Verify Swagger UI loads
-- [ ] **AC**: Swagger UI displays API documentation
+- [x] Run API
+- [x] Navigate to `https://localhost:5001/swagger`
+- [x] Verify Swagger UI loads
+- [x] **AC**: Swagger UI displays API documentation
 
-### 0.7 Authentication Setup
+### 0.7 Authentication Setup (ASP.NET Core Identity)
 
-#### Task 0.7.1: Register Azure AD Application
-- [ ] Go to Azure Portal → Azure Active Directory → App Registrations
-- [ ] Create new app registration (name: "A2S Workout Tracker")
-- [ ] Configure redirect URIs (SPA: `http://localhost:5173`)
-- [ ] Note down Application (client) ID
-- [ ] Note down Directory (tenant) ID
-- [ ] **AC**: Azure AD app registered
+#### Task 0.7.1: Install Identity Packages
+- [x] Install `Microsoft.AspNetCore.Identity.EntityFrameworkCore` in Infrastructure
+- [x] Install `Microsoft.AspNetCore.Authentication.JwtBearer` in API
+- [x] **AC**: Identity packages installed
 
-#### Task 0.7.2: Configure API Authentication
-- [ ] Add Azure AD config to `appsettings.json`:
-  ```json
-  "AzureAd": {
-    "Instance": "https://login.microsoftonline.com/",
-    "TenantId": "YOUR_TENANT_ID",
-    "ClientId": "YOUR_CLIENT_ID",
-    "Audience": "YOUR_CLIENT_ID"
-  }
-  ```
-- [ ] Add `builder.Services.AddMicrosoftIdentityWebApiAuthentication(builder.Configuration, "AzureAd")`
-- [ ] Add `app.UseAuthentication()` and `app.UseAuthorization()` to pipeline
-- [ ] **AC**: Authentication middleware configured
+#### Task 0.7.2: Create ApplicationUser Entity
+- [x] Create `ApplicationUser.cs` in Domain/Entities inheriting `IdentityUser`
+- [x] Add custom properties if needed (e.g., `DateTime CreatedAt`)
+- [x] **AC**: ApplicationUser entity created
 
-#### Task 0.7.3: Configure Swagger for Authentication
-- [ ] Add OAuth2 security definition to Swagger
-- [ ] Configure authorization URL and token URL
-- [ ] Add security requirement to Swagger UI
-- [ ] **AC**: Swagger UI has "Authorize" button
+#### Task 0.7.3: Update DbContext for Identity
+- [x] Change `A2SDbContext` to inherit from `IdentityDbContext<ApplicationUser>`
+- [x] Configure Identity entities in `OnModelCreating`
+- [x] **AC**: DbContext supports Identity
 
-#### Task 0.7.4: Create Protected Test Endpoint
-- [ ] Create `AuthTestController.cs`
-- [ ] Add `[Authorize]` attribute
-- [ ] Create GET endpoint returning user claims
-- [ ] **AC**: Endpoint returns 401 without token
+#### Task 0.7.4: Create and Apply Identity Migration
+- [x] Run `dotnet ef migrations add AddIdentity`
+- [x] Review migration (should create AspNetUsers, AspNetRoles, etc.)
+- [x] Run `dotnet ef database update`
+- [x] **AC**: Identity tables created in database
 
-#### Task 0.7.5: Test Authentication
-- [ ] Use Postman or curl to call protected endpoint without token
-- [ ] Verify 401 Unauthorized response
-- [ ] **AC**: Authentication enforces authorization
+#### Task 0.7.5: Configure Identity Services
+- [x] Add `builder.Services.AddIdentity<ApplicationUser, IdentityRole>()` in Program.cs
+- [x] Configure password requirements and user options
+- [x] Add `AddEntityFrameworkStores<A2SDbContext>()`
+- [x] **AC**: Identity services configured
+
+#### Task 0.7.6: Configure JWT Authentication
+- [x] Add JWT settings to `appsettings.json` (Secret, Issuer, Audience)
+- [x] Configure `AddAuthentication().AddJwtBearer()` in Program.cs
+- [x] Add `app.UseAuthentication()` and `app.UseAuthorization()` to pipeline
+- [x] **AC**: JWT authentication configured
+
+#### Task 0.7.7: Create JWT Token Service
+- [x] Create `IJwtTokenService` interface in Application
+- [x] Create `JwtTokenService` implementation in Infrastructure
+- [x] Implement `GenerateToken(ApplicationUser user)` method
+- [x] Register service in DI
+- [x] **AC**: Token service creates valid JWTs
+
+#### Task 0.7.8: Create Auth Endpoints
+- [x] Create `AuthController.cs` with Register and Login endpoints
+- [x] POST `/api/auth/register` - register new user
+- [x] POST `/api/auth/login` - login and return JWT
+- [x] **AC**: Auth endpoints created
+
+#### Task 0.7.9: Create Protected Test Endpoint
+- [x] Create `AuthTestController.cs`
+- [x] Add `[Authorize]` attribute
+- [x] Create GET endpoint returning user claims
+- [x] **AC**: Endpoint returns 401 without token
+
+#### Task 0.7.10: Test Authentication
+- [ ] Register a test user via API
+- [ ] Login and receive JWT token
+- [ ] Call protected endpoint with token (200 OK)
+- [ ] Call protected endpoint without token (401 Unauthorized)
+- [ ] **AC**: Authentication works end-to-end
 
 ### 0.8 Frontend Project Setup
 
 #### Task 0.8.1: Create Vite React TypeScript Project
-- [ ] Run `npm create vite@latest src/A2S.Web -- --template react-ts`
-- [ ] `cd src/A2S.Web`
-- [ ] Run `npm install`
-- [ ] Run `npm run dev`
-- [ ] Open browser to `http://localhost:5173`
-- [ ] **AC**: Vite dev server runs, React app loads
+- [x] Run `npm create vite@latest src/A2S.Web -- --template react-ts`
+- [x] `cd src/A2S.Web`
+- [x] Run `npm install`
+- [x] Run `npm run dev`
+- [x] Open browser to `http://localhost:5173`
+- [x] **AC**: Vite dev server runs, React app loads
 
 #### Task 0.8.2: Configure TypeScript
-- [ ] Open `tsconfig.json`
-- [ ] Enable `"strict": true`
-- [ ] Configure path aliases: `"@/*": ["./src/*"]`
-- [ ] Install `@types/node` for path resolution
-- [ ] Update `vite.config.ts` to support path aliases
-- [ ] **AC**: TypeScript strict mode enabled, aliases work
+- [x] Open `tsconfig.json`
+- [x] Enable `"strict": true`
+- [x] Configure path aliases: `"@/*": ["./src/*"]`
+- [x] Install `@types/node` for path resolution
+- [x] Update `vite.config.ts` to support path aliases
+- [x] **AC**: TypeScript strict mode enabled, aliases work
 
 #### Task 0.8.3: Install ESLint and Prettier
-- [ ] Install `eslint`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
-- [ ] Install `prettier`, `eslint-config-prettier`
-- [ ] Create `.eslintrc.json` with TypeScript rules
-- [ ] Create `.prettierrc` with formatting rules
-- [ ] Add scripts to `package.json`: `"lint"`, `"format"`
-- [ ] Run `npm run lint`
-- [ ] **AC**: Linting works, no errors
+- [x] Install `eslint`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
+- [x] Install `prettier`, `eslint-config-prettier`
+- [x] Configure `eslint.config.js` with TypeScript rules
+- [x] Create `.prettierrc` with formatting rules
+- [x] Add scripts to `package.json`: `"lint"`, `"format"`
+- [x] Run `npm run lint`
+- [x] **AC**: Linting works, no errors
 
 #### Task 0.8.4: Create Folder Structure
-- [ ] Create `src/components/`
-- [ ] Create `src/features/`
-- [ ] Create `src/api/`
-- [ ] Create `src/hooks/`
-- [ ] Create `src/utils/`
-- [ ] Create `src/types/`
-- [ ] **AC**: Folder structure organized
+- [x] Create `src/components/`
+- [x] Create `src/features/`
+- [x] Create `src/api/`
+- [x] Create `src/hooks/`
+- [x] Create `src/utils/`
+- [x] Create `src/types/`
+- [x] **AC**: Folder structure organized
 
 #### Task 0.8.5: Install Core Dependencies
-- [ ] Install `react-router-dom` (v6.x)
-- [ ] Install `@tanstack/react-query` (v5.x)
-- [ ] Install `axios`
+- [x] Install `react-router-dom` (v7.x)
+- [x] Install `@tanstack/react-query` (v5.x)
+- [x] Install `axios`
 - [ ] Install `@azure/msal-browser` and `@azure/msal-react`
-- [ ] **AC**: Core dependencies installed
+- [x] **AC**: Core dependencies installed
 
 #### Task 0.8.6: Install UI Dependencies
-- [ ] Install `tailwindcss`, `postcss`, `autoprefixer`
-- [ ] Run `npx tailwindcss init -p`
-- [ ] Configure `tailwind.config.js` with content paths
-- [ ] Add Tailwind directives to `src/index.css`
-- [ ] Install Radix UI primitives: `@radix-ui/react-dialog`, `@radix-ui/react-select`, etc.
-- [ ] Install `react-hot-toast` for notifications
-- [ ] **AC**: Tailwind CSS working, UI libraries installed
+- [x] Install `tailwindcss`, `postcss`, `autoprefixer`, `@tailwindcss/postcss`
+- [x] Create `tailwind.config.js` with content paths
+- [x] Add Tailwind directives to `src/index.css`
+- [x] Install Radix UI primitives: `@radix-ui/react-dialog`, `@radix-ui/react-select`, etc.
+- [x] Install `react-hot-toast` for notifications
+- [x] **AC**: Tailwind CSS working, UI libraries installed
 
 ### 0.9 Frontend Authentication Setup
 

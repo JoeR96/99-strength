@@ -1,13 +1,17 @@
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
+using A2S.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2S.Infrastructure.Persistence;
 
 /// <summary>
 /// Entity Framework Core database context for the A2S application.
+/// Inherits from IdentityDbContext to support ASP.NET Core Identity.
 /// </summary>
-public class A2SDbContext : DbContext
+public class A2SDbContext : IdentityDbContext<ApplicationUser>
 {
     public A2SDbContext(DbContextOptions<A2SDbContext> options)
         : base(options)
