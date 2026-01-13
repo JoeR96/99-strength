@@ -9,8 +9,13 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class TrainingMax : ValueObject
 {
-    public decimal Value { get; }
-    public WeightUnit Unit { get; }
+    public decimal Value { get; private init; }
+    public WeightUnit Unit { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private TrainingMax()
+    {
+    }
 
     private TrainingMax(decimal value, WeightUnit unit)
     {
@@ -76,8 +81,13 @@ public sealed class TrainingMax : ValueObject
 /// </summary>
 public sealed class TrainingMaxAdjustment : ValueObject
 {
-    public AdjustmentType Type { get; }
-    public decimal Amount { get; }
+    public AdjustmentType Type { get; private init; }
+    public decimal Amount { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private TrainingMaxAdjustment()
+    {
+    }
 
     private TrainingMaxAdjustment(AdjustmentType type, decimal amount)
     {

@@ -356,45 +356,84 @@ This document breaks down the strategic plan into explicit step-by-step tasks. E
 - [x] Install `react-hot-toast` for notifications
 - [x] **AC**: Tailwind CSS working, UI libraries installed
 
-### 0.9 Frontend Authentication Setup
+### 0.9 Frontend Authentication Setup (GitHub/Gmail with Clerk)
 
-#### Task 0.9.1: Configure MSAL
-- [ ] Create `src/authConfig.ts`
-- [ ] Configure MSAL with Azure AD client ID and tenant ID
-- [ ] Set redirect URI: `http://localhost:5173`
-- [ ] Create MSAL instance
-- [ ] **AC**: MSAL configuration file created
+#### Task 0.9.1: Configure Clerk
+- [x] Install `@clerk/clerk-react` package
+- [x] Create `.env.example` with Clerk publishable key
+- [x] Configure Clerk provider in main.tsx
+- [x] **AC**: Clerk configuration complete
 
-#### Task 0.9.2: Create Auth Provider
-- [ ] Create `src/components/AuthProvider.tsx`
-- [ ] Wrap app with `MsalProvider`
-- [ ] Handle authentication state
-- [ ] **AC**: AuthProvider component created
+#### Task 0.9.2: Create Auth Pages
+- [x] Create `src/features/auth/LoginPage.tsx` with Clerk SignIn component
+- [x] Create `src/features/auth/SignUpPage.tsx` with Clerk SignUp component
+- [x] Create `src/features/auth/DashboardPage.tsx` for authenticated users
+- [x] **AC**: Auth pages created with Clerk UI
 
-#### Task 0.9.3: Create useAuth Hook
-- [ ] Create `src/hooks/useAuth.ts`
-- [ ] Use `useMsal()` from MSAL React
-- [ ] Expose `login()`, `logout()`, `isAuthenticated`, `user`, `getAccessToken()`
-- [ ] **AC**: useAuth hook provides auth functionality
+#### Task 0.9.3: Create useAuth Hook (Optional)
+- [x] Clerk provides `useUser()`, `useAuth()`, `useClerk()` hooks
+- [x] Can create custom wrapper if needed
+- [x] **AC**: Auth hooks available via Clerk
 
-#### Task 0.9.4: Create Login Page
-- [ ] Create `src/features/auth/LoginPage.tsx`
-- [ ] Add "Login with Microsoft" button
-- [ ] Call `login()` from useAuth hook
-- [ ] **AC**: Login page renders
+#### Task 0.9.4: Configure App Routes
+- [x] Update App.tsx with auth-aware routing
+- [x] Use `<SignedIn>` and `<SignedOut>` components
+- [x] Protected routes redirect to sign-in
+- [x] **AC**: Auth routing works
 
-#### Task 0.9.5: Update App.tsx with Auth
-- [ ] Wrap app with `AuthProvider`
-- [ ] Show login page if not authenticated
-- [ ] Show main app if authenticated
-- [ ] **AC**: Auth flow works in UI
+#### Task 0.9.5: Configure OAuth Providers in Clerk Dashboard
+- [ ] Log in to Clerk Dashboard (https://dashboard.clerk.com)
+- [ ] Enable GitHub OAuth provider
+- [ ] Enable Google OAuth provider
+- [ ] Configure callback URLs: http://localhost:5173, https://yourdomain.com
+- [ ] **AC**: OAuth providers enabled in Clerk
 
-#### Task 0.9.6: Test Login Flow
-- [ ] Run `npm run dev`
-- [ ] Click "Login with Microsoft"
-- [ ] Authenticate with Microsoft account
-- [ ] Verify redirect back to app
-- [ ] **AC**: User can log in via Microsoft Identity
+#### Task 0.9.6: Create Playwright Login Test
+- [x] Create comprehensive login test in `tests/e2e/auth-login.spec.ts`
+- [x] Test GitHub OAuth flow (skipped - requires OAuth setup)
+- [x] Test Google OAuth flow (skipped - requires OAuth setup)
+- [x] Test email/password flow (skipped - requires test user)
+- [x] Test basic UI elements and routing
+- [x] Test protected routes
+- [x] Test unauthenticated redirects
+- [ ] Configure Clerk key and run tests successfully
+- [ ] **AC**: Playwright login test infrastructure complete
+
+#### Task 0.9.7: Fix Swashbuckle .NET 9 Compatibility
+- [x] Downgrade Swashbuckle or add Microsoft.OpenApi package reference
+- [x] Ensure Swagger works in Development environment
+- [x] Ensure tests run without OpenAPI conflicts in Testing environment
+- [x] **AC**: Swagger works in dev, tests run successfully
+
+#### Task 0.9.8: Create .NET Integration Tests (WebApplicationFactory)
+- [x] Create `tests/A2S.Tests.Shared` project with shared infrastructure
+- [x] Create `TestWebApplicationFactory` with Testcontainers PostgreSQL
+- [x] Create `TestDbContext` for simplified auth-only testing
+- [x] Create `tests/A2S.Api.Tests/AuthIntegrationTests.cs`
+- [x] Fix remaining issues and verify all 7 auth integration tests pass
+- [x] **AC**: API integration tests pass using WebApplicationFactory
+
+#### Task 0.9.9: Create .NET E2E Tests (Playwright for .NET)
+- [x] Create `tests/A2S.E2ETests` project
+- [x] Install Microsoft.Playwright package
+- [x] Install Playwright browsers (`pwsh playwright.ps1 install`)
+- [x] Create E2ETestBase infrastructure class
+- [x] Configure Clerk test credentials (`TestCredentials.cs`)
+- [x] Create 7 E2E auth tests using Playwright for .NET
+- [x] Backend API test (✅ PASSING)
+- [x] Login page UI tests (6 tests for form validation and full login flow)
+- [x] Create README with setup instructions and credentials
+- [x] **AC**: E2E infrastructure complete, all tests compile, backend test passes
+
+#### Task 0.9.10: Install and Configure Storybook
+- [x] Install Storybook for React: `npx storybook@latest init`
+- [x] Configure Storybook to work with Vite and Tailwind
+- [x] Install and configure ShadCN UI
+- [x] Refactor LoginPage to use ShadCN components
+- [x] Create example stories for auth components (LoginForm)
+- [x] Create example stories for UI components (Button)
+- [x] Add npm scripts: `storybook`, `build-storybook`
+- [x] **AC**: Storybook runs and displays component stories
 
 ### 0.10 API Client Setup
 

@@ -9,11 +9,16 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class WorkoutActivity : ValueObject
 {
-    public DayNumber Day { get; }
-    public int WeekNumber { get; }
-    public int BlockNumber { get; }
-    public IReadOnlyList<ExercisePerformance> Performances { get; }
-    public DateTime CompletedAt { get; }
+    public DayNumber Day { get; private init; }
+    public int WeekNumber { get; private init; }
+    public int BlockNumber { get; private init; }
+    public IReadOnlyList<ExercisePerformance> Performances { get; private init; } = Array.Empty<ExercisePerformance>();
+    public DateTime CompletedAt { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private WorkoutActivity()
+    {
+    }
 
     public WorkoutActivity(
         DayNumber day,

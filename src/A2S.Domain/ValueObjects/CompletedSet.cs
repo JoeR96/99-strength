@@ -7,10 +7,15 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class CompletedSet : ValueObject
 {
-    public int SetNumber { get; }
-    public Weight Weight { get; }
-    public int ActualReps { get; }
-    public bool WasAmrap { get; }
+    public int SetNumber { get; private init; }
+    public Weight Weight { get; private init; } = null!;
+    public int ActualReps { get; private init; }
+    public bool WasAmrap { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private CompletedSet()
+    {
+    }
 
     public CompletedSet(int setNumber, Weight weight, int actualReps, bool wasAmrap = false)
     {

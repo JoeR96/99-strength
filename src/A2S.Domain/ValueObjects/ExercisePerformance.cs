@@ -8,10 +8,16 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class ExercisePerformance : ValueObject
 {
-    public ExerciseId ExerciseId { get; }
-    public IReadOnlyList<CompletedSet> CompletedSets { get; }
-    public IReadOnlyList<PlannedSet> PlannedSets { get; }
-    public DateTime CompletedAt { get; }
+    public ExerciseId ExerciseId { get; private init; }
+    public IReadOnlyList<CompletedSet> CompletedSets { get; private init; } = Array.Empty<CompletedSet>();
+    public IReadOnlyList<PlannedSet> PlannedSets { get; private init; } = Array.Empty<PlannedSet>();
+    public DateTime CompletedAt { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private ExercisePerformance()
+    {
+        ExerciseId = new ExerciseId(Guid.Empty); // Temporary placeholder for EF Core
+    }
 
     public ExercisePerformance(
         ExerciseId exerciseId,

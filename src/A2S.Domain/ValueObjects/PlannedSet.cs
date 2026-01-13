@@ -8,10 +8,15 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class PlannedSet : ValueObject
 {
-    public int SetNumber { get; }
-    public Weight Weight { get; }
-    public int TargetReps { get; }
-    public bool IsAmrap { get; }
+    public int SetNumber { get; private init; }
+    public Weight Weight { get; private init; } = null!;
+    public int TargetReps { get; private init; }
+    public bool IsAmrap { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private PlannedSet()
+    {
+    }
 
     public PlannedSet(int setNumber, Weight weight, int targetReps, bool isAmrap = false)
     {

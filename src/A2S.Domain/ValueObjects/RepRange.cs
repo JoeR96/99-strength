@@ -10,9 +10,14 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class RepRange : ValueObject
 {
-    public int Minimum { get; }
-    public int Target { get; }
-    public int Maximum { get; }
+    public int Minimum { get; private init; }
+    public int Target { get; private init; }
+    public int Maximum { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private RepRange()
+    {
+    }
 
     private RepRange(int minimum, int target, int maximum)
     {

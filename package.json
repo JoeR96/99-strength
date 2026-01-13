@@ -1,5 +1,41 @@
 {
+  "name": "a2s-workout-tracker",
+  "version": "0.9.0",
+  "private": true,
+  "description": "A2S Workout Tracker - Full Stack Application",
+  "scripts": {
+    "start": "npm run start:all",
+    "start:all": "concurrently \"npm run start:db\" \"npm run start:api\" \"npm run start:web\"",
+    "start:db": "docker-compose up -d",
+    "start:api": "cd src/A2S.Api && dotnet run",
+    "start:web": "cd src/A2S.Web && npm run dev",
+    "stop:db": "docker-compose down",
+    "test": "dotnet test",
+    "test:backend": "dotnet test --filter FullyQualifiedName!~E2ETests",
+    "test:e2e": "dotnet test --filter FullyQualifiedName~E2ETests",
+    "build": "npm run build:api && npm run build:web",
+    "build:api": "dotnet build",
+    "build:web": "cd src/A2S.Web && npm run build",
+    "setup": "npm run setup:db && npm run setup:api && npm run setup:web",
+    "setup:db": "docker-compose up -d && timeout 10",
+    "setup:api": "dotnet restore && dotnet build",
+    "setup:web": "cd src/A2S.Web && npm install",
+    "install:web": "cd src/A2S.Web && npm install",
+    "format": "cd src/A2S.Web && npm run format",
+    "lint": "cd src/A2S.Web && npm run lint"
+  },
   "dependencies": {
     "deep-orc": "^1.0.0"
-  }
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "workout-tracker",
+    "fitness",
+    "a2s",
+    "strength-training"
+  ],
+  "author": "",
+  "license": "ISC"
 }

@@ -1,0 +1,55 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "A2S Workout Tracker" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Sign in to track your progress
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - heading "Sign in to 99-strength" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Welcome back! Please sign in to continue
+      - generic [ref=e15]:
+        - generic [ref=e17]:
+          - button "Sign in with Discord" [disabled]:
+            - img "Sign in with Discord"
+          - button "Sign in with GitHub" [disabled]:
+            - img "Sign in with GitHub"
+          - button "Sign in with Google" [disabled]:
+            - img "Sign in with Google"
+        - paragraph [ref=e20]: or
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e26]:
+              - generic [ref=e27]:
+                - generic: Email address
+              - textbox "Email address" [disabled]:
+                - /placeholder: Enter your email address
+                - text: Bigdave@gmail.com
+            - generic [ref=e31]:
+              - generic [ref=e32]:
+                - generic: Password
+              - generic [ref=e33]:
+                - textbox "Password" [disabled]:
+                  - /placeholder: Enter your password
+                  - text: Tacomuncher123!
+                - button "Show password" [ref=e34] [cursor=pointer]:
+                  - img [ref=e35]
+          - generic [ref=e39]:
+            - button "Loading" [disabled]:
+              - generic:
+                - generic "Loading"
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]: Don’t have an account?
+        - link "Sign up" [ref=e43] [cursor=pointer]:
+          - /url: http://localhost:5173/sign-up
+      - generic [ref=e45]:
+        - generic [ref=e47]:
+          - paragraph [ref=e48]: Secured by
+          - link "Clerk logo" [ref=e49] [cursor=pointer]:
+            - /url: https://go.clerk.com/components
+            - img [ref=e50]
+        - paragraph [ref=e55]: Development mode
+```

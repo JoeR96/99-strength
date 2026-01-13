@@ -9,8 +9,13 @@ namespace A2S.Domain.ValueObjects;
 /// </summary>
 public sealed class Weight : ValueObject
 {
-    public decimal Value { get; }
-    public WeightUnit Unit { get; }
+    public decimal Value { get; private init; }
+    public WeightUnit Unit { get; private init; }
+
+    // EF Core constructor for JSON deserialization
+    private Weight()
+    {
+    }
 
     private Weight(decimal value, WeightUnit unit)
     {

@@ -1,0 +1,58 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "A2S Workout Tracker" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Sign in to track your progress
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - heading "Sign in to 99-strength" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Welcome back! Please sign in to continue
+      - generic [ref=e15]:
+        - generic [ref=e17]:
+          - button "Sign in with Discord" [ref=e18] [cursor=pointer]:
+            - img "Sign in with Discord" [ref=e19]
+          - button "Sign in with GitHub" [ref=e20] [cursor=pointer]:
+            - img "Sign in with GitHub" [ref=e21]
+          - button "Sign in with Google" [ref=e22] [cursor=pointer]:
+            - img "Sign in with Google" [ref=e23]
+        - paragraph [ref=e26]: or
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e31]:
+              - generic [ref=e32]:
+                - generic [ref=e34]: Email address
+                - textbox "Email address" [ref=e35]:
+                  - /placeholder: Enter your email address
+                  - text: invalid@example.com
+              - generic [ref=e36]: Couldn't find your account.
+              - paragraph [ref=e38]:
+                - img [ref=e39]
+                - text: Couldn't find your account.
+            - generic [ref=e43]:
+              - generic [ref=e45]: Password
+              - generic [ref=e46]:
+                - textbox "Password" [ref=e47]:
+                  - /placeholder: Enter your password
+                  - text: InvalidPassword123!
+                - button "Show password" [ref=e48] [cursor=pointer]:
+                  - img [ref=e49]
+          - button "Continue" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]:
+              - text: Continue
+              - img [ref=e56]
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]: Don’t have an account?
+        - link "Sign up" [ref=e61] [cursor=pointer]:
+          - /url: http://localhost:5173/sign-up
+      - generic [ref=e63]:
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: Secured by
+          - link "Clerk logo" [ref=e67] [cursor=pointer]:
+            - /url: https://go.clerk.com/components
+            - img [ref=e68]
+        - paragraph [ref=e73]: Development mode
+```

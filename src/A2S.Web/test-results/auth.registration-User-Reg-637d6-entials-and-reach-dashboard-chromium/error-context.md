@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "A2S Workout Tracker" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Create your account to get started
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - heading "Create your account" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Welcome! Please fill in the details to get started.
+      - generic [ref=e15]:
+        - generic [ref=e17]:
+          - button "Sign in with Discord" [disabled]:
+            - img "Sign in with Discord"
+          - button "Sign in with GitHub" [disabled]:
+            - img "Sign in with GitHub"
+          - button "Sign in with Google" [disabled]:
+            - img "Sign in with Google"
+        - paragraph [ref=e20]: or
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - generic [ref=e26]:
+                - generic [ref=e27]:
+                  - generic: First name
+                  - generic: Optional
+                - textbox "First name" [disabled]
+              - generic [ref=e30]:
+                - generic [ref=e31]:
+                  - generic: Last name
+                  - generic: Optional
+                - textbox "Last name" [disabled]
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - generic: Email address
+              - textbox "Email address" [disabled]:
+                - /placeholder: Enter your email address
+                - text: test-1768302401188-oru8n02@example.com
+            - generic [ref=e40]:
+              - generic [ref=e41]:
+                - generic: Password
+              - generic [ref=e42]:
+                - textbox "Password" [disabled]:
+                  - /placeholder: Enter your password
+                  - text: Testnjwcw5dntj8123!
+                - button "Show password" [ref=e43] [cursor=pointer]:
+                  - img [ref=e44]
+          - generic [ref=e49]:
+            - button "Loading" [disabled]:
+              - generic:
+                - generic "Loading"
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]: Already have an account?
+        - link "Sign in" [ref=e53] [cursor=pointer]:
+          - /url: http://localhost:5173/sign-in
+      - generic [ref=e55]:
+        - generic [ref=e57]:
+          - paragraph [ref=e58]: Secured by
+          - link "Clerk logo" [ref=e59] [cursor=pointer]:
+            - /url: https://go.clerk.com/components
+            - img [ref=e60]
+        - paragraph [ref=e65]: Development mode
+```
