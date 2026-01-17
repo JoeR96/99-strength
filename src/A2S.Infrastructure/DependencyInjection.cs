@@ -59,6 +59,10 @@ public static class DependencyInjection
 
         // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IWorkoutRepository, WorkoutRepository>();
+
+        // Register Unit of Work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

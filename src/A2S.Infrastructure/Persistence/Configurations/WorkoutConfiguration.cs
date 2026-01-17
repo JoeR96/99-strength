@@ -58,20 +58,16 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
         builder.Ignore(w => w.DomainEvents);
 
         // CompletedActivities as owned complex type (JSON column)
+        // EF Core 9 handles nested collections in JSON automatically
         builder.OwnsMany(w => w.CompletedActivities, activity =>
         {
             activity.ToJson();
-
-            // Configure complex type mapping for WorkoutActivity
-            activity.Property(a => a.Day)
-                .HasConversion<string>(); // Store DayNumber as string
-
+            activity.Property(a => a.Day).HasConversion<string>();
             activity.Property(a => a.WeekNumber);
             activity.Property(a => a.BlockNumber);
             activity.Property(a => a.CompletedAt);
-
-            // Performances collection within WorkoutActivity
-            // EF Core will handle nested collections in JSON automatically
+            // Ignore the Performances collection - it will be serialized as part of JSON
+            activity.Ignore(a => a.Performances);
         });
     }
 }
