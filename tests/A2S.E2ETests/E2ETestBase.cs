@@ -1,5 +1,4 @@
 using A2S.Tests.Shared;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Playwright;
 using Xunit;
 
@@ -9,8 +8,10 @@ namespace A2S.E2ETests;
 /// Base class for E2E tests that provides both backend API and frontend browser automation.
 /// Uses TestWebApplicationFactory for the backend and Playwright for browser automation.
 /// </summary>
+[Collection("E2E")]
 public abstract class E2ETestBase : IAsyncLifetime
 {
+    protected readonly FrontendFixture FrontendFixture;
     protected TestWebApplicationFactory<Program> Factory { get; private set; } = null!;
     protected HttpClient ApiClient { get; private set; } = null!;
     protected IPlaywright Playwright { get; private set; } = null!;
@@ -18,11 +19,14 @@ public abstract class E2ETestBase : IAsyncLifetime
     protected string ApiBaseUrl { get; private set; } = null!;
 
     /// <summary>
-    /// Override this to specify the frontend URL.
-    /// For now, tests assume frontend is running on localhost:5173 (Vite dev server).
-    /// In CI/CD, you would build and serve the frontend as part of the test setup.
+    /// The frontend URL from the fixture.
     /// </summary>
-    protected virtual string FrontendUrl => "http://localhost:5173";
+    protected string FrontendUrl => FrontendFixture.FrontendUrl;
+
+    protected E2ETestBase(FrontendFixture frontendFixture)
+    {
+        FrontendFixture = frontendFixture;
+    }
 
     public virtual async Task InitializeAsync()
     {
@@ -76,7 +80,13 @@ public abstract class E2ETestBase : IAsyncLifetime
     protected async Task<IPage> CreatePageAsync()
     {
         var context = await CreateBrowserContextAsync();
-        return await context.NewPageAsync();
+        var page = await context.NewPageAsync();
+
+        // Capture console messages for debugging
+        page.Console += (_, msg) => Console.WriteLine($"[BROWSER {msg.Type.ToUpper()}] {msg.Text}");
+        page.PageError += (_, error) => Console.WriteLine($"[PAGE ERROR] {error}");
+
+        return page;
     }
 
     /// <summary>
@@ -126,11 +136,11 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         await WaitForClerkSignInAsync(page);
 
-        var emailInput = page.Locator("input[name='identifier'], input[type='email']").First;
+        var emailInput = page.Locator("#identifier-field").First;
         await emailInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await emailInput.FillAsync(email);
 
-        var passwordInput = page.Locator("input[name='password'], input[type='password']").First;
+        var passwordInput = page.Locator("#password-field").First;
         await passwordInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await passwordInput.FillAsync(password);
     }
@@ -142,22 +152,22 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         await WaitForClerkSignUpAsync(page);
 
-        var emailInput = page.Locator("input[name='emailAddress'], input[type='email']").First;
+        var emailInput = page.Locator("#emailAddress-field").First;
         await emailInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await emailInput.FillAsync(email);
 
-        var passwordInput = page.Locator("input[name='password'], input[type='password']").First;
+        var passwordInput = page.Locator("#password-field").First;
         await passwordInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await passwordInput.FillAsync(password);
     }
 
     /// <summary>
-    /// Submits a Clerk form by pressing Enter on the password field.
+    /// Submits a Clerk form by clicking the Continue button.
     /// </summary>
     protected async Task SubmitClerkFormAsync(IPage page)
     {
-        var passwordInput = page.Locator("input[name='password'], input[type='password']").First;
-        await passwordInput.PressAsync("Enter");
+        var continueButton = page.Locator("button:has-text('Continue')").First;
+        await continueButton.ClickAsync();
     }
 
     /// <summary>

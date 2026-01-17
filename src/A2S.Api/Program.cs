@@ -119,6 +119,9 @@ app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Auto-provision user on first authenticated request
+app.UseAutoProvisionUser();
+
 // Map controllers
 app.MapControllers();
 

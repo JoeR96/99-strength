@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace A2S.Tests.Shared;
 
 /// <summary>
-/// Simplified DbContext for testing that only includes Identity tables.
+/// Simplified DbContext for testing that includes Identity tables and User entity.
 /// Excludes complex Workout aggregates that have EF Core configuration issues.
 /// </summary>
 public class TestDbContext : IdentityDbContext<ApplicationUser>
@@ -15,11 +15,22 @@ public class TestDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    public DbSet<User> AppUsers => Set<User>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Only configure Identity tables, skip Workout entities for now
-        // This allows auth tests to run while we fix the Workout entity configurations
+        // Configure User entity
+        modelBuilder.Entity<User>(builder =>
+        {
+            builder.ToTable("Users");
+            builder.HasKey(u => u.Id);
+            builder.Property(u => u.Id).ValueGeneratedNever();
+            builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
+            builder.Property(u => u.Name).IsRequired().HasMaxLength(100);
+            builder.Property(u => u.CreatedAt).IsRequired();
+            builder.HasIndex(u => u.Email).IsUnique();
+        });
     }
 }

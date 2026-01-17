@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\A2S.Application\A2S.Application.csproj" />
+    <ProjectReference Include="..\..\src\A2S.Domain\A2S.Domain.csproj" />
   </ItemGroup>
 
 </Project>

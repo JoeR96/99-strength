@@ -1,5 +1,7 @@
 using A2S.Domain.Entities;
+using A2S.Domain.Repositories;
 using A2S.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -25,6 +30,11 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
 
     public string ConnectionString { get; private set; } = string.Empty;
 
+    // JWT settings shared between configuration and test helpers
+    public const string TestJwtSecret = "ThisIsATestSecretKeyForJwtTokenGenerationThatIs64CharactersLongForHS256";
+    public const string TestJwtIssuer = "A2STestIssuer";
+    public const string TestJwtAudience = "A2STestAudience";
+
     /// <summary>
     /// Initializes the test container before tests run.
     /// </summary>
@@ -37,6 +47,7 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             .WithPassword("postgres")
             .WithCleanUp(true)
             .Build();
+
 
         await _postgresContainer.StartAsync();
         ConnectionString = _postgresContainer.GetConnectionString();
@@ -63,9 +74,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Jwt:Secret"] = "ThisIsATestSecretKeyForJwtTokenGenerationThatIs32CharactersLong",
-                ["Jwt:Issuer"] = "A2STestIssuer",
-                ["Jwt:Audience"] = "A2STestAudience",
+                ["Jwt:Secret"] = TestJwtSecret,
+                ["Jwt:Issuer"] = TestJwtIssuer,
+                ["Jwt:Audience"] = TestJwtAudience,
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning" // Reduce logging noise in tests
             });
@@ -92,6 +103,25 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             // Add the stores back with TestDbContext
             services.AddScoped<IUserStore<ApplicationUser>, Microsoft.AspNetCore.Identity.EntityFrameworkCore.UserStore<ApplicationUser, IdentityRole, TestDbContext>>();
             services.AddScoped<IRoleStore<IdentityRole>, Microsoft.AspNetCore.Identity.EntityFrameworkCore.RoleStore<IdentityRole, TestDbContext>>();
+
+            // Replace IUserRepository with a test implementation that uses TestDbContext
+            services.RemoveAll<IUserRepository>();
+            services.AddScoped<IUserRepository, TestUserRepository>();
+
+            // Reconfigure JWT Bearer options with test secret
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = TestJwtIssuer,
+                    ValidAudience = TestJwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret))
+                };
+            });
 
             // Ensure test database is created
             var serviceProvider = services.BuildServiceProvider();

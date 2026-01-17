@@ -14,10 +14,14 @@ namespace A2S.E2ETests;
 [Collection("E2E")]
 public class AuthE2ETests : E2ETestBase
 {
+    public AuthE2ETests(FrontendFixture frontendFixture) : base(frontendFixture)
+    {
+    }
+
     /// <summary>
     /// Helper method to navigate to login page and wait for React to load.
     /// </summary>
-    private async Task<IPage> NavigateToLoginPageAsync()
+    private new async Task<IPage> NavigateToLoginPageAsync()
     {
         var page = await CreatePageAsync();
         await page.GotoAsync($"{FrontendUrl}/sign-in");

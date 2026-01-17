@@ -1,5 +1,7 @@
 using A2S.Application.Services;
+using A2S.Domain.Repositories;
 using A2S.Infrastructure.Persistence;
+using A2S.Infrastructure.Repositories;
 using A2S.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -55,7 +57,8 @@ public static class DependencyInjection
         // Register JWT Token Service
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-        // TODO: Register repositories in Phase 0.4
+        // Register repositories
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

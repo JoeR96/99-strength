@@ -1,3 +1,80 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Golden Twilight Theme - Light Mode Colors */
+  --color-background: 0 0% 100%;
+  --color-foreground: 222 100% 3%;
+
+  --color-card: 0 0% 100%;
+  --color-card-foreground: 222 100% 3%;
+
+  --color-popover: 0 0% 100%;
+  --color-popover-foreground: 222 100% 3%;
+
+  --color-primary: 45 100% 52%; /* Gold */
+  --color-primary-foreground: 222 100% 3%; /* Ink Black */
+
+  --color-secondary: 210 100% 20%; /* Oxford Navy */
+  --color-secondary-foreground: 45 100% 52%; /* Gold */
+
+  --color-muted: 210 100% 11%; /* Prussian Blue */
+  --color-muted-foreground: 45 100% 65%; /* Lighter gold for contrast */
+
+  --color-accent: 45 100% 50%; /* School Bus Yellow */
+  --color-accent-foreground: 222 100% 3%; /* Ink Black */
+
+  --color-destructive: 0 84% 60%;
+  --color-destructive-foreground: 0 0% 100%;
+
+  --color-border: 210 100% 11%;
+  --color-input: 210 100% 11%;
+  --color-ring: 45 100% 52%;
+
+  /* Custom palette colors for direct use */
+  --color-ink-black: 222 100% 3%;
+  --color-prussian-blue: 210 100% 11%;
+  --color-oxford-navy: 210 100% 20%;
+  --color-school-bus-yellow: 45 100% 50%;
+  --color-gold: 45 100% 52%;
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+
+@layer base {
+  :root {
+    background-color: hsl(var(--color-background));
+    color: hsl(var(--color-foreground));
+  }
+
+  .dark {
+    --color-background: 222 100% 3%; /* Ink Black */
+    --color-foreground: 45 100% 52%; /* Gold */
+
+    --color-card: 210 100% 11%; /* Prussian Blue */
+    --color-card-foreground: 45 100% 52%; /* Gold */
+
+    --color-popover: 210 100% 11%; /* Prussian Blue */
+    --color-popover-foreground: 45 100% 52%; /* Gold */
+
+    --color-primary: 45 100% 52%; /* Gold */
+    --color-primary-foreground: 222 100% 3%; /* Ink Black */
+
+    --color-secondary: 210 100% 20%; /* Oxford Navy */
+    --color-secondary-foreground: 45 100% 52%; /* Gold */
+
+    --color-muted: 210 100% 11%; /* Prussian Blue */
+    --color-muted-foreground: 45 100% 65%; /* Lighter gold for contrast */
+
+    --color-accent: 45 100% 50%; /* School Bus Yellow */
+    --color-accent-foreground: 222 100% 3%; /* Ink Black */
+
+    --color-destructive: 0 62% 30%;
+    --color-destructive-foreground: 0 0% 100%;
+
+    --color-border: 210 100% 20%;
+    --color-input: 210 100% 20%;
+    --color-ring: 45 100% 52%;
+  }
+}

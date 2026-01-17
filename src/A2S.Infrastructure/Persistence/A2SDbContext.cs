@@ -21,6 +21,7 @@ public class A2SDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Workout> Workouts => Set<Workout>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<ExerciseProgression> ExerciseProgressions => Set<ExerciseProgression>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
