@@ -53,8 +53,17 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
-    /// Creates an exercise with linear progression (for main/auxiliary lifts).
+    /// Creates an exercise with linear progression.
+    /// Can be used for any category - progression strategy is independent of category.
     /// </summary>
+    /// <param name="name">Exercise name</param>
+    /// <param name="category">Category determines if it's a primary or auxiliary lift</param>
+    /// <param name="equipment">Equipment type used</param>
+    /// <param name="assignedDay">Training day assigned to</param>
+    /// <param name="orderInDay">Order within the day</param>
+    /// <param name="trainingMax">Training max for calculating working weights</param>
+    /// <param name="useAmrap">Whether to use AMRAP on final set</param>
+    /// <param name="baseSetsPerExercise">Number of sets per session</param>
     public static Exercise CreateWithLinearProgression(
         string name,
         ExerciseCategory category,
@@ -65,10 +74,6 @@ public sealed class Exercise : Entity<ExerciseId>
         bool useAmrap = true,
         int baseSetsPerExercise = 4)
     {
-        CheckRule(
-            category == ExerciseCategory.MainLift || category == ExerciseCategory.Auxiliary,
-            "Linear progression is only for main lifts or auxiliary exercises");
-
         var progression = LinearProgressionStrategy.Create(
             trainingMax,
             useAmrap,
@@ -85,10 +90,22 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
-    /// Creates an exercise with reps-per-set progression (for accessories).
+    /// Creates an exercise with reps-per-set (hypertrophy) progression.
+    /// Can be used for any category - progression strategy is independent of category.
+    /// A hypertrophy exercise can be a main lift, auxiliary, or accessory.
     /// </summary>
+    /// <param name="name">Exercise name</param>
+    /// <param name="category">Category determines if it's a primary, auxiliary, or accessory lift</param>
+    /// <param name="equipment">Equipment type used</param>
+    /// <param name="assignedDay">Training day assigned to</param>
+    /// <param name="orderInDay">Order within the day</param>
+    /// <param name="repRange">Target rep range for progression</param>
+    /// <param name="startingWeight">Starting weight</param>
+    /// <param name="startingSets">Starting number of sets</param>
+    /// <param name="targetSets">Target sets before weight increases</param>
     public static Exercise CreateWithRepsPerSetProgression(
         string name,
+        ExerciseCategory category,
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
@@ -107,7 +124,7 @@ public sealed class Exercise : Entity<ExerciseId>
         return new Exercise(
             new ExerciseId(Guid.NewGuid()),
             name,
-            ExerciseCategory.Accessory,
+            category,
             equipment,
             assignedDay,
             orderInDay,

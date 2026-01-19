@@ -1,5 +1,5 @@
 using A2S.Application.Common;
-using A2S.Application.DTOs;
+using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -10,7 +10,8 @@ namespace A2S.Application.Commands.CreateWorkout;
 
 /// <summary>
 /// Handler for CreateWorkoutCommand.
-/// Creates a new workout program with default exercises (the 4 main lifts).
+/// Creates a new workout program with a traditional 5-day split including
+/// both Linear and RepsPerSet progression exercises.
 /// </summary>
 public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutCommand, Result<Guid>>
 {
@@ -36,8 +37,10 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 return Result.Failure<Guid>("An active workout already exists. Complete or pause it before creating a new one.");
             }
 
-            // Create default exercises for the A2S program
-            var exercises = CreateDefaultExercises();
+            // Create exercises - use configured exercises if provided, otherwise use defaults
+            var exercises = request.Exercises != null && request.Exercises.Count > 0
+                ? CreateConfiguredExercises(request.Exercises)
+                : CreateExercisesForVariant(request.Variant);
 
             // Create the workout
             var workout = Workout.Create(
@@ -62,59 +65,138 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     }
 
     /// <summary>
-    /// Creates the default set of exercises for the A2S program.
-    /// This includes the 4 main lifts: Squat, Bench Press, Deadlift, and Overhead Press.
-    /// Each is assigned to a different training day with default training maxes.
+    /// Creates exercises from user-configured exercise requests.
     /// </summary>
-    private static List<Exercise> CreateDefaultExercises()
+    private static List<Exercise> CreateConfiguredExercises(IReadOnlyList<CreateExerciseRequest> exerciseRequests)
     {
-        // Default training maxes (can be customized later via API)
-        var defaultTrainingMax = TrainingMax.Create(100m, WeightUnit.Kilograms);
+        var exercises = new List<Exercise>();
 
-        var exercises = new List<Exercise>
+        foreach (var exerciseRequest in exerciseRequests)
         {
-            // Day 1: Squat + Bench Press
-            Exercise.CreateWithLinearProgression(
-                name: "Squat",
+            // Find the template from the library
+            var template = ExerciseLibrary.GetByName(exerciseRequest.TemplateName);
+            if (template == null)
+            {
+                // Skip exercises that don't exist in the library
+                continue;
+            }
+
+            Exercise exercise;
+
+            if (exerciseRequest.ProgressionType == "Linear")
+            {
+                // Create Linear progression exercise
+                var trainingMax = TrainingMax.Create(
+                    exerciseRequest.TrainingMaxValue ?? 100m,
+                    exerciseRequest.TrainingMaxUnit ?? WeightUnit.Kilograms
+                );
+
+                exercise = Exercise.CreateWithLinearProgression(
+                    name: template.Name,
+                    category: exerciseRequest.Category,
+                    equipment: template.Equipment,
+                    assignedDay: exerciseRequest.AssignedDay,
+                    orderInDay: exerciseRequest.OrderInDay,
+                    trainingMax: trainingMax,
+                    useAmrap: exerciseRequest.Category == ExerciseCategory.MainLift,
+                    baseSetsPerExercise: template.DefaultSets ?? 4
+                );
+            }
+            else // RepsPerSet
+            {
+                // Create RepsPerSet progression exercise
+                var weight = Weight.Create(
+                    exerciseRequest.StartingWeight ?? 20m,
+                    exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
+                );
+
+                exercise = Exercise.CreateWithRepsPerSetProgression(
+                    name: template.Name,
+                    category: exerciseRequest.Category,
+                    equipment: template.Equipment,
+                    assignedDay: exerciseRequest.AssignedDay,
+                    orderInDay: exerciseRequest.OrderInDay,
+                    repRange: template.DefaultRepRange ?? RepRange.Common.Medium,
+                    startingWeight: weight,
+                    startingSets: template.DefaultSets ?? 3,
+                    targetSets: (template.DefaultSets ?? 3) + 2
+                );
+            }
+
+            exercises.Add(exercise);
+        }
+
+        return exercises;
+    }
+
+    /// <summary>
+    /// Creates default exercises based on the program variant.
+    /// Creates a basic program with the 4 main lifts using Linear progression.
+    /// </summary>
+    private static List<Exercise> CreateExercisesForVariant(ProgramVariant variant)
+    {
+        List<Exercise> exercises = new List<Exercise>();
+
+        // Create default main 4 lifts with Linear progression
+        ExerciseLibrary.ExerciseTemplate? squat = ExerciseLibrary.GetByName("Squat");
+        if (squat != null)
+        {
+            exercises.Add(Exercise.CreateWithLinearProgression(
+                name: squat.Name,
                 category: ExerciseCategory.MainLift,
-                equipment: EquipmentType.Barbell,
+                equipment: squat.Equipment,
                 assignedDay: DayNumber.Day1,
                 orderInDay: 1,
-                trainingMax: defaultTrainingMax,
+                trainingMax: TrainingMax.Create(100m, WeightUnit.Kilograms),
                 useAmrap: true,
-                baseSetsPerExercise: 4),
+                baseSetsPerExercise: squat.DefaultSets ?? 4
+            ));
+        }
 
-            Exercise.CreateWithLinearProgression(
-                name: "Bench Press",
+        ExerciseLibrary.ExerciseTemplate? bench = ExerciseLibrary.GetByName("Bench Press");
+        if (bench != null)
+        {
+            exercises.Add(Exercise.CreateWithLinearProgression(
+                name: bench.Name,
                 category: ExerciseCategory.MainLift,
-                equipment: EquipmentType.Barbell,
-                assignedDay: DayNumber.Day1,
-                orderInDay: 2,
-                trainingMax: defaultTrainingMax,
-                useAmrap: true,
-                baseSetsPerExercise: 4),
-
-            // Day 2: Deadlift + Overhead Press
-            Exercise.CreateWithLinearProgression(
-                name: "Deadlift",
-                category: ExerciseCategory.MainLift,
-                equipment: EquipmentType.Barbell,
+                equipment: bench.Equipment,
                 assignedDay: DayNumber.Day2,
                 orderInDay: 1,
-                trainingMax: defaultTrainingMax,
+                trainingMax: TrainingMax.Create(80m, WeightUnit.Kilograms),
                 useAmrap: true,
-                baseSetsPerExercise: 4),
+                baseSetsPerExercise: bench.DefaultSets ?? 4
+            ));
+        }
 
-            Exercise.CreateWithLinearProgression(
-                name: "Overhead Press",
+        ExerciseLibrary.ExerciseTemplate? deadlift = ExerciseLibrary.GetByName("Deadlift");
+        if (deadlift != null)
+        {
+            exercises.Add(Exercise.CreateWithLinearProgression(
+                name: deadlift.Name,
                 category: ExerciseCategory.MainLift,
-                equipment: EquipmentType.Barbell,
-                assignedDay: DayNumber.Day2,
-                orderInDay: 2,
-                trainingMax: defaultTrainingMax,
+                equipment: deadlift.Equipment,
+                assignedDay: DayNumber.Day3,
+                orderInDay: 1,
+                trainingMax: TrainingMax.Create(120m, WeightUnit.Kilograms),
                 useAmrap: true,
-                baseSetsPerExercise: 4)
-        };
+                baseSetsPerExercise: deadlift.DefaultSets ?? 4
+            ));
+        }
+
+        ExerciseLibrary.ExerciseTemplate? ohp = ExerciseLibrary.GetByName("Overhead Press");
+        if (ohp != null)
+        {
+            exercises.Add(Exercise.CreateWithLinearProgression(
+                name: ohp.Name,
+                category: ExerciseCategory.MainLift,
+                equipment: ohp.Equipment,
+                assignedDay: DayNumber.Day4,
+                orderInDay: 1,
+                trainingMax: TrainingMax.Create(60m, WeightUnit.Kilograms),
+                useAmrap: true,
+                baseSetsPerExercise: ohp.DefaultSets ?? 4
+            ));
+        }
 
         return exercises;
     }

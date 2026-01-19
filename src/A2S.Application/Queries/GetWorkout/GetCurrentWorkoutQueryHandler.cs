@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Repositories;
 using MediatR;
 
@@ -29,6 +30,12 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 return Result.Success<WorkoutDto?>(null);
             }
 
+            var exerciseDtos = workout.Exercises
+                .OrderBy(e => e.AssignedDay)
+                .ThenBy(e => e.OrderInDay)
+                .Select(MapExerciseToDto)
+                .ToList();
+
             var dto = new WorkoutDto
             {
                 Id = workout.Id.Value,
@@ -41,7 +48,8 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CreatedAt = workout.CreatedAt,
                 StartedAt = workout.StartedAt,
                 CompletedAt = workout.CompletedAt,
-                ExerciseCount = workout.Exercises.Count
+                ExerciseCount = workout.Exercises.Count,
+                Exercises = exerciseDtos
             };
 
             return Result.Success<WorkoutDto?>(dto);
@@ -50,5 +58,57 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
         {
             return Result.Failure<WorkoutDto?>($"Failed to retrieve current workout: {ex.Message}");
         }
+    }
+
+    private static ExerciseDto MapExerciseToDto(Exercise exercise)
+    {
+        ExerciseProgressionDto progressionDto;
+
+        if (exercise.Progression is LinearProgressionStrategy linear)
+        {
+            progressionDto = new LinearProgressionDto
+            {
+                Type = "Linear",
+                TrainingMaxValue = linear.TrainingMax.Value,
+                TrainingMaxUnit = linear.TrainingMax.Unit.ToString(),
+                UseAmrap = linear.UseAmrap,
+                BaseSetsPerExercise = linear.BaseSetsPerExercise
+            };
+        }
+        else if (exercise.Progression is RepsPerSetStrategy repsPerSet)
+        {
+            progressionDto = new RepsPerSetProgressionDto
+            {
+                Type = "RepsPerSet",
+                RepRange = new RepRangeDto
+                {
+                    Minimum = repsPerSet.RepRange.Minimum,
+                    Target = repsPerSet.RepRange.Target,
+                    Maximum = repsPerSet.RepRange.Maximum
+                },
+                CurrentSetCount = repsPerSet.CurrentSetCount,
+                TargetSets = repsPerSet.TargetSets,
+                CurrentWeight = repsPerSet.CurrentWeight.Value,
+                WeightUnit = repsPerSet.CurrentWeight.Unit.ToString()
+            };
+        }
+        else
+        {
+            progressionDto = new ExerciseProgressionDto
+            {
+                Type = exercise.Progression.ProgressionType
+            };
+        }
+
+        return new ExerciseDto
+        {
+            Id = exercise.Id.Value,
+            Name = exercise.Name,
+            Category = exercise.Category,
+            Equipment = exercise.Equipment,
+            AssignedDay = exercise.AssignedDay,
+            OrderInDay = exercise.OrderInDay,
+            Progression = progressionDto
+        };
     }
 }

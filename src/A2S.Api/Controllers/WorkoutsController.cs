@@ -1,5 +1,7 @@
 using A2S.Application.Commands.CreateWorkout;
+using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,29 +39,37 @@ public class WorkoutsController : ControllerBase
         [FromBody] CreateWorkoutCommand command,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating new workout: {Name}", command.Name);
-
-        var result = await _mediator.Send(command, cancellationToken);
-
-        if (!result.IsSuccess)
+        try
         {
-            _logger.LogWarning("Failed to create workout: {Error}", result.Error);
+            _logger.LogInformation("Creating new workout: {Name}", command.Name);
 
-            // Check if it's a conflict (active workout exists)
-            if (result.Error?.Contains("active workout") == true)
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (!result.IsSuccess)
             {
-                return Conflict(new { error = result.Error });
+                _logger.LogWarning("Failed to create workout: {Error}", result.Error);
+
+                // Check if it's a conflict (active workout exists)
+                if (result.Error?.Contains("active workout") == true)
+                {
+                    return Conflict(new { error = result.Error });
+                }
+
+                return BadRequest(new { error = result.Error });
             }
 
-            return BadRequest(new { error = result.Error });
+            _logger.LogInformation("Workout created successfully with ID: {WorkoutId}", result.Value);
+
+            return CreatedAtAction(
+                nameof(GetCurrentWorkout),
+                new { id = result.Value },
+                new { id = result.Value });
         }
-
-        _logger.LogInformation("Workout created successfully with ID: {WorkoutId}", result.Value);
-
-        return CreatedAtAction(
-            nameof(GetCurrentWorkout),
-            new { id = result.Value },
-            new { id = result.Value });
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning("Validation failed for workout creation: {Errors}", ex.Message);
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>
@@ -89,6 +99,28 @@ public class WorkoutsController : ControllerBase
         }
 
         _logger.LogInformation("Current workout found: {WorkoutId}", result.Value.Id);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets the exercise library with all available exercises.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The exercise library</returns>
+    [HttpGet("exercises/library")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetExerciseLibrary(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching exercise library");
+
+        var result = await _mediator.Send(new GetExerciseLibraryQuery(), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Failed to fetch exercise library: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
 
         return Ok(result.Value);
     }

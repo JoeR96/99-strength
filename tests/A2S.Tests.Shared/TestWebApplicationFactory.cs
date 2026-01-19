@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -88,6 +91,12 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.RemoveAll(typeof(DbContextOptions<A2SDbContext>));
             services.RemoveAll<A2SDbContext>();
 
+            // Add A2SDbContext with test connection string for workout/exercise repositories
+            services.AddDbContext<A2SDbContext>(options =>
+            {
+                options.UseNpgsql(ConnectionString);
+            });
+
             // Add simplified TestDbContext for auth tests only
             // This avoids EF Core model validation issues with complex Workout entities
             services.AddDbContext<TestDbContext>(options =>
@@ -123,11 +132,60 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
                 };
             });
 
-            // Ensure test database is created
+            // Ensure test databases are created and migrated
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            dbContext.Database.EnsureCreated();
+
+            // Use Migrate() to apply all migrations (EnsureCreated doesn't run migrations)
+            var a2sDbContext = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
+            a2sDbContext.Database.Migrate();
+
+            // TestDbContext still uses EnsureCreated as it's a simpler schema
+            var testDbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            testDbContext.Database.EnsureCreated();
         });
+    }
+
+    /// <summary>
+    /// Creates an authenticated HTTP client with a valid JWT token for a test user.
+    /// </summary>
+    public HttpClient CreateAuthenticatedClient(string? userId = null, string? email = null)
+    {
+        var client = CreateClient();
+        var testUserId = userId ?? Guid.NewGuid().ToString();
+        var testEmail = email ?? $"test-{Guid.NewGuid()}@example.com";
+
+        var token = GenerateJwtToken(testUserId, testEmail);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        return client;
+    }
+
+    /// <summary>
+    /// Generates a JWT token for testing purposes.
+    /// </summary>
+    private string GenerateJwtToken(string userId, string email)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(JwtRegisteredClaimNames.Sub, userId),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: TestJwtIssuer,
+            audience: TestJwtAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

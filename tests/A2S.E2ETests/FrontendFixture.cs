@@ -158,7 +158,6 @@ public class FrontendFixture : IAsyncLifetime
 
             try
             {
-                // Kill the process tree (npm spawns child processes)
                 _frontendProcess.Kill(entireProcessTree: true);
                 await _frontendProcess.WaitForExitAsync();
             }

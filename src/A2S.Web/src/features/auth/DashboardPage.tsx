@@ -1,6 +1,7 @@
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Modern dashboard with mosaic-style layout using Golden Twilight theme.
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
  */
 export function DashboardPage() {
   const { user } = useUser();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +78,7 @@ export function DashboardPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 No program selected yet
               </p>
-              <Button className="w-full">
+              <Button className="w-full" onClick={() => navigate('/setup')}>
                 Start A2S Program
               </Button>
             </CardContent>
@@ -106,8 +108,8 @@ export function DashboardPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 No upcoming workout scheduled
               </p>
-              <Button variant="secondary" className="w-full">
-                Log Workout
+              <Button variant="secondary" className="w-full" onClick={() => navigate('/workout')}>
+                View Workouts
               </Button>
             </CardContent>
           </Card>

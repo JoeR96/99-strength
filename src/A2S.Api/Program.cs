@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System.Text;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -62,10 +61,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<A2SDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
+// Configure Clerk JWT Authentication
+var clerkDomain = builder.Configuration["Clerk:Domain"] ?? "https://cosmic-treefrog-30.clerk.accounts.dev";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -74,19 +71,33 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.Authority = clerkDomain;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateAudience = false, // Clerk doesn't use audience validation by default
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        ValidIssuer = clerkDomain,
+        NameClaimType = "name",
+        RoleClaimType = "role"
     };
+    options.RequireHttpsMetadata = false; // Allow HTTP in development
 });
 
 builder.Services.AddAuthorization();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 // Configure Swagger (only in Development to avoid assembly conflicts in tests)
 if (builder.Environment.IsDevelopment())
@@ -108,6 +119,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("AllowFrontend");
 
 // Add correlation ID middleware
 app.UseMiddleware<CorrelationIdMiddleware>();

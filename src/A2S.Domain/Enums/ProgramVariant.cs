@@ -2,16 +2,23 @@ namespace A2S.Domain.Enums;
 
 /// <summary>
 /// The variant of the A2S program being run.
+/// Represents the number of training days per week.
 /// </summary>
 public enum ProgramVariant
 {
     /// <summary>
-    /// Hypertrophy-focused variant with higher volume (21 weeks total).
+    /// 4-day per week program variant.
     /// </summary>
-    Hypertrophy = 1,
+    FourDay = 4,
 
     /// <summary>
-    /// Strength-focused variant with lower reps (21 weeks total).
+    /// 5-day per week program variant.
+    /// Traditional bodybuilding split with mixed progression strategies.
     /// </summary>
-    Strength = 2
+    FiveDay = 5,
+
+    /// <summary>
+    /// 6-day per week program variant (high frequency).
+    /// </summary>
+    SixDay = 6
 }
