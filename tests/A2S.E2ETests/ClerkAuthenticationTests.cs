@@ -12,7 +12,8 @@ namespace A2S.E2ETests;
 [Collection("E2E")]
 public class ClerkAuthenticationTests : E2ETestBase
 {
-    public ClerkAuthenticationTests(FrontendFixture frontendFixture) : base(frontendFixture)
+    public ClerkAuthenticationTests(FrontendFixture frontendFixture, E2EWebApplicationFactory apiFactory)
+        : base(frontendFixture, apiFactory)
     {
     }
 
@@ -145,31 +146,20 @@ public class ClerkAuthenticationTests : E2ETestBase
             var currentUrl = page.Url;
             currentUrl.Should().Contain("/dashboard", "User should be redirected to dashboard after login");
 
-            // Verify welcome message with user name
-            var welcomeHeading = page.Locator("h2:has-text('Welcome')").First;
+            // Verify welcome message with user name ("Welcome back, {firstName}!")
+            var welcomeHeading = page.Locator("h2:has-text('Welcome back')").First;
             await welcomeHeading.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
             var welcomeText = await welcomeHeading.TextContentAsync();
             welcomeText.Should().NotBeNullOrEmpty("Welcome message should be displayed");
 
-            // Verify authentication confirmation message
-            var authMessage = await page.Locator("text=You are successfully authenticated").First.IsVisibleAsync();
-            authMessage.Should().BeTrue("Dashboard should confirm user is authenticated");
+            // Verify Quick Stats card is visible (confirms dashboard is loaded)
+            var quickStats = page.Locator("text=Quick Stats").First;
+            var quickStatsVisible = await quickStats.IsVisibleAsync();
+            quickStatsVisible.Should().BeTrue("Quick Stats card should be visible on dashboard");
 
-            // Verify user email is displayed (case insensitive check)
-            var emailDisplayed = await page.Locator($"text={TestCredentials.Email.ToLowerInvariant()}").First.IsVisibleAsync();
-            emailDisplayed.Should().BeTrue($"User email '{TestCredentials.Email}' should be displayed on dashboard");
-
-            // Verify User Info section exists
-            var userInfoHeading = await page.Locator("h3:has-text('User Info')").First.IsVisibleAsync();
-            userInfoHeading.Should().BeTrue("User Info section should be visible");
-
-            // Verify Email label exists
-            var emailLabel = await page.Locator("dt:has-text('Email')").First.IsVisibleAsync();
-            emailLabel.Should().BeTrue("Email label should be visible in User Info");
-
-            // Verify User ID label exists
-            var userIdLabel = await page.Locator("dt:has-text('User ID')").First.IsVisibleAsync();
-            userIdLabel.Should().BeTrue("User ID label should be visible in User Info");
+            // Verify Current Program card exists
+            var currentProgram = await page.Locator("text=Current Program").First.IsVisibleAsync();
+            currentProgram.Should().BeTrue("Current Program card should be visible on dashboard");
 
             // Verify user button (for sign-out) is present and functional
             var userButton = page.Locator(".cl-userButtonTrigger, .cl-userButton, .cl-avatarBox").First;

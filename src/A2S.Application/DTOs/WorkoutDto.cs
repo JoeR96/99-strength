@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using A2S.Domain.Enums;
 
 namespace A2S.Application.DTOs;
@@ -37,7 +38,10 @@ public sealed record ExerciseDto
 
 /// <summary>
 /// Data Transfer Object for Exercise Progression (polymorphic).
+/// Uses Type discriminator for JSON serialization.
 /// </summary>
+[JsonDerivedType(typeof(LinearProgressionDto), typeDiscriminator: "Linear")]
+[JsonDerivedType(typeof(RepsPerSetProgressionDto), typeDiscriminator: "RepsPerSet")]
 public record ExerciseProgressionDto
 {
     public string Type { get; init; } = string.Empty;
@@ -48,10 +52,18 @@ public record ExerciseProgressionDto
 /// </summary>
 public sealed record LinearProgressionDto : ExerciseProgressionDto
 {
-    public decimal TrainingMaxValue { get; init; }
-    public string TrainingMaxUnit { get; init; } = string.Empty;
+    public TrainingMaxDto TrainingMax { get; init; } = null!;
     public bool UseAmrap { get; init; }
     public int BaseSetsPerExercise { get; init; }
+}
+
+/// <summary>
+/// Data Transfer Object for Training Max.
+/// </summary>
+public sealed record TrainingMaxDto
+{
+    public decimal Value { get; init; }
+    public int Unit { get; init; } // 0 = Kilograms, 1 = Pounds
 }
 
 /// <summary>

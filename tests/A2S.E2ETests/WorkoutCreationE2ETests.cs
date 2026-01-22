@@ -16,17 +16,22 @@ namespace A2S.E2ETests;
 [Collection("E2E")]
 public class WorkoutCreationE2ETests : E2ETestBase
 {
-    public WorkoutCreationE2ETests(FrontendFixture frontendFixture) : base(frontendFixture)
+    public WorkoutCreationE2ETests(FrontendFixture frontendFixture, E2EWebApplicationFactory apiFactory)
+        : base(frontendFixture, apiFactory)
     {
     }
 
     /// <summary>
     /// Tests the complete happy path: user creates a 5-day split workout program
-    /// and verifies it appears on the workout dashboard with exercises for all 5 days.
+    /// by selecting exercises through the wizard, and verifies the workout is created
+    /// with exercises on all 5 days.
     /// </summary>
     [Fact]
-    public async Task CreateWorkout_CompleteFlow_CreatesFiveDaySplitWithMixedProgressions()
+    public async Task CreateWorkout_CompleteFlow_CreatesFiveDaySplitWithSelectedExercises()
     {
+        // Arrange - Delete any existing workouts to ensure clean state
+        await DeleteAllWorkoutsAsync();
+
         // Arrange - Login to get an authenticated user
         var page = await LoginAndNavigateToDashboardAsync();
 
@@ -39,22 +44,19 @@ public class WorkoutCreationE2ETests : E2ETestBase
             // Assert - Verify the "Create Workout Program" button is visible
             var createButton = page.Locator("button:has-text('Create Workout Program')").First;
             await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
-            var createButtonVisible = await createButton.IsVisibleAsync();
-            createButtonVisible.Should().BeTrue("Create Workout Program button should be visible when no workout exists");
-
-            // Act - Click the Create Workout button
             await createButton.ClickAsync();
             await page.WaitForURLAsync(url => url.Contains("/setup"), new() { Timeout = 10000 });
 
-            // Verify we're on the setup wizard
-            page.Url.Should().Contain("/setup", "Should navigate to setup wizard");
-
-            // Step 1: Welcome - Fill in program details
+            // ===== STEP 1: Welcome - Configure program details =====
             var programNameInput = page.Locator("input[type='text']").First;
             await programNameInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
             await programNameInput.FillAsync("My 5-Day Split Program");
 
-            // Set total weeks to 21 (default)
+            // Select 5-Day variant from dropdown
+            var variantSelect = page.Locator("select").First;
+            await variantSelect.SelectOptionAsync(new SelectOptionValue { Value = "5" });
+
+            // Verify 21 weeks is set
             var totalWeeksInput = page.Locator("input[type='number']").First;
             var currentWeeks = await totalWeeksInput.InputValueAsync();
             if (currentWeeks != "21")
@@ -62,32 +64,95 @@ public class WorkoutCreationE2ETests : E2ETestBase
                 await totalWeeksInput.FillAsync("21");
             }
 
-            // Click Next to proceed through wizard steps
+            // Click Next to go to exercise selection
             var nextButton = page.Locator("button:has-text('Next')").First;
             await nextButton.ClickAsync();
-            await page.WaitForTimeoutAsync(1000); // Allow transition
+            await page.WaitForTimeoutAsync(1000);
 
-            // Navigate through any intermediate steps to reach the Create button
-            var confirmButton = page.Locator("button:has-text('Create Program')").First;
-            var isOnConfirmStep = await confirmButton.IsVisibleAsync();
+            // ===== STEP 2: Exercise Selection - Add exercises for each day =====
+            // Wait for exercise library to load
+            var exerciseLibraryHeader = page.Locator("h3:has-text('Exercise Library')").First;
+            await exerciseLibraryHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
-            while (!isOnConfirmStep)
+            // Define exercises to add - 5 main lifts, one per day
+            var exercisesToAdd = new[]
             {
-                var continueButton = page.Locator("button:has-text('Next')").First;
-                var isContinueVisible = await continueButton.IsVisibleAsync();
+                "Bench Press",   // Day 1
+                "Deadlift",      // Day 2
+                "Squat",         // Day 3
+                "Overhead Press", // Day 4
+                "Front Squat"    // Day 5
+            };
 
-                if (!isContinueVisible)
-                {
-                    break;
-                }
+            // Add each exercise using the exact aria-label for the Add button
+            for (int i = 0; i < exercisesToAdd.Length; i++)
+            {
+                var exerciseName = exercisesToAdd[i];
+                var dayNumber = i + 1;
 
-                await continueButton.ClickAsync();
-                await page.WaitForTimeoutAsync(1000);
-                isOnConfirmStep = await confirmButton.IsVisibleAsync();
+                // Use GetByRole with exact aria-label to avoid matching partial names
+                // e.g., "Add Bench Press" not "Add Incline Bench Press"
+                var addButton = page.GetByRole(AriaRole.Button, new() { Name = $"Add {exerciseName}", Exact = true });
+                await addButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+                await addButton.ClickAsync();
+
+                // Wait for config dialog to open
+                var configDialog = page.Locator("text=Configure Exercise").First;
+                await configDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+
+                // Select the A2S Hypertrophy (Linear) progression type
+                var linearProgressionButton = page.Locator("button:has-text('A2S Hypertrophy')").First;
+                await linearProgressionButton.ClickAsync();
+
+                // Set training max value (e.g., 100kg)
+                // The training max input is within the A2S Hypertrophy settings section
+                var trainingMaxInput = page.Locator("input[type='number']").First;
+                await trainingMaxInput.FillAsync("100");
+
+                // Select the day using buttons (not dropdown) - "Day 1", "Day 2", etc.
+                // The day buttons are in the "Assign to Day" section of the config dialog
+                // Scroll the section into view first to ensure buttons are visible
+                var assignToDaySection = page.Locator("text=Assign to Day").First;
+                await assignToDaySection.ScrollIntoViewIfNeededAsync();
+
+                // Find and click the specific day button - use exact match to avoid partial matches
+                var dayButton = page.GetByRole(AriaRole.Button, new() { Name = $"Day {dayNumber}" });
+                await dayButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+                await dayButton.ClickAsync();
+                // Wait for the button state to update
+                await page.WaitForTimeoutAsync(200);
+
+                // Save the configuration
+                var saveButton = page.Locator("button:has-text('Save Changes')").First;
+                await saveButton.ClickAsync();
+
+                // Wait for dialog to close
+                await page.WaitForTimeoutAsync(500);
             }
 
-            // Final step: Confirm and create
+            // Verify we have 5 exercises selected
+            var exerciseCount = page.Locator("text=Your Program (5 exercises)").First;
+            var countVisible = await exerciseCount.IsVisibleAsync();
+            countVisible.Should().BeTrue("Should show 5 exercises selected");
+
+            // Click Next to go to confirmation step
+            nextButton = page.Locator("button:has-text('Next')").First;
+            await nextButton.ClickAsync();
+            await page.WaitForTimeoutAsync(1000);
+
+            // ===== STEP 3: Confirm and Create =====
+            var confirmButton = page.Locator("button:has-text('Create Program')").First;
             await confirmButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+
+            // Verify the review shows 5 exercises
+            foreach (var exerciseName in exercisesToAdd)
+            {
+                var reviewExercise = page.Locator($"text={exerciseName}").First;
+                var reviewVisible = await reviewExercise.IsVisibleAsync();
+                reviewVisible.Should().BeTrue($"{exerciseName} should appear in review");
+            }
+
+            // Click Create Program
             await confirmButton.ClickAsync();
 
             // Wait for creation to complete and redirect
@@ -95,60 +160,93 @@ public class WorkoutCreationE2ETests : E2ETestBase
                 url => url.Contains("/dashboard") || url.Contains("/workout"),
                 new() { Timeout = 15000 });
 
-            // Assert - Verify workout was created successfully
-            if (!page.Url.Contains("/workout"))
-            {
-                await page.GotoAsync($"{FrontendUrl}/workout");
-                await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            }
+            // ===== VERIFY VIA UI: Navigate to workout dashboard and check exercises =====
+            await page.GotoAsync($"{FrontendUrl}/workout");
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            // Verify the workout dashboard is now showing
+            // Verify the workout dashboard is showing
             var workoutTitle = page.Locator("h1").First;
             await workoutTitle.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
-            var workoutTitleText = await workoutTitle.TextContentAsync();
-            workoutTitleText.Should().NotBeNullOrEmpty("Workout title should be displayed");
 
             // Verify the exercises section is visible
             var exercisesHeader = page.Locator("h2:has-text('Your Exercises')").First;
-            var exercisesHeaderVisible = await exercisesHeader.IsVisibleAsync();
-            exercisesHeaderVisible.Should().BeTrue("Exercises section should be visible");
+            await exercisesHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
 
-            // Verify main lift exercises from the 5-day split are created
-            // Day 1: Bench Press (Main Lift with Linear progression)
-            var benchExercise = page.Locator("text=Bench Press").First;
-            var benchVisible = await benchExercise.IsVisibleAsync();
-            benchVisible.Should().BeTrue("Bench Press should be created for Day 1");
-
-            // Day 2: Deadlift (Main Lift with Linear progression)
-            var deadliftExercise = page.Locator("text=Deadlift").First;
-            var deadliftVisible = await deadliftExercise.IsVisibleAsync();
-            deadliftVisible.Should().BeTrue("Deadlift should be created for Day 2");
-
-            // Day 3: Squat (Main Lift with Linear progression)
-            var squatExercise = page.Locator("text=Squat").First;
-            var squatVisible = await squatExercise.IsVisibleAsync();
-            squatVisible.Should().BeTrue("Squat should be created for Day 3");
-
-            // Day 4: Overhead Press (Main Lift with Linear progression)
-            var ohpExercise = page.Locator("text=Overhead Press").First;
-            var ohpVisible = await ohpExercise.IsVisibleAsync();
-            ohpVisible.Should().BeTrue("Overhead Press should be created for Day 4");
-
-            // Day 5: Front Squat (Main Lift with Linear progression)
-            var frontSquatExercise = page.Locator("text=Front Squat").First;
-            var frontSquatVisible = await frontSquatExercise.IsVisibleAsync();
-            frontSquatVisible.Should().BeTrue("Front Squat should be created for Day 5");
-
-            // Verify some hypertrophy/RepsPerSet exercises are also created
-            // Day 1 includes: Tricep Extension (Accessory with RepsPerSet)
-            var tricepExercise = page.Locator("text=Tricep Extension").First;
-            var tricepVisible = await tricepExercise.IsVisibleAsync();
-            tricepVisible.Should().BeTrue("Tricep Extension (hypertrophy exercise) should be created");
+            // Verify all 5 exercises are visible on the workout dashboard
+            foreach (var exerciseName in exercisesToAdd)
+            {
+                var exerciseOnDashboard = page.Locator($"text={exerciseName}").First;
+                var visible = await exerciseOnDashboard.IsVisibleAsync();
+                visible.Should().BeTrue($"{exerciseName} should be visible on workout dashboard");
+            }
 
             // Verify the progress indicator is visible
             var progressBar = page.Locator("text=Program Progress").First;
             var progressVisible = await progressBar.IsVisibleAsync();
             progressVisible.Should().BeTrue("Program progress should be visible");
+
+            // ===== VERIFY VIA API: Fetch the workout and verify all exercise properties =====
+            // Use the browser context with Clerk's getToken to make an authenticated request
+            var workoutJsonString = await page.EvaluateAsync<string>($@"async () => {{
+                // Get the Clerk token from the Clerk SDK
+                const clerk = window.Clerk;
+                if (!clerk) return JSON.stringify({{ error: 'Clerk not available' }});
+
+                const token = await clerk.session?.getToken();
+                if (!token) return JSON.stringify({{ error: 'No auth token' }});
+
+                const response = await fetch('{ApiBaseUrl}/api/v1/workouts/current', {{
+                    headers: {{
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }}
+                }});
+                if (!response.ok) return JSON.stringify({{ error: response.status }});
+                return JSON.stringify(await response.json());
+            }}");
+
+            workoutJsonString.Should().NotBeNull("API response should not be null");
+
+            var workoutJson = System.Text.Json.JsonDocument.Parse(workoutJsonString!);
+            var workout = workoutJson.RootElement;
+
+            // Check for error
+            if (workout.TryGetProperty("error", out var errorProp))
+            {
+                Assert.Fail($"API request failed with status: {errorProp}");
+            }
+
+            // Verify workout properties
+            workout.GetProperty("name").GetString().Should().Be("My 5-Day Split Program", "Workout name should match");
+            workout.GetProperty("totalWeeks").GetInt32().Should().Be(21, "Total weeks should be 21");
+            workout.GetProperty("status").GetString().Should().Be("Active", "Workout should be active");
+
+            // Verify exercises
+            var exercises = workout.GetProperty("exercises");
+            exercises.GetArrayLength().Should().Be(5, "Should have 5 exercises");
+
+            // Verify each exercise has the correct properties
+            var exerciseList = exercises.EnumerateArray().ToList();
+            for (int i = 0; i < exercisesToAdd.Length; i++)
+            {
+                var expectedName = exercisesToAdd[i];
+                var expectedDay = i + 1;
+
+                // Find the exercise with this name
+                var exercise = exerciseList.FirstOrDefault(e => e.GetProperty("name").GetString() == expectedName);
+                exercise.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Undefined, $"Exercise '{expectedName}' should exist");
+
+                // Verify day assignment
+                exercise.GetProperty("assignedDay").GetInt32().Should().Be(expectedDay, $"{expectedName} should be on Day {expectedDay}");
+
+                // Verify progression type is Linear
+                exercise.GetProperty("progression").GetProperty("type").GetString().Should().Be("Linear", $"{expectedName} should have Linear progression");
+
+                // Verify training max
+                var trainingMax = exercise.GetProperty("progression").GetProperty("trainingMax");
+                trainingMax.GetProperty("value").GetDecimal().Should().Be(100m, $"{expectedName} training max should be 100");
+                trainingMax.GetProperty("unit").GetInt32().Should().Be(1, $"{expectedName} training max unit should be Kilograms (1)");
+            }
         }
         finally
         {
@@ -163,6 +261,9 @@ public class WorkoutCreationE2ETests : E2ETestBase
     [Fact]
     public async Task WorkoutDashboard_NoWorkout_ShouldShowCreateButton()
     {
+        // Arrange - Delete any existing workouts to ensure clean state
+        await DeleteAllWorkoutsAsync();
+
         // Arrange - Login
         var page = await LoginAndNavigateToDashboardAsync();
 

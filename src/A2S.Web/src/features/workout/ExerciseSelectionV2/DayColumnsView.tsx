@@ -97,7 +97,7 @@ function DayColumn({
               </p>
             </div>
           ) : (
-            sortedExercises.map((exercise, index) => (
+            sortedExercises.map((exercise) => (
               <SortableExerciseCard
                 key={exercise.id}
                 exercise={exercise}
@@ -124,7 +124,7 @@ export function DayColumnsView({
   onRemove,
 }: DayColumnsViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
+  const [_overId, setOverId] = useState<string | null>(null);
 
   // Group exercises by day
   const exercisesByDay: Record<DayNumber, SelectedExercise[]> = {

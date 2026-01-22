@@ -14,7 +14,8 @@ namespace A2S.Api.Tests;
 /// Tests the complete workout creation workflow including happy and sad paths.
 /// Each test uses a unique user to ensure test isolation.
 /// </summary>
-public class WorkoutsIntegrationTests : IClassFixture<TestWebApplicationFactory<Program>>
+[Collection("Integration")]
+public class WorkoutsIntegrationTests
 {
     private readonly TestWebApplicationFactory<Program> _factory;
 
@@ -66,24 +67,20 @@ public class WorkoutsIntegrationTests : IClassFixture<TestWebApplicationFactory<
         workout.Should().NotBeNull();
         workout!.Exercises.Should().NotBeEmpty();
 
-        // Verify we have both Linear and RepsPerSet progressions
+        // Default workout creates 4 main lifts with Linear progression
         var linearExercises = workout.Exercises.Where(e => e.Progression.Type == "Linear").ToList();
-        var repsPerSetExercises = workout.Exercises.Where(e => e.Progression.Type == "RepsPerSet").ToList();
+        linearExercises.Should().HaveCount(4, "Default workout should have 4 Linear progression exercises");
 
-        linearExercises.Should().NotBeEmpty("Should have Linear progression exercises");
-        repsPerSetExercises.Should().NotBeEmpty("Should have RepsPerSet progression exercises");
-
-        // Verify main lifts use linear progression
+        // Verify all default main lifts use linear progression
         var benchPress = workout.Exercises.FirstOrDefault(e => e.Name == "Bench Press");
         benchPress.Should().NotBeNull();
         benchPress!.Category.Should().Be(ExerciseCategory.MainLift);
         benchPress.Progression.Type.Should().Be("Linear");
 
-        // Verify auxiliary lifts can use either progression
-        var dbBench = workout.Exercises.FirstOrDefault(e => e.Name == "Dumbbell Bench Press");
-        dbBench.Should().NotBeNull();
-        dbBench!.Category.Should().Be(ExerciseCategory.Auxiliary);
-        dbBench.Progression.Type.Should().Be("RepsPerSet");
+        var squat = workout.Exercises.FirstOrDefault(e => e.Name == "Squat");
+        squat.Should().NotBeNull();
+        squat!.Category.Should().Be(ExerciseCategory.MainLift);
+        squat.Progression.Type.Should().Be("Linear");
     }
 
     /// <summary>
@@ -115,15 +112,15 @@ public class WorkoutsIntegrationTests : IClassFixture<TestWebApplicationFactory<
 
     /// <summary>
     /// Tests that after creating a workout, it can be retrieved as the current workout.
-    /// Validates the 5-day split structure with traditional muscle group distribution.
+    /// Default workout creates 4 main lifts on Days 1-4.
     /// </summary>
     [Fact]
-    public async Task CreateWorkout_ThenGetCurrent_ReturnsCreatedWorkoutWithFiveDaySplit()
+    public async Task CreateWorkout_ThenGetCurrent_ReturnsCreatedWorkoutWithDefaultExercises()
     {
         // Arrange - use same client for create and get to ensure same user
         var client = CreateClient();
         var command = new CreateWorkoutCommand(
-            Name: "Test 5-Day Split",
+            Name: "Test Default Workout",
             Variant: ProgramVariant.FiveDay,
             TotalWeeks: 21
         );
@@ -146,35 +143,30 @@ public class WorkoutsIntegrationTests : IClassFixture<TestWebApplicationFactory<
         workout.Name.Should().Be(command.Name);
         workout.TotalWeeks.Should().Be(command.TotalWeeks);
         workout.CurrentWeek.Should().Be(1);
-        workout.Status.Should().Be(WorkoutStatus.NotStarted.ToString());
+        workout.Status.Should().Be(WorkoutStatus.Active.ToString()); // Workout is started immediately after creation
 
-        // Verify 5-day split structure
+        // Verify default workout creates 4 main lifts on Days 1-4
+        workout.Exercises.Should().HaveCount(4, "Default workout should have 4 main lifts");
+
         var day1Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day1).ToList();
         var day2Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day2).ToList();
         var day3Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day3).ToList();
         var day4Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day4).ToList();
-        var day5Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day5).ToList();
 
-        day1Exercises.Should().NotBeEmpty("Day 1 should have exercises");
-        day2Exercises.Should().NotBeEmpty("Day 2 should have exercises");
-        day3Exercises.Should().NotBeEmpty("Day 3 should have exercises");
-        day4Exercises.Should().NotBeEmpty("Day 4 should have exercises");
-        day5Exercises.Should().NotBeEmpty("Day 5 should have exercises");
+        // Verify each day has exactly one main lift
+        day1Exercises.Should().ContainSingle("Day 1 should have one main lift")
+            .Which.Name.Should().Be("Squat");
+        day2Exercises.Should().ContainSingle("Day 2 should have one main lift")
+            .Which.Name.Should().Be("Bench Press");
+        day3Exercises.Should().ContainSingle("Day 3 should have one main lift")
+            .Which.Name.Should().Be("Deadlift");
+        day4Exercises.Should().ContainSingle("Day 4 should have one main lift")
+            .Which.Name.Should().Be("Overhead Press");
 
-        // Verify Day 1: Chest/Triceps - Bench Press should be main lift
-        day1Exercises.Should().Contain(e => e.Name == "Bench Press" && e.Category == ExerciseCategory.MainLift);
-
-        // Verify Day 2: Back/Biceps - Deadlift should be main lift
-        day2Exercises.Should().Contain(e => e.Name == "Deadlift" && e.Category == ExerciseCategory.MainLift);
-
-        // Verify Day 3: Legs - Squat should be main lift
-        day3Exercises.Should().Contain(e => e.Name == "Squat" && e.Category == ExerciseCategory.MainLift);
-
-        // Verify Day 4: Shoulders/Arms - OHP should be main lift
-        day4Exercises.Should().Contain(e => e.Name == "Overhead Press" && e.Category == ExerciseCategory.MainLift);
-
-        // Verify Day 5: Full Body/Power - Front Squat should be main lift
-        day5Exercises.Should().Contain(e => e.Name == "Front Squat" && e.Category == ExerciseCategory.MainLift);
+        // All exercises should be main lifts with linear progression
+        workout.Exercises.Should().OnlyContain(
+            e => e.Category == ExerciseCategory.MainLift && e.Progression.Type == "Linear",
+            "All default exercises should be main lifts with linear progression");
     }
 
     /// <summary>
@@ -199,29 +191,21 @@ public class WorkoutsIntegrationTests : IClassFixture<TestWebApplicationFactory<
         var getCurrentResponse = await client.GetAsync("/api/v1/workouts/current");
         var workout = await getCurrentResponse.Content.ReadFromJsonAsync<WorkoutDto>();
 
-        // Assert - Verify main lifts use linear progression with AMRAP
+        // Assert - Default workout creates 4 main lifts with linear progression
         var mainLifts = workout!.Exercises.Where(e => e.Category == ExerciseCategory.MainLift).ToList();
-        mainLifts.Should().HaveCountGreaterThan(0, "Should have main lifts");
+        mainLifts.Should().HaveCount(4, "Default workout should have 4 main lifts");
         mainLifts.Should().OnlyContain(e => e.Progression.Type == "Linear",
             "All main lifts should use Linear progression");
 
-        // Verify we have auxiliary exercises with both progression types
-        var auxiliaryExercises = workout.Exercises.Where(e => e.Category == ExerciseCategory.Auxiliary).ToList();
-        auxiliaryExercises.Should().HaveCountGreaterThan(0, "Should have auxiliary exercises");
-
-        // Some auxiliary exercises use Linear (e.g., Incline Bench)
-        var linearAuxiliary = auxiliaryExercises.Where(e => e.Progression.Type == "Linear").ToList();
-        linearAuxiliary.Should().HaveCountGreaterThan(0, "Should have some auxiliary exercises with Linear progression");
-
-        // Some auxiliary exercises use RepsPerSet (e.g., Dumbbell Bench Press)
-        var repsPerSetAuxiliary = auxiliaryExercises.Where(e => e.Progression.Type == "RepsPerSet").ToList();
-        repsPerSetAuxiliary.Should().HaveCountGreaterThan(0, "Should have some auxiliary exercises with RepsPerSet progression");
-
-        // Verify accessory exercises use RepsPerSet
-        var accessories = workout.Exercises.Where(e => e.Category == ExerciseCategory.Accessory).ToList();
-        accessories.Should().HaveCountGreaterThan(0, "Should have accessory exercises");
-        accessories.Should().OnlyContain(e => e.Progression.Type == "RepsPerSet",
-            "All accessory exercises should use RepsPerSet progression");
+        // Verify LinearProgression has TrainingMax set
+        foreach (var lift in mainLifts)
+        {
+            var linearProg = lift.Progression as LinearProgressionDto;
+            linearProg.Should().NotBeNull($"{lift.Name} should have LinearProgressionDto");
+            linearProg!.TrainingMax.Should().NotBeNull($"{lift.Name} should have TrainingMax");
+            linearProg.TrainingMax.Value.Should().BeGreaterThan(0, $"{lift.Name} should have positive TM");
+            linearProg.UseAmrap.Should().BeTrue($"{lift.Name} should use AMRAP");
+        }
     }
 
     /// <summary>

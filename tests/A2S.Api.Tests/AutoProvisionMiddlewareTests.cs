@@ -10,7 +10,8 @@ namespace A2S.Api.Tests;
 /// <summary>
 /// Integration tests for the AutoProvisionUserMiddleware.
 /// </summary>
-public class AutoProvisionMiddlewareTests : IClassFixture<TestWebApplicationFactory<Program>>
+[Collection("Integration")]
+public class AutoProvisionMiddlewareTests
 {
     private readonly HttpClient _client;
     private readonly TestWebApplicationFactory<Program> _factory;

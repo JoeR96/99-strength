@@ -18,12 +18,13 @@ public interface IWorkoutRepository
     Task<Workout?> GetByIdAsync(WorkoutId id, CancellationToken ct = default);
 
     /// <summary>
-    /// Gets the currently active workout (status = Active).
+    /// Gets the currently active workout for a specific user (status = Active).
     /// Users typically have one active workout at a time.
     /// </summary>
+    /// <param name="userId">The ID of the user</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The active workout if found, null otherwise</returns>
-    Task<Workout?> GetActiveWorkoutAsync(CancellationToken ct = default);
+    Task<Workout?> GetActiveWorkoutAsync(string userId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all workouts ordered by most recent first.

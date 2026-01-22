@@ -1,3 +1,4 @@
+using A2S.Application.Common;
 using A2S.Domain.Entities;
 using A2S.Domain.Repositories;
 using A2S.Infrastructure.Persistence;
@@ -117,6 +118,10 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.RemoveAll<IUserRepository>();
             services.AddScoped<IUserRepository, TestUserRepository>();
 
+            // Replace ICurrentUserService with test implementation
+            services.RemoveAll<ICurrentUserService>();
+            services.AddScoped<ICurrentUserService, TestCurrentUserService>();
+
             // Reconfigure JWT Bearer options with test secret
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -148,12 +153,16 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
 
     /// <summary>
     /// Creates an authenticated HTTP client with a valid JWT token for a test user.
+    /// Also sets the TestCurrentUserService to return the same user ID.
     /// </summary>
     public HttpClient CreateAuthenticatedClient(string? userId = null, string? email = null)
     {
         var client = CreateClient();
         var testUserId = userId ?? Guid.NewGuid().ToString();
         var testEmail = email ?? $"test-{Guid.NewGuid()}@example.com";
+
+        // Set the current user for the TestCurrentUserService
+        TestCurrentUserService.SetCurrentUser(testUserId, testEmail);
 
         var token = GenerateJwtToken(testUserId, testEmail);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

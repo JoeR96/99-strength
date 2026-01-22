@@ -11,7 +11,8 @@ namespace A2S.Api.Tests;
 /// Integration tests for Users API endpoints.
 /// Uses WebApplicationFactory and Testcontainers to test full stack.
 /// </summary>
-public class UsersControllerTests : IClassFixture<TestWebApplicationFactory<Program>>
+[Collection("Integration")]
+public class UsersControllerTests
 {
     private readonly HttpClient _client;
     private readonly TestWebApplicationFactory<Program> _factory;

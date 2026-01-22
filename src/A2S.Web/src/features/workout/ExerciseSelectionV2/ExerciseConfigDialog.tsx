@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { SelectedExercise, DayNumber, ProgramVariant, RepRange, TrainingMax, WeightUnit, A2SProgressionType } from "@/types/workout";
+import type { SelectedExercise, DayNumber, ProgramVariant, WeightUnit, A2SProgressionType } from "@/types/workout";
 import { A2SProgressionType as ProgressionTypeEnum, WeightUnit as WeightUnitEnum, ExerciseCategory } from "@/types/workout";
 
 interface ExerciseConfigDialogProps {
@@ -77,7 +77,7 @@ export function ExerciseConfigDialog({
   if (!isOpen || !exercise) return null;
 
   const handleSave = () => {
-    const progressionUpdates = progressionType === ProgressionTypeEnum.Hypertrophy
+    const progressionUpdates = progressionType === ProgressionTypeEnum.Linear
       ? {
           progressionType,
           assignedDay,
@@ -165,9 +165,9 @@ export function ExerciseConfigDialog({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setProgressionType(ProgressionTypeEnum.Hypertrophy)}
+                  onClick={() => setProgressionType(ProgressionTypeEnum.Linear)}
                   className={`px-4 py-3 text-sm font-medium rounded-md border-2 transition-all ${
-                    progressionType === ProgressionTypeEnum.Hypertrophy
+                    progressionType === ProgressionTypeEnum.Linear
                       ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-400"
                       : "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
                   }`}
@@ -188,7 +188,7 @@ export function ExerciseConfigDialog({
               </div>
               <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-md">
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {progressionType === ProgressionTypeEnum.Hypertrophy
+                  {progressionType === ProgressionTypeEnum.Linear
                     ? "Uses training max percentages with AMRAP sets for strength and hypertrophy"
                     : "Progresses by adding sets and reps, then increasing weight"}
                 </p>
@@ -196,7 +196,7 @@ export function ExerciseConfigDialog({
             </div>
 
             {/* Progression-specific configuration */}
-            {progressionType === ProgressionTypeEnum.Hypertrophy ? (
+            {progressionType === ProgressionTypeEnum.Linear ? (
               <div className="space-y-5 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">A2S Hypertrophy Settings</h3>
 

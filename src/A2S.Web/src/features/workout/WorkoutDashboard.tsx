@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeekOverview } from "./WeekOverview";
 import { useNavigate } from "react-router-dom";
-import type { LinearProgressionDto } from "@/types/workout";
+import { WeightUnit, type LinearProgressionDto } from "@/types/workout";
 
 export function WorkoutDashboard() {
   const { data: workout, isLoading, error } = useCurrentWorkout();
@@ -104,7 +104,7 @@ export function WorkoutDashboard() {
                 return (
                   <div className="text-sm mt-2">
                     TM: {linearProg.trainingMax.value}
-                    {linearProg.trainingMax.unit === 0 ? "kg" : "lbs"}
+                    {linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs"}
                   </div>
                 );
               })()}

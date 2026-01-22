@@ -21,6 +21,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     private readonly List<Exercise> _exercises = new();
     private readonly List<WorkoutActivity> _completedActivities = new();
 
+    /// <summary>
+    /// The ID of the user who owns this workout.
+    /// Used to scope workouts to individual users.
+    /// </summary>
+    public string UserId { get; private set; } = string.Empty;
     public string Name { get; private set; }
     public ProgramVariant Variant { get; private set; }
     public int TotalWeeks { get; private set; }
@@ -42,12 +47,14 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
     private Workout(
         WorkoutId id,
+        string userId,
         string name,
         ProgramVariant variant,
         int totalWeeks,
         IEnumerable<Exercise> exercises)
         : base(id)
     {
+        CheckRule(!string.IsNullOrWhiteSpace(userId), "User ID cannot be empty");
         CheckRule(!string.IsNullOrWhiteSpace(name), "Workout name cannot be empty");
         CheckRule(totalWeeks > 0, "Total weeks must be greater than zero");
 
@@ -57,6 +64,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         // Validate exercise ordering
         ValidateExerciseOrdering(exercisesList);
 
+        UserId = userId;
         Name = name;
         Variant = variant;
         TotalWeeks = totalWeeks;
@@ -73,7 +81,13 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     /// Creates a new workout program with the specified exercises.
     /// Standard A2S program is 21 weeks (3 blocks of 7 weeks).
     /// </summary>
+    /// <param name="userId">The ID of the user who owns this workout.</param>
+    /// <param name="name">The name of the workout program.</param>
+    /// <param name="variant">The program variant (e.g., FiveDay).</param>
+    /// <param name="exercises">The exercises included in the program.</param>
+    /// <param name="totalWeeks">The total number of weeks in the program (default: 21).</param>
     public static Workout Create(
+        string userId,
         string name,
         ProgramVariant variant,
         IEnumerable<Exercise> exercises,
@@ -81,6 +95,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     {
         return new Workout(
             new WorkoutId(Guid.NewGuid()),
+            userId,
             name,
             variant,
             totalWeeks,

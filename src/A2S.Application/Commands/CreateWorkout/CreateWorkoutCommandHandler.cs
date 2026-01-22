@@ -17,21 +17,31 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
 {
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
 
     public CreateWorkoutCommandHandler(
         IWorkoutRepository workoutRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<Result<Guid>> Handle(CreateWorkoutCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            // Check if there's already an active workout
-            var existingWorkout = await _workoutRepository.GetActiveWorkoutAsync(cancellationToken);
+            // Ensure user is authenticated
+            var userId = _currentUserService.UserId;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Result.Failure<Guid>("User must be authenticated to create a workout.");
+            }
+
+            // Check if there's already an active workout for this user
+            var existingWorkout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
             if (existingWorkout != null)
             {
                 return Result.Failure<Guid>("An active workout already exists. Complete or pause it before creating a new one.");
@@ -44,6 +54,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
 
             // Create the workout
             var workout = Workout.Create(
+                userId,
                 request.Name,
                 request.Variant,
                 exercises,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useExerciseSelection } from "../../../hooks/useExerciseSelection";
 import { useExerciseLibrary } from "../../../hooks/useWorkouts";
 import type {
@@ -47,23 +47,26 @@ export function ExerciseSelectionV2({
     }
   });
 
-  // Sync state changes back to parent
-  const handleExercisesChange = () => {
-    onUpdate(selectedExercises);
-  };
+  // Sync state changes back to parent using useEffect to handle async state updates
+  useEffect(() => {
+    // Only sync if we have exercises (avoid syncing initial empty state)
+    if (selectedExercises.length > 0 || initialExercises.length === 0) {
+      onUpdate(selectedExercises);
+    }
+  }, [selectedExercises, initialExercises.length, onUpdate]);
 
   // Handle adding an exercise from the library
   const handleAddExercise = (template: ExerciseTemplate) => {
     const exerciseId = addExercise(template);
     // Open config dialog immediately for the new exercise
     setEditingExerciseId(exerciseId);
-    handleExercisesChange();
+    // Note: Parent sync happens via useEffect when selectedExercises changes
   };
 
   // Handle removing an exercise
   const handleRemoveExercise = (id: string) => {
     removeExercise(id);
-    handleExercisesChange();
+    // Note: Parent sync happens via useEffect when selectedExercises changes
   };
 
   // Handle opening the config dialog
@@ -78,7 +81,7 @@ export function ExerciseSelectionV2({
   ) => {
     updateExercise(id, updates);
     setEditingExerciseId(null);
-    handleExercisesChange();
+    // Note: Parent sync happens via useEffect when selectedExercises changes
   };
 
   // Find the exercise being edited

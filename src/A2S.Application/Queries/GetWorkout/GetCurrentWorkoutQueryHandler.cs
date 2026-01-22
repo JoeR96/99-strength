@@ -8,22 +8,32 @@ namespace A2S.Application.Queries.GetWorkout;
 
 /// <summary>
 /// Handler for GetCurrentWorkoutQuery.
-/// Retrieves the currently active workout.
+/// Retrieves the currently active workout for the current user.
 /// </summary>
 public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWorkoutQuery, Result<WorkoutDto?>>
 {
     private readonly IWorkoutRepository _workoutRepository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetCurrentWorkoutQueryHandler(IWorkoutRepository workoutRepository)
+    public GetCurrentWorkoutQueryHandler(
+        IWorkoutRepository workoutRepository,
+        ICurrentUserService currentUserService)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
+        _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
     public async Task<Result<WorkoutDto?>> Handle(GetCurrentWorkoutQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var workout = await _workoutRepository.GetActiveWorkoutAsync(cancellationToken);
+            var userId = _currentUserService.UserId;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Result.Failure<WorkoutDto?>("User must be authenticated to retrieve workout.");
+            }
+
+            var workout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
 
             if (workout == null)
             {
@@ -69,8 +79,11 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             progressionDto = new LinearProgressionDto
             {
                 Type = "Linear",
-                TrainingMaxValue = linear.TrainingMax.Value,
-                TrainingMaxUnit = linear.TrainingMax.Unit.ToString(),
+                TrainingMax = new TrainingMaxDto
+                {
+                    Value = linear.TrainingMax.Value,
+                    Unit = (int)linear.TrainingMax.Unit // 0 = Kilograms, 1 = Pounds
+                },
                 UseAmrap = linear.UseAmrap,
                 BaseSetsPerExercise = linear.BaseSetsPerExercise
             };

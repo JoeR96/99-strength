@@ -3,8 +3,8 @@
  */
 
 export const WeightUnit = {
-  Kilograms: 0,
-  Pounds: 1,
+  Kilograms: 1,
+  Pounds: 2,
 } as const;
 export type WeightUnit = typeof WeightUnit[keyof typeof WeightUnit];
 
@@ -17,7 +17,7 @@ export const ExerciseCategory = {
 export type ExerciseCategory = typeof ExerciseCategory[keyof typeof ExerciseCategory];
 
 export const A2SProgressionType = {
-  Hypertrophy: 'Hypertrophy',
+  Linear: 'Linear',
   RepsPerSet: 'RepsPerSet',
 } as const;
 export type A2SProgressionType = typeof A2SProgressionType[keyof typeof A2SProgressionType];
@@ -162,10 +162,25 @@ export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
 }
 
 // Request DTOs
+export interface CreateExerciseRequest {
+  templateName: string;
+  category: ExerciseCategory;
+  progressionType: "Linear" | "RepsPerSet";
+  assignedDay: DayNumber;
+  orderInDay: number;
+  // For Linear progression
+  trainingMaxValue?: number;
+  trainingMaxUnit?: WeightUnit;
+  // For RepsPerSet progression
+  startingWeight?: number;
+  weightUnit?: WeightUnit;
+}
+
 export interface CreateWorkoutRequest {
   name: string;
   variant: ProgramVariant;
   totalWeeks: number;
+  exercises?: CreateExerciseRequest[];
 }
 
 export interface ExerciseWithTrainingMax {

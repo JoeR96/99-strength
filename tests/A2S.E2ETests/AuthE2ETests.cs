@@ -14,7 +14,8 @@ namespace A2S.E2ETests;
 [Collection("E2E")]
 public class AuthE2ETests : E2ETestBase
 {
-    public AuthE2ETests(FrontendFixture frontendFixture) : base(frontendFixture)
+    public AuthE2ETests(FrontendFixture frontendFixture, E2EWebApplicationFactory apiFactory)
+        : base(frontendFixture, apiFactory)
     {
     }
 
@@ -188,9 +189,13 @@ public class AuthE2ETests : E2ETestBase
     public async Task Backend_API_ShouldBeRunning()
     {
         // This test verifies the backend API is running and accessible
+        using var httpClient = new HttpClient(new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+        });
 
         // Act - Make a request to the API base URL
-        var response = await ApiClient.GetAsync("/");
+        var response = await httpClient.GetAsync($"{ApiBaseUrl}/");
 
         // Assert - API should respond (even with 404, it's running)
         response.Should().NotBeNull();

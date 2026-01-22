@@ -1,10 +1,13 @@
 using A2S.Api.Middleware;
+using A2S.Api.Services;
 using A2S.Application;
+using A2S.Application.Common;
 using A2S.Domain.Entities;
 using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -23,6 +26,10 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Add HttpContextAccessor and CurrentUserService
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // Add controllers
 builder.Services.AddControllers();
@@ -107,6 +114,13 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+// Apply pending migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

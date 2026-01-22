@@ -3,10 +3,8 @@ import { nanoid } from "nanoid";
 import type {
   ExerciseTemplate,
   SelectedExercise,
-  ExerciseCategory,
   DayNumber,
   ProgramVariant,
-  EquipmentType,
 } from "../types/workout";
 import { ExerciseCategory as ExerciseCategoryEnum } from "../types/workout";
 
@@ -123,12 +121,67 @@ export function useExerciseSelection(programVariant: ProgramVariant = 4) {
 
   /**
    * Update an exercise configuration
+   * If assignedDay changes, automatically recalculates orderInDay to be sequential
    */
   const updateExercise = useCallback(
     (id: string, updates: Partial<Omit<SelectedExercise, "id" | "template">>) => {
-      setSelectedExercises((prev) =>
-        prev.map((ex) => (ex.id === id ? { ...ex, ...updates } : ex))
-      );
+      setSelectedExercises((prev) => {
+        const exercise = prev.find((ex) => ex.id === id);
+        if (!exercise) return prev;
+
+        // Check if we're changing the assigned day
+        const isChangingDay = updates.assignedDay !== undefined && updates.assignedDay !== exercise.assignedDay;
+
+        if (isChangingDay) {
+          // Get the new day
+          const newDay = updates.assignedDay!;
+
+          // Calculate the next available order for the new day
+          const exercisesInNewDay = prev.filter(
+            (ex) => ex.assignedDay === newDay && ex.id !== id
+          );
+          const nextOrder = exercisesInNewDay.length > 0
+            ? Math.max(...exercisesInNewDay.map((ex) => ex.orderInDay)) + 1
+            : 1;
+
+          // Also need to reorder exercises in the old day to fill the gap
+          const oldDay = exercise.assignedDay;
+          const exercisesInOldDay = prev.filter(
+            (ex) => ex.assignedDay === oldDay && ex.id !== id
+          );
+
+          // Reorder old day exercises to fill the gap
+          const reorderedOldDay = exercisesInOldDay
+            .sort((a, b) => a.orderInDay - b.orderInDay)
+            .map((ex, index) => ({
+              ...ex,
+              orderInDay: index + 1,
+            }));
+
+          // Apply updates with the new orderInDay
+          const updatedExercise = {
+            ...exercise,
+            ...updates,
+            orderInDay: nextOrder,
+          };
+
+          // Combine all exercises
+          const otherExercises = prev.filter(
+            (ex) => ex.assignedDay !== oldDay && ex.assignedDay !== newDay
+          );
+          const newDayExercises = exercisesInNewDay.concat(updatedExercise);
+
+          return [...otherExercises, ...reorderedOldDay, ...newDayExercises].sort((a, b) => {
+            if (a.assignedDay !== b.assignedDay) {
+              return a.assignedDay - b.assignedDay;
+            }
+            return a.orderInDay - b.orderInDay;
+          });
+        }
+
+        // Simple update without day change
+        return prev.map((ex) => (ex.id === id ? { ...ex, ...updates } : ex));
+      });
     },
     []
   );

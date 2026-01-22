@@ -11,13 +11,14 @@ namespace A2S.E2ETests;
 [Collection("E2E")]
 public class UserManagementE2ETests : E2ETestBase
 {
-    public UserManagementE2ETests(FrontendFixture frontendFixture) : base(frontendFixture)
+    public UserManagementE2ETests(FrontendFixture frontendFixture, E2EWebApplicationFactory apiFactory)
+        : base(frontendFixture, apiFactory)
     {
     }
 
     /// <summary>
     /// Tests that when a user logs in for the first time, their account is auto-provisioned
-    /// and they can see their user information on the dashboard.
+    /// and they can see the dashboard with personalized content.
     /// </summary>
     [Fact]
     public async Task Dashboard_ShouldDisplayUserInfo_AfterLogin()
@@ -27,26 +28,22 @@ public class UserManagementE2ETests : E2ETestBase
 
         try
         {
-            // Assert - Verify the user info section is displayed
-            var userInfoSection = page.Locator("h3:has-text('User Info')").First;
-            await userInfoSection.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
-            var userInfoVisible = await userInfoSection.IsVisibleAsync();
-            userInfoVisible.Should().BeTrue("User Info section should be visible on dashboard");
+            // Assert - Verify the welcome message shows (indicates user was provisioned and recognized)
+            var welcomeHeading = page.Locator("h2:has-text('Welcome back')").First;
+            await welcomeHeading.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
+            var welcomeVisible = await welcomeHeading.IsVisibleAsync();
+            welcomeVisible.Should().BeTrue("Welcome message should be visible on dashboard");
 
-            // Verify email is displayed (Clerk stores email, which should match our User entity)
-            var emailLabel = page.Locator("dt:has-text('Email')").First;
-            var emailVisible = await emailLabel.IsVisibleAsync();
-            emailVisible.Should().BeTrue("Email label should be visible");
+            // Verify Quick Stats card is visible (confirms dashboard loaded properly)
+            var quickStats = page.Locator("text=Quick Stats").First;
+            var quickStatsVisible = await quickStats.IsVisibleAsync();
+            quickStatsVisible.Should().BeTrue("Quick Stats card should be visible on dashboard");
 
-            // Verify the displayed email matches the test credentials
-            var emailValue = page.Locator($"text={TestCredentials.Email.ToLowerInvariant()}").First;
-            var emailDisplayed = await emailValue.IsVisibleAsync();
-            emailDisplayed.Should().BeTrue($"User email '{TestCredentials.Email}' should be displayed");
-
-            // Verify User ID is displayed (this confirms our User entity was created)
-            var userIdLabel = page.Locator("dt:has-text('User ID')").First;
-            var userIdVisible = await userIdLabel.IsVisibleAsync();
-            userIdVisible.Should().BeTrue("User ID label should be visible, indicating user was provisioned");
+            // Verify the user button is present (shows user is authenticated)
+            var userButton = page.Locator(".cl-userButtonTrigger, .cl-userButton, .cl-avatarBox").First;
+            await userButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
+            var userButtonVisible = await userButton.IsVisibleAsync();
+            userButtonVisible.Should().BeTrue("User button should be visible, indicating user is authenticated");
         }
         finally
         {
@@ -159,7 +156,7 @@ public class UserManagementE2ETests : E2ETestBase
     }
 
     /// <summary>
-    /// Tests that the authentication confirmation message is displayed on the dashboard.
+    /// Tests that the dashboard shows personalized welcome content confirming authentication.
     /// </summary>
     [Fact]
     public async Task Dashboard_ShouldShowAuthenticationConfirmation()
@@ -169,11 +166,21 @@ public class UserManagementE2ETests : E2ETestBase
 
         try
         {
-            // Assert - Verify authentication confirmation message
-            var authConfirmation = page.Locator("text=You are successfully authenticated").First;
-            await authConfirmation.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
-            var confirmationVisible = await authConfirmation.IsVisibleAsync();
-            confirmationVisible.Should().BeTrue("Dashboard should confirm user is authenticated");
+            // Assert - Verify personalized welcome message (confirms authentication)
+            var welcomeHeading = page.Locator("h2:has-text('Welcome back')").First;
+            await welcomeHeading.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
+            var welcomeText = await welcomeHeading.TextContentAsync();
+            welcomeText.Should().NotBeNullOrEmpty("Welcome message should confirm user is authenticated");
+
+            // Verify the A2S Workout Tracker title is visible in nav
+            var navTitle = page.Locator("h1:has-text('A2S Workout Tracker')").First;
+            var navTitleVisible = await navTitle.IsVisibleAsync();
+            navTitleVisible.Should().BeTrue("App title should be visible in navigation");
+
+            // Verify the "Start A2S Program" button is visible
+            var startButton = page.Locator("button:has-text('Start A2S Program')").First;
+            var startButtonVisible = await startButton.IsVisibleAsync();
+            startButtonVisible.Should().BeTrue("Start A2S Program button should be visible");
         }
         finally
         {
@@ -206,10 +213,10 @@ public class UserManagementE2ETests : E2ETestBase
 
             if (isDashboard)
             {
-                // If still on dashboard URL, authenticated content should not be visible
-                var authContent = page.Locator("text=You are successfully authenticated").First;
-                var authContentVisible = await authContent.IsVisibleAsync();
-                authContentVisible.Should().BeFalse("Authenticated content should not be visible for unauthenticated users");
+                // If still on dashboard URL, personalized content should not be visible
+                var welcomeContent = page.Locator("h2:has-text('Welcome back')").First;
+                var welcomeContentVisible = await welcomeContent.IsVisibleAsync();
+                welcomeContentVisible.Should().BeFalse("Personalized content should not be visible for unauthenticated users");
             }
             else
             {

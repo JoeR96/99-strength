@@ -28,12 +28,12 @@ public class WorkoutRepository : IWorkoutRepository
             .FirstOrDefaultAsync(w => w.Id == id, ct);
     }
 
-    public async Task<Workout?> GetActiveWorkoutAsync(CancellationToken ct = default)
+    public async Task<Workout?> GetActiveWorkoutAsync(string userId, CancellationToken ct = default)
     {
         return await _context.Workouts
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
-            .Where(w => w.Status == WorkoutStatus.Active)
+            .Where(w => w.UserId == userId && w.Status == WorkoutStatus.Active)
             .OrderByDescending(w => w.StartedAt)
             .FirstOrDefaultAsync(ct);
     }

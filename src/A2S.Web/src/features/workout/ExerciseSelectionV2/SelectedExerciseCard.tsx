@@ -1,4 +1,5 @@
-import type { SelectedExercise, ExerciseCategory, EquipmentType, A2SProgressionType } from "@/types/workout";
+import type { SelectedExercise, EquipmentType } from "@/types/workout";
+import { WeightUnit } from "@/types/workout";
 
 interface SelectedExerciseCardProps {
   exercise: SelectedExercise;
@@ -7,37 +8,6 @@ interface SelectedExerciseCardProps {
   isDragging?: boolean;
   showOrder?: boolean;
   showDragHandle?: boolean;
-}
-
-/**
- * Get category label from enum value
- */
-function getCategoryLabel(category: ExerciseCategory): string {
-  const labels: Record<ExerciseCategory, string> = {
-    1: "Main Lift",
-    2: "Auxiliary",
-    3: "Accessory",
-  };
-  return labels[category] || "Unknown";
-}
-
-/**
- * Get category color classes
- */
-function getCategoryColor(category: ExerciseCategory): string {
-  const colors: Record<ExerciseCategory, string> = {
-    1: "bg-primary/10 text-primary border-primary/20",
-    2: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
-    3: "bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400",
-  };
-  return colors[category] || "bg-muted text-muted-foreground";
-}
-
-/**
- * Get progression type label
- */
-function getProgressionLabel(type: A2SProgressionType): string {
-  return type === "Hypertrophy" ? "A2S Hypertrophy" : "A2S Reps Per Set";
 }
 
 /**
@@ -153,10 +123,10 @@ export function SelectedExerciseCard({
         <span className="text-muted-foreground/50">•</span>
 
         {/* Progression-specific details */}
-        {exercise.progressionType === 'Hypertrophy' && exercise.trainingMax ? (
+        {exercise.progressionType === 'Linear' && exercise.trainingMax ? (
           <>
             <span className="font-medium text-primary">
-              TM: {exercise.trainingMax.value}{exercise.trainingMax.unit === 0 ? 'kg' : 'lbs'}
+              TM: {exercise.trainingMax.value}{exercise.trainingMax.unit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
             </span>
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.isPrimary ? 'Primary' : 'Auxiliary'}</span>
@@ -166,7 +136,7 @@ export function SelectedExerciseCard({
         ) : exercise.progressionType === 'RepsPerSet' && exercise.repRange ? (
           <>
             <span className="font-medium text-primary">
-              {exercise.startingWeight}{exercise.weightUnit === 0 ? 'kg' : 'lbs'}
+              {exercise.startingWeight}{exercise.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
             </span>
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.repRange.minimum}-{exercise.repRange.target}-{exercise.repRange.maximum} reps</span>

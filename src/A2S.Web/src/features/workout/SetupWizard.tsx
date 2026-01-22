@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExerciseSelectionV2 } from "./ExerciseSelectionV2/ExerciseSelectionV2";
 import { useCreateWorkout } from "@/hooks/useWorkouts";
-import { ProgramVariant } from "@/types/workout";
-import type { SelectedExercise } from "@/types/workout";
+import { ProgramVariant, WeightUnit, ExerciseCategory } from "@/types/workout";
+import type { SelectedExercise, CreateExerciseRequest, DayNumber } from "@/types/workout";
 import toast from "react-hot-toast";
 
 type WizardStep = "welcome" | "exercises" | "confirm";
@@ -38,16 +38,33 @@ export function SetupWizard() {
 
   const handleCreateWorkout = async () => {
     try {
+      // Map selected exercises to API request format
+      const exercises: CreateExerciseRequest[] = selectedExercises.map((ex) => ({
+        templateName: ex.template.name,
+        category: ex.category ?? ExerciseCategory.MainLift,
+        progressionType: ex.progressionType,
+        assignedDay: ex.assignedDay as DayNumber,
+        orderInDay: ex.orderInDay,
+        // Linear progression fields
+        trainingMaxValue: ex.trainingMax?.value,
+        trainingMaxUnit: ex.trainingMax?.unit,
+        // RepsPerSet progression fields
+        startingWeight: ex.startingWeight,
+        weightUnit: ex.weightUnit,
+      }));
+
       await createWorkout.mutateAsync({
         name: workoutName,
         variant,
         totalWeeks,
+        exercises: exercises.length > 0 ? exercises : undefined,
       });
 
       toast.success("Workout created successfully!");
       navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to create workout");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create workout";
+      toast.error(errorMessage);
     }
   };
 
@@ -164,11 +181,11 @@ export function SetupWizard() {
                                     {ex.template.name}
                                   </div>
                                   <div className="text-xs">
-                                    {ex.progressionType === 'Hypertrophy' ? 'A2S Hypertrophy' : 'A2S Reps Per Set'}
+                                    {ex.progressionType === 'Linear' ? 'A2S Linear' : 'A2S Reps Per Set'}
                                   </div>
-                                  {ex.progressionType === 'Hypertrophy' && ex.trainingMax && (
+                                  {ex.progressionType === 'Linear' && ex.trainingMax && (
                                     <div className="text-xs">
-                                      Training Max: {ex.trainingMax.value}{ex.trainingMax.unit === 0 ? 'kg' : 'lbs'}
+                                      Training Max: {ex.trainingMax.value}{ex.trainingMax.unit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
                                       {' • '}
                                       {ex.isPrimary ? 'Primary' : 'Auxiliary'}
                                       {' • '}
@@ -181,7 +198,7 @@ export function SetupWizard() {
                                       {' • '}
                                       Sets: {ex.currentSets} → {ex.targetSets}
                                       {' • '}
-                                      Starting: {ex.startingWeight}{ex.weightUnit === 0 ? 'kg' : 'lbs'}
+                                      Starting: {ex.startingWeight}{ex.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
                                     </div>
                                   )}
                                 </li>

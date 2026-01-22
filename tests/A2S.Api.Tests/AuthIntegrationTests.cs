@@ -10,7 +10,8 @@ namespace A2S.Api.Tests;
 /// Integration tests for Authentication API endpoints.
 /// Uses WebApplicationFactory and Testcontainers to test full stack.
 /// </summary>
-public class AuthIntegrationTests : IClassFixture<TestWebApplicationFactory<Program>>
+[Collection("Integration")]
+public class AuthIntegrationTests
 {
     private readonly HttpClient _client;
     private readonly TestWebApplicationFactory<Program> _factory;

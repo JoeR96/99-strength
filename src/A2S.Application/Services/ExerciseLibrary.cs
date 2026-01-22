@@ -95,7 +95,7 @@ public static class ExerciseLibrary
             Name: "Barbell Row",
             Equipment: EquipmentType.Barbell,
             DefaultRepRange: RepRange.Common.Medium,
-            DefaultSets: 3,
+            DefaultSets: 4,
             Description: "Bent-over barbell row for back thickness"),
 
         // Machine & Dumbbell Compounds
