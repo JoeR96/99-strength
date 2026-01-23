@@ -47,6 +47,16 @@ public class WorkoutRepository : IWorkoutRepository
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Workout>> GetAllByUserAsync(string userId, CancellationToken ct = default)
+    {
+        return await _context.Workouts
+            .Include(w => w.Exercises)
+                .ThenInclude(e => e.Progression)
+            .Where(w => w.UserId == userId)
+            .OrderByDescending(w => w.CreatedAt)
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Workout>> GetByStatusAsync(WorkoutStatus status, CancellationToken ct = default)
     {
         return await _context.Workouts

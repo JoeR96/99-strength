@@ -206,6 +206,41 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Sets this workout as the active program.
+    /// Can only be called on workouts that are not completed.
+    /// If the workout was NotStarted, it will be started.
+    /// If it was Paused, it will be resumed.
+    /// </summary>
+    public void SetAsActive()
+    {
+        CheckRule(Status != WorkoutStatus.Completed,
+            "Cannot activate a completed workout");
+
+        if (Status == WorkoutStatus.NotStarted)
+        {
+            Start();
+        }
+        else if (Status == WorkoutStatus.Paused)
+        {
+            Resume();
+        }
+        // If already Active, no-op
+    }
+
+    /// <summary>
+    /// Deactivates this workout by pausing it.
+    /// Only active workouts can be deactivated.
+    /// </summary>
+    public void Deactivate()
+    {
+        if (Status == WorkoutStatus.Active)
+        {
+            Pause();
+        }
+        // If not active, no-op (allows idempotent deactivation)
+    }
+
+    /// <summary>
     /// Manually adjusts the Training Max for an exercise.
     /// Only applicable for exercises using linear progression.
     /// </summary>

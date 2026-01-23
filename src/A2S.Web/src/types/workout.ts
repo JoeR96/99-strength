@@ -155,10 +155,10 @@ export interface LinearProgressionDto extends ExerciseProgressionDto {
 export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
   type: "RepsPerSet";
   repRange: RepRange;
-  currentSets: number;
+  currentSetCount: number;
   targetSets: number;
   currentWeight: number;
-  weightUnit: WeightUnit;
+  weightUnit: string; // Backend returns string "Kilograms" or "Pounds"
 }
 
 // Request DTOs
@@ -186,4 +186,20 @@ export interface CreateWorkoutRequest {
 export interface ExerciseWithTrainingMax {
   exerciseName: string;
   trainingMax: TrainingMax;
+}
+
+// Workout summary for list views
+export interface WorkoutSummaryDto {
+  id: string;
+  name: string;
+  variant: string;
+  totalWeeks: number;
+  currentWeek: number;
+  currentBlock: number;
+  status: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  exerciseCount: number;
+  isActive: boolean;
 }

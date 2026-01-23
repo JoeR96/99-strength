@@ -8,6 +8,7 @@ import type { CreateWorkoutRequest } from "../types/workout";
 export const workoutKeys = {
   all: ["workouts"] as const,
   current: () => [...workoutKeys.all, "current"] as const,
+  list: () => [...workoutKeys.all, "list"] as const,
   exerciseLibrary: () => ["exerciseLibrary"] as const,
 };
 
@@ -18,6 +19,17 @@ export function useCurrentWorkout() {
   return useQuery({
     queryKey: workoutKeys.current(),
     queryFn: () => workoutsApi.getCurrentWorkout(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+/**
+ * Hook to fetch all workouts for the current user
+ */
+export function useAllWorkouts() {
+  return useQuery({
+    queryKey: workoutKeys.list(),
+    queryFn: () => workoutsApi.getAllWorkouts(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -45,6 +57,37 @@ export function useCreateWorkout() {
     onSuccess: () => {
       // Invalidate current workout query to fetch the newly created workout
       queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+      queryClient.invalidateQueries({ queryKey: workoutKeys.list() });
+    },
+  });
+}
+
+/**
+ * Hook to set a workout as active
+ */
+export function useSetActiveWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workoutId: string) => workoutsApi.setActiveWorkout(workoutId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+      queryClient.invalidateQueries({ queryKey: workoutKeys.list() });
+    },
+  });
+}
+
+/**
+ * Hook to delete a workout
+ */
+export function useDeleteWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workoutId: string) => workoutsApi.deleteWorkout(workoutId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+      queryClient.invalidateQueries({ queryKey: workoutKeys.list() });
     },
   });
 }

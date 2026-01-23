@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 import type {
   WorkoutDto,
+  WorkoutSummaryDto,
   ExerciseLibrary,
   CreateWorkoutRequest,
 } from "../types/workout";
@@ -25,6 +26,14 @@ export const workoutsApi = {
   },
 
   /**
+   * Get all workouts for the current user
+   */
+  getAllWorkouts: async (): Promise<WorkoutSummaryDto[]> => {
+    const response = await apiClient.get<WorkoutSummaryDto[]>("/workouts");
+    return response.data;
+  },
+
+  /**
    * Create a new workout
    */
   createWorkout: async (
@@ -35,6 +44,20 @@ export const workoutsApi = {
       request
     );
     return response.data;
+  },
+
+  /**
+   * Set a workout as active
+   */
+  setActiveWorkout: async (workoutId: string): Promise<void> => {
+    await apiClient.post(`/workouts/${workoutId}/activate`);
+  },
+
+  /**
+   * Delete a workout
+   */
+  deleteWorkout: async (workoutId: string): Promise<void> => {
+    await apiClient.delete(`/workouts/${workoutId}`);
   },
 
   /**

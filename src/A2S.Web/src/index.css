@@ -1,45 +1,77 @@
 @import "tailwindcss";
 
 @theme {
-  /* Golden Twilight Theme - Light Mode Colors */
-  --color-background: 0 0% 100%;
-  --color-foreground: 222 100% 3%;
+  /* Golden Twilight Theme - Modern & Polished */
+
+  /* Light Mode Colors */
+  --color-background: 220 20% 97%;
+  --color-foreground: 222 47% 11%;
 
   --color-card: 0 0% 100%;
-  --color-card-foreground: 222 100% 3%;
+  --color-card-foreground: 222 47% 11%;
 
   --color-popover: 0 0% 100%;
-  --color-popover-foreground: 222 100% 3%;
+  --color-popover-foreground: 222 47% 11%;
 
-  --color-primary: 45 100% 52%; /* Gold */
-  --color-primary-foreground: 222 100% 3%; /* Ink Black */
+  --color-primary: 45 100% 51%; /* Gold */
+  --color-primary-foreground: 222 100% 6%; /* Deep Navy */
 
-  --color-secondary: 210 100% 20%; /* Oxford Navy */
-  --color-secondary-foreground: 45 100% 52%; /* Gold */
+  --color-secondary: 215 28% 17%; /* Deep Navy */
+  --color-secondary-foreground: 45 100% 85%; /* Light Gold */
 
-  --color-muted: 210 100% 11%; /* Prussian Blue */
-  --color-muted-foreground: 45 100% 65%; /* Lighter gold for contrast */
+  --color-muted: 220 14% 96%;
+  --color-muted-foreground: 220 9% 46%;
 
-  --color-accent: 45 100% 50%; /* School Bus Yellow */
-  --color-accent-foreground: 222 100% 3%; /* Ink Black */
+  --color-accent: 45 96% 53%; /* Bright Gold */
+  --color-accent-foreground: 222 100% 6%;
 
   --color-destructive: 0 84% 60%;
   --color-destructive-foreground: 0 0% 100%;
 
-  --color-border: 210 100% 11%;
-  --color-input: 210 100% 11%;
-  --color-ring: 45 100% 52%;
+  --color-success: 142 76% 36%;
+  --color-success-foreground: 0 0% 100%;
+
+  --color-warning: 38 92% 50%;
+  --color-warning-foreground: 0 0% 100%;
+
+  --color-info: 199 89% 48%;
+  --color-info-foreground: 0 0% 100%;
+
+  --color-border: 220 13% 91%;
+  --color-input: 220 13% 91%;
+  --color-ring: 45 100% 51%;
 
   /* Custom palette colors for direct use */
   --color-ink-black: 222 100% 3%;
-  --color-prussian-blue: 210 100% 11%;
-  --color-oxford-navy: 210 100% 20%;
+  --color-prussian-blue: 215 50% 23%;
+  --color-oxford-navy: 215 28% 17%;
   --color-school-bus-yellow: 45 100% 50%;
-  --color-gold: 45 100% 52%;
+  --color-gold: 45 100% 51%;
+  --color-gold-light: 45 100% 85%;
+  --color-navy-gradient-start: 222 100% 6%;
+  --color-navy-gradient-mid: 215 50% 18%;
+  --color-navy-gradient-end: 215 40% 25%;
 
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  /* Modern radius values */
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 20px rgb(255 212 10 / 0.3);
+  --shadow-glow-sm: 0 0 10px rgb(255 212 10 / 0.2);
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
 }
 
 @layer base {
@@ -49,32 +81,158 @@
   }
 
   .dark {
-    --color-background: 222 100% 3%; /* Ink Black */
-    --color-foreground: 45 100% 52%; /* Gold */
+    --color-background: 222 47% 6%;
+    --color-foreground: 45 30% 90%;
 
-    --color-card: 210 100% 11%; /* Prussian Blue */
-    --color-card-foreground: 45 100% 52%; /* Gold */
+    --color-card: 215 40% 12%;
+    --color-card-foreground: 45 30% 90%;
 
-    --color-popover: 210 100% 11%; /* Prussian Blue */
-    --color-popover-foreground: 45 100% 52%; /* Gold */
+    --color-popover: 215 40% 12%;
+    --color-popover-foreground: 45 30% 90%;
 
-    --color-primary: 45 100% 52%; /* Gold */
-    --color-primary-foreground: 222 100% 3%; /* Ink Black */
+    --color-primary: 45 100% 51%;
+    --color-primary-foreground: 222 100% 6%;
 
-    --color-secondary: 210 100% 20%; /* Oxford Navy */
-    --color-secondary-foreground: 45 100% 52%; /* Gold */
+    --color-secondary: 215 30% 22%;
+    --color-secondary-foreground: 45 100% 85%;
 
-    --color-muted: 210 100% 11%; /* Prussian Blue */
-    --color-muted-foreground: 45 100% 65%; /* Lighter gold for contrast */
+    --color-muted: 215 30% 16%;
+    --color-muted-foreground: 220 9% 60%;
 
-    --color-accent: 45 100% 50%; /* School Bus Yellow */
-    --color-accent-foreground: 222 100% 3%; /* Ink Black */
+    --color-accent: 45 96% 53%;
+    --color-accent-foreground: 222 100% 6%;
 
-    --color-destructive: 0 62% 30%;
+    --color-destructive: 0 62% 50%;
     --color-destructive-foreground: 0 0% 100%;
 
-    --color-border: 210 100% 20%;
-    --color-input: 210 100% 20%;
-    --color-ring: 45 100% 52%;
+    --color-success: 142 76% 42%;
+    --color-success-foreground: 0 0% 100%;
+
+    --color-warning: 38 92% 55%;
+    --color-warning-foreground: 0 0% 100%;
+
+    --color-info: 199 89% 52%;
+    --color-info-foreground: 0 0% 100%;
+
+    --color-border: 215 30% 22%;
+    --color-input: 215 30% 22%;
+    --color-ring: 45 100% 51%;
+
+    --shadow-glow: 0 0 25px rgb(255 212 10 / 0.25);
+    --shadow-glow-sm: 0 0 12px rgb(255 212 10 / 0.15);
+  }
+
+  * {
+    border-color: hsl(var(--color-border));
+  }
+
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Glass morphism effect */
+  .glass {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--color-card) / 0.8) 0%,
+      hsl(var(--color-card) / 0.6) 100%
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-gold {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--color-primary)) 0%,
+      hsl(var(--color-accent)) 100%
+    );
+  }
+
+  .bg-gradient-navy {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--color-navy-gradient-start)) 0%,
+      hsl(var(--color-navy-gradient-mid)) 50%,
+      hsl(var(--color-navy-gradient-end)) 100%
+    );
+  }
+
+  .bg-gradient-radial {
+    background: radial-gradient(
+      ellipse at top,
+      hsl(var(--color-navy-gradient-mid)) 0%,
+      hsl(var(--color-navy-gradient-start)) 70%
+    );
+  }
+
+  /* Text gradients */
+  .text-gradient-gold {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--color-primary)) 0%,
+      hsl(var(--color-gold-light)) 50%,
+      hsl(var(--color-primary)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Glow effects */
+  .glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glow-sm {
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  /* Hover animations */
+  .hover-lift {
+    transition: transform var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    outline: none;
+    ring: 2px solid hsl(var(--color-ring));
+    ring-offset: 2px;
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+    background: hsl(var(--color-card));
+    border-radius: var(--radius-lg);
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--color-primary)) 0%,
+      hsl(var(--color-primary) / 0.5) 50%,
+      hsl(var(--color-primary)) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 }

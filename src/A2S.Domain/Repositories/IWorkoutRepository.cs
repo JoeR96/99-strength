@@ -34,6 +34,14 @@ public interface IWorkoutRepository
     Task<IReadOnlyList<Workout>> GetAllAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Gets all workouts for a specific user ordered by most recent first.
+    /// </summary>
+    /// <param name="userId">The ID of the user</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of all workouts for the user</returns>
+    Task<IReadOnlyList<Workout>> GetAllByUserAsync(string userId, CancellationToken ct = default);
+
+    /// <summary>
     /// Gets workouts by status.
     /// </summary>
     /// <param name="status">The workout status to filter by</param>

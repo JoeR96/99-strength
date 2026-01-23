@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { WorkoutDto } from "@/types/workout";
+import { WeightUnit, type WorkoutDto, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto } from "@/types/workout";
 
 interface WeekOverviewProps {
   workout: WorkoutDto;
@@ -15,7 +15,7 @@ export function WeekOverview({ workout }: WeekOverviewProps) {
     }
     acc[day].push(exercise);
     return acc;
-  }, {} as Record<number, typeof workout.exercises>);
+  }, {} as Record<number, ExerciseDto[]>);
 
   // Get unique days (sorted)
   const days = Object.keys(exercisesByDay)
@@ -41,7 +41,7 @@ export function WeekOverview({ workout }: WeekOverviewProps) {
 
 interface DayCardProps {
   dayNumber: number;
-  exercises: any[];
+  exercises: ExerciseDto[];
   isCompleted: boolean;
 }
 
@@ -74,25 +74,11 @@ function DayCard({ dayNumber, exercises, isCompleted }: DayCardProps) {
         )}
       </div>
 
-      <div className="space-y-2 mb-4">
+      <div className="space-y-3 mb-4">
         {exercises
           .sort((a, b) => a.orderInDay - b.orderInDay)
           .map((exercise) => (
-            <div key={exercise.id} className="text-sm">
-              <div className="font-medium">{exercise.name}</div>
-              {exercise.progression.type === "Linear" && (
-                <div className="text-xs text-muted-foreground">
-                  {exercise.progression.baseSetsPerExercise} sets
-                  {exercise.progression.useAmrap && " + AMRAP"}
-                </div>
-              )}
-              {exercise.progression.type === "RepsPerSet" && (
-                <div className="text-xs text-muted-foreground">
-                  {exercise.progression.currentSets} sets ×{" "}
-                  {exercise.progression.repRange.target} reps
-                </div>
-              )}
-            </div>
+            <ExerciseDetailCard key={exercise.id} exercise={exercise} />
           ))}
       </div>
 
@@ -104,6 +90,75 @@ function DayCard({ dayNumber, exercises, isCompleted }: DayCardProps) {
       >
         {isCompleted ? "Completed" : "Start Workout"}
       </Button>
+    </div>
+  );
+}
+
+function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
+  const isLinear = exercise.progression.type === "Linear";
+  const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
+  const repsPerSetProg = !isLinear ? (exercise.progression as RepsPerSetProgressionDto) : null;
+
+  return (
+    <div className="border-l-2 border-primary/30 pl-3 py-1">
+      <div className="font-medium text-sm">{exercise.name}</div>
+
+      {linearProg && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          <div className="flex justify-between">
+            <span>TM:</span>
+            <span className="font-medium text-foreground">
+              {linearProg.trainingMax.value} {linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Sets:</span>
+            <span className="font-medium text-foreground">
+              {linearProg.baseSetsPerExercise}{linearProg.useAmrap ? " + AMRAP" : ""}
+            </span>
+          </div>
+          {linearProg.useAmrap && (
+            <div className="text-primary text-[10px] font-medium">
+              AMRAP on last set
+            </div>
+          )}
+        </div>
+      )}
+
+      {repsPerSetProg && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          <div className="flex justify-between">
+            <span>Weight:</span>
+            <span className="font-medium text-foreground">
+              {repsPerSetProg.currentWeight} {repsPerSetProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Sets:</span>
+            <span className="font-medium text-foreground">
+              {repsPerSetProg.currentSetCount}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Reps:</span>
+            <span className="font-medium text-foreground">
+              {repsPerSetProg.repRange.target}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Range:</span>
+            <span className="font-medium text-foreground">
+              {repsPerSetProg.repRange.minimum}-{repsPerSetProg.repRange.maximum}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Target Sets:</span>
+            <span className="font-medium text-foreground">
+              {repsPerSetProg.targetSets}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

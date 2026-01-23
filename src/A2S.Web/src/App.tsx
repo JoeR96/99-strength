@@ -6,6 +6,7 @@ import { SignUpPage } from './features/auth/SignUpPage';
 import { DashboardPage } from './features/auth/DashboardPage';
 import { SetupWizard } from './features/workout/SetupWizard';
 import { WorkoutDashboard } from './features/workout/WorkoutDashboard';
+import { ProgramsPage } from './features/programs/ProgramsPage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -76,6 +77,20 @@ function AppContent() {
           <>
             <SignedIn>
               <SetupWizard />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/programs"
+        element={
+          <>
+            <SignedIn>
+              <ProgramsPage />
             </SignedIn>
             <SignedOut>
               <Navigate to="/sign-in" replace />

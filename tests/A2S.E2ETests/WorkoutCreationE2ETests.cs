@@ -225,7 +225,7 @@ public class WorkoutCreationE2ETests : E2ETestBase
             var exercises = workout.GetProperty("exercises");
             exercises.GetArrayLength().Should().Be(5, "Should have 5 exercises");
 
-            // Verify each exercise has the correct properties
+            // Verify each exercise has the correct properties including ALL progression details
             var exerciseList = exercises.EnumerateArray().ToList();
             for (int i = 0; i < exercisesToAdd.Length; i++)
             {
@@ -239,14 +239,199 @@ public class WorkoutCreationE2ETests : E2ETestBase
                 // Verify day assignment
                 exercise.GetProperty("assignedDay").GetInt32().Should().Be(expectedDay, $"{expectedName} should be on Day {expectedDay}");
 
-                // Verify progression type is Linear
-                exercise.GetProperty("progression").GetProperty("type").GetString().Should().Be("Linear", $"{expectedName} should have Linear progression");
+                // Verify order in day
+                exercise.GetProperty("orderInDay").GetInt32().Should().BeGreaterThan(0, $"{expectedName} should have a valid order in day");
 
-                // Verify training max
-                var trainingMax = exercise.GetProperty("progression").GetProperty("trainingMax");
-                trainingMax.GetProperty("value").GetDecimal().Should().Be(100m, $"{expectedName} training max should be 100");
+                // Verify progression type is Linear
+                var progression = exercise.GetProperty("progression");
+                progression.GetProperty("type").GetString().Should().Be("Linear", $"{expectedName} should have Linear progression");
+
+                // Verify training max value and unit
+                var trainingMax = progression.GetProperty("trainingMax");
+                trainingMax.GetProperty("value").GetDecimal().Should().Be(100m, $"{expectedName} training max value should be 100");
                 trainingMax.GetProperty("unit").GetInt32().Should().Be(1, $"{expectedName} training max unit should be Kilograms (1)");
+
+                // Verify AMRAP setting
+                progression.GetProperty("useAmrap").GetBoolean().Should().BeTrue($"{expectedName} should have AMRAP enabled for main lifts");
+
+                // Verify base sets per exercise
+                progression.GetProperty("baseSetsPerExercise").GetInt32().Should().BeGreaterThan(0, $"{expectedName} should have a positive number of sets");
             }
+
+            // ===== VERIFY UI DISPLAYS FULL EXERCISE DETAILS =====
+            // Navigate to workout page and verify all details are displayed
+            await page.GotoAsync($"{FrontendUrl}/workout");
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            // Verify "Training Max" labels are visible (indicating detailed display)
+            var trainingMaxLabels = page.Locator("text=Training Max").First;
+            var tmVisible = await trainingMaxLabels.IsVisibleAsync();
+            tmVisible.Should().BeTrue("Training Max details should be displayed on workout page");
+
+            // Verify "AMRAP" indicator is visible
+            var amrapIndicator = page.Locator("text=AMRAP").First;
+            var amrapVisible = await amrapIndicator.IsVisibleAsync();
+            amrapVisible.Should().BeTrue("AMRAP indicator should be displayed for linear progression exercises");
+
+            // Verify sets information is visible
+            var setsInfo = page.Locator("text=Sets").First;
+            var setsVisible = await setsInfo.IsVisibleAsync();
+            setsVisible.Should().BeTrue("Sets information should be displayed");
+
+            // Verify weight unit is shown (kg)
+            var kgUnit = page.Locator("text=kg").First;
+            var unitVisible = await kgUnit.IsVisibleAsync();
+            unitVisible.Should().BeTrue("Weight unit (kg) should be displayed");
+        }
+        finally
+        {
+            await page.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// Tests that RepsPerSet progression exercises display all required details
+    /// including weight, sets, reps, rep range, and target sets.
+    /// </summary>
+    [Fact]
+    public async Task CreateWorkout_RepsPerSetProgression_ShouldDisplayAllDetails()
+    {
+        // Arrange - Delete any existing workouts to ensure clean state
+        await DeleteAllWorkoutsAsync();
+
+        // Arrange - Login
+        var page = await LoginAndNavigateToDashboardAsync();
+
+        try
+        {
+            // Navigate to setup
+            await page.GotoAsync($"{FrontendUrl}/setup");
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            // Configure program
+            var programNameInput = page.Locator("input[type='text']").First;
+            await programNameInput.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            await programNameInput.FillAsync("Hypertrophy Program");
+
+            // Select 4-Day variant
+            var variantSelect = page.Locator("select").First;
+            await variantSelect.SelectOptionAsync(new SelectOptionValue { Value = "4" });
+
+            // Click Next to go to exercise selection
+            var nextButton = page.Locator("button:has-text('Next')").First;
+            await nextButton.ClickAsync();
+            await page.WaitForTimeoutAsync(1000);
+
+            // Wait for exercise library
+            var exerciseLibraryHeader = page.Locator("h3:has-text('Exercise Library')").First;
+            await exerciseLibraryHeader.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
+
+            // Add a RepsPerSet (accessory) exercise
+            var addBicepCurlButton = page.GetByRole(AriaRole.Button, new() { Name = "Add Bicep Curl", Exact = true });
+            await addBicepCurlButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            await addBicepCurlButton.ClickAsync();
+
+            // Wait for config dialog
+            var configDialog = page.Locator("text=Configure Exercise").First;
+            await configDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+
+            // Select RepsPerSet progression
+            var repsPerSetButton = page.Locator("button:has-text('Reps Per Set')").First;
+            await repsPerSetButton.ClickAsync();
+
+            // Wait for RepsPerSet configuration fields to appear
+            await page.WaitForTimeoutAsync(500);
+
+            // Set weight
+            var weightInput = page.Locator("input[type='number']").First;
+            await weightInput.FillAsync("15");
+
+            // Assign to Day 1
+            var assignToDaySection = page.Locator("text=Assign to Day").First;
+            await assignToDaySection.ScrollIntoViewIfNeededAsync();
+            var day1Button = page.GetByRole(AriaRole.Button, new() { Name = "Day 1" });
+            await day1Button.ClickAsync();
+            await page.WaitForTimeoutAsync(200);
+
+            // Save configuration
+            var saveButton = page.Locator("button:has-text('Save Changes')").First;
+            await saveButton.ClickAsync();
+            await page.WaitForTimeoutAsync(500);
+
+            // Continue to confirm step
+            nextButton = page.Locator("button:has-text('Next')").First;
+            await nextButton.ClickAsync();
+            await page.WaitForTimeoutAsync(1000);
+
+            // Create the program
+            var confirmButton = page.Locator("button:has-text('Create Program')").First;
+            await confirmButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            await confirmButton.ClickAsync();
+
+            // Wait for redirect
+            await page.WaitForURLAsync(
+                url => url.Contains("/dashboard") || url.Contains("/workout"),
+                new() { Timeout = 15000 });
+
+            // Navigate to workout page
+            await page.GotoAsync($"{FrontendUrl}/workout");
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            // Fetch workout via API and verify RepsPerSet details
+            var workoutJsonString = await page.EvaluateAsync<string>($@"async () => {{
+                const clerk = window.Clerk;
+                if (!clerk) return JSON.stringify({{ error: 'Clerk not available' }});
+                const token = await clerk.session?.getToken();
+                if (!token) return JSON.stringify({{ error: 'No auth token' }});
+                const response = await fetch('{ApiBaseUrl}/api/v1/workouts/current', {{
+                    headers: {{ 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }}
+                }});
+                if (!response.ok) return JSON.stringify({{ error: response.status }});
+                return JSON.stringify(await response.json());
+            }}");
+
+            workoutJsonString.Should().NotBeNull();
+            var workoutJson = System.Text.Json.JsonDocument.Parse(workoutJsonString!);
+            var workout = workoutJson.RootElement;
+
+            // Verify workout was created
+            workout.GetProperty("name").GetString().Should().Be("Hypertrophy Program");
+
+            // Find the Bicep Curl exercise
+            var exercises = workout.GetProperty("exercises");
+            var bicepCurl = exercises.EnumerateArray()
+                .FirstOrDefault(e => e.GetProperty("name").GetString() == "Bicep Curl");
+
+            bicepCurl.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Undefined, "Bicep Curl should exist");
+
+            // Verify progression is RepsPerSet
+            var progression = bicepCurl.GetProperty("progression");
+            progression.GetProperty("type").GetString().Should().Be("RepsPerSet", "Bicep Curl should have RepsPerSet progression");
+
+            // Verify RepsPerSet specific details
+            progression.GetProperty("currentWeight").GetDecimal().Should().Be(15m, "Weight should be 15");
+            progression.GetProperty("weightUnit").GetString().Should().NotBeNullOrEmpty("Weight unit should be specified");
+            progression.GetProperty("currentSetCount").GetInt32().Should().BeGreaterThan(0, "Current set count should be positive");
+            progression.GetProperty("targetSets").GetInt32().Should().BeGreaterThan(0, "Target sets should be positive");
+
+            // Verify rep range
+            var repRange = progression.GetProperty("repRange");
+            repRange.GetProperty("minimum").GetInt32().Should().BeGreaterThan(0, "Minimum reps should be positive");
+            repRange.GetProperty("target").GetInt32().Should().BeGreaterThan(0, "Target reps should be positive");
+            repRange.GetProperty("maximum").GetInt32().Should().BeGreaterThan(0, "Maximum reps should be positive");
+            repRange.GetProperty("target").GetInt32().Should().BeGreaterThanOrEqualTo(
+                repRange.GetProperty("minimum").GetInt32(), "Target should be >= minimum");
+            repRange.GetProperty("maximum").GetInt32().Should().BeGreaterThanOrEqualTo(
+                repRange.GetProperty("target").GetInt32(), "Maximum should be >= target");
+
+            // Verify UI displays RepsPerSet details
+            var weightLabel = page.Locator("text=Weight").First;
+            var weightVisible = await weightLabel.IsVisibleAsync();
+            weightVisible.Should().BeTrue("Weight should be displayed for RepsPerSet exercises");
+
+            var repsLabel = page.Locator("text=Reps").First;
+            var repsVisible = await repsLabel.IsVisibleAsync();
+            repsVisible.Should().BeTrue("Reps information should be displayed");
         }
         finally
         {
