@@ -54,7 +54,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
 
     /// <summary>
     /// Calculates planned sets for a given week and block.
-    /// Intensity and reps vary by week/block according to A2S program structure.
+    /// Intensity, sets, and reps are taken directly from the A2S spreadsheet.
     /// </summary>
     public override IEnumerable<PlannedSet> CalculatePlannedSets(int weekNumber, int blockNumber)
     {
@@ -63,12 +63,13 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
 
         var intensity = GetIntensityPercentage(weekNumber, blockNumber);
         var targetReps = GetTargetReps(weekNumber, blockNumber);
+        var setsForWeek = GetSetsForWeek(weekNumber);
         var workingWeight = TrainingMax.CalculateWorkingWeight(intensity);
 
         var sets = new List<PlannedSet>();
-        for (int i = 1; i <= BaseSetsPerExercise; i++)
+        for (int i = 1; i <= setsForWeek; i++)
         {
-            bool isAmrap = UseAmrap && i == BaseSetsPerExercise;
+            bool isAmrap = UseAmrap && i == setsForWeek;
             sets.Add(new PlannedSet(i, workingWeight, targetReps, isAmrap));
         }
 
@@ -161,84 +162,100 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     }
 
     /// <summary>
-    /// Gets intensity percentage based on week and block.
-    /// Intensity increases as blocks progress (Block 1 < Block 2 < Block 3).
+    /// Week-by-week programming data matching the A2S 2024-2025 spreadsheet exactly.
+    /// Format: (Intensity%, Sets, TargetReps)
     /// </summary>
     /// <remarks>
-    /// Simplified intensity scheme for A2S 2.0:
-    /// - Block 1 (weeks 1-7): 70-75% intensity
-    /// - Block 2 (weeks 8-14): 75-80% intensity
-    /// - Block 3 (weeks 15-21): 80-85% intensity
-    /// - Deload weeks (7, 14, 21): Reduced intensity
+    /// Source: A2S 2024-2025 - Program (1).csv, Smith Squat row (line 22)
+    ///
+    /// BLOCK 1 (Weeks 1-7): Volume accumulation phase
+    /// - 3-week mini-cycles: 75→85→90%, then 80→85→90%
+    /// - Week 7: Deload at 65%
+    ///
+    /// BLOCK 2 (Weeks 8-14): Intensity building phase
+    /// - 3-week mini-cycles: 85→90→95%, then 85→90→95%
+    /// - Week 14: Deload at 65%
+    ///
+    /// BLOCK 3 (Weeks 15-21): Peak/realization phase
+    /// - 3-week mini-cycles: 90→95→100%, then 95→100→105%
+    /// - Week 21: Deload at 65%
     /// </remarks>
+    private static readonly (decimal Intensity, int Sets, int Reps)[] WeeklyProgram = new[]
+    {
+        // Week 0 placeholder (1-indexed access)
+        (0.00m, 0, 0),
+
+        // BLOCK 1: Weeks 1-7
+        (0.75m, 5, 10),  // Week 1
+        (0.85m, 4, 8),   // Week 2
+        (0.90m, 3, 6),   // Week 3
+        (0.80m, 5, 9),   // Week 4
+        (0.85m, 4, 7),   // Week 5
+        (0.90m, 3, 5),   // Week 6
+        (0.65m, 5, 10),  // Week 7 - DELOAD (reps n/a in spreadsheet, using base)
+
+        // BLOCK 2: Weeks 8-14
+        (0.85m, 4, 8),   // Week 8
+        (0.90m, 3, 6),   // Week 9
+        (0.95m, 2, 4),   // Week 10
+        (0.85m, 4, 7),   // Week 11
+        (0.90m, 3, 5),   // Week 12
+        (0.95m, 2, 3),   // Week 13
+        (0.65m, 5, 10),  // Week 14 - DELOAD
+
+        // BLOCK 3: Weeks 15-21
+        (0.90m, 3, 6),   // Week 15
+        (0.95m, 2, 4),   // Week 16
+        (1.00m, 1, 2),   // Week 17
+        (0.95m, 2, 4),   // Week 18
+        (1.00m, 1, 2),   // Week 19
+        (1.05m, 1, 2),   // Week 20
+        (0.65m, 5, 10),  // Week 21 - DELOAD (final week)
+    };
+
+    /// <summary>
+    /// Gets intensity percentage based on week number.
+    /// Uses exact values from the A2S spreadsheet.
+    /// </summary>
     private static decimal GetIntensityPercentage(int weekNumber, int blockNumber)
     {
-        // Check if it's a deload week
-        bool isDeloadWeek = weekNumber % 7 == 0;
-        if (isDeloadWeek)
+        if (weekNumber < 1 || weekNumber > 21)
         {
-            // Deload: ~65-70% intensity
-            return 0.65m;
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
         }
 
-        // Base intensity by block
-        var baseIntensity = blockNumber switch
-        {
-            1 => 0.70m,  // Block 1: 70% base
-            2 => 0.75m,  // Block 2: 75% base
-            3 => 0.80m,  // Block 3: 80% base
-            _ => throw new ArgumentException($"Invalid block number: {blockNumber}")
-        };
-
-        // Add progressive overload within the block (0-5% increase over 6 weeks)
-        var weekInBlock = ((weekNumber - 1) % 7) + 1;
-        var weeklyIncrease = (weekInBlock - 1) * 0.01m;
-
-        return baseIntensity + weeklyIncrease;
+        return WeeklyProgram[weekNumber].Intensity;
     }
 
     /// <summary>
-    /// Gets target reps based on week and block.
-    /// Reps decrease as blocks progress (Block 1 > Block 2 > Block 3).
+    /// Gets target reps based on week number.
+    /// Uses exact values from the A2S spreadsheet.
     /// </summary>
-    /// <remarks>
-    /// Simplified rep scheme for A2S 2.0:
-    /// - Block 1 (weeks 1-7): 8-10 reps
-    /// - Block 2 (weeks 8-14): 6-8 reps
-    /// - Block 3 (weeks 15-21): 4-6 reps
-    /// - Deload weeks: Same reps but lower intensity
-    /// </remarks>
     private static int GetTargetReps(int weekNumber, int blockNumber)
     {
-        // Check if it's a deload week
-        bool isDeloadWeek = weekNumber % 7 == 0;
-
-        // Base reps by block
-        var baseReps = blockNumber switch
+        if (weekNumber < 1 || weekNumber > 21)
         {
-            1 => 10,  // Block 1: Higher reps (8-10)
-            2 => 7,   // Block 2: Medium reps (6-8)
-            3 => 5,   // Block 3: Lower reps (4-6)
-            _ => throw new ArgumentException($"Invalid block number: {blockNumber}")
-        };
-
-        // Deload weeks use same rep ranges
-        if (isDeloadWeek)
-        {
-            return baseReps;
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
         }
 
-        // Slight variation within block (±1 rep based on week)
-        var weekInBlock = ((weekNumber - 1) % 7) + 1;
-        var repAdjustment = weekInBlock switch
-        {
-            1 or 2 => 1,   // First two weeks: slightly higher reps
-            3 or 4 or 5 => 0,  // Middle weeks: base reps
-            6 => -1,       // Week 6: slightly lower reps (before deload)
-            _ => 0
-        };
+        return WeeklyProgram[weekNumber].Reps;
+    }
 
-        return baseReps + repAdjustment;
+    /// <summary>
+    /// Gets the number of sets for a given week.
+    /// Uses exact values from the A2S spreadsheet.
+    /// </summary>
+    public static int GetSetsForWeek(int weekNumber)
+    {
+        if (weekNumber < 1 || weekNumber > 21)
+        {
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
+        }
+
+        return WeeklyProgram[weekNumber].Sets;
     }
 
     /// <summary>

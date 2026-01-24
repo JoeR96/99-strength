@@ -292,6 +292,159 @@ public static class ExerciseLibrary
             DefaultRepRange: RepRange.Common.Medium,
             DefaultSets: 3,
             Description: "Hanging leg raises for lower abs"),
+
+        // Smith Machine Variations
+        new ExerciseTemplate(
+            Name: "Smith Squat",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.MediumLow,
+            DefaultSets: 5,
+            Description: "Smith machine squat"),
+
+        new ExerciseTemplate(
+            Name: "Overhead Press Smith Machine",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.MediumLow,
+            DefaultSets: 4,
+            Description: "Smith machine overhead press"),
+
+        new ExerciseTemplate(
+            Name: "Single Leg Lunge Smith Machine",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Smith machine single leg lunges - unilateral"),
+
+        // Cable Exercises
+        new ExerciseTemplate(
+            Name: "Cable Low Row",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Low cable row for back thickness"),
+
+        new ExerciseTemplate(
+            Name: "Cable Lateral Raise",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.MediumHigh,
+            DefaultSets: 4,
+            Description: "Cable lateral raises for side delts"),
+
+        new ExerciseTemplate(
+            Name: "Cable Bicep Curl",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Cable bicep curls"),
+
+        new ExerciseTemplate(
+            Name: "Cable Tricep Pushdown",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Cable tricep pushdowns"),
+
+        new ExerciseTemplate(
+            Name: "Rear Delt Flyes",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Cable rear delt flyes"),
+
+        new ExerciseTemplate(
+            Name: "Single Arm Tricep Pushdown",
+            Equipment: EquipmentType.Cable,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 6,
+            Description: "Single arm cable tricep pushdown - unilateral"),
+
+        // Machine Leg Exercises
+        new ExerciseTemplate(
+            Name: "Lying Leg Curl",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Lying leg curl for hamstrings"),
+
+        new ExerciseTemplate(
+            Name: "Hip Abduction",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 3,
+            Description: "Hip abduction machine"),
+
+        new ExerciseTemplate(
+            Name: "Hip Adduction",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Hip adduction machine"),
+
+        new ExerciseTemplate(
+            Name: "Calf Raises",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.MediumHigh,
+            DefaultSets: 3,
+            Description: "Machine calf raises"),
+
+        new ExerciseTemplate(
+            Name: "Single Leg Press",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 4,
+            Description: "Single leg press - unilateral"),
+
+        new ExerciseTemplate(
+            Name: "Booty Builder",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.MediumLow,
+            DefaultSets: 3,
+            Description: "Glute-focused machine exercise"),
+
+        new ExerciseTemplate(
+            Name: "Chest Flye",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.MediumLow,
+            DefaultSets: 3,
+            Description: "Machine chest flye"),
+
+        // Assisted Exercises (MinimalSets progression)
+        new ExerciseTemplate(
+            Name: "Assisted Dips",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 3,
+            Description: "Assisted dip machine for chest and triceps"),
+
+        new ExerciseTemplate(
+            Name: "Assisted Pullups",
+            Equipment: EquipmentType.Machine,
+            DefaultRepRange: RepRange.Common.Medium,
+            DefaultSets: 6,
+            Description: "Assisted pullup machine for back"),
+
+        // Dumbbell Exercises
+        new ExerciseTemplate(
+            Name: "Concentration Curl",
+            Equipment: EquipmentType.Dumbbell,
+            DefaultRepRange: RepRange.Common.MediumHigh,
+            DefaultSets: 4,
+            Description: "Concentration curl - unilateral bicep exercise"),
+
+        new ExerciseTemplate(
+            Name: "Lateral Raises",
+            Equipment: EquipmentType.Dumbbell,
+            DefaultRepRange: RepRange.Common.MediumHigh,
+            DefaultSets: 3,
+            Description: "Dumbbell lateral raises for side delts"),
+
+        // Barbell Accessories
+        new ExerciseTemplate(
+            Name: "Ez Curl",
+            Equipment: EquipmentType.Barbell,
+            DefaultRepRange: RepRange.Common.MediumHigh,
+            DefaultSets: 3,
+            Description: "EZ bar bicep curl"),
     };
 
     /// <summary>

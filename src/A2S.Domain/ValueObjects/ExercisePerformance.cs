@@ -74,6 +74,24 @@ public sealed class ExercisePerformance : ValueObject
         return CompletedSets.Any(s => repRange.IsBelowMinimum(s.ActualReps));
     }
 
+    /// <summary>
+    /// Gets the total reps completed across all sets.
+    /// Used for MinimalSets progression strategy.
+    /// </summary>
+    public int GetTotalRepsCompleted()
+    {
+        return CompletedSets.Sum(s => s.ActualReps);
+    }
+
+    /// <summary>
+    /// Gets the number of sets used (completed).
+    /// Used for MinimalSets progression strategy.
+    /// </summary>
+    public int GetSetsUsed()
+    {
+        return CompletedSets.Count;
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return ExerciseId;

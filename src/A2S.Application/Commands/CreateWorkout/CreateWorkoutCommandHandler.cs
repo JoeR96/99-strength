@@ -113,6 +113,25 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     baseSetsPerExercise: template.DefaultSets ?? 4
                 );
             }
+            else if (exerciseRequest.ProgressionType == "MinimalSets")
+            {
+                // Create MinimalSets progression exercise
+                var weight = Weight.Create(
+                    exerciseRequest.StartingWeight ?? 30m,
+                    exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
+                );
+
+                exercise = Exercise.CreateWithMinimalSetsProgression(
+                    name: template.Name,
+                    category: exerciseRequest.Category,
+                    equipment: template.Equipment,
+                    assignedDay: exerciseRequest.AssignedDay,
+                    orderInDay: exerciseRequest.OrderInDay,
+                    startingWeight: weight,
+                    targetTotalReps: exerciseRequest.TargetTotalReps ?? 40,
+                    startingSets: exerciseRequest.StartingSets ?? 3
+                );
+            }
             else // RepsPerSet
             {
                 // Create RepsPerSet progression exercise
@@ -129,8 +148,9 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     orderInDay: exerciseRequest.OrderInDay,
                     repRange: template.DefaultRepRange ?? RepRange.Common.Medium,
                     startingWeight: weight,
-                    startingSets: template.DefaultSets ?? 3,
-                    targetSets: (template.DefaultSets ?? 3) + 2
+                    startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
+                    targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
+                    isUnilateral: exerciseRequest.IsUnilateral
                 );
             }
 

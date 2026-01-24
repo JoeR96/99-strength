@@ -26,6 +26,18 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     public Weight CurrentWeight { get; private set; }
     public EquipmentType Equipment { get; private set; }
 
+    /// <summary>
+    /// Indicates if this is a unilateral exercise (performed one side at a time).
+    /// Unilateral exercises have a lower max set target (3 per side = 6 total).
+    /// </summary>
+    public bool IsUnilateral { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum set count before weight increases.
+    /// Unilateral exercises max at 3 sets (per side), bilateral max at 5.
+    /// </summary>
+    public int MaxSets => IsUnilateral ? 3 : 5;
+
     // EF Core constructor
     private RepsPerSetStrategy()
     {
@@ -39,7 +51,8 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         int startingSets,
         int targetSets,
         Weight currentWeight,
-        EquipmentType equipment)
+        EquipmentType equipment,
+        bool isUnilateral)
         : base(id, "RepsPerSet")
     {
         CheckRule(startingSets >= 1 && startingSets <= 10,
@@ -53,6 +66,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         TargetSets = targetSets;
         CurrentWeight = currentWeight;
         Equipment = equipment;
+        IsUnilateral = isUnilateral;
     }
 
     public static RepsPerSetStrategy Create(
@@ -60,7 +74,8 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         Weight startingWeight,
         EquipmentType equipment,
         int startingSets = 2,
-        int targetSets = 4)
+        int targetSets = 4,
+        bool isUnilateral = false)
     {
         return new RepsPerSetStrategy(
             new ExerciseProgressionId(Guid.NewGuid()),
@@ -68,7 +83,8 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
             startingSets,
             targetSets,
             startingWeight,
-            equipment);
+            equipment,
+            isUnilateral);
     }
 
     /// <summary>
@@ -115,16 +131,24 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </summary>
     public override ProgressionSummary GetSummary()
     {
+        var effectiveMaxSets = Math.Min(TargetSets, MaxSets);
+        var details = new Dictionary<string, string>
+        {
+            ["Rep Range"] = RepRange.ToString(),
+            ["Current Sets"] = $"{CurrentSetCount}/{effectiveMaxSets}",
+            ["Current Weight"] = CurrentWeight.ToString(),
+            ["Equipment"] = Equipment.ToString()
+        };
+
+        if (IsUnilateral)
+        {
+            details["Type"] = "Unilateral (per side)";
+        }
+
         return new ProgressionSummary
         {
             Type = "Reps Per Set",
-            Details = new Dictionary<string, string>
-            {
-                ["Rep Range"] = RepRange.ToString(),
-                ["Current Sets"] = $"{CurrentSetCount}/{TargetSets}",
-                ["Current Weight"] = CurrentWeight.ToString(),
-                ["Equipment"] = Equipment.ToString()
-            }
+            Details = details
         };
     }
 
@@ -153,17 +177,21 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// <summary>
     /// Handles successful performance (all sets hit max reps).
     /// Reference: business-rules.md lines 195-200.
+    /// Uses MaxSets property which accounts for unilateral exercises (3 max) vs bilateral (5 max).
     /// </summary>
     private void HandleSuccess()
     {
-        if (CurrentSetCount < TargetSets)
+        // Use the lower of TargetSets or MaxSets (unilateral cap)
+        var effectiveMaxSets = Math.Min(TargetSets, MaxSets);
+
+        if (CurrentSetCount < effectiveMaxSets)
         {
             // Add one set
             CurrentSetCount++;
         }
         else
         {
-            // At target sets, increase weight and reset to starting sets
+            // At max sets, increase weight and reset to starting sets
             CurrentWeight = CurrentWeight.Add(GetWeightIncrement());
             CurrentSetCount = StartingSets;
         }

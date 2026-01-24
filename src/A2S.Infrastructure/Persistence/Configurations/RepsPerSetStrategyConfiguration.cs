@@ -48,5 +48,9 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
         builder.Property(rps => rps.Equipment)
             .HasColumnName("Equipment")
             .HasConversion<string>();
+
+        builder.Property(rps => rps.IsUnilateral)
+            .HasColumnName("IsUnilateral")
+            .HasDefaultValue(false);
     }
 }

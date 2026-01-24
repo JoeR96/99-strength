@@ -14,6 +14,27 @@ public sealed record WorkoutDto
     public int TotalWeeks { get; init; }
     public int CurrentWeek { get; init; }
     public int CurrentBlock { get; init; }
+
+    /// <summary>
+    /// The current day number (1-6) the user is on within the current week.
+    /// </summary>
+    public int CurrentDay { get; init; }
+
+    /// <summary>
+    /// Number of training days per week based on program variant.
+    /// </summary>
+    public int DaysPerWeek { get; init; }
+
+    /// <summary>
+    /// Days that have been completed in the current week.
+    /// </summary>
+    public IReadOnlyList<int> CompletedDaysInCurrentWeek { get; init; } = Array.Empty<int>();
+
+    /// <summary>
+    /// Whether all days in the current week have been completed.
+    /// </summary>
+    public bool IsWeekComplete { get; init; }
+
     public string Status { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime? StartedAt { get; init; }
@@ -33,6 +54,10 @@ public sealed record WorkoutSummaryDto
     public int TotalWeeks { get; init; }
     public int CurrentWeek { get; init; }
     public int CurrentBlock { get; init; }
+    public int CurrentDay { get; init; }
+    public int DaysPerWeek { get; init; }
+    public IReadOnlyList<int> CompletedDaysInCurrentWeek { get; init; } = Array.Empty<int>();
+    public bool IsWeekComplete { get; init; }
     public string Status { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime? StartedAt { get; init; }
@@ -61,6 +86,7 @@ public sealed record ExerciseDto
 /// </summary>
 [JsonDerivedType(typeof(LinearProgressionDto), typeDiscriminator: "Linear")]
 [JsonDerivedType(typeof(RepsPerSetProgressionDto), typeDiscriminator: "RepsPerSet")]
+[JsonDerivedType(typeof(MinimalSetsProgressionDto), typeDiscriminator: "MinimalSets")]
 public record ExerciseProgressionDto
 {
     public string Type { get; init; } = string.Empty;
@@ -95,4 +121,19 @@ public sealed record RepsPerSetProgressionDto : ExerciseProgressionDto
     public int TargetSets { get; init; }
     public decimal CurrentWeight { get; init; }
     public string WeightUnit { get; init; } = string.Empty;
+    public bool IsUnilateral { get; init; }
+}
+
+/// <summary>
+/// Data Transfer Object for Minimal Sets Progression.
+/// Used for exercises where the goal is to complete target total reps in minimal sets.
+/// </summary>
+public sealed record MinimalSetsProgressionDto : ExerciseProgressionDto
+{
+    public decimal CurrentWeight { get; init; }
+    public string WeightUnit { get; init; } = string.Empty;
+    public int TargetTotalReps { get; init; }
+    public int CurrentSetCount { get; init; }
+    public int MinimumSets { get; init; }
+    public int MaximumSets { get; init; }
 }

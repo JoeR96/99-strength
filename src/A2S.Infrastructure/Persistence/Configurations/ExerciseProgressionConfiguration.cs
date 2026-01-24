@@ -33,6 +33,7 @@ public class ExerciseProgressionConfiguration : IEntityTypeConfiguration<Exercis
         // TPH discriminator
         builder.HasDiscriminator(p => p.ProgressionType)
             .HasValue<LinearProgressionStrategy>("Linear")
-            .HasValue<RepsPerSetStrategy>("RepsPerSet");
+            .HasValue<RepsPerSetStrategy>("RepsPerSet")
+            .HasValue<MinimalSetsStrategy>("MinimalSets");
     }
 }

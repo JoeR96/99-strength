@@ -1,9 +1,12 @@
+using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
+using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.Commands.SetActiveWorkout;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
+using A2S.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -215,4 +218,112 @@ public class WorkoutsController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Completes a training day with exercise performance data.
+    /// This applies progression rules to each exercise based on actual performance.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="day">The day number to complete (1-6)</param>
+    /// <param name="request">The exercise performance data</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result of completing the day</returns>
+    [HttpPost("{id:guid}/days/{day:int}/complete")]
+    [ProducesResponseType(typeof(CompleteDayResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CompleteDay(
+        [FromRoute] Guid id,
+        [FromRoute] int day,
+        [FromBody] CompleteDayRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Completing day {Day} for workout {WorkoutId}", day, id);
+
+        // Validate day number
+        if (day < 1 || day > 6)
+        {
+            return BadRequest(new { error = "Day must be between 1 and 6." });
+        }
+
+        var dayNumber = (DayNumber)day;
+
+        try
+        {
+            var command = new CompleteDayCommand(id, dayNumber, request.Performances);
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to complete day: {Error}", result.Error);
+
+                if (result.Error?.Contains("not found") == true)
+                {
+                    return NotFound(new { error = result.Error });
+                }
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            _logger.LogInformation("Day {Day} completed for workout {WorkoutId}", day, id);
+            return Ok(result.Value);
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning("Validation failed for complete day: {Errors}", ex.Message);
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Progresses the workout to the next week.
+    /// This advances the current week, updates the block if necessary,
+    /// and handles deload week transitions.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result of week progression</returns>
+    [HttpPost("{id:guid}/progress-week")]
+    [ProducesResponseType(typeof(ProgressWeekResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ProgressToNextWeek(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Progressing to next week for workout {WorkoutId}", id);
+
+        var result = await _mediator.Send(new ProgressWeekCommand(id), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to progress week: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        _logger.LogInformation(
+            "Progressed from week {PreviousWeek} to week {NewWeek} for workout {WorkoutId}",
+            result.Value!.PreviousWeek,
+            result.Value.NewWeek,
+            id);
+
+        return Ok(result.Value);
+    }
+}
+
+/// <summary>
+/// Request body for completing a training day.
+/// </summary>
+public sealed record CompleteDayRequest
+{
+    /// <summary>
+    /// The exercise performances for this day.
+    /// </summary>
+    public required IReadOnlyList<ExercisePerformanceRequest> Performances { get; init; }
 }

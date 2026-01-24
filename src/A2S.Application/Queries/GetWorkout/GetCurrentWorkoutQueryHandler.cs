@@ -46,6 +46,10 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 .Select(MapExerciseToDto)
                 .ToList();
 
+            var completedDays = workout.GetCompletedDaysInCurrentWeek()
+                .Select(d => (int)d)
+                .ToList();
+
             var dto = new WorkoutDto
             {
                 Id = workout.Id.Value,
@@ -54,6 +58,10 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 TotalWeeks = workout.TotalWeeks,
                 CurrentWeek = workout.CurrentWeek,
                 CurrentBlock = workout.CurrentBlock,
+                CurrentDay = workout.CurrentDay,
+                DaysPerWeek = workout.GetDaysPerWeek(),
+                CompletedDaysInCurrentWeek = completedDays,
+                IsWeekComplete = workout.AreAllDaysCompletedInCurrentWeek(),
                 Status = workout.Status.ToString(),
                 CreatedAt = workout.CreatedAt,
                 StartedAt = workout.StartedAt,
@@ -102,7 +110,21 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CurrentSetCount = repsPerSet.CurrentSetCount,
                 TargetSets = repsPerSet.TargetSets,
                 CurrentWeight = repsPerSet.CurrentWeight.Value,
-                WeightUnit = repsPerSet.CurrentWeight.Unit.ToString()
+                WeightUnit = repsPerSet.CurrentWeight.Unit.ToString(),
+                IsUnilateral = repsPerSet.IsUnilateral
+            };
+        }
+        else if (exercise.Progression is MinimalSetsStrategy minimalSets)
+        {
+            progressionDto = new MinimalSetsProgressionDto
+            {
+                Type = "MinimalSets",
+                CurrentWeight = minimalSets.CurrentWeight.Value,
+                WeightUnit = minimalSets.CurrentWeight.Unit.ToString(),
+                TargetTotalReps = minimalSets.TargetTotalReps,
+                CurrentSetCount = minimalSets.CurrentSetCount,
+                MinimumSets = minimalSets.MinimumSets,
+                MaximumSets = minimalSets.MaximumSets
             };
         }
         else

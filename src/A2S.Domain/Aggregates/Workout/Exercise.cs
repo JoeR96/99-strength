@@ -103,6 +103,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="startingWeight">Starting weight</param>
     /// <param name="startingSets">Starting number of sets</param>
     /// <param name="targetSets">Target sets before weight increases</param>
+    /// <param name="isUnilateral">True if exercise is performed one side at a time (max 3 sets per side)</param>
     public static Exercise CreateWithRepsPerSetProgression(
         string name,
         ExerciseCategory category,
@@ -112,14 +113,61 @@ public sealed class Exercise : Entity<ExerciseId>
         RepRange repRange,
         Weight startingWeight,
         int startingSets = 2,
-        int targetSets = 4)
+        int targetSets = 4,
+        bool isUnilateral = false)
     {
         var progression = RepsPerSetStrategy.Create(
             repRange,
             startingWeight,
             equipment,
             startingSets,
-            targetSets);
+            targetSets,
+            isUnilateral);
+
+        return new Exercise(
+            new ExerciseId(Guid.NewGuid()),
+            name,
+            category,
+            equipment,
+            assignedDay,
+            orderInDay,
+            progression);
+    }
+
+    /// <summary>
+    /// Creates an exercise with minimal-sets progression.
+    /// Used for exercises like Assisted Dips/Pullups where the goal is to complete
+    /// a target total number of reps in as few sets as possible.
+    /// </summary>
+    /// <param name="name">Exercise name</param>
+    /// <param name="category">Category determines if it's a primary, auxiliary, or accessory lift</param>
+    /// <param name="equipment">Equipment type used</param>
+    /// <param name="assignedDay">Training day assigned to</param>
+    /// <param name="orderInDay">Order within the day</param>
+    /// <param name="startingWeight">Starting weight (or assistance weight)</param>
+    /// <param name="targetTotalReps">Total reps to complete across all sets (e.g., 40)</param>
+    /// <param name="startingSets">Initial number of sets</param>
+    /// <param name="minimumSets">Minimum sets allowed (floor)</param>
+    /// <param name="maximumSets">Maximum sets allowed (ceiling)</param>
+    public static Exercise CreateWithMinimalSetsProgression(
+        string name,
+        ExerciseCategory category,
+        EquipmentType equipment,
+        DayNumber assignedDay,
+        int orderInDay,
+        Weight startingWeight,
+        int targetTotalReps,
+        int startingSets,
+        int minimumSets = 2,
+        int maximumSets = 10)
+    {
+        var progression = MinimalSetsStrategy.Create(
+            startingWeight,
+            targetTotalReps,
+            startingSets,
+            equipment,
+            minimumSets,
+            maximumSets);
 
         return new Exercise(
             new ExerciseId(Guid.NewGuid()),
@@ -288,13 +336,38 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
-    /// Gets the current weight if this exercise uses reps-per-set progression.
+    /// Gets the current weight if this exercise uses reps-per-set or minimal-sets progression.
     /// Returns null for linear progression exercises.
     /// </summary>
     public Weight? GetCurrentWeight()
     {
-        return Progression is RepsPerSetStrategy repsStrategy
-            ? repsStrategy.CurrentWeight
-            : null;
+        return Progression switch
+        {
+            RepsPerSetStrategy repsStrategy => repsStrategy.CurrentWeight,
+            MinimalSetsStrategy minimalSetsStrategy => minimalSetsStrategy.CurrentWeight,
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Updates the starting weight for exercises using weight-based progression.
+    /// Applicable for RepsPerSetStrategy and MinimalSetsStrategy.
+    /// </summary>
+    public void UpdateWeight(Weight weight)
+    {
+        if (Progression is RepsPerSetStrategy repsStrategy)
+        {
+            repsStrategy.UpdateWeight(weight);
+        }
+        else if (Progression is MinimalSetsStrategy minimalSetsStrategy)
+        {
+            minimalSetsStrategy.UpdateWeight(weight);
+        }
+        else if (Progression is LinearProgressionStrategy)
+        {
+            throw new InvalidOperationException(
+                "Cannot update weight for exercises using linear progression. " +
+                "Use UpdateTrainingMax instead.");
+        }
     }
 }

@@ -6,6 +6,7 @@ import { SignUpPage } from './features/auth/SignUpPage';
 import { DashboardPage } from './features/auth/DashboardPage';
 import { SetupWizard } from './features/workout/SetupWizard';
 import { WorkoutDashboard } from './features/workout/WorkoutDashboard';
+import { WorkoutSession } from './features/workout/WorkoutSession';
 import { ProgramsPage } from './features/programs/ProgramsPage';
 
 function AppContent() {
@@ -63,6 +64,20 @@ function AppContent() {
           <>
             <SignedIn>
               <WorkoutDashboard />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/workout/session/:day"
+        element={
+          <>
+            <SignedIn>
+              <WorkoutSession />
             </SignedIn>
             <SignedOut>
               <Navigate to="/sign-in" replace />

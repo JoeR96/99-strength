@@ -126,8 +126,17 @@ export interface WorkoutDto {
   variant: ProgramVariant;
   status: WorkoutStatus;
   currentWeek: number;
+  currentBlock: number;
+  currentDay: number;
+  daysPerWeek: number;
+  completedDaysInCurrentWeek: number[];
+  isWeekComplete: boolean;
   totalWeeks: number;
   startDate: string;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  exerciseCount: number;
   exercises: ExerciseDto[];
 }
 
@@ -142,7 +151,7 @@ export interface ExerciseDto {
 }
 
 export interface ExerciseProgressionDto {
-  type: "Linear" | "RepsPerSet";
+  type: "Linear" | "RepsPerSet" | "MinimalSets";
 }
 
 export interface LinearProgressionDto extends ExerciseProgressionDto {
@@ -196,10 +205,90 @@ export interface WorkoutSummaryDto {
   totalWeeks: number;
   currentWeek: number;
   currentBlock: number;
+  currentDay: number;
+  daysPerWeek: number;
+  completedDaysInCurrentWeek: number[];
+  isWeekComplete: boolean;
   status: string;
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
   exerciseCount: number;
   isActive: boolean;
+}
+
+// MinimalSets progression DTO
+export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {
+  type: "MinimalSets";
+  currentWeight: number;
+  weightUnit: string;
+  targetTotalReps: number;
+  currentSetCount: number;
+  minimumSets: number;
+  maximumSets: number;
+}
+
+// Workout completion types
+export interface CompletedSetRequest {
+  setNumber: number;
+  weight: number;
+  weightUnit: WeightUnit;
+  actualReps: number;
+  wasAmrap: boolean;
+}
+
+export interface ExercisePerformanceRequest {
+  exerciseId: string;
+  completedSets: CompletedSetRequest[];
+}
+
+export interface CompleteDayRequest {
+  performances: ExercisePerformanceRequest[];
+}
+
+export interface ProgressionChangeDto {
+  exerciseId: string;
+  exerciseName: string;
+  progressionType: string;
+  change: string;
+  previousValue?: string;
+  newValue?: string;
+}
+
+export type ProgressionOutcome = 'Success' | 'Maintained' | 'Failed' | 'Deload';
+
+export interface CompleteDayResult {
+  workoutId: string;
+  day: DayNumber;
+  weekNumber: number;
+  blockNumber: number;
+  exercisesCompleted: number;
+  progressionChanges: ProgressionChangeDto[];
+  newCurrentWeek: number;
+  newCurrentDay: number;
+  weekProgressed: boolean;
+  programComplete: boolean;
+  isDeloadWeek: boolean;
+}
+
+export interface ProgressWeekResult {
+  workoutId: string;
+  previousWeek: number;
+  newWeek: number;
+  previousBlock: number;
+  newBlock: number;
+  isDeloadWeek: boolean;
+  isProgramComplete: boolean;
+}
+
+// Next session preview
+export interface NextSessionExercise {
+  id: string;
+  name: string;
+  progressionType: string;
+  sets: number;
+  reps: string;
+  weight: string;
+  outcome: ProgressionOutcome;
+  changeDescription: string;
 }

@@ -31,6 +31,13 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     public int TotalWeeks { get; private set; }
     public int CurrentWeek { get; private set; }
     public int CurrentBlock { get; private set; }
+
+    /// <summary>
+    /// The current day number (1-6) the user is on within the current week.
+    /// Resets to 1 when progressing to a new week.
+    /// </summary>
+    public int CurrentDay { get; private set; }
+
     public WorkoutStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? StartedAt { get; private set; }
@@ -70,6 +77,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         TotalWeeks = totalWeeks;
         CurrentWeek = 1;
         CurrentBlock = 1;
+        CurrentDay = 1;
         Status = WorkoutStatus.NotStarted;
         CreatedAt = DateTime.UtcNow;
         _exercises.AddRange(exercisesList);
@@ -120,11 +128,16 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     /// <summary>
     /// Completes a training day with exercise performances.
     /// Applies progression logic to all exercises based on their performance.
+    /// Automatically progresses to next day, or next week if all days in week are complete.
     /// </summary>
     public void CompleteDay(DayNumber day, IEnumerable<ExercisePerformance> performances)
     {
         CheckRule(Status == WorkoutStatus.Active,
             "Cannot complete a day when workout is not active");
+
+        // Validate that this day hasn't already been completed this week
+        CheckRule(!IsDayCompletedInCurrentWeek(day),
+            $"{day} has already been completed in Week {CurrentWeek}");
 
         var performancesList = performances.ToList();
         CheckRule(performancesList.Any(),
@@ -152,11 +165,15 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         _completedActivities.Add(activity);
 
         AddDomainEvent(new DayCompleted(Id, day, CurrentWeek, performancesList.Count));
+
+        // Auto-progress to next day or next week
+        ProgressAfterDayCompletion();
     }
 
     /// <summary>
     /// Progresses to the next week.
     /// Updates week number and block number accordingly.
+    /// Resets CurrentDay to 1.
     /// </summary>
     public void ProgressToNextWeek()
     {
@@ -165,8 +182,13 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(CurrentWeek < TotalWeeks,
             $"Cannot progress beyond week {TotalWeeks}");
 
+        // Validate all days in current week are complete before progressing
+        CheckRule(AreAllDaysCompletedInCurrentWeek(),
+            $"Cannot progress to next week until all {GetDaysPerWeek()} days are completed in Week {CurrentWeek}");
+
         var previousWeek = CurrentWeek;
         CurrentWeek++;
+        CurrentDay = 1; // Reset to day 1 for the new week
 
         // Update block number (Block 1: weeks 1-7, Block 2: weeks 8-14, Block 3: weeks 15-21)
         CurrentBlock = CalculateBlockNumber(CurrentWeek);
@@ -175,11 +197,8 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
         AddDomainEvent(new WeekProgressed(Id, previousWeek, CurrentWeek, CurrentBlock, isDeloadWeek));
 
-        // Check if program is complete
-        if (CurrentWeek == TotalWeeks && isDeloadWeek)
-        {
-            CompleteProgram();
-        }
+        // Check if program is complete (at start of final deload week)
+        // Note: program completes after completing the final week's workouts
     }
 
     /// <summary>
@@ -363,6 +382,109 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
         exercise.ChangeAssignedDay(exercise.AssignedDay, newOrderInDay);
+    }
+
+    /// <summary>
+    /// Gets the number of training days per week based on the program variant.
+    /// </summary>
+    public int GetDaysPerWeek()
+    {
+        return Variant switch
+        {
+            ProgramVariant.FourDay => 4,
+            ProgramVariant.FiveDay => 5,
+            ProgramVariant.SixDay => 6,
+            _ => 4 // Default to 4 days
+        };
+    }
+
+    /// <summary>
+    /// Checks if a specific day has been completed in the current week.
+    /// </summary>
+    public bool IsDayCompletedInCurrentWeek(DayNumber day)
+    {
+        return _completedActivities.Any(a =>
+            a.WeekNumber == CurrentWeek && a.Day == day);
+    }
+
+    /// <summary>
+    /// Gets the list of days completed in the current week.
+    /// </summary>
+    public IReadOnlyList<DayNumber> GetCompletedDaysInCurrentWeek()
+    {
+        return _completedActivities
+            .Where(a => a.WeekNumber == CurrentWeek)
+            .Select(a => a.Day)
+            .Distinct()
+            .OrderBy(d => (int)d)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Checks if all training days for the current week have been completed.
+    /// </summary>
+    public bool AreAllDaysCompletedInCurrentWeek()
+    {
+        var completedDays = GetCompletedDaysInCurrentWeek();
+        return completedDays.Count >= GetDaysPerWeek();
+    }
+
+    /// <summary>
+    /// Gets the next day to complete in the current week.
+    /// Returns null if all days are complete.
+    /// </summary>
+    public DayNumber? GetNextDayToComplete()
+    {
+        var completedDays = GetCompletedDaysInCurrentWeek();
+        var allDays = GetAllTrainingDaysForVariant();
+
+        return allDays.FirstOrDefault(d => !completedDays.Contains(d));
+    }
+
+    /// <summary>
+    /// Gets all training days for this program variant.
+    /// </summary>
+    private IEnumerable<DayNumber> GetAllTrainingDaysForVariant()
+    {
+        var daysPerWeek = GetDaysPerWeek();
+        return Enum.GetValues<DayNumber>()
+            .Where(d => (int)d <= daysPerWeek)
+            .OrderBy(d => (int)d);
+    }
+
+    /// <summary>
+    /// Automatically progresses to the next day or week after completing a day.
+    /// </summary>
+    private void ProgressAfterDayCompletion()
+    {
+        if (AreAllDaysCompletedInCurrentWeek())
+        {
+            // All days complete - progress to next week if not at the end
+            if (CurrentWeek < TotalWeeks)
+            {
+                var previousWeek = CurrentWeek;
+                CurrentWeek++;
+                CurrentDay = 1;
+                CurrentBlock = CalculateBlockNumber(CurrentWeek);
+
+                var isDeloadWeek = IsDeloadWeek();
+                AddDomainEvent(new WeekProgressed(Id, previousWeek, CurrentWeek, CurrentBlock, isDeloadWeek));
+            }
+            else
+            {
+                // Final week completed - program is done
+                CompleteProgram();
+            }
+        }
+        else
+        {
+            // Progress to next day in the current week
+            var nextDay = GetNextDayToComplete();
+            if (nextDay.HasValue)
+            {
+                CurrentDay = (int)nextDay.Value;
+            }
+        }
     }
 
     /// <summary>

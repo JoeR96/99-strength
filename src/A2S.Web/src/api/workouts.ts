@@ -4,6 +4,10 @@ import type {
   WorkoutSummaryDto,
   ExerciseLibrary,
   CreateWorkoutRequest,
+  CompleteDayRequest,
+  CompleteDayResult,
+  ProgressWeekResult,
+  DayNumber,
 } from "../types/workout";
 
 /**
@@ -66,6 +70,31 @@ export const workoutsApi = {
   getExerciseLibrary: async (): Promise<ExerciseLibrary> => {
     const response = await apiClient.get<ExerciseLibrary>(
       "/workouts/exercises/library"
+    );
+    return response.data;
+  },
+
+  /**
+   * Complete a training day with exercise performances
+   */
+  completeDay: async (
+    workoutId: string,
+    day: DayNumber,
+    request: CompleteDayRequest
+  ): Promise<CompleteDayResult> => {
+    const response = await apiClient.post<CompleteDayResult>(
+      `/workouts/${workoutId}/days/${day}/complete`,
+      request
+    );
+    return response.data;
+  },
+
+  /**
+   * Progress to the next week
+   */
+  progressWeek: async (workoutId: string): Promise<ProgressWeekResult> => {
+    const response = await apiClient.post<ProgressWeekResult>(
+      `/workouts/${workoutId}/progress-week`
     );
     return response.data;
   },
