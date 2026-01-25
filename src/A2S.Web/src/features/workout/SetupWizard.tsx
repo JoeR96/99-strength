@@ -34,6 +34,7 @@ export function SetupWizard() {
       const templateData = exerciseLibrary.templates.find(t => t.name === ex.templateName);
       return {
         id: `template-${index}`,
+        hevyExerciseTemplateId: ex.hevyExerciseTemplateId || '', // Use template's ID or empty string
         template: templateData || {
           name: ex.templateName,
           equipment: 0,
@@ -96,6 +97,7 @@ export function SetupWizard() {
       // Map selected exercises to API request format
       const exercises: CreateExerciseRequest[] = selectedExercises.map((ex) => ({
         templateName: ex.template.name,
+        hevyExerciseTemplateId: ex.hevyExerciseTemplateId,
         category: ex.category ?? ExerciseCategory.MainLift,
         progressionType: ex.progressionType,
         assignedDay: ex.assignedDay as DayNumber,
@@ -106,6 +108,8 @@ export function SetupWizard() {
         // RepsPerSet progression fields
         startingWeight: ex.startingWeight,
         weightUnit: ex.weightUnit,
+        startingSets: ex.currentSets,
+        targetSets: ex.targetSets,
       }));
 
       await createWorkout.mutateAsync({
@@ -326,6 +330,24 @@ export function SetupWizard() {
                 </button>
               ))}
             </div>
+
+            {/* Program Name Override */}
+            {selectedTemplate && (
+              <div className="max-w-md mx-auto pt-6 border-t border-border/50">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">Program Name</label>
+                  <Input
+                    type="text"
+                    value={workoutName}
+                    onChange={(e) => setWorkoutName(e.target.value)}
+                    placeholder={selectedTemplate.name}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Customize your program name or keep the template default
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         );
 

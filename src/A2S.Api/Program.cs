@@ -31,6 +31,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+// Add HttpClient for Hevy API proxy
+builder.Services.AddHttpClient();
+
 // Add controllers
 builder.Services.AddControllers();
 

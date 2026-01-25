@@ -42,6 +42,10 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.OrderInDay)
             .IsRequired();
 
+        builder.Property(e => e.HevyExerciseTemplateId)
+            .IsRequired()
+            .HasMaxLength(100);
+
         builder.Property<WorkoutId>("WorkoutId")
             .HasConversion(
                 id => id.Value,

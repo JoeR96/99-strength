@@ -1,13 +1,51 @@
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useHevy } from "@/contexts/HevyContext";
+import { syncDayAsRoutine, syncWorkoutToHevy } from "@/services/hevySyncService";
+import toast from "react-hot-toast";
 import { WeightUnit, type WorkoutDto, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto } from "@/types/workout";
 
 interface WeekOverviewProps {
   workout: WorkoutDto;
+  onWorkoutUpdated?: () => void; // Callback to refetch workout after sync
 }
 
-export function WeekOverview({ workout }: WeekOverviewProps) {
+/**
+ * Get days that have already been synced to Hevy for the current week
+ */
+function getSyncedDaysForCurrentWeek(workout: WorkoutDto): Set<number> {
+  const syncedDays = new Set<number>();
+  const syncedRoutines = workout.hevySyncedRoutines || {};
+  const currentWeek = workout.currentWeek;
+
+  // Check each day to see if it's been synced for this week
+  for (let day = 1; day <= (workout.daysPerWeek || 4); day++) {
+    const key = `week${currentWeek}-day${day}`;
+    if (syncedRoutines[key]) {
+      syncedDays.add(day);
+    }
+  }
+
+  return syncedDays;
+}
+
+export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
+  const { isConfigured, isValid } = useHevy();
+  const [isSyncingWeek, setIsSyncingWeek] = useState(false);
+
+  // Get already synced days from the workout data (persisted in DB)
+  const persistedSyncedDays = useMemo(() => getSyncedDaysForCurrentWeek(workout), [workout]);
+
+  // Track additional syncs from this session (will be merged with persisted)
+  const [sessionSyncedDays, setSessionSyncedDays] = useState<Set<number>>(new Set());
+
+  // Combine persisted and session synced days
+  const syncedDays = useMemo(() => {
+    return new Set([...persistedSyncedDays, ...sessionSyncedDays]);
+  }, [persistedSyncedDays, sessionSyncedDays]);
+
   // Group exercises by day
   const exercisesByDay = workout.exercises.reduce((acc, exercise) => {
     const day = exercise.assignedDay;
@@ -26,14 +64,103 @@ export function WeekOverview({ workout }: WeekOverviewProps) {
   const completedDays = new Set(workout.completedDaysInCurrentWeek || []);
   const currentDay = workout.currentDay || 1;
 
+  const hevyEnabled = isConfigured && isValid;
+
+  // Check if already fully synced for this week
+  const isWeekFullySynced = syncedDays.size >= days.length;
+
+  const handleSyncWeekToHevy = async () => {
+    if (isWeekFullySynced) {
+      toast.error('This week has already been synced to Hevy');
+      return;
+    }
+
+    setIsSyncingWeek(true);
+    try {
+      const result = await syncWorkoutToHevy(workout);
+      if (result.success) {
+        toast.success(result.message);
+        // Mark all days as synced in this session
+        setSessionSyncedDays(new Set(days));
+        // Trigger refetch to update workout with new hevySyncedRoutines
+        onWorkoutUpdated?.();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sync week to Hevy';
+      toast.error(message);
+    } finally {
+      setIsSyncingWeek(false);
+    }
+  };
+
+  const handleSyncDayToHevy = async (dayNumber: number) => {
+    if (syncedDays.has(dayNumber)) {
+      toast.error(`Day ${dayNumber} has already been synced to Hevy`);
+      return;
+    }
+
+    try {
+      const result = await syncDayAsRoutine(workout, dayNumber);
+      if (result.success) {
+        toast.success(result.message);
+        setSessionSyncedDays(prev => new Set([...prev, dayNumber]));
+        // Trigger refetch to update workout with new hevySyncedRoutines
+        onWorkoutUpdated?.();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sync day to Hevy';
+      toast.error(message);
+    }
+  };
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">This Week's Training</h2>
-        <div className="text-sm text-muted-foreground">
-          Week {workout.currentWeek} of {workout.totalWeeks}
-          {workout.isWeekComplete && (
-            <span className="ml-2 text-green-500 font-medium">✓ Week Complete</span>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground">
+            Week {workout.currentWeek} of {workout.totalWeeks}
+            {workout.isWeekComplete && (
+              <span className="ml-2 text-green-500 font-medium">✓ Week Complete</span>
+            )}
+          </div>
+          {hevyEnabled && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncWeekToHevy}
+              disabled={isSyncingWeek || isWeekFullySynced}
+              className="flex items-center gap-2"
+              title={isWeekFullySynced ? `Week ${workout.currentWeek} has already been synced to Hevy` : undefined}
+            >
+              {isSyncingWeek ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Syncing...
+                </>
+              ) : isWeekFullySynced ? (
+                <>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Week Synced
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Send Week to Hevy
+                </>
+              )}
+            </Button>
           )}
         </div>
       </div>
@@ -71,6 +198,9 @@ export function WeekOverview({ workout }: WeekOverviewProps) {
             exercises={exercisesByDay[day] || []}
             isCompleted={completedDays.has(day)}
             isCurrent={day === currentDay && !completedDays.has(day)}
+            hevyEnabled={hevyEnabled}
+            isSynced={syncedDays.has(day)}
+            onSyncToHevy={() => handleSyncDayToHevy(day)}
           />
         ))}
       </div>
@@ -83,14 +213,27 @@ interface DayCardProps {
   exercises: ExerciseDto[];
   isCompleted: boolean;
   isCurrent: boolean;
+  hevyEnabled: boolean;
+  isSynced: boolean;
+  onSyncToHevy: () => void;
 }
 
-function DayCard({ dayNumber, exercises, isCompleted, isCurrent }: DayCardProps) {
+function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, onSyncToHevy }: DayCardProps) {
+  const [isSyncing, setIsSyncing] = useState(false);
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayName = dayNames[dayNumber - 1] || `Day ${dayNumber}`;
 
   // Day is locked if it's not completed and not current
   const isLocked = !isCompleted && !isCurrent;
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await onSyncToHevy();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <div
@@ -156,38 +299,75 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent }: DayCardProps)
         )}
       </div>
 
-      {isCompleted ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          disabled
-          data-testid={`start-workout-day-${dayNumber}`}
-        >
-          Completed
-        </Button>
-      ) : isLocked ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          disabled
-          data-testid={`start-workout-day-${dayNumber}`}
-        >
-          Locked
-        </Button>
-      ) : (
-        <Link to={`/workout/session/${dayNumber}`}>
+      <div className="space-y-2">
+        {isCompleted ? (
           <Button
-            variant={isCurrent ? "default" : "outline"}
+            variant="outline"
             size="sm"
             className="w-full"
+            disabled
             data-testid={`start-workout-day-${dayNumber}`}
           >
-            {isCurrent ? "Start Workout" : "Start"}
+            Completed
           </Button>
-        </Link>
-      )}
+        ) : isLocked ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            disabled
+            data-testid={`start-workout-day-${dayNumber}`}
+          >
+            Locked
+          </Button>
+        ) : (
+          <Link to={`/workout/session/${dayNumber}`}>
+            <Button
+              variant={isCurrent ? "default" : "outline"}
+              size="sm"
+              className="w-full"
+              data-testid={`start-workout-day-${dayNumber}`}
+            >
+              {isCurrent ? "Start Workout" : "Start"}
+            </Button>
+          </Link>
+        )}
+
+        {/* Send to Hevy button - visible for all days including locked */}
+        {hevyEnabled && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs"
+            onClick={handleSync}
+            disabled={isSyncing || isSynced}
+          >
+            {isSyncing ? (
+              <>
+                <svg className="h-3 w-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Syncing...
+              </>
+            ) : isSynced ? (
+              <>
+                <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Sent to Hevy
+              </>
+            ) : (
+              <>
+                <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Send to Hevy
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

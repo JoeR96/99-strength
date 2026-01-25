@@ -8,6 +8,8 @@ import { SetupWizard } from './features/workout/SetupWizard';
 import { WorkoutDashboard } from './features/workout/WorkoutDashboard';
 import { WorkoutSession } from './features/workout/WorkoutSession';
 import { ProgramsPage } from './features/programs/ProgramsPage';
+import { ExerciseLibraryPage } from './features/exercises/ExerciseLibraryPage';
+import { HevyManagementPage } from './features/hevy/HevyManagementPage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -106,6 +108,34 @@ function AppContent() {
           <>
             <SignedIn>
               <ProgramsPage />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/exercises"
+        element={
+          <>
+            <SignedIn>
+              <ExerciseLibraryPage />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/hevy"
+        element={
+          <>
+            <SignedIn>
+              <HevyManagementPage />
             </SignedIn>
             <SignedOut>
               <Navigate to="/sign-in" replace />

@@ -1,32 +1,3 @@
-using A2S.Domain.Enums;
-using A2S.Domain.ValueObjects;
-
-namespace A2S.Application.Services;
-
-/// <summary>
-/// Provides a library of predefined exercise templates for the A2S program.
-/// Templates contain only exercise metadata - users choose category, progression type,
-/// day assignment, and order when adding to their workout.
-/// Generated from Hevy exercise library (445 exercises).
-/// </summary>
-public static class ExerciseLibrary
-{
-    /// <summary>
-    /// Exercise template containing only metadata about an exercise.
-    /// Users will configure category, progression, day, and order when adding to workout.
-    /// </summary>
-    public record ExerciseTemplate(
-        string Name,
-        EquipmentType Equipment,
-        RepRange? DefaultRepRange = null,
-        int? DefaultSets = null,
-        string Description = "");
-
-    /// <summary>
-    /// Gets all available exercise templates.
-    /// </summary>
-    public static IReadOnlyList<ExerciseTemplate> AllTemplates => new[]
-    {
         new ExerciseTemplate(
             Name: "21s Bicep Curl",
             Equipment: EquipmentType.Barbell,
@@ -3141,11 +3112,3 @@ public static class ExerciseLibrary
             DefaultRepRange: RepRange.Common.Medium,
             DefaultSets: 3,
             Description: "Hevy: biceps")
-    };
-
-    /// <summary>
-    /// Gets an exercise template by name (case-insensitive).
-    /// </summary>
-    public static ExerciseTemplate? GetByName(string name) =>
-        AllTemplates.FirstOrDefault(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-}

@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { useCurrentWorkout } from '@/hooks/useWorkouts';
 import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type WorkoutDto } from '@/types/workout';
+import { HevySettings } from '@/components/hevy/HevySettings';
+import { HevySyncButton } from '@/components/hevy/HevySyncButton';
 
 /**
  * Modern dashboard with mosaic-style layout using Golden Twilight theme.
@@ -140,11 +142,14 @@ export function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <Link to={`/workout/session/${currentDay}`}>
-                    <Button className="w-full" data-testid="start-current-workout">
-                      Start {dayNames[currentDay - 1]}'s Workout
-                    </Button>
-                  </Link>
+                  <div className="space-y-3">
+                    <Link to={`/workout/session/${currentDay}`}>
+                      <Button className="w-full" data-testid="start-current-workout">
+                        Start {dayNames[currentDay - 1]}'s Workout
+                      </Button>
+                    </Link>
+                    <HevySyncButton workout={workout} className="w-full" />
+                  </div>
                 </div>
               ) : (
                 <>
@@ -346,6 +351,11 @@ export function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Hevy Integration Settings */}
+          <div className="md:col-span-2 lg:col-span-1">
+            <HevySettings />
+          </div>
         </div>
       </main>
 

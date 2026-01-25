@@ -3,6 +3,8 @@ using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
 using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.Commands.SetActiveWorkout;
+using A2S.Application.Commands.SetHevyFolderId;
+using A2S.Application.Commands.SetHevySyncedRoutine;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
@@ -315,6 +317,80 @@ public class WorkoutsController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    /// <summary>
+    /// Sets the Hevy routine folder ID for a workout.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="request">The folder ID request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success or failure</returns>
+    [HttpPut("{id:guid}/hevy-folder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SetHevyFolderId(
+        [FromRoute] Guid id,
+        [FromBody] SetHevyFolderIdRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Setting Hevy folder ID for workout {WorkoutId}", id);
+
+        var result = await _mediator.Send(new SetHevyFolderIdCommand(id, request.FolderId), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to set Hevy folder ID: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// Records that a routine was synced to Hevy for a specific week/day.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="request">The synced routine request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success or failure</returns>
+    [HttpPost("{id:guid}/hevy-synced-routine")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SetHevySyncedRoutine(
+        [FromRoute] Guid id,
+        [FromBody] SetHevySyncedRoutineRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Setting Hevy synced routine for workout {WorkoutId}, week {Week}, day {Day}",
+            id, request.WeekNumber, request.DayNumber);
+
+        var result = await _mediator.Send(
+            new SetHevySyncedRoutineCommand(id, request.WeekNumber, request.DayNumber, request.RoutineId),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to set Hevy synced routine: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(new { success = true });
+    }
 }
 
 /// <summary>
@@ -326,4 +402,36 @@ public sealed record CompleteDayRequest
     /// The exercise performances for this day.
     /// </summary>
     public required IReadOnlyList<ExercisePerformanceRequest> Performances { get; init; }
+}
+
+/// <summary>
+/// Request body for setting Hevy folder ID.
+/// </summary>
+public sealed record SetHevyFolderIdRequest
+{
+    /// <summary>
+    /// The Hevy routine folder ID.
+    /// </summary>
+    public required string FolderId { get; init; }
+}
+
+/// <summary>
+/// Request body for setting a Hevy synced routine.
+/// </summary>
+public sealed record SetHevySyncedRoutineRequest
+{
+    /// <summary>
+    /// The week number (1-21).
+    /// </summary>
+    public required int WeekNumber { get; init; }
+
+    /// <summary>
+    /// The day number (1-6).
+    /// </summary>
+    public required int DayNumber { get; init; }
+
+    /// <summary>
+    /// The Hevy routine ID.
+    /// </summary>
+    public required string RoutineId { get; init; }
 }

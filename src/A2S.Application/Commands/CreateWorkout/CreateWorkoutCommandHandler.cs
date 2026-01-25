@@ -108,6 +108,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
+                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
                     trainingMax: trainingMax,
                     useAmrap: exerciseRequest.Category == ExerciseCategory.MainLift,
                     baseSetsPerExercise: template.DefaultSets ?? 4
@@ -127,6 +128,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
+                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
                     startingWeight: weight,
                     targetTotalReps: exerciseRequest.TargetTotalReps ?? 40,
                     startingSets: exerciseRequest.StartingSets ?? 3
@@ -146,6 +148,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
+                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
                     repRange: template.DefaultRepRange ?? RepRange.Common.Medium,
                     startingWeight: weight,
                     startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
@@ -168,6 +171,12 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     {
         List<Exercise> exercises = new List<Exercise>();
 
+        // Default Hevy exercise template IDs for main lifts
+        const string SquatHevyId = "D04AC939";
+        const string BenchPressHevyId = "79D0BB3A";
+        const string DeadliftHevyId = "C6272009";
+        const string OverheadPressHevyId = "7B8D84E8";
+
         // Create default main 4 lifts with Linear progression
         ExerciseLibrary.ExerciseTemplate? squat = ExerciseLibrary.GetByName("Squat");
         if (squat != null)
@@ -178,6 +187,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: squat.Equipment,
                 assignedDay: DayNumber.Day1,
                 orderInDay: 1,
+                hevyExerciseTemplateId: SquatHevyId,
                 trainingMax: TrainingMax.Create(100m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: squat.DefaultSets ?? 4
@@ -193,6 +203,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: bench.Equipment,
                 assignedDay: DayNumber.Day2,
                 orderInDay: 1,
+                hevyExerciseTemplateId: BenchPressHevyId,
                 trainingMax: TrainingMax.Create(80m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: bench.DefaultSets ?? 4
@@ -208,6 +219,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: deadlift.Equipment,
                 assignedDay: DayNumber.Day3,
                 orderInDay: 1,
+                hevyExerciseTemplateId: DeadliftHevyId,
                 trainingMax: TrainingMax.Create(120m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: deadlift.DefaultSets ?? 4
@@ -223,6 +235,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: ohp.Equipment,
                 assignedDay: DayNumber.Day4,
                 orderInDay: 1,
+                hevyExerciseTemplateId: OverheadPressHevyId,
                 trainingMax: TrainingMax.Create(60m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: ohp.DefaultSets ?? 4

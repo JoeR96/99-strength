@@ -43,6 +43,7 @@ function getDefaultConfiguration(
     }
 
     return {
+      hevyExerciseTemplateId: '', // Will be set when exercise is selected from Hevy library
       category: ExerciseCategoryEnum.MainLift,
       progressionType: "Linear",
       assignedDay,
@@ -62,6 +63,7 @@ function getDefaultConfiguration(
 
   if (isBarbell && isCompound) {
     return {
+      hevyExerciseTemplateId: '', // Will be set when exercise is selected from Hevy library
       category: ExerciseCategoryEnum.Auxiliary,
       progressionType: "Linear",
       assignedDay: 1, // Will be adjusted by user
@@ -71,6 +73,7 @@ function getDefaultConfiguration(
 
   // Everything else defaults to accessory with RepsPerSet
   return {
+    hevyExerciseTemplateId: '', // Will be set when exercise is selected from Hevy library
     category: ExerciseCategoryEnum.Accessory,
     progressionType: "RepsPerSet",
     assignedDay: 1,

@@ -19,6 +19,7 @@ public sealed record CreateWorkoutCommand(
 public sealed record CreateExerciseRequest
 {
     public required string TemplateName { get; init; }
+    public required string HevyExerciseTemplateId { get; init; }
     public required ExerciseCategory Category { get; init; }
     public required string ProgressionType { get; init; } // "Linear", "RepsPerSet", or "MinimalSets"
     public required DayNumber AssignedDay { get; init; }

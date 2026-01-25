@@ -43,6 +43,18 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     public DateTime? StartedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
 
+    /// <summary>
+    /// The Hevy routine folder ID used to organize routines for this program.
+    /// </summary>
+    public string? HevyRoutineFolderId { get; private set; }
+
+    /// <summary>
+    /// Tracks synced Hevy routine IDs by week and day.
+    /// Format: { "week1-day1": "routine-id-123", "week2-day1": "routine-id-456" }
+    /// Used for lifecycle management (delete old routines when week completes).
+    /// </summary>
+    public Dictionary<string, string> HevySyncedRoutines { get; private set; } = new();
+
     public IReadOnlyCollection<Exercise> Exercises => _exercises.AsReadOnly();
     public IReadOnlyCollection<WorkoutActivity> CompletedActivities => _completedActivities.AsReadOnly();
 
@@ -511,6 +523,47 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CompletedAt = DateTime.UtcNow;
 
         AddDomainEvent(new WorkoutCompleted(Id, CompletedAt.Value));
+    }
+
+    /// <summary>
+    /// Sets the Hevy routine folder ID for this workout.
+    /// </summary>
+    public void SetHevyRoutineFolderId(string folderId)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(folderId), "Hevy routine folder ID cannot be empty");
+        HevyRoutineFolderId = folderId;
+    }
+
+    /// <summary>
+    /// Records a synced Hevy routine ID for a specific week and day.
+    /// </summary>
+    public void SetHevySyncedRoutine(int weekNumber, int dayNumber, string routineId)
+    {
+        CheckRule(weekNumber > 0 && weekNumber <= TotalWeeks, "Week number must be valid");
+        CheckRule(dayNumber > 0 && dayNumber <= GetDaysPerWeek(), "Day number must be valid");
+        CheckRule(!string.IsNullOrWhiteSpace(routineId), "Routine ID cannot be empty");
+
+        var key = $"week{weekNumber}-day{dayNumber}";
+        HevySyncedRoutines[key] = routineId;
+    }
+
+    /// <summary>
+    /// Gets the synced Hevy routine ID for a specific week and day.
+    /// Returns null if no routine is synced for that week/day.
+    /// </summary>
+    public string? GetHevySyncedRoutine(int weekNumber, int dayNumber)
+    {
+        var key = $"week{weekNumber}-day{dayNumber}";
+        return HevySyncedRoutines.TryGetValue(key, out var routineId) ? routineId : null;
+    }
+
+    /// <summary>
+    /// Removes a synced Hevy routine ID for a specific week and day.
+    /// </summary>
+    public void RemoveHevySyncedRoutine(int weekNumber, int dayNumber)
+    {
+        var key = $"week{weekNumber}-day{dayNumber}";
+        HevySyncedRoutines.Remove(key);
     }
 
     /// <summary>

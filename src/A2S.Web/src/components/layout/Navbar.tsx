@@ -6,6 +6,8 @@ const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/workout', label: 'Current Workout' },
   { href: '/programs', label: 'My Programs' },
+  { href: '/exercises', label: 'Exercise Library' },
+  { href: '/hevy', label: 'Hevy' },
 ];
 
 export function Navbar() {

@@ -80,6 +80,7 @@ export interface ExerciseLibrary {
 // User's configured exercise (template + configuration)
 export interface SelectedExercise {
   id: string; // Unique ID for this selection (for React keys and DnD)
+  hevyExerciseTemplateId: string; // Hevy exercise template ID for syncing
   template: ExerciseTemplate;
   category: ExerciseCategory; // Keep for backend compatibility
   progressionType: A2SProgressionType;
@@ -138,6 +139,9 @@ export interface WorkoutDto {
   completedAt?: string;
   exerciseCount: number;
   exercises: ExerciseDto[];
+  // Hevy integration
+  hevyRoutineFolderId?: string;
+  hevySyncedRoutines?: Record<string, string>;
 }
 
 export interface ExerciseDto {
@@ -147,6 +151,7 @@ export interface ExerciseDto {
   equipment: EquipmentType;
   assignedDay: DayNumber;
   orderInDay: number;
+  hevyExerciseTemplateId: string;
   progression: ExerciseProgressionDto;
 }
 
@@ -173,8 +178,9 @@ export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
 // Request DTOs
 export interface CreateExerciseRequest {
   templateName: string;
+  hevyExerciseTemplateId?: string; // Optional - defaults to empty string if not provided
   category: ExerciseCategory;
-  progressionType: "Linear" | "RepsPerSet";
+  progressionType: "Linear" | "RepsPerSet" | "MinimalSets";
   assignedDay: DayNumber;
   orderInDay: number;
   // For Linear progression
@@ -183,6 +189,11 @@ export interface CreateExerciseRequest {
   // For RepsPerSet progression
   startingWeight?: number;
   weightUnit?: WeightUnit;
+  startingSets?: number;
+  targetSets?: number;
+  isUnilateral?: boolean;
+  // For MinimalSets progression
+  targetTotalReps?: number;
 }
 
 export interface CreateWorkoutRequest {

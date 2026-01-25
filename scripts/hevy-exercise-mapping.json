@@ -1,0 +1,2222 @@
+{
+  "21s bicep curl": {
+    "id": "3BC06AD3",
+    "title": "21s Bicep Curl",
+    "is_custom": false
+  },
+  "4 step double curl thing": {
+    "id": "cdfea7b4-c7f7-40cf-a071-e4f308f49d4f",
+    "title": "4 Step Double Curl Thing",
+    "is_custom": true
+  },
+  "ab scissors": {
+    "id": "B4F2FF72",
+    "title": "Ab Scissors",
+    "is_custom": false
+  },
+  "ab wheel": {
+    "id": "99D5F10E",
+    "title": "Ab Wheel",
+    "is_custom": false
+  },
+  "aerobics": {
+    "id": "5E0DDACE",
+    "title": "Aerobics",
+    "is_custom": false
+  },
+  "air bike": {
+    "id": "43573BB8",
+    "title": "Air Bike",
+    "is_custom": false
+  },
+  "arnold press (dumbbell)": {
+    "id": "A69FF221",
+    "title": "Arnold Press (Dumbbell)",
+    "is_custom": false
+  },
+  "around the world": {
+    "id": "D4A2FE7E",
+    "title": "Around The World",
+    "is_custom": false
+  },
+  "assisted pistol squats": {
+    "id": "5BFF35BA",
+    "title": "Assisted Pistol Squats",
+    "is_custom": false
+  },
+  "ass to grass squats with ssb": {
+    "id": "1f9ebf03-5439-460a-a93c-bc4e877ae2b9",
+    "title": "Ass to Grass squats with SSB",
+    "is_custom": true
+  },
+  "back extension (hyperextension)": {
+    "id": "4F5866F8",
+    "title": "Back Extension (Hyperextension)",
+    "is_custom": false
+  },
+  "back extension (machine)": {
+    "id": "A05C064D",
+    "title": "Back Extension (Machine)",
+    "is_custom": false
+  },
+  "back extension (weighted hyperextension)": {
+    "id": "091737FA",
+    "title": "Back Extension (Weighted Hyperextension)",
+    "is_custom": false
+  },
+  "ball slams": {
+    "id": "F51D9080",
+    "title": "Ball Slams",
+    "is_custom": false
+  },
+  "band pullaparts": {
+    "id": "E8D86EE8",
+    "title": "Band Pullaparts",
+    "is_custom": false
+  },
+  "battle ropes": {
+    "id": "084A67CA",
+    "title": "Battle Ropes",
+    "is_custom": false
+  },
+  "behind the back bicep wrist curl (barbell)": {
+    "id": "DDB29047",
+    "title": "Behind the Back Bicep Wrist Curl (Barbell)",
+    "is_custom": false
+  },
+  "behind the back curl (cable)": {
+    "id": "2DBCA395",
+    "title": "Behind the Back Curl (Cable)",
+    "is_custom": false
+  },
+  "belt squat (machine)": {
+    "id": "3D1CDC75",
+    "title": "Belt Squat (Machine)",
+    "is_custom": false
+  },
+  "bench dip": {
+    "id": "CD6DC8E5",
+    "title": "Bench Dip",
+    "is_custom": false
+  },
+  "bench press (barbell)": {
+    "id": "79D0BB3A",
+    "title": "Bench Press (Barbell)",
+    "is_custom": false
+  },
+  "bench press (cable)": {
+    "id": "99C1F2AD",
+    "title": "Bench Press (Cable)",
+    "is_custom": false
+  },
+  "bench press - close grip (barbell)": {
+    "id": "35B51B87",
+    "title": "Bench Press - Close Grip (Barbell)",
+    "is_custom": false
+  },
+  "bench press (dumbbell)": {
+    "id": "3601968B",
+    "title": "Bench Press (Dumbbell)",
+    "is_custom": false
+  },
+  "bench press (smith machine)": {
+    "id": "0FBF7195",
+    "title": "Bench Press (Smith Machine)",
+    "is_custom": false
+  },
+  "bench press - wide grip (barbell)": {
+    "id": "E644F828",
+    "title": "Bench Press - Wide Grip (Barbell)",
+    "is_custom": false
+  },
+  "bent over row (band)": {
+    "id": "EA820646",
+    "title": "Bent Over Row (Band)",
+    "is_custom": false
+  },
+  "bent over row (barbell)": {
+    "id": "55E6546F",
+    "title": "Bent Over Row (Barbell)",
+    "is_custom": false
+  },
+  "bent over row (dumbbell)": {
+    "id": "23E92538",
+    "title": "Bent Over Row (Dumbbell)",
+    "is_custom": false
+  },
+  "bicep curl (barbell)": {
+    "id": "A5AC6449",
+    "title": "Bicep Curl (Barbell)",
+    "is_custom": false
+  },
+  "bicep curl (cable)": {
+    "id": "ADA8623C",
+    "title": "Bicep Curl (Cable)",
+    "is_custom": false
+  },
+  "bicep curl (dumbbell)": {
+    "id": "37FCC2BB",
+    "title": "Bicep Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "bicep curl (machine)": {
+    "id": "AF328E3D",
+    "title": "Bicep Curl (Machine)",
+    "is_custom": false
+  },
+  "bicep curl (suspension)": {
+    "id": "0B4C1902",
+    "title": "Bicep Curl (Suspension)",
+    "is_custom": false
+  },
+  "bicycle crunch": {
+    "id": "A41C7261",
+    "title": "Bicycle Crunch",
+    "is_custom": false
+  },
+  "bicycle crunch raised legs": {
+    "id": "594450D2",
+    "title": "Bicycle Crunch Raised Legs",
+    "is_custom": false
+  },
+  "bird dog": {
+    "id": "BD0AD077",
+    "title": "Bird Dog",
+    "is_custom": false
+  },
+  "boxing": {
+    "id": "A0D8FA1B",
+    "title": "Boxing",
+    "is_custom": false
+  },
+  "box jump": {
+    "id": "56092DD1",
+    "title": "Box Jump",
+    "is_custom": false
+  },
+  "box squat (barbell)": {
+    "id": "38FC1AB9",
+    "title": "Box Squat (Barbell)",
+    "is_custom": false
+  },
+  "bulgarian split squat": {
+    "id": "B5D3A742",
+    "title": "Bulgarian Split Squat",
+    "is_custom": false
+  },
+  "burpee": {
+    "id": "BB792A36",
+    "title": "Burpee",
+    "is_custom": false
+  },
+  "burpee over the bar": {
+    "id": "86B00DDE",
+    "title": "Burpee Over the Bar",
+    "is_custom": false
+  },
+  "butterfly (pec deck)": {
+    "id": "9DCE2D64",
+    "title": "Butterfly (Pec Deck)",
+    "is_custom": false
+  },
+  "cable core palloff press": {
+    "id": "CC55119B",
+    "title": "Cable Core Palloff Press",
+    "is_custom": false
+  },
+  "cable crunch": {
+    "id": "23A48484",
+    "title": "Cable Crunch",
+    "is_custom": false
+  },
+  "cable fly crossovers": {
+    "id": "651F844C",
+    "title": "Cable Fly Crossovers",
+    "is_custom": false
+  },
+  "cable pull through": {
+    "id": "8C331CD8",
+    "title": "Cable Pull Through",
+    "is_custom": false
+  },
+  "cable twist (down to up)": {
+    "id": "92D858EA",
+    "title": "Cable Twist (Down to up)",
+    "is_custom": false
+  },
+  "cable twist (up to down)": {
+    "id": "A2D838BD",
+    "title": "Cable Twist (Up to down)",
+    "is_custom": false
+  },
+  "calf extension (machine)": {
+    "id": "47B9DF13",
+    "title": "Calf Extension (Machine)",
+    "is_custom": false
+  },
+  "calf press (machine)": {
+    "id": "91237BDD",
+    "title": "Calf Press (Machine)",
+    "is_custom": false
+  },
+  "chest dip": {
+    "id": "6FCD7755",
+    "title": "Chest Dip",
+    "is_custom": false
+  },
+  "chest dip (assisted)": {
+    "id": "E9E4089F",
+    "title": "Chest Dip (Assisted)",
+    "is_custom": false
+  },
+  "chest dip (weighted)": {
+    "id": "29472BE1",
+    "title": "Chest Dip (Weighted)",
+    "is_custom": false
+  },
+  "chest fly (band)": {
+    "id": "DDB7C19F",
+    "title": "Chest Fly (Band)",
+    "is_custom": false
+  },
+  "chest fly (dumbbell)": {
+    "id": "12017185",
+    "title": "Chest Fly (Dumbbell)",
+    "is_custom": false
+  },
+  "chest fly (machine)": {
+    "id": "78683336",
+    "title": "Chest Fly (Machine)",
+    "is_custom": false
+  },
+  "chest fly (suspension)": {
+    "id": "720B0D70",
+    "title": "Chest Fly (Suspension)",
+    "is_custom": false
+  },
+  "chest press (band)": {
+    "id": "EAC7D9C5",
+    "title": "Chest Press (Band)",
+    "is_custom": false
+  },
+  "chest press (machine)": {
+    "id": "7EB3F7C3",
+    "title": "Chest Press (Machine)",
+    "is_custom": false
+  },
+  "chest supported incline row (dumbbell)": {
+    "id": "914F3A96",
+    "title": "Chest Supported Incline Row (Dumbbell)",
+    "is_custom": false
+  },
+  "chest supported reverse fly (dumbbell)": {
+    "id": "B582299E",
+    "title": "Chest Supported Reverse Fly (Dumbbell)",
+    "is_custom": false
+  },
+  "chest supported y raise (dumbbell)": {
+    "id": "F21D5693",
+    "title": "Chest Supported Y Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "chin up": {
+    "id": "29083183",
+    "title": "Chin Up",
+    "is_custom": false
+  },
+  "chin up (assisted)": {
+    "id": "D23C609B",
+    "title": "Chin Up (Assisted)",
+    "is_custom": false
+  },
+  "chin up (weighted)": {
+    "id": "023943F1",
+    "title": "Chin Up (Weighted)",
+    "is_custom": false
+  },
+  "clamshell": {
+    "id": "CC016611",
+    "title": "Clamshell",
+    "is_custom": false
+  },
+  "clap push ups": {
+    "id": "10D76E8F",
+    "title": "Clap Push Ups",
+    "is_custom": false
+  },
+  "clean": {
+    "id": "ABB00838",
+    "title": "Clean",
+    "is_custom": false
+  },
+  "clean and jerk": {
+    "id": "9E09CEC3",
+    "title": "Clean and Jerk",
+    "is_custom": false
+  },
+  "clean and press": {
+    "id": "D3095577",
+    "title": "Clean and Press",
+    "is_custom": false
+  },
+  "clean pull": {
+    "id": "652FEA39",
+    "title": "Clean Pull",
+    "is_custom": false
+  },
+  "climbing": {
+    "id": "E23F1F2B",
+    "title": "Climbing",
+    "is_custom": false
+  },
+  "concentration curl": {
+    "id": "724CDE60",
+    "title": "Concentration Curl",
+    "is_custom": false
+  },
+  "cross body hammer curl": {
+    "id": "32C4D4A2",
+    "title": "Cross Body Hammer Curl",
+    "is_custom": false
+  },
+  "crucifix tricep pulldown": {
+    "id": "4296b371-d566-46c0-8c63-88fc3e97054a",
+    "title": "Crucifix Tricep Pulldown",
+    "is_custom": true
+  },
+  "crunch": {
+    "id": "DCF3B31B",
+    "title": "Crunch",
+    "is_custom": false
+  },
+  "crunch (machine)": {
+    "id": "EB43ADD4",
+    "title": "Crunch (Machine)",
+    "is_custom": false
+  },
+  "crunch (weighted)": {
+    "id": "D928C232",
+    "title": "Crunch (Weighted)",
+    "is_custom": false
+  },
+  "curtsy lunge (dumbbell)": {
+    "id": "D39EC9EB",
+    "title": "Curtsy Lunge (Dumbbell)",
+    "is_custom": false
+  },
+  "cycling": {
+    "id": "D8F7F851",
+    "title": "Cycling",
+    "is_custom": false
+  },
+  "dead bug": {
+    "id": "D8911FC4",
+    "title": "Dead Bug",
+    "is_custom": false
+  },
+  "dead hang": {
+    "id": "B9380898",
+    "title": "Dead Hang",
+    "is_custom": false
+  },
+  "deadlift (band)": {
+    "id": "99507114",
+    "title": "Deadlift (Band)",
+    "is_custom": false
+  },
+  "deadlift (barbell)": {
+    "id": "C6272009",
+    "title": "Deadlift (Barbell)",
+    "is_custom": false
+  },
+  "deadlift (dumbbell)": {
+    "id": "5F4E6DD3",
+    "title": "Deadlift (Dumbbell)",
+    "is_custom": false
+  },
+  "deadlift high pull": {
+    "id": "FA5D0DE1",
+    "title": "Deadlift High Pull",
+    "is_custom": false
+  },
+  "deadlift (smith machine)": {
+    "id": "20870ED5",
+    "title": "Deadlift (Smith Machine)",
+    "is_custom": false
+  },
+  "deadlift (trap bar)": {
+    "id": "B923B230",
+    "title": "Deadlift (Trap bar)",
+    "is_custom": false
+  },
+  "decline bench press (barbell)": {
+    "id": "DA0F0470",
+    "title": "Decline Bench Press (Barbell)",
+    "is_custom": false
+  },
+  "decline bench press (dumbbell)": {
+    "id": "18487FA7",
+    "title": "Decline Bench Press (Dumbbell)",
+    "is_custom": false
+  },
+  "decline bench press (machine)": {
+    "id": "FAF31231",
+    "title": "Decline Bench Press (Machine)",
+    "is_custom": false
+  },
+  "decline bench press (smith machine)": {
+    "id": "FFC106CB",
+    "title": "Decline Bench Press (Smith Machine)",
+    "is_custom": false
+  },
+  "decline chest fly (dumbbell)": {
+    "id": "A351AED7",
+    "title": "Decline Chest Fly (Dumbbell)",
+    "is_custom": false
+  },
+  "decline crunch": {
+    "id": "BC10A922",
+    "title": "Decline Crunch",
+    "is_custom": false
+  },
+  "decline crunch (weighted)": {
+    "id": "B2398CD1",
+    "title": "Decline Crunch (Weighted)",
+    "is_custom": false
+  },
+  "decline push up": {
+    "id": "C43825EA",
+    "title": "Decline Push Up",
+    "is_custom": false
+  },
+  "diamond push up": {
+    "id": "6575F52D",
+    "title": "Diamond Push Up",
+    "is_custom": false
+  },
+  "downward dog": {
+    "id": "7DA843A3",
+    "title": "Downward Dog",
+    "is_custom": false
+  },
+  "drag curl": {
+    "id": "D950429E",
+    "title": "Drag Curl",
+    "is_custom": false
+  },
+  "dragon flag": {
+    "id": "AFC29472",
+    "title": "Dragon Flag",
+    "is_custom": false
+  },
+  "dragonfly": {
+    "id": "B7192800",
+    "title": "Dragonfly",
+    "is_custom": false
+  },
+  "dumbbell row": {
+    "id": "F1E57334",
+    "title": "Dumbbell Row",
+    "is_custom": false
+  },
+  "dumbbell snatch": {
+    "id": "F3717B0E",
+    "title": "Dumbbell Snatch",
+    "is_custom": false
+  },
+  "dumbbell squeeze press": {
+    "id": "F72FA239",
+    "title": "Dumbbell Squeeze Press",
+    "is_custom": false
+  },
+  "dumbbell step up": {
+    "id": "BF6ECE89",
+    "title": "Dumbbell Step Up",
+    "is_custom": false
+  },
+  "elbow to knee": {
+    "id": "A01BE509",
+    "title": "Elbow to Knee",
+    "is_custom": false
+  },
+  "elliptical trainer": {
+    "id": "3303376C",
+    "title": "Elliptical Trainer",
+    "is_custom": false
+  },
+  "ez bar biceps curl": {
+    "id": "01A35BF9",
+    "title": "EZ Bar Biceps Curl",
+    "is_custom": false
+  },
+  "face pull": {
+    "id": "BE640BA0",
+    "title": "Face Pull",
+    "is_custom": false
+  },
+  "farmers walk": {
+    "id": "50C613D0",
+    "title": "Farmers Walk",
+    "is_custom": false
+  },
+  "feet up bench press (barbell)": {
+    "id": "867AC3B6",
+    "title": "Feet Up Bench Press (Barbell)",
+    "is_custom": false
+  },
+  "fire hydrants": {
+    "id": "2AF8B552",
+    "title": "Fire Hydrants",
+    "is_custom": false
+  },
+  "floor press (barbell)": {
+    "id": "D53F2886",
+    "title": "Floor Press (Barbell)",
+    "is_custom": false
+  },
+  "floor press (dumbbell)": {
+    "id": "756EE329",
+    "title": "Floor Press (Dumbbell)",
+    "is_custom": false
+  },
+  "floor triceps dip": {
+    "id": "A57D38D5",
+    "title": "Floor Triceps Dip",
+    "is_custom": false
+  },
+  "flutter kicks": {
+    "id": "2FA77B28",
+    "title": "Flutter Kicks",
+    "is_custom": false
+  },
+  "forearm curl": {
+    "id": "6ac11b01-97f5-43e8-b945-00b823491d53",
+    "title": "Forearm Curl",
+    "is_custom": true
+  },
+  "frog jumps": {
+    "id": "207DC636",
+    "title": "Frog Jumps",
+    "is_custom": false
+  },
+  "frog pumps (dumbbell)": {
+    "id": "F6948F17",
+    "title": "Frog Pumps (Dumbbell)",
+    "is_custom": false
+  },
+  "front lever hold": {
+    "id": "0E608350",
+    "title": "Front Lever Hold",
+    "is_custom": false
+  },
+  "front lever raise": {
+    "id": "30F03BF0",
+    "title": "Front Lever Raise",
+    "is_custom": false
+  },
+  "front raise (band)": {
+    "id": "47B036EF",
+    "title": "Front Raise (Band)",
+    "is_custom": false
+  },
+  "front raise (barbell)": {
+    "id": "BD86EFD5",
+    "title": "Front Raise (Barbell)",
+    "is_custom": false
+  },
+  "front raise (cable)": {
+    "id": "DBB91A3C",
+    "title": "Front Raise (Cable)",
+    "is_custom": false
+  },
+  "front raise (dumbbell)": {
+    "id": "8293E554",
+    "title": "Front Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "front raise (suspension)": {
+    "id": "796E8E2C",
+    "title": "Front Raise (Suspension)",
+    "is_custom": false
+  },
+  "front squat": {
+    "id": "5046D0A9",
+    "title": "Front Squat",
+    "is_custom": false
+  },
+  "front squat paused": {
+    "id": "4aeb4c42-65e9-40d4-9677-dddf1f8e8596",
+    "title": "Front squat paused",
+    "is_custom": true
+  },
+  "full squat": {
+    "id": "1283BBA6",
+    "title": "Full Squat",
+    "is_custom": false
+  },
+  "glute bridge": {
+    "id": "CDA23948",
+    "title": "Glute Bridge",
+    "is_custom": false
+  },
+  "glute ham raise": {
+    "id": "68B83EE0",
+    "title": "Glute Ham Raise",
+    "is_custom": false
+  },
+  "glute kickback (machine)": {
+    "id": "CBA02382",
+    "title": "Glute Kickback (Machine)",
+    "is_custom": false
+  },
+  "glute kickback on floor": {
+    "id": "987234AB",
+    "title": "Glute Kickback on Floor",
+    "is_custom": false
+  },
+  "goblet squat": {
+    "id": "3D0C7C75",
+    "title": "Goblet Squat",
+    "is_custom": false
+  },
+  "good morning (barbell)": {
+    "id": "4180C405",
+    "title": "Good Morning (Barbell)",
+    "is_custom": false
+  },
+  "gorilla row (kettlebell)": {
+    "id": "05487216",
+    "title": "Gorilla Row (Kettlebell)",
+    "is_custom": false
+  },
+  "hack squat": {
+    "id": "AC5A4C58",
+    "title": "Hack Squat",
+    "is_custom": false
+  },
+  "hack squat (machine)": {
+    "id": "1E42FD5F",
+    "title": "Hack Squat (Machine)",
+    "is_custom": false
+  },
+  "hammer curl (band)": {
+    "id": "1D4B3D6B",
+    "title": "Hammer Curl (Band)",
+    "is_custom": false
+  },
+  "hammer curl (cable)": {
+    "id": "36E8F14E",
+    "title": "Hammer Curl (Cable)",
+    "is_custom": false
+  },
+  "hammer curl (dumbbell)": {
+    "id": "7E3BC8B6",
+    "title": "Hammer Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "handstand hold": {
+    "id": "BE3615CF",
+    "title": "Handstand Hold",
+    "is_custom": false
+  },
+  "handstand push up": {
+    "id": "90B04F96",
+    "title": "Handstand Push Up",
+    "is_custom": false
+  },
+  "hang clean": {
+    "id": "BD4E7E53",
+    "title": "Hang Clean",
+    "is_custom": false
+  },
+  "hanging knee raise": {
+    "id": "08590920",
+    "title": "Hanging Knee Raise",
+    "is_custom": false
+  },
+  "hanging leg raise": {
+    "id": "F8356514",
+    "title": "Hanging Leg Raise",
+    "is_custom": false
+  },
+  "hang snatch": {
+    "id": "F4E77594",
+    "title": "Hang Snatch",
+    "is_custom": false
+  },
+  "heel taps": {
+    "id": "567FB505",
+    "title": "Heel Taps",
+    "is_custom": false
+  },
+  "hex press (dumbbell)": {
+    "id": "BE89C631",
+    "title": "Hex Press (Dumbbell)",
+    "is_custom": false
+  },
+  "high knees": {
+    "id": "150E076B",
+    "title": "High Knees",
+    "is_custom": false
+  },
+  "high knee skips": {
+    "id": "C9CCB878",
+    "title": "High Knee Skips",
+    "is_custom": false
+  },
+  "hiit": {
+    "id": "023947AB",
+    "title": "HIIT",
+    "is_custom": false
+  },
+  "hiking": {
+    "id": "1C34A172",
+    "title": "Hiking",
+    "is_custom": false
+  },
+  "hip abduction (machine)": {
+    "id": "F4B4C6EE",
+    "title": "Hip Abduction (Machine)",
+    "is_custom": false
+  },
+  "hip adduction (machine)": {
+    "id": "8BEBFED6",
+    "title": "Hip Adduction (Machine)",
+    "is_custom": false
+  },
+  "hip thrust": {
+    "id": "92B8C7E1",
+    "title": "Hip Thrust",
+    "is_custom": false
+  },
+  "hip thrust (barbell)": {
+    "id": "D57C2EC7",
+    "title": "Hip Thrust (Barbell)",
+    "is_custom": false
+  },
+  "hip thrust (machine)": {
+    "id": "68CE0B9B",
+    "title": "Hip Thrust (Machine)",
+    "is_custom": false
+  },
+  "hip thrust (smith machine)": {
+    "id": "291ABA92",
+    "title": "Hip Thrust (Smith Machine)",
+    "is_custom": false
+  },
+  "hollow rock": {
+    "id": "970ADF87",
+    "title": "Hollow Rock",
+    "is_custom": false
+  },
+  "incline bench press (barbell)": {
+    "id": "50DFDFAB",
+    "title": "Incline Bench Press (Barbell)",
+    "is_custom": false
+  },
+  "incline bench press (dumbbell)": {
+    "id": "07B38369",
+    "title": "Incline Bench Press (Dumbbell)",
+    "is_custom": false
+  },
+  "incline bench press (paused)": {
+    "id": "2acd54fa-cb77-41f4-a085-7367e73585e8",
+    "title": "Incline bench press (paused)",
+    "is_custom": true
+  },
+  "incline bench press (smith machine)": {
+    "id": "3A6FA3D1",
+    "title": "Incline Bench Press (Smith Machine)",
+    "is_custom": false
+  },
+  "incline chest fly (dumbbell)": {
+    "id": "D3E2AB55",
+    "title": "Incline Chest Fly (Dumbbell)",
+    "is_custom": false
+  },
+  "incline chest press (machine)": {
+    "id": "FBF92739",
+    "title": "Incline Chest Press (Machine)",
+    "is_custom": false
+  },
+  "incline push ups": {
+    "id": "39C99849",
+    "title": "Incline Push Ups",
+    "is_custom": false
+  },
+  "inverted row": {
+    "id": "425805F4",
+    "title": "Inverted Row",
+    "is_custom": false
+  },
+  "iso-lateral chest press (machine)": {
+    "id": "24706DCD",
+    "title": "Iso-Lateral Chest Press (Machine)",
+    "is_custom": false
+  },
+  "iso-lateral high row (machine)": {
+    "id": "BC3492DA",
+    "title": "Iso-Lateral High Row (Machine)",
+    "is_custom": false
+  },
+  "iso-lateral low row": {
+    "id": "91FAFBA3",
+    "title": "Iso-Lateral Low Row",
+    "is_custom": false
+  },
+  "iso-lateral row (machine)": {
+    "id": "AA1EB7D8",
+    "title": "Iso-Lateral Row (Machine)",
+    "is_custom": false
+  },
+  "jackknife sit up": {
+    "id": "32B0B590",
+    "title": "Jackknife Sit Up",
+    "is_custom": false
+  },
+  "jack knife (suspension)": {
+    "id": "D410F649",
+    "title": "Jack Knife (Suspension)",
+    "is_custom": false
+  },
+  "jm press (barbell)": {
+    "id": "74103F24",
+    "title": "JM Press (Barbell)",
+    "is_custom": false
+  },
+  "jumping jack": {
+    "id": "991833C2",
+    "title": "Jumping Jack",
+    "is_custom": false
+  },
+  "jumping lunge": {
+    "id": "5CC07A1F",
+    "title": "Jumping Lunge",
+    "is_custom": false
+  },
+  "jump rope": {
+    "id": "040BA2E3",
+    "title": "Jump Rope",
+    "is_custom": false
+  },
+  "jump shrug": {
+    "id": "BA3DE542",
+    "title": "Jump Shrug",
+    "is_custom": false
+  },
+  "jump squat": {
+    "id": "70D4EBBF",
+    "title": "Jump Squat",
+    "is_custom": false
+  },
+  "kettlebell around the world": {
+    "id": "55BA475A",
+    "title": "Kettlebell Around the World",
+    "is_custom": false
+  },
+  "kettlebell clean": {
+    "id": "F99C211D",
+    "title": "Kettlebell Clean",
+    "is_custom": false
+  },
+  "kettlebell curl": {
+    "id": "4E239ED8",
+    "title": "Kettlebell Curl",
+    "is_custom": false
+  },
+  "kettlebell goblet squat": {
+    "id": "A127DA73",
+    "title": "Kettlebell Goblet Squat",
+    "is_custom": false
+  },
+  "kettlebell halo": {
+    "id": "4288G454",
+    "title": "Kettlebell Halo",
+    "is_custom": false
+  },
+  "kettlebell high pull": {
+    "id": "9B13BA4B",
+    "title": "Kettlebell High Pull",
+    "is_custom": false
+  },
+  "kettlebell shoulder press": {
+    "id": "6433CD93",
+    "title": "Kettlebell Shoulder Press",
+    "is_custom": false
+  },
+  "kettlebell snatch": {
+    "id": "89304423",
+    "title": "Kettlebell Snatch",
+    "is_custom": false
+  },
+  "kettlebell swing": {
+    "id": "F8A0FCCA",
+    "title": "Kettlebell Swing",
+    "is_custom": false
+  },
+  "kettlebell turkish get up": {
+    "id": "5F8903BF",
+    "title": "Kettlebell Turkish Get Up",
+    "is_custom": false
+  },
+  "kipping pull up": {
+    "id": "A91838C0",
+    "title": "Kipping Pull Up",
+    "is_custom": false
+  },
+  "kneeling pulldown (band)": {
+    "id": "D82EA543",
+    "title": "Kneeling Pulldown (band)",
+    "is_custom": false
+  },
+  "kneeling push up": {
+    "id": "B74A95BB",
+    "title": "Kneeling Push Up",
+    "is_custom": false
+  },
+  "knee raise parallel bars": {
+    "id": "98237BA2",
+    "title": "Knee Raise Parallel Bars",
+    "is_custom": false
+  },
+  "landmine 180": {
+    "id": "923874CA",
+    "title": "Landmine 180",
+    "is_custom": false
+  },
+  "landmine row": {
+    "id": "D7D7FCCE",
+    "title": "Landmine Row",
+    "is_custom": false
+  },
+  "landmine squat and press": {
+    "id": "983274DD",
+    "title": "Landmine Squat and Press",
+    "is_custom": false
+  },
+  "lateral band walks": {
+    "id": "EC02979E",
+    "title": "Lateral Band Walks",
+    "is_custom": false
+  },
+  "lateral box jump": {
+    "id": "07EBC4DC",
+    "title": "Lateral Box Jump",
+    "is_custom": false
+  },
+  "lateral leg raises": {
+    "id": "DC59D143",
+    "title": "Lateral Leg Raises",
+    "is_custom": false
+  },
+  "lateral lunge": {
+    "id": "F2A37357",
+    "title": "Lateral Lunge",
+    "is_custom": false
+  },
+  "lateral raise (band)": {
+    "id": "DF200976",
+    "title": "Lateral Raise (Band)",
+    "is_custom": false
+  },
+  "lateral raise (cable)": {
+    "id": "BE289E45",
+    "title": "Lateral Raise (Cable)",
+    "is_custom": false
+  },
+  "lateral raise (dumbbell)": {
+    "id": "422B08F1",
+    "title": "Lateral Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "lateral raise (machine)": {
+    "id": "D5D0354D",
+    "title": "Lateral Raise (Machine)",
+    "is_custom": false
+  },
+  "lateral squat": {
+    "id": "D731CCA8",
+    "title": "Lateral Squat",
+    "is_custom": false
+  },
+  "lat pulldown (band)": {
+    "id": "D2FE7B2E",
+    "title": "Lat Pulldown (Band)",
+    "is_custom": false
+  },
+  "lat pulldown (cable)": {
+    "id": "6A6C31A5",
+    "title": "Lat Pulldown (Cable)",
+    "is_custom": false
+  },
+  "lat pulldown - close grip (cable)": {
+    "id": "4E5257DE",
+    "title": "Lat Pulldown - Close Grip (Cable)",
+    "is_custom": false
+  },
+  "lat pulldown (machine)": {
+    "id": "473CF5B8",
+    "title": "Lat Pulldown (Machine)",
+    "is_custom": false
+  },
+  "lat pulldown neutral grip": {
+    "id": "cd39c85d-7449-43b7-8722-417f5fc97e8b",
+    "title": "Lat Pulldown Neutral Grip",
+    "is_custom": true
+  },
+  "leg extension (machine)": {
+    "id": "75A4F6C4",
+    "title": "Leg Extension (Machine)",
+    "is_custom": false
+  },
+  "leg press horizontal (machine)": {
+    "id": "0EB695C9",
+    "title": "Leg Press Horizontal (Machine)",
+    "is_custom": false
+  },
+  "leg press (machine)": {
+    "id": "C7973E0E",
+    "title": "Leg Press (Machine)",
+    "is_custom": false
+  },
+  "leg raise parallel bars": {
+    "id": "0482DA98",
+    "title": "Leg Raise Parallel Bars",
+    "is_custom": false
+  },
+  "low cable fly crossovers": {
+    "id": "293483AD",
+    "title": "Low Cable Fly Crossovers",
+    "is_custom": false
+  },
+  "low row (suspension)": {
+    "id": "8A2E6481",
+    "title": "Low Row (Suspension)",
+    "is_custom": false
+  },
+  "l-sit hold": {
+    "id": "6D54A050",
+    "title": "L-Sit Hold",
+    "is_custom": false
+  },
+  "lunge": {
+    "id": "5E1A7777",
+    "title": "Lunge",
+    "is_custom": false
+  },
+  "lunge (barbell)": {
+    "id": "6E6EE645",
+    "title": "Lunge (Barbell)",
+    "is_custom": false
+  },
+  "lunge (dumbbell)": {
+    "id": "B537D09F",
+    "title": "Lunge (Dumbbell)",
+    "is_custom": false
+  },
+  "lying knee raise": {
+    "id": "BD5935CF",
+    "title": "Lying Knee Raise",
+    "is_custom": false
+  },
+  "lying leg curl (machine)": {
+    "id": "B8127AD1",
+    "title": "Lying Leg Curl (Machine)",
+    "is_custom": false
+  },
+  "lying leg raise": {
+    "id": "09C9F635",
+    "title": "Lying Leg Raise",
+    "is_custom": false
+  },
+  "lying neck curls": {
+    "id": "22FEDCA4",
+    "title": "Lying Neck Curls",
+    "is_custom": false
+  },
+  "lying neck curls (weighted)": {
+    "id": "31B8DA0F",
+    "title": "Lying Neck Curls (Weighted)",
+    "is_custom": false
+  },
+  "lying neck extension": {
+    "id": "0910BD28",
+    "title": "Lying Neck Extension",
+    "is_custom": false
+  },
+  "lying neck extension (weighted)": {
+    "id": "D6A73CF2",
+    "title": "Lying Neck Extension (Weighted)",
+    "is_custom": false
+  },
+  "meadows rows (barbell)": {
+    "id": "C732C341",
+    "title": "Meadows Rows (Barbell)",
+    "is_custom": false
+  },
+  "mountain climber": {
+    "id": "F49E31D6",
+    "title": "Mountain Climber",
+    "is_custom": false
+  },
+  "muscle up": {
+    "id": "9F9C164B",
+    "title": "Muscle Up",
+    "is_custom": false
+  },
+  "negative pull up": {
+    "id": "F60BDDF8",
+    "title": "Negative Pull Up",
+    "is_custom": false
+  },
+  "nordic hamstrings curls": {
+    "id": "108D7A14",
+    "title": "Nordic Hamstrings Curls",
+    "is_custom": false
+  },
+  "oblique crunch": {
+    "id": "DBE341AA",
+    "title": "Oblique Crunch",
+    "is_custom": false
+  },
+  "one arm push up": {
+    "id": "B140095E",
+    "title": "One Arm Push Up",
+    "is_custom": false
+  },
+  "overhead curl (cable)": {
+    "id": "582ADA23",
+    "title": "Overhead Curl (Cable)",
+    "is_custom": false
+  },
+  "overhead dumbbell lunge": {
+    "id": "4C6721B9",
+    "title": "Overhead Dumbbell Lunge",
+    "is_custom": false
+  },
+  "overhead plate raise": {
+    "id": "54E60954",
+    "title": "Overhead Plate Raise",
+    "is_custom": false
+  },
+  "overhead press (barbell)": {
+    "id": "7B8D84E8",
+    "title": "Overhead Press (Barbell)",
+    "is_custom": false
+  },
+  "overhead press (dumbbell)": {
+    "id": "6AC96645",
+    "title": "Overhead Press (Dumbbell)",
+    "is_custom": false
+  },
+  "overhead press (smith machine)": {
+    "id": "B09A1304",
+    "title": "Overhead Press (Smith Machine)",
+    "is_custom": false
+  },
+  "overhead squat": {
+    "id": "2CFED196",
+    "title": "Overhead Squat",
+    "is_custom": false
+  },
+  "overhead triceps extension (cable)": {
+    "id": "B5EFBF9C",
+    "title": "Overhead Triceps Extension (Cable)",
+    "is_custom": false
+  },
+  "partial glute bridge (barbell)": {
+    "id": "FBEE8279",
+    "title": "Partial Glute Bridge (Barbell)",
+    "is_custom": false
+  },
+  "pause bench": {
+    "id": "d5c4f519-77aa-4a87-bcf2-045c0a36744e",
+    "title": "pause bench",
+    "is_custom": true
+  },
+  "paused smith squat": {
+    "id": "cc23c75d-7b30-49f5-84d0-e18c01236f1a",
+    "title": "Paused Smith Squat",
+    "is_custom": true
+  },
+  "pause squat (barbell)": {
+    "id": "CE1054CE",
+    "title": "Pause Squat (Barbell)",
+    "is_custom": false
+  },
+  "pendlay row (barbell)": {
+    "id": "018ADC12",
+    "title": "Pendlay Row (Barbell)",
+    "is_custom": false
+  },
+  "pendulum squat (machine)": {
+    "id": "30E293E3",
+    "title": "Pendulum Squat (Machine)",
+    "is_custom": false
+  },
+  "pike pushup": {
+    "id": "0EFE8162",
+    "title": "Pike Pushup",
+    "is_custom": false
+  },
+  "pilates": {
+    "id": "EC2510CD",
+    "title": "Pilates",
+    "is_custom": false
+  },
+  "pinwheel curl (dumbbell)": {
+    "id": "942BAD12",
+    "title": "Pinwheel Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "pistol squat": {
+    "id": "3FF6A22E",
+    "title": "Pistol Squat",
+    "is_custom": false
+  },
+  "plank": {
+    "id": "C6C9B8A0",
+    "title": "Plank",
+    "is_custom": false
+  },
+  "plank pushup": {
+    "id": "31436F5D",
+    "title": "Plank Pushup",
+    "is_custom": false
+  },
+  "plate curl": {
+    "id": "9283ABD5",
+    "title": "Plate Curl",
+    "is_custom": false
+  },
+  "plate front raise": {
+    "id": "DBF9273A",
+    "title": "Plate Front Raise",
+    "is_custom": false
+  },
+  "plate press": {
+    "id": "982734D4",
+    "title": "Plate Press",
+    "is_custom": false
+  },
+  "plate squeeze (svend press)": {
+    "id": "9373FSD1",
+    "title": "Plate Squeeze (Svend Press)",
+    "is_custom": false
+  },
+  "power clean": {
+    "id": "C628D768",
+    "title": "Power Clean",
+    "is_custom": false
+  },
+  "power snatch": {
+    "id": "E22F9358",
+    "title": "Power Snatch",
+    "is_custom": false
+  },
+  "preacher curl (barbell)": {
+    "id": "4F942934",
+    "title": "Preacher Curl (Barbell)",
+    "is_custom": false
+  },
+  "preacher curl (dumbbell)": {
+    "id": "FAB6EB2F",
+    "title": "Preacher Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "preacher curl (machine)": {
+    "id": "1E9A6B8E",
+    "title": "Preacher Curl (Machine)",
+    "is_custom": false
+  },
+  "press under": {
+    "id": "84A77566",
+    "title": "Press Under",
+    "is_custom": false
+  },
+  "pullover (dumbbell)": {
+    "id": "67280085",
+    "title": "Pullover (Dumbbell)",
+    "is_custom": false
+  },
+  "pullover (machine)": {
+    "id": "B123DD01",
+    "title": "Pullover (Machine)",
+    "is_custom": false
+  },
+  "pull up": {
+    "id": "1B2B1E7C",
+    "title": "Pull Up",
+    "is_custom": false
+  },
+  "pull up (assisted)": {
+    "id": "2C37EC5E",
+    "title": "Pull Up (Assisted)",
+    "is_custom": false
+  },
+  "pull up (band)": {
+    "id": "56808FD2",
+    "title": "Pull Up (Band)",
+    "is_custom": false
+  },
+  "pull up (weighted)": {
+    "id": "729237D1",
+    "title": "Pull Up (Weighted)",
+    "is_custom": false
+  },
+  "pulse squat": {
+    "id": "73c72121-2b6b-400a-8dc0-ad52626f1ff4",
+    "title": "Pulse Squat",
+    "is_custom": true
+  },
+  "push press": {
+    "id": "542F3CD5",
+    "title": "Push Press",
+    "is_custom": false
+  },
+  "push up": {
+    "id": "392887AA",
+    "title": "Push Up",
+    "is_custom": false
+  },
+  "push up - close grip": {
+    "id": "947DAC23",
+    "title": "Push Up - Close Grip",
+    "is_custom": false
+  },
+  "push up (weighted)": {
+    "id": "19372ABC",
+    "title": "Push Up (Weighted)",
+    "is_custom": false
+  },
+  "rack pull": {
+    "id": "FE389074",
+    "title": "Rack Pull",
+    "is_custom": false
+  },
+  "rear delt reverse fly (cable)": {
+    "id": "C315DC2A",
+    "title": "Rear Delt Reverse Fly (Cable)",
+    "is_custom": false
+  },
+  "rear delt reverse fly (dumbbell)": {
+    "id": "E5988A0A",
+    "title": "Rear Delt Reverse Fly (Dumbbell)",
+    "is_custom": false
+  },
+  "rear delt reverse fly (machine)": {
+    "id": "D8281C62",
+    "title": "Rear Delt Reverse Fly (Machine)",
+    "is_custom": false
+  },
+  "rear kick (machine)": {
+    "id": "1ADF8723",
+    "title": "Rear Kick (Machine)",
+    "is_custom": false
+  },
+  "renegade row (dumbbell)": {
+    "id": "1B89CA1B",
+    "title": "Renegade Row (Dumbbell)",
+    "is_custom": false
+  },
+  "reverse crunch": {
+    "id": "7952B5CD",
+    "title": "Reverse Crunch",
+    "is_custom": false
+  },
+  "reverse curl (barbell)": {
+    "id": "112FC6B7",
+    "title": "Reverse Curl (Barbell)",
+    "is_custom": false
+  },
+  "reverse curl (cable)": {
+    "id": "9F48F858",
+    "title": "Reverse Curl (Cable)",
+    "is_custom": false
+  },
+  "reverse curl (dumbbell)": {
+    "id": "B567DD46",
+    "title": "Reverse Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "reverse fly single arm (cable)": {
+    "id": "9264ADA1",
+    "title": "Reverse Fly Single Arm (Cable)",
+    "is_custom": false
+  },
+  "reverse grip concentration curl": {
+    "id": "1FF4097B",
+    "title": "Reverse Grip Concentration Curl",
+    "is_custom": false
+  },
+  "reverse grip lat pulldown (cable)": {
+    "id": "046E25A2",
+    "title": "Reverse Grip Lat Pulldown (Cable)",
+    "is_custom": false
+  },
+  "reverse hyperextension": {
+    "id": "7C0028C3",
+    "title": "Reverse Hyperextension",
+    "is_custom": false
+  },
+  "reverse lunge": {
+    "id": "C284D923",
+    "title": "Reverse Lunge",
+    "is_custom": false
+  },
+  "reverse lunge (barbell)": {
+    "id": "818BA121",
+    "title": "Reverse Lunge (Barbell)",
+    "is_custom": false
+  },
+  "reverse lunge (dumbbell)": {
+    "id": "FFDA283B",
+    "title": "Reverse Lunge (Dumbbell)",
+    "is_custom": false
+  },
+  "reverse plank": {
+    "id": "99B49684",
+    "title": "Reverse Plank",
+    "is_custom": false
+  },
+  "ring dips": {
+    "id": "51A0EDAA",
+    "title": "Ring Dips",
+    "is_custom": false
+  },
+  "ring pull up": {
+    "id": "5F09F0FC",
+    "title": "Ring Pull Up",
+    "is_custom": false
+  },
+  "ring push up": {
+    "id": "AEA56BDC",
+    "title": "Ring Push Up",
+    "is_custom": false
+  },
+  "romanian deadlift (barbell)": {
+    "id": "2B4B7310",
+    "title": "Romanian Deadlift (Barbell)",
+    "is_custom": false
+  },
+  "romanian deadlift (dumbbell)": {
+    "id": "72CFFAD5",
+    "title": "Romanian Deadlift (Dumbbell)",
+    "is_custom": false
+  },
+  "rope cable curl": {
+    "id": "234897AB",
+    "title": "Rope Cable Curl",
+    "is_custom": false
+  },
+  "rope rear felt fly": {
+    "id": "31d68240-2218-4d76-b98b-aad6c53900e9",
+    "title": "Rope Rear Felt Fly",
+    "is_custom": true
+  },
+  "rope straight arm pulldown": {
+    "id": "9273BA17",
+    "title": "Rope Straight Arm Pulldown",
+    "is_custom": false
+  },
+  "rowing machine": {
+    "id": "0222DB42",
+    "title": "Rowing Machine",
+    "is_custom": false
+  },
+  "running": {
+    "id": "AC1BB830",
+    "title": "Running",
+    "is_custom": false
+  },
+  "russian twist (bodyweight)": {
+    "id": "BB83BDDE",
+    "title": "Russian Twist (Bodyweight)",
+    "is_custom": false
+  },
+  "russian twist (weighted)": {
+    "id": "2982AA23",
+    "title": "Russian Twist (Weighted)",
+    "is_custom": false
+  },
+  "safety bar squat": {
+    "id": "55d8e793-63ce-45aa-9bcd-d39f896f7250",
+    "title": "Safety Bar Squat",
+    "is_custom": true
+  },
+  "safety squat bar squat - paused": {
+    "id": "609c853a-38e2-4d39-8ea1-1c68fd78d836",
+    "title": "Safety Squat Bar Squat - Paused",
+    "is_custom": true
+  },
+  "scapular pull ups": {
+    "id": "C7AE420A",
+    "title": "Scapular Pull Ups",
+    "is_custom": false
+  },
+  "seated cable row - bar grip": {
+    "id": "F1D60854",
+    "title": "Seated Cable Row - Bar Grip",
+    "is_custom": false
+  },
+  "seated cable row - bar wide grip": {
+    "id": "C3BCABB3",
+    "title": "Seated Cable Row - Bar Wide Grip",
+    "is_custom": false
+  },
+  "seated cable row - v grip (cable)": {
+    "id": "0393F233",
+    "title": "Seated Cable Row - V Grip (Cable)",
+    "is_custom": false
+  },
+  "seated calf raise": {
+    "id": "062AB91A",
+    "title": "Seated Calf Raise",
+    "is_custom": false
+  },
+  "seated chest flys (cable)": {
+    "id": "6B4C797E",
+    "title": "Seated Chest Flys (Cable)",
+    "is_custom": false
+  },
+  "seated dip machine": {
+    "id": "5122E7D9",
+    "title": "Seated Dip Machine",
+    "is_custom": false
+  },
+  "seated incline curl (dumbbell)": {
+    "id": "8BAB2735",
+    "title": "Seated Incline Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "seated lateral raise (dumbbell)": {
+    "id": "9372FFAA",
+    "title": "Seated Lateral Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "seated leg curl (machine)": {
+    "id": "11A123F3",
+    "title": "Seated Leg Curl (Machine)",
+    "is_custom": false
+  },
+  "seated overhead press (barbell)": {
+    "id": "91AF29E0",
+    "title": "Seated Overhead Press (Barbell)",
+    "is_custom": false
+  },
+  "seated overhead press (dumbbell)": {
+    "id": "9930DF71",
+    "title": "Seated Overhead Press (Dumbbell)",
+    "is_custom": false
+  },
+  "seated palms up wrist curl": {
+    "id": "1006DF48",
+    "title": "Seated Palms Up Wrist Curl",
+    "is_custom": false
+  },
+  "seated row (machine)": {
+    "id": "1DF4A847",
+    "title": "Seated Row (Machine)",
+    "is_custom": false
+  },
+  "seated shoulder press (machine)": {
+    "id": "9237BAD1",
+    "title": "Seated Shoulder Press (Machine)",
+    "is_custom": false
+  },
+  "seated triceps press": {
+    "id": "234BC743",
+    "title": "Seated Triceps Press",
+    "is_custom": false
+  },
+  "seated wrist extension (barbell)": {
+    "id": "9202CC23",
+    "title": "Seated Wrist Extension (Barbell)",
+    "is_custom": false
+  },
+  "shoulder press (dumbbell)": {
+    "id": "878CD1D0",
+    "title": "Shoulder Press (Dumbbell)",
+    "is_custom": false
+  },
+  "shoulder press (machine plates)": {
+    "id": "059E835D",
+    "title": "Shoulder Press (Machine Plates)",
+    "is_custom": false
+  },
+  "shoulder taps": {
+    "id": "502FCE31",
+    "title": "Shoulder Taps",
+    "is_custom": false
+  },
+  "shrug (barbell)": {
+    "id": "0B841777",
+    "title": "Shrug (Barbell)",
+    "is_custom": false
+  },
+  "shrug (cable)": {
+    "id": "FFABC123",
+    "title": "Shrug (Cable)",
+    "is_custom": false
+  },
+  "shrug (dumbbell)": {
+    "id": "ABEC557F",
+    "title": "Shrug (Dumbbell)",
+    "is_custom": false
+  },
+  "shrug (machine)": {
+    "id": "19A38071",
+    "title": "Shrug (Machine)",
+    "is_custom": false
+  },
+  "shrug (smith machine)": {
+    "id": "742E5BD5",
+    "title": "Shrug (Smith Machine)",
+    "is_custom": false
+  },
+  "side bend": {
+    "id": "37F9EDA7",
+    "title": "Side Bend",
+    "is_custom": false
+  },
+  "side bend (dumbbell)": {
+    "id": "026FD047",
+    "title": "Side Bend (Dumbbell)",
+    "is_custom": false
+  },
+  "side plank": {
+    "id": "E3EDA509",
+    "title": "Side Plank",
+    "is_custom": false
+  },
+  "single arm cable crossover": {
+    "id": "8372BBCC",
+    "title": "Single Arm Cable Crossover",
+    "is_custom": false
+  },
+  "single arm cable row": {
+    "id": "D0C4A899",
+    "title": "Single Arm Cable Row",
+    "is_custom": false
+  },
+  "single arm curl (cable)": {
+    "id": "B33B526E",
+    "title": "Single Arm Curl (Cable)",
+    "is_custom": false
+  },
+  "single arm landmine press (barbell)": {
+    "id": "1837BA23",
+    "title": "Single Arm Landmine Press (Barbell)",
+    "is_custom": false
+  },
+  "single arm lateral raise (cable)": {
+    "id": "DE68C825",
+    "title": "Single Arm Lateral Raise (Cable)",
+    "is_custom": false
+  },
+  "single arm lat pulldown": {
+    "id": "2EE45F81",
+    "title": "Single Arm Lat Pulldown",
+    "is_custom": false
+  },
+  "single arm tricep extension (dumbbell)": {
+    "id": "8347DFD1",
+    "title": "Single Arm Tricep Extension (Dumbbell)",
+    "is_custom": false
+  },
+  "single arm triceps pushdown (cable)": {
+    "id": "552AB030",
+    "title": "Single Arm Triceps Pushdown (Cable)",
+    "is_custom": false
+  },
+  "single leg extensions": {
+    "id": "629AE73D",
+    "title": "Single Leg Extensions",
+    "is_custom": false
+  },
+  "single leg glute bridge": {
+    "id": "CBC0D834",
+    "title": "Single Leg Glute Bridge",
+    "is_custom": false
+  },
+  "single leg hip thrust": {
+    "id": "487B3755",
+    "title": "Single Leg Hip Thrust",
+    "is_custom": false
+  },
+  "single leg hip thrust (dumbbell)": {
+    "id": "D1CD146F",
+    "title": "Single Leg Hip Thrust (Dumbbell)",
+    "is_custom": false
+  },
+  "single leg press (machine)": {
+    "id": "3FD83744",
+    "title": "Single Leg Press (Machine)",
+    "is_custom": false
+  },
+  "single leg romanian deadlift (barbell)": {
+    "id": "93472AC1",
+    "title": "Single Leg Romanian Deadlift (Barbell)",
+    "is_custom": false
+  },
+  "single leg romanian deadlift (dumbbell)": {
+    "id": "937292AB",
+    "title": "Single Leg Romanian Deadlift (Dumbbell)",
+    "is_custom": false
+  },
+  "single leg smith lunge": {
+    "id": "1ae9ac4c-da64-47ac-95ad-5e738299827a",
+    "title": "Single Leg Smith Lunge",
+    "is_custom": true
+  },
+  "single leg standing calf raise": {
+    "id": "238BA231",
+    "title": "Single Leg Standing Calf Raise",
+    "is_custom": false
+  },
+  "single leg standing calf raise (barbell)": {
+    "id": "E51CCBE5",
+    "title": "Single Leg Standing Calf Raise (Barbell)",
+    "is_custom": false
+  },
+  "single leg standing calf raise (dumbbell)": {
+    "id": "5DA40761",
+    "title": "Single Leg Standing Calf Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "single leg standing calf raise (machine)": {
+    "id": "B05C2C29",
+    "title": "Single Leg Standing Calf Raise (Machine)",
+    "is_custom": false
+  },
+  "sissy squat (weighted)": {
+    "id": "F5DEF1EB",
+    "title": "Sissy Squat (Weighted)",
+    "is_custom": false
+  },
+  "sit up": {
+    "id": "022DF610",
+    "title": "Sit Up",
+    "is_custom": false
+  },
+  "sit up (weighted)": {
+    "id": "9237BA12",
+    "title": "Sit Up (Weighted)",
+    "is_custom": false
+  },
+  "skating": {
+    "id": "24A809EF",
+    "title": "Skating",
+    "is_custom": false
+  },
+  "skiing": {
+    "id": "84325755",
+    "title": "Skiing",
+    "is_custom": false
+  },
+  "skullcrusher (barbell)": {
+    "id": "875F585F",
+    "title": "Skullcrusher (Barbell)",
+    "is_custom": false
+  },
+  "skullcrusher (dumbbell)": {
+    "id": "68F8A292",
+    "title": "Skullcrusher (Dumbbell)",
+    "is_custom": false
+  },
+  "sled push": {
+    "id": "7757171F",
+    "title": "Sled Push",
+    "is_custom": false
+  },
+  "snatch": {
+    "id": "FB09C938",
+    "title": "Snatch",
+    "is_custom": false
+  },
+  "snowboarding": {
+    "id": "911A58D3",
+    "title": "Snowboarding",
+    "is_custom": false
+  },
+  "spider curl (barbell)": {
+    "id": "2348AB72",
+    "title": "Spider Curl (Barbell)",
+    "is_custom": false
+  },
+  "spider curl (dumbbell)": {
+    "id": "90427D4A",
+    "title": "Spider Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "spiderman": {
+    "id": "C10A5AC9",
+    "title": "Spiderman",
+    "is_custom": false
+  },
+  "spinning": {
+    "id": "213AB238",
+    "title": "Spinning",
+    "is_custom": false
+  },
+  "split jerk": {
+    "id": "E764B907",
+    "title": "Split Jerk",
+    "is_custom": false
+  },
+  "split squat (dumbbell)": {
+    "id": "20C1A3CB",
+    "title": "Split Squat (Dumbbell)",
+    "is_custom": false
+  },
+  "sprints": {
+    "id": "9283BABA",
+    "title": "Sprints",
+    "is_custom": false
+  },
+  "squat (band)": {
+    "id": "F1258206",
+    "title": "Squat (Band)",
+    "is_custom": false
+  },
+  "squat (barbell)": {
+    "id": "D04AC939",
+    "title": "Squat (Barbell)",
+    "is_custom": false
+  },
+  "squat (bodyweight)": {
+    "id": "9694DA61",
+    "title": "Squat (Bodyweight)",
+    "is_custom": false
+  },
+  "squat (dumbbell)": {
+    "id": "DCFF3E9F",
+    "title": "Squat (Dumbbell)",
+    "is_custom": false
+  },
+  "squat (machine)": {
+    "id": "CC35A01F",
+    "title": "Squat (Machine)",
+    "is_custom": false
+  },
+  "squat row": {
+    "id": "A8814C06",
+    "title": "Squat Row",
+    "is_custom": false
+  },
+  "squat (smith machine)": {
+    "id": "DDCC3821",
+    "title": "Squat (Smith Machine)",
+    "is_custom": false
+  },
+  "squat (suspension)": {
+    "id": "B82D6418",
+    "title": "Squat (Suspension)",
+    "is_custom": false
+  },
+  "stair machine (floors)": {
+    "id": "4377A52B",
+    "title": "Stair Machine (Floors)",
+    "is_custom": false
+  },
+  "stair machine (steps)": {
+    "id": "4377A52C",
+    "title": "Stair Machine (Steps)",
+    "is_custom": false
+  },
+  "standing cable glute kickbacks": {
+    "id": "ACB2751D",
+    "title": "Standing Cable Glute Kickbacks",
+    "is_custom": false
+  },
+  "standing calf raise": {
+    "id": "06745E58",
+    "title": "Standing Calf Raise",
+    "is_custom": false
+  },
+  "standing calf raise (barbell)": {
+    "id": "E53CCBE5",
+    "title": "Standing Calf Raise (Barbell)",
+    "is_custom": false
+  },
+  "standing calf raise (dumbbell)": {
+    "id": "6DA40660",
+    "title": "Standing Calf Raise (Dumbbell)",
+    "is_custom": false
+  },
+  "standing calf raise (machine)": {
+    "id": "E05C2C38",
+    "title": "Standing Calf Raise (Machine)",
+    "is_custom": false
+  },
+  "standing calf raise (smith)": {
+    "id": "AA52E8D2",
+    "title": "Standing Calf Raise (Smith)",
+    "is_custom": false
+  },
+  "standing leg curls": {
+    "id": "6120CAAB",
+    "title": "Standing Leg Curls",
+    "is_custom": false
+  },
+  "standing military press (barbell)": {
+    "id": "073032BB",
+    "title": "Standing Military Press (Barbell)",
+    "is_custom": false
+  },
+  "step up": {
+    "id": "128A2381",
+    "title": "Step Up",
+    "is_custom": false
+  },
+  "sternum pull up (gironda)": {
+    "id": "EE2938D1",
+    "title": "Sternum Pull up (Gironda)",
+    "is_custom": false
+  },
+  "straight arm lat pulldown (cable)": {
+    "id": "D2387AB1",
+    "title": "Straight Arm Lat Pulldown (Cable)",
+    "is_custom": false
+  },
+  "straight leg deadlift": {
+    "id": "2A48E443",
+    "title": "Straight Leg Deadlift",
+    "is_custom": false
+  },
+  "stretching": {
+    "id": "527DA061",
+    "title": "Stretching",
+    "is_custom": false
+  },
+  "sumo deadlift": {
+    "id": "D20D7BBE",
+    "title": "Sumo Deadlift",
+    "is_custom": false
+  },
+  "sumo squat": {
+    "id": "3F5F8D40",
+    "title": "Sumo Squat",
+    "is_custom": false
+  },
+  "sumo squat (barbell)": {
+    "id": "6622E5A0",
+    "title": "Sumo Squat (Barbell)",
+    "is_custom": false
+  },
+  "sumo squat (dumbbell)": {
+    "id": "05293BCA",
+    "title": "Sumo Squat (Dumbbell)",
+    "is_custom": false
+  },
+  "sumo squat (kettlebell)": {
+    "id": "5E10D0E6",
+    "title": "Sumo Squat (Kettlebell)",
+    "is_custom": false
+  },
+  "superman": {
+    "id": "218DA87C",
+    "title": "Superman",
+    "is_custom": false
+  },
+  "swimming": {
+    "id": "B60A678F",
+    "title": "Swimming",
+    "is_custom": false
+  },
+  "t bar row": {
+    "id": "08A2974E",
+    "title": "T Bar Row",
+    "is_custom": false
+  },
+  "tempo squat": {
+    "id": "9b782cbf-9933-4e83-a80e-b2cc9ecc712a",
+    "title": "Tempo Squat",
+    "is_custom": true
+  },
+  "thruster (barbell)": {
+    "id": "90E506D5",
+    "title": "Thruster (Barbell)",
+    "is_custom": false
+  },
+  "thruster (kettlebell)": {
+    "id": "10313AFD",
+    "title": "Thruster (Kettlebell)",
+    "is_custom": false
+  },
+  "toes to bar": {
+    "id": "B94E35E1",
+    "title": "Toes to Bar",
+    "is_custom": false
+  },
+  "toe touch": {
+    "id": "75BAC5C3",
+    "title": "Toe Touch",
+    "is_custom": false
+  },
+  "torso rotation": {
+    "id": "FBB62888",
+    "title": "Torso Rotation",
+    "is_custom": false
+  },
+  "treadmill": {
+    "id": "243710DE",
+    "title": "Treadmill",
+    "is_custom": false
+  },
+  "triceps dip": {
+    "id": "28BB4A95",
+    "title": "Triceps Dip",
+    "is_custom": false
+  },
+  "triceps dip (assisted)": {
+    "id": "4B4BF8C2",
+    "title": "Triceps Dip (Assisted)",
+    "is_custom": false
+  },
+  "triceps dip (weighted)": {
+    "id": "10347BAC",
+    "title": "Triceps Dip (Weighted)",
+    "is_custom": false
+  },
+  "triceps extension (barbell)": {
+    "id": "2F8D3067",
+    "title": "Triceps Extension (Barbell)",
+    "is_custom": false
+  },
+  "triceps extension (cable)": {
+    "id": "21310F5F",
+    "title": "Triceps Extension (Cable)",
+    "is_custom": false
+  },
+  "triceps extension (dumbbell)": {
+    "id": "3765684D",
+    "title": "Triceps Extension (Dumbbell)",
+    "is_custom": false
+  },
+  "triceps extension (machine)": {
+    "id": "3092FADD",
+    "title": "Triceps Extension (Machine)",
+    "is_custom": false
+  },
+  "triceps extension (suspension)": {
+    "id": "6182EE83",
+    "title": "Triceps Extension (Suspension)",
+    "is_custom": false
+  },
+  "triceps kickback (cable)": {
+    "id": "EC3B69A3",
+    "title": "Triceps Kickback (Cable)",
+    "is_custom": false
+  },
+  "triceps kickback (dumbbell)": {
+    "id": "6127A3AD",
+    "title": "Triceps Kickback (Dumbbell)",
+    "is_custom": false
+  },
+  "triceps pressdown": {
+    "id": "CDC472B1",
+    "title": "Triceps Pressdown",
+    "is_custom": false
+  },
+  "triceps pushdown": {
+    "id": "93A552C6",
+    "title": "Triceps Pushdown",
+    "is_custom": false
+  },
+  "triceps rope pushdown": {
+    "id": "94B7239B",
+    "title": "Triceps Rope Pushdown",
+    "is_custom": false
+  },
+  "upright row (barbell)": {
+    "id": "7AB9A362",
+    "title": "Upright Row (Barbell)",
+    "is_custom": false
+  },
+  "upright row (cable)": {
+    "id": "286C1D0B",
+    "title": "Upright Row (Cable)",
+    "is_custom": false
+  },
+  "upright row (dumbbell)": {
+    "id": "797F0782",
+    "title": "Upright Row (Dumbbell)",
+    "is_custom": false
+  },
+  "vertical traction (machine)": {
+    "id": "72880C57",
+    "title": "Vertical Traction (Machine)",
+    "is_custom": false
+  },
+  "v up": {
+    "id": "6BE68B62",
+    "title": "V Up",
+    "is_custom": false
+  },
+  "waiter curl (dumbbell)": {
+    "id": "72297E8C",
+    "title": "Waiter Curl (Dumbbell)",
+    "is_custom": false
+  },
+  "walking": {
+    "id": "33EDD7DB",
+    "title": "Walking",
+    "is_custom": false
+  },
+  "walking lunge": {
+    "id": "32HKJ34K",
+    "title": "Walking Lunge",
+    "is_custom": false
+  },
+  "walking lunge (dumbbell)": {
+    "id": "A733CC5B",
+    "title": "Walking Lunge (Dumbbell)",
+    "is_custom": false
+  },
+  "wall ball": {
+    "id": "A1F47ACC",
+    "title": "Wall Ball",
+    "is_custom": false
+  },
+  "wall sit": {
+    "id": "C8706C80",
+    "title": "Wall Sit",
+    "is_custom": false
+  },
+  "warm up": {
+    "id": "79EF4E4F",
+    "title": "Warm Up",
+    "is_custom": false
+  },
+  "wide-elbow triceps press (dumbbell)": {
+    "id": "B31EB524",
+    "title": "Wide-Elbow Triceps Press (Dumbbell)",
+    "is_custom": false
+  },
+  "wide pull up": {
+    "id": "7C50F118",
+    "title": "Wide Pull Up",
+    "is_custom": false
+  },
+  "wrist roller": {
+    "id": "0E4523F4",
+    "title": "Wrist Roller",
+    "is_custom": false
+  },
+  "yoga": {
+    "id": "8C9D2928",
+    "title": "Yoga",
+    "is_custom": false
+  },
+  "zercher squat": {
+    "id": "40C6A9FC",
+    "title": "Zercher Squat",
+    "is_custom": false
+  },
+  "zottman curl (dumbbell)": {
+    "id": "123EE239",
+    "title": "Zottman Curl (Dumbbell)",
+    "is_custom": false
+  }
+}

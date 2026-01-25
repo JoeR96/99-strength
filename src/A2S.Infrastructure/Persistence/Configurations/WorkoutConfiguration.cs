@@ -1,8 +1,10 @@
+using System.Text.Json;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace A2S.Infrastructure.Persistence.Configurations;
 
@@ -47,6 +49,21 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
         builder.Property(w => w.StartedAt);
 
         builder.Property(w => w.CompletedAt);
+
+        builder.Property(w => w.HevyRoutineFolderId)
+            .HasMaxLength(100);
+
+        // HevySyncedRoutines as JSON column with explicit value converter
+        // This avoids Npgsql 8.0+ dynamic JSON serialization requirement
+        var dictionaryConverter = new ValueConverter<Dictionary<string, string>, string>(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+            v => string.IsNullOrEmpty(v) ? new Dictionary<string, string>() : JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, string>()
+        );
+
+        builder.Property(w => w.HevySyncedRoutines)
+            .HasColumnType("jsonb")
+            .HasConversion(dictionaryConverter)
+            .HasDefaultValueSql("'{}'::jsonb");
 
         // Exercises relationship
         builder.HasMany(w => w.Exercises)

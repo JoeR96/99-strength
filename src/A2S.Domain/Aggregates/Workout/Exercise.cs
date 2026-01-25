@@ -19,6 +19,12 @@ public sealed class Exercise : Entity<ExerciseId>
     public int OrderInDay { get; private set; }
 
     /// <summary>
+    /// The Hevy exercise template ID for syncing to Hevy.
+    /// This is the canonical identifier from Hevy's exercise library.
+    /// </summary>
+    public string HevyExerciseTemplateId { get; private set; }
+
+    /// <summary>
     /// Polymorphic progression strategy (owned entity).
     /// Can be LinearProgressionStrategy or RepsPerSetStrategy.
     /// </summary>
@@ -28,6 +34,7 @@ public sealed class Exercise : Entity<ExerciseId>
     private Exercise()
     {
         Name = string.Empty;
+        HevyExerciseTemplateId = string.Empty;
         Progression = null!;
     }
 
@@ -38,10 +45,12 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
+        string hevyExerciseTemplateId,
         ExerciseProgression progression)
         : base(id)
     {
         CheckRule(!string.IsNullOrWhiteSpace(name), "Exercise name cannot be empty");
+        CheckRule(!string.IsNullOrWhiteSpace(hevyExerciseTemplateId), "Hevy exercise template ID cannot be empty");
         CheckRule(orderInDay >= 1, "Order in day must be at least 1");
 
         Name = name;
@@ -49,6 +58,7 @@ public sealed class Exercise : Entity<ExerciseId>
         Equipment = equipment;
         AssignedDay = assignedDay;
         OrderInDay = orderInDay;
+        HevyExerciseTemplateId = hevyExerciseTemplateId;
         Progression = progression;
     }
 
@@ -61,6 +71,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
+    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
     /// <param name="trainingMax">Training max for calculating working weights</param>
     /// <param name="useAmrap">Whether to use AMRAP on final set</param>
     /// <param name="baseSetsPerExercise">Number of sets per session</param>
@@ -70,6 +81,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
+        string hevyExerciseTemplateId,
         TrainingMax trainingMax,
         bool useAmrap = true,
         int baseSetsPerExercise = 4)
@@ -86,6 +98,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
+            hevyExerciseTemplateId,
             progression);
     }
 
@@ -99,6 +112,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
+    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
     /// <param name="repRange">Target rep range for progression</param>
     /// <param name="startingWeight">Starting weight</param>
     /// <param name="startingSets">Starting number of sets</param>
@@ -110,6 +124,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
+        string hevyExerciseTemplateId,
         RepRange repRange,
         Weight startingWeight,
         int startingSets = 2,
@@ -131,6 +146,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
+            hevyExerciseTemplateId,
             progression);
     }
 
@@ -144,6 +160,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
+    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
     /// <param name="startingWeight">Starting weight (or assistance weight)</param>
     /// <param name="targetTotalReps">Total reps to complete across all sets (e.g., 40)</param>
     /// <param name="startingSets">Initial number of sets</param>
@@ -155,6 +172,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
+        string hevyExerciseTemplateId,
         Weight startingWeight,
         int targetTotalReps,
         int startingSets,
@@ -176,6 +194,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
+            hevyExerciseTemplateId,
             progression);
     }
 

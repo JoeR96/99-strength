@@ -41,6 +41,16 @@ public sealed record WorkoutDto
     public DateTime? CompletedAt { get; init; }
     public int ExerciseCount { get; init; }
     public IReadOnlyList<ExerciseDto> Exercises { get; init; } = Array.Empty<ExerciseDto>();
+
+    /// <summary>
+    /// Hevy routine folder ID for organizing routines.
+    /// </summary>
+    public string? HevyRoutineFolderId { get; init; }
+
+    /// <summary>
+    /// Synced Hevy routine IDs by week and day.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? HevySyncedRoutines { get; init; }
 }
 
 /// <summary>
@@ -77,6 +87,12 @@ public sealed record ExerciseDto
     public EquipmentType Equipment { get; init; }
     public DayNumber AssignedDay { get; init; }
     public int OrderInDay { get; init; }
+
+    /// <summary>
+    /// Hevy exercise template ID for syncing.
+    /// </summary>
+    public string HevyExerciseTemplateId { get; init; } = string.Empty;
+
     public ExerciseProgressionDto Progression { get; init; } = null!;
 }
 

@@ -67,7 +67,9 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 StartedAt = workout.StartedAt,
                 CompletedAt = workout.CompletedAt,
                 ExerciseCount = workout.Exercises.Count,
-                Exercises = exerciseDtos
+                Exercises = exerciseDtos,
+                HevyRoutineFolderId = workout.HevyRoutineFolderId,
+                HevySyncedRoutines = workout.HevySyncedRoutines
             };
 
             return Result.Success<WorkoutDto?>(dto);
@@ -143,6 +145,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             Equipment = exercise.Equipment,
             AssignedDay = exercise.AssignedDay,
             OrderInDay = exercise.OrderInDay,
+            HevyExerciseTemplateId = exercise.HevyExerciseTemplateId,
             Progression = progressionDto
         };
     }
