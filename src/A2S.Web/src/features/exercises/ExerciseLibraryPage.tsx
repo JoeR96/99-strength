@@ -1,8 +1,19 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { HEVY_EXERCISE_MAPPING } from '@/data/hevyExercises';
+import { apiClient } from '@/api';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 /**
  * Exercise data structure
@@ -13,6 +24,42 @@ interface Exercise {
   muscle_group: string;
   equipment: string;
   is_custom: boolean;
+}
+
+/**
+ * Exercise history types from API
+ */
+interface CompletedSetDto {
+  setNumber: number;
+  weight: number;
+  weightUnit: string;
+  actualReps: number;
+  wasAmrap: boolean;
+}
+
+interface ExerciseSessionDto {
+  workoutId: string;
+  workoutName: string;
+  weekNumber: number;
+  blockNumber: number;
+  completedAt: string;
+  progressionType: string;
+  sessionVolume: number;
+  sets: CompletedSetDto[];
+}
+
+interface AggregatedExerciseHistoryDto {
+  exerciseName: string;
+  totalSessions: number;
+  totalVolume: number;
+  totalSets: number;
+  totalReps: number;
+  personalRecordWeight: number;
+  personalRecordVolume: number;
+  weightUnit: string;
+  firstPerformed: string | null;
+  lastPerformed: string | null;
+  sessions: ExerciseSessionDto[];
 }
 
 /**
@@ -78,6 +125,7 @@ export function ExerciseLibraryPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(new Set());
   const [showCustomOnly, setShowCustomOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'grouped'>('grouped');
+  const [selectedExerciseForHistory, setSelectedExerciseForHistory] = useState<Exercise | null>(null);
 
   // Convert HEVY_EXERCISE_MAPPING to array
   const allExercises = useMemo(() => {
@@ -394,7 +442,11 @@ export function ExerciseLibraryPage() {
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
                               {exercises.map(exercise => (
-                                <ExerciseCard key={exercise.id} exercise={exercise} />
+                                <ExerciseCard
+                                  key={exercise.id}
+                                  exercise={exercise}
+                                  onClick={() => setSelectedExerciseForHistory(exercise)}
+                                />
                               ))}
                             </div>
                           </div>
@@ -411,7 +463,11 @@ export function ExerciseLibraryPage() {
                 {filteredExercises
                   .sort((a, b) => a.title.localeCompare(b.title))
                   .map(exercise => (
-                    <ExerciseCard key={exercise.id} exercise={exercise} />
+                    <ExerciseCard
+                      key={exercise.id}
+                      exercise={exercise}
+                      onClick={() => setSelectedExerciseForHistory(exercise)}
+                    />
                   ))}
               </div>
             )}
@@ -421,7 +477,11 @@ export function ExerciseLibraryPage() {
                 {filteredExercises
                   .sort((a, b) => a.title.localeCompare(b.title))
                   .map(exercise => (
-                    <ExerciseListItem key={exercise.id} exercise={exercise} />
+                    <ExerciseListItem
+                      key={exercise.id}
+                      exercise={exercise}
+                      onClick={() => setSelectedExerciseForHistory(exercise)}
+                    />
                   ))}
               </div>
             )}
@@ -440,6 +500,14 @@ export function ExerciseLibraryPage() {
           </div>
         </div>
       </main>
+
+      {/* Exercise History Modal */}
+      {selectedExerciseForHistory && (
+        <ExerciseHistoryModal
+          exercise={selectedExerciseForHistory}
+          onClose={() => setSelectedExerciseForHistory(null)}
+        />
+      )}
     </div>
   );
 }
@@ -447,12 +515,15 @@ export function ExerciseLibraryPage() {
 /**
  * Exercise Card Component
  */
-function ExerciseCard({ exercise }: { exercise: Exercise }) {
+function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClick?: () => void }) {
   const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦', color: 'bg-gray-500/10' };
   const equipmentConfig = EQUIPMENT_CONFIG[exercise.equipment] || { label: exercise.equipment, icon: '📦' };
 
   return (
-    <div className={`p-3 rounded-lg border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors`}>
+    <button
+      onClick={onClick}
+      className={`p-3 rounded-lg border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors text-left w-full cursor-pointer`}
+    >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-medium text-sm text-foreground leading-tight">{exercise.title}</h3>
         {exercise.is_custom && (
@@ -469,19 +540,22 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
           {equipmentConfig.icon} {equipmentConfig.label}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
 /**
  * Exercise List Item Component
  */
-function ExerciseListItem({ exercise }: { exercise: Exercise }) {
+function ExerciseListItem({ exercise, onClick }: { exercise: Exercise; onClick?: () => void }) {
   const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦', color: 'bg-gray-500/10' };
   const equipmentConfig = EQUIPMENT_CONFIG[exercise.equipment] || { label: exercise.equipment, icon: '📦' };
 
   return (
-    <div className={`px-3 py-2 rounded border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors flex items-center gap-4`}>
+    <button
+      onClick={onClick}
+      className={`px-3 py-2 rounded border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors flex items-center gap-4 w-full text-left cursor-pointer`}
+    >
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-sm text-foreground truncate">{exercise.title}</h3>
       </div>
@@ -497,6 +571,209 @@ function ExerciseListItem({ exercise }: { exercise: Exercise }) {
             Custom
           </span>
         )}
+      </div>
+    </button>
+  );
+}
+
+/**
+ * Exercise History Modal Component
+ */
+function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise; onClose: () => void }) {
+  const { data: history, isLoading, error } = useQuery({
+    queryKey: ['exercise-history', exercise.title],
+    queryFn: async () => {
+      const response = await apiClient.get<AggregatedExerciseHistoryDto>(
+        `/workouts/exercises/${encodeURIComponent(exercise.title)}/history`
+      );
+      return response.data;
+    },
+  });
+
+  // Prepare chart data from sessions
+  const chartData = useMemo(() => {
+    if (!history || history.sessions.length === 0) return [];
+
+    return history.sessions.map((session, index) => ({
+      session: index + 1,
+      date: new Date(session.completedAt).toLocaleDateString(),
+      volume: Math.round(session.sessionVolume),
+      avgWeight: session.sets.length > 0
+        ? Math.round(session.sets.reduce((sum, s) => sum + s.weight, 0) / session.sets.length * 10) / 10
+        : 0,
+      weekNumber: session.weekNumber,
+    }));
+  }, [history]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-card border border-border rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">{exercise.title}</h2>
+            <p className="text-sm text-muted-foreground mt-1">Exercise History</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+          >
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {isLoading && (
+            <div className="flex items-center justify-center h-48">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Failed to load exercise history</p>
+            </div>
+          )}
+
+          {!isLoading && !error && !history && (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <p className="text-muted-foreground">No history found for this exercise</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Complete workouts with this exercise to see your progress here.
+              </p>
+            </div>
+          )}
+
+          {history && (
+            <div className="space-y-6">
+              {/* Stats Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Total Sessions</p>
+                  <p className="text-2xl font-semibold text-foreground">{history.totalSessions}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Total Volume</p>
+                  <p className="text-2xl font-semibold text-foreground">
+                    {Math.round(history.totalVolume).toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30">
+                  <p className="text-xs text-muted-foreground">PR Weight</p>
+                  <p className="text-2xl font-semibold text-foreground">
+                    {history.personalRecordWeight} {history.weightUnit === 'Kilograms' ? 'kg' : 'lbs'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Total Sets</p>
+                  <p className="text-2xl font-semibold text-foreground">{history.totalSets}</p>
+                </div>
+              </div>
+
+              {/* Volume Chart */}
+              {chartData.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Volume Over Time</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value) => [`${value}`, 'Volume']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="volume"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Session History Table */}
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Session History</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Date</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Workout</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Week</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Sets</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Volume</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.sessions.slice().reverse().map((session, idx) => (
+                        <tr key={idx} className="border-b border-border/50">
+                          <td className="py-3 px-4 text-sm text-foreground">
+                            {new Date(session.completedAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {session.workoutName}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            Week {session.weekNumber}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right font-mono text-foreground">
+                            {session.sets.length}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right font-mono text-foreground">
+                            {Math.round(session.sessionVolume)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Recent Sets */}
+              {history.sessions.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">
+                    Most Recent Session Sets
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {history.sessions[history.sessions.length - 1].sets.map((set) => (
+                      <div
+                        key={set.setNumber}
+                        className={`px-3 py-2 rounded-lg text-sm ${
+                          set.wasAmrap
+                            ? 'bg-primary/10 text-primary border border-primary/30'
+                            : 'bg-muted/50 text-foreground'
+                        }`}
+                      >
+                        <span className="font-mono">
+                          {set.weight}{history.weightUnit === 'Kilograms' ? 'kg' : 'lbs'} × {set.actualReps}
+                        </span>
+                        {set.wasAmrap && <span className="ml-1 text-xs">(AMRAP)</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

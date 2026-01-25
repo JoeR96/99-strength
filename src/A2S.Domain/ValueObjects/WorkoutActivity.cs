@@ -12,7 +12,9 @@ public sealed class WorkoutActivity : ValueObject
     public DayNumber Day { get; private init; }
     public int WeekNumber { get; private init; }
     public int BlockNumber { get; private init; }
-    public IReadOnlyList<ExercisePerformance> Performances { get; private init; } = Array.Empty<ExercisePerformance>();
+
+    // Use List<T> for EF Core JSON deserialization compatibility (arrays are fixed-size)
+    public List<ExercisePerformance> Performances { get; private init; } = new();
     public DateTime CompletedAt { get; private init; }
 
     // EF Core constructor for JSON deserialization
@@ -36,7 +38,7 @@ public sealed class WorkoutActivity : ValueObject
         Day = day;
         WeekNumber = weekNumber;
         BlockNumber = blockNumber;
-        Performances = performancesList.AsReadOnly();
+        Performances = performancesList;
         CompletedAt = completedAt ?? DateTime.UtcNow;
     }
 

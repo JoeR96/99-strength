@@ -45,8 +45,12 @@ apiClient.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Unauthorized - redirect to login
-          window.location.href = '/sign-in';
+          // Don't redirect if already on sign-in page or if signing out
+          // This prevents infinite loops during sign-out
+          if (!window.location.pathname.startsWith('/sign-in') &&
+              !window.location.pathname.startsWith('/sign-up')) {
+            window.location.href = '/sign-in';
+          }
           break;
         case 403:
           // Forbidden

@@ -9,8 +9,10 @@ namespace A2S.Domain.ValueObjects;
 public sealed class ExercisePerformance : ValueObject
 {
     public ExerciseId ExerciseId { get; private init; }
-    public IReadOnlyList<CompletedSet> CompletedSets { get; private init; } = Array.Empty<CompletedSet>();
-    public IReadOnlyList<PlannedSet> PlannedSets { get; private init; } = Array.Empty<PlannedSet>();
+
+    // Use List<T> for EF Core JSON deserialization compatibility (arrays are fixed-size)
+    public List<CompletedSet> CompletedSets { get; private init; } = new();
+    public List<PlannedSet> PlannedSets { get; private init; } = new();
     public DateTime CompletedAt { get; private init; }
 
     // EF Core constructor for JSON deserialization
@@ -36,8 +38,8 @@ public sealed class ExercisePerformance : ValueObject
         );
 
         ExerciseId = exerciseId;
-        PlannedSets = plannedSetsList.AsReadOnly();
-        CompletedSets = completedSetsList.AsReadOnly();
+        PlannedSets = plannedSetsList;
+        CompletedSets = completedSetsList;
         CompletedAt = completedAt ?? DateTime.UtcNow;
     }
 

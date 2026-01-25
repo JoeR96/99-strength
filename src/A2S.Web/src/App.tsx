@@ -10,6 +10,8 @@ import { WorkoutSession } from './features/workout/WorkoutSession';
 import { ProgramsPage } from './features/programs/ProgramsPage';
 import { ExerciseLibraryPage } from './features/exercises/ExerciseLibraryPage';
 import { HevyManagementPage } from './features/hevy/HevyManagementPage';
+import { SettingsPage } from './features/settings/SettingsPage';
+import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -136,6 +138,34 @@ function AppContent() {
           <>
             <SignedIn>
               <HevyManagementPage />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <>
+            <SignedIn>
+              <SettingsPage />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+
+      <Route
+        path="/history"
+        element={
+          <>
+            <SignedIn>
+              <WorkoutHistoryPage />
             </SignedIn>
             <SignedOut>
               <Navigate to="/sign-in" replace />

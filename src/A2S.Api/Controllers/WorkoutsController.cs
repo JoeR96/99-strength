@@ -8,6 +8,8 @@ using A2S.Application.Commands.SetHevySyncedRoutine;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
+using A2S.Application.Queries.GetWorkoutHistory;
+using A2S.Application.Queries.GetExerciseHistory;
 using A2S.Domain.Enums;
 using FluentValidation;
 using MediatR;
@@ -319,6 +321,37 @@ public class WorkoutsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets the workout history including all completed activities.
+    /// </summary>
+    /// <param name="id">Optional workout ID. If not provided, returns history for active workout.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Workout history with completed activities</returns>
+    [HttpGet("history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetWorkoutHistory(
+        [FromQuery] Guid? id,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching workout history");
+
+        var result = await _mediator.Send(new GetWorkoutHistoryQuery(id), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Failed to fetch workout history: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
+
+        if (result.Value == null)
+        {
+            return NotFound(new { message = "No workout found" });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
     /// Sets the Hevy routine folder ID for a workout.
     /// </summary>
     /// <param name="id">The workout ID</param>
@@ -390,6 +423,37 @@ public class WorkoutsController : ControllerBase
         }
 
         return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// Gets aggregated history for a specific exercise by name across all workouts.
+    /// </summary>
+    /// <param name="name">The exercise name to search for</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Aggregated exercise history</returns>
+    [HttpGet("exercises/{name}/history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetExerciseHistory(
+        [FromRoute] string name,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching exercise history for: {ExerciseName}", name);
+
+        var result = await _mediator.Send(new GetExerciseHistoryQuery(name), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Failed to fetch exercise history: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
+
+        if (result.Value == null)
+        {
+            return NotFound(new { message = "No history found for this exercise" });
+        }
+
+        return Ok(result.Value);
     }
 }
 

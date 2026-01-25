@@ -76,6 +76,10 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         // CompletedActivities as owned complex type (JSON column)
         // EF Core 9 handles nested collections in JSON automatically
+        // Use backing field to allow EF Core to populate the private List<T>
+        builder.Navigation(w => w.CompletedActivities)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.OwnsMany(w => w.CompletedActivities, activity =>
         {
             activity.ToJson();
@@ -83,8 +87,38 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             activity.Property(a => a.WeekNumber);
             activity.Property(a => a.BlockNumber);
             activity.Property(a => a.CompletedAt);
-            // Ignore the Performances collection - it will be serialized as part of JSON
-            activity.Ignore(a => a.Performances);
+
+            // Include Performances in JSON serialization for history tracking
+            activity.OwnsMany(a => a.Performances, perf =>
+            {
+                perf.Property(p => p.ExerciseId)
+                    .HasConversion(
+                        id => id.Value,
+                        value => new ExerciseId(value));
+                perf.Property(p => p.CompletedAt);
+                perf.OwnsMany(p => p.CompletedSets, set =>
+                {
+                    set.Property(s => s.SetNumber);
+                    set.Property(s => s.ActualReps);
+                    set.Property(s => s.WasAmrap);
+                    set.OwnsOne(s => s.Weight, w =>
+                    {
+                        w.Property(x => x.Value);
+                        w.Property(x => x.Unit).HasConversion<string>();
+                    });
+                });
+                perf.OwnsMany(p => p.PlannedSets, set =>
+                {
+                    set.Property(s => s.SetNumber);
+                    set.Property(s => s.TargetReps);
+                    set.Property(s => s.IsAmrap);
+                    set.OwnsOne(s => s.Weight, w =>
+                    {
+                        w.Property(x => x.Value);
+                        w.Property(x => x.Unit).HasConversion<string>();
+                    });
+                });
+            });
         });
     }
 }
