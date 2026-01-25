@@ -4,25 +4,74 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ExerciseSelectionV2 } from "./ExerciseSelectionV2/ExerciseSelectionV2";
-import { useCreateWorkout } from "@/hooks/useWorkouts";
+import { useCreateWorkout, useExerciseLibrary } from "@/hooks/useWorkouts";
 import { ProgramVariant, WeightUnit, ExerciseCategory } from "@/types/workout";
-import type { SelectedExercise, CreateExerciseRequest, DayNumber } from "@/types/workout";
+import type { SelectedExercise, CreateExerciseRequest, DayNumber, ExerciseTemplate } from "@/types/workout";
 import toast from "react-hot-toast";
+import { workoutTemplates, type WorkoutTemplate } from "@/data/workoutTemplates";
 
-type WizardStep = "welcome" | "exercises" | "confirm";
+type WizardStep = "welcome" | "template" | "exercises" | "confirm";
+type SetupMode = "template" | "scratch";
 
 export function SetupWizard() {
   const navigate = useNavigate();
   const createWorkout = useCreateWorkout();
+  const { data: exerciseLibrary } = useExerciseLibrary();
 
   const [currentStep, setCurrentStep] = useState<WizardStep>("welcome");
+  const [setupMode, setSetupMode] = useState<SetupMode | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
   const [workoutName, setWorkoutName] = useState("My A2S Program");
   const [variant, setVariant] = useState<ProgramVariant>(ProgramVariant.FourDay);
   const [totalWeeks, setTotalWeeks] = useState(21);
   const [selectedExercises, setSelectedExercises] = useState<SelectedExercise[]>([]);
 
+  // Convert template exercises to SelectedExercise format
+  const applyTemplate = (template: WorkoutTemplate) => {
+    if (!exerciseLibrary) return;
+
+    const converted: SelectedExercise[] = template.exercises.map((ex, index) => {
+      const templateData = exerciseLibrary.templates.find(t => t.name === ex.templateName);
+      return {
+        id: `template-${index}`,
+        template: templateData || {
+          name: ex.templateName,
+          equipment: 0,
+          description: '',
+        } as ExerciseTemplate,
+        category: ex.category,
+        progressionType: ex.progressionType as 'Linear' | 'RepsPerSet',
+        assignedDay: ex.assignedDay as DayNumber,
+        orderInDay: ex.orderInDay,
+        trainingMax: ex.trainingMaxValue ? {
+          value: ex.trainingMaxValue,
+          unit: ex.trainingMaxUnit || WeightUnit.Kilograms,
+        } : undefined,
+        isPrimary: ex.category === ExerciseCategory.MainLift,
+        baseSetsPerExercise: templateData?.defaultSets || 4,
+        repRange: templateData?.defaultRepRange,
+        currentSets: templateData?.defaultSets || 3,
+        targetSets: (templateData?.defaultSets || 3) + 2,
+        startingWeight: ex.startingWeight,
+        weightUnit: ex.weightUnit || WeightUnit.Kilograms,
+      };
+    });
+
+    setSelectedExercises(converted);
+    setWorkoutName(template.name);
+    setVariant(template.variant as ProgramVariant);
+    setTotalWeeks(template.totalWeeks);
+  };
+
+  const getSteps = (): WizardStep[] => {
+    if (setupMode === "template") {
+      return ["welcome", "template", "exercises", "confirm"];
+    }
+    return ["welcome", "exercises", "confirm"];
+  };
+
   const handleNext = () => {
-    const steps: WizardStep[] = ["welcome", "exercises", "confirm"];
+    const steps = getSteps();
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -30,11 +79,16 @@ export function SetupWizard() {
   };
 
   const handleBack = () => {
-    const steps: WizardStep[] = ["welcome", "exercises", "confirm"];
+    const steps = getSteps();
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
     }
+  };
+
+  const handleSelectTemplate = (template: WorkoutTemplate) => {
+    setSelectedTemplate(template);
+    applyTemplate(template);
   };
 
   const handleCreateWorkout = async () => {
@@ -84,48 +138,193 @@ export function SetupWizard() {
               </div>
               <h2 className="text-3xl font-bold mb-3">Welcome to Average to Savage 2.0</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Let's set up your personalized training program. This wizard will guide you through
-                selecting exercises and configuring your progression settings.
+                Let's set up your personalized training program. Choose how you'd like to start.
               </p>
             </div>
 
-            <div className="space-y-5 max-w-md mx-auto">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Program Name</label>
-                <Input
-                  type="text"
-                  value={workoutName}
-                  onChange={(e) => setWorkoutName(e.target.value)}
-                  placeholder="My A2S Program"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Program Variant</label>
-                <select
-                  value={variant}
-                  onChange={(e) => setVariant(Number(e.target.value) as ProgramVariant)}
-                  className="flex h-11 w-full rounded-lg border border-border/50 bg-muted/30 px-4 py-2.5 text-base text-foreground transition-all duration-200 hover:border-border focus:border-primary focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 md:text-sm"
-                >
-                  <option value={ProgramVariant.FourDay}>4-Day Program</option>
-                  <option value={ProgramVariant.FiveDay}>5-Day Program</option>
-                  <option value={ProgramVariant.SixDay}>6-Day Program</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Total Weeks</label>
-                <Input
-                  type="number"
-                  value={totalWeeks}
-                  onChange={(e) => setTotalWeeks(Number(e.target.value))}
-                  min="1"
-                  max="21"
-                />
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Standard program is 21 weeks (3 blocks of 7 weeks)
+            <div className="grid gap-4 max-w-2xl mx-auto md:grid-cols-2">
+              {/* Template Option */}
+              <button
+                onClick={() => setSetupMode("template")}
+                className={`p-6 rounded-xl border-2 text-left transition-all duration-200 ${
+                  setupMode === "template"
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
+                }`}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 mb-4">
+                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-lg mb-2">Start from Template</h3>
+                <p className="text-sm text-muted-foreground">
+                  Use a pre-configured program with exercises already set up. You can customize it after.
                 </p>
+                {setupMode === "template" && (
+                  <div className="mt-3 flex items-center gap-2 text-primary text-sm font-medium">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Selected
+                  </div>
+                )}
+              </button>
+
+              {/* Build from Scratch Option */}
+              <button
+                onClick={() => setSetupMode("scratch")}
+                className={`p-6 rounded-xl border-2 text-left transition-all duration-200 ${
+                  setupMode === "scratch"
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
+                }`}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/50 mb-4">
+                  <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-lg mb-2">Build from Scratch</h3>
+                <p className="text-sm text-muted-foreground">
+                  Create a custom program by selecting your own exercises and configuring each one.
+                </p>
+                {setupMode === "scratch" && (
+                  <div className="mt-3 flex items-center gap-2 text-primary text-sm font-medium">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Selected
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Show program settings if building from scratch */}
+            {setupMode === "scratch" && (
+              <div className="space-y-5 max-w-md mx-auto pt-6 border-t border-border/50">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">Program Name</label>
+                  <Input
+                    type="text"
+                    value={workoutName}
+                    onChange={(e) => setWorkoutName(e.target.value)}
+                    placeholder="My A2S Program"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">Program Variant</label>
+                  <select
+                    value={variant}
+                    onChange={(e) => setVariant(Number(e.target.value) as ProgramVariant)}
+                    className="flex h-11 w-full rounded-lg border border-border/50 bg-muted/30 px-4 py-2.5 text-base text-foreground transition-all duration-200 hover:border-border focus:border-primary focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 md:text-sm"
+                  >
+                    <option value={ProgramVariant.FourDay}>4-Day Program</option>
+                    <option value={ProgramVariant.FiveDay}>5-Day Program</option>
+                    <option value={ProgramVariant.SixDay}>6-Day Program</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-foreground">Total Weeks</label>
+                  <Input
+                    type="number"
+                    value={totalWeeks}
+                    onChange={(e) => setTotalWeeks(Number(e.target.value))}
+                    min="1"
+                    max="21"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Standard program is 21 weeks (3 blocks of 7 weeks)
+                  </p>
+                </div>
               </div>
+            )}
+          </div>
+        );
+
+      case "template":
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                  <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+              </div>
+              <h2 className="text-3xl font-bold mb-3">Choose a Template</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Select a pre-configured workout template. You can customize the exercises in the next step.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-w-2xl mx-auto">
+              {workoutTemplates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => handleSelectTemplate(template)}
+                  className={`w-full p-6 rounded-xl border-2 text-left transition-all duration-200 ${
+                    selectedTemplate?.id === template.id
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-2">{template.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/50 text-xs font-medium">
+                          {template.variant}-Day Split
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/50 text-xs font-medium">
+                          {template.totalWeeks} Weeks
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted/50 text-xs font-medium">
+                          {template.exercises.length} Exercises
+                        </span>
+                      </div>
+                    </div>
+                    {selectedTemplate?.id === template.id && (
+                      <div className="flex-shrink-0 ml-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+                          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Show exercise preview */}
+                  {selectedTemplate?.id === template.id && (
+                    <div className="mt-4 pt-4 border-t border-border/50">
+                      <p className="text-sm font-medium text-foreground mb-3">Exercise Preview:</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((day) => {
+                          const dayExercises = template.exercises.filter(e => e.assignedDay === day);
+                          return (
+                            <div key={day} className="text-xs">
+                              <p className="font-semibold text-primary mb-1">Day {day}</p>
+                              <ul className="space-y-0.5 text-muted-foreground">
+                                {dayExercises.slice(0, 3).map((ex, i) => (
+                                  <li key={i} className="truncate">{ex.templateName}</li>
+                                ))}
+                                {dayExercises.length > 3 && (
+                                  <li className="text-muted-foreground/60">+{dayExercises.length - 3} more</li>
+                                )}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         );
@@ -254,7 +453,12 @@ export function SetupWizard() {
   const canProceed = () => {
     switch (currentStep) {
       case "welcome":
-        return workoutName.trim().length > 0;
+        if (setupMode === "scratch") {
+          return workoutName.trim().length > 0;
+        }
+        return setupMode !== null;
+      case "template":
+        return selectedTemplate !== null;
       case "exercises":
         return true; // Optional exercise selection
       case "confirm":
@@ -264,12 +468,24 @@ export function SetupWizard() {
     }
   };
 
-  const steps = [
-    { id: "welcome", label: "Welcome", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-    { id: "exercises", label: "Exercises", icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
-    { id: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
-  ];
+  const getVisibleSteps = () => {
+    const baseSteps = [
+      { id: "welcome", label: "Start", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+    ];
 
+    if (setupMode === "template") {
+      baseSteps.push({ id: "template", label: "Template", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" });
+    }
+
+    baseSteps.push(
+      { id: "exercises", label: "Exercises", icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
+      { id: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" }
+    );
+
+    return baseSteps;
+  };
+
+  const steps = getVisibleSteps();
   const currentStepIndex = steps.findIndex(s => s.id === currentStep);
 
   return (

@@ -5,33 +5,40 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
+        // Apple Blue primary button
         default:
-          "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+
+        // Destructive button with Apple's red
         destructive:
-          "bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 hover:shadow-lg hover:-translate-y-0.5",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+
+        // Outlined button - clean and minimal
         outline:
-          "border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary",
+          "border border-input bg-transparent hover:bg-muted transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+
+        // Secondary button with light gray background
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md hover:-translate-y-0.5",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+
+        // Ghost button - subtle hover effect
         ghost:
-          "hover:bg-muted hover:text-foreground",
+          "hover:bg-muted transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+
+        // Link button - Apple Blue with no underline by default
         link:
-          "text-primary underline-offset-4 hover:underline hover:text-primary/80",
-        glow:
-          "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(255,212,10,0.4)] hover:shadow-[0_0_30px_rgba(255,212,10,0.6)] hover:-translate-y-0.5",
-        gradient:
-          "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:from-primary/90 hover:to-accent/90",
+          "text-primary underline-offset-4 hover:underline transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
       },
       size: {
-        default: "h-11 px-5 py-2.5",
-        sm: "h-9 rounded-md px-4 text-xs",
-        lg: "h-12 rounded-lg px-8 text-base",
-        xl: "h-14 rounded-xl px-10 text-lg",
-        icon: "h-10 w-10 rounded-lg",
+        default: "h-11 px-6 py-3 text-[0.9375rem]", /* 15px text */
+        sm: "h-9 px-4 py-2 text-sm rounded-lg",
+        lg: "h-12 px-8 py-3 text-base rounded-xl",
+        xl: "h-14 px-10 py-4 text-lg rounded-2xl",
+        icon: "h-11 w-11 rounded-xl",
       },
     },
     defaultVariants: {

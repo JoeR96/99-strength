@@ -1,13 +1,15 @@
 import { goldenTwilight, type Theme } from "./golden-twilight";
+import { appleDesign } from "./apple-design";
 
 export const themes = {
   goldenTwilight,
+  appleDesign,
   // Add more themes here as needed
 } as const;
 
 export type ThemeName = keyof typeof themes;
 
-export { goldenTwilight, type Theme };
+export { goldenTwilight, appleDesign, type Theme };
 
 /**
  * Apply a theme to the document root
@@ -45,9 +47,10 @@ export function getCurrentThemeMode(): "light" | "dark" {
 
 /**
  * Toggle between light and dark mode
+ * @param theme - Optional theme to apply (defaults to appleDesign)
  */
-export function toggleThemeMode(): void {
+export function toggleThemeMode(theme: Theme = appleDesign): void {
   const currentMode = getCurrentThemeMode();
   const newMode = currentMode === "dark" ? "light" : "dark";
-  applyTheme(goldenTwilight, newMode);
+  applyTheme(theme, newMode);
 }

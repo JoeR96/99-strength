@@ -45,23 +45,23 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background theme-transition">
       <Navbar />
 
-      {/* Main Content - Mosaic Layout */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Welcome Header */}
-        <div className="mb-10">
-          <h2 className="text-4xl font-bold text-foreground tracking-tight">
-            Welcome back, <span className="text-primary">{user?.firstName || 'User'}</span>
+      {/* Main Content - Apple Layout with generous whitespace */}
+      <main className="container-apple py-16">
+        {/* Welcome Header - Apple hero style */}
+        <div className="mb-16 text-center">
+          <h2 className="text-hero text-foreground mb-4">
+            Welcome back, {user?.firstName || 'User'}
           </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            Track your strength training progress and crush your goals.
+          <p className="text-body text-muted-foreground max-w-2xl mx-auto">
+            Track your strength training progress and achieve your fitness goals.
           </p>
         </div>
 
-        {/* Mosaic Grid Layout */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Apple Grid Layout - clean and spacious */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {/* Quick Stats Card - Spans 2 columns on larger screens */}
           <Card className="md:col-span-2 lg:col-span-2 overflow-hidden">
             <CardHeader className="pb-4">
@@ -74,21 +74,18 @@ export function DashboardPage() {
               <CardDescription>Your workout summary at a glance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-5 transition-all hover:border-primary/30 hover:shadow-md">
-                  <div className="text-3xl font-black text-primary">{totalWorkoutsCompleted}</div>
-                  <p className="text-sm font-medium text-muted-foreground mt-1">Total Workouts</p>
-                  <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/5 transition-transform group-hover:scale-150" />
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                  <div className="text-4xl font-semibold text-primary mb-2">{totalWorkoutsCompleted}</div>
+                  <p className="text-caption text-muted-foreground">Total Workouts</p>
                 </div>
-                <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-5 transition-all hover:border-primary/30 hover:shadow-md">
-                  <div className="text-3xl font-black text-primary">{thisWeekCompleted}/{daysPerWeek}</div>
-                  <p className="text-sm font-medium text-muted-foreground mt-1">This Week</p>
-                  <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/5 transition-transform group-hover:scale-150" />
+                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                  <div className="text-4xl font-semibold text-primary mb-2">{thisWeekCompleted}/{daysPerWeek}</div>
+                  <p className="text-caption text-muted-foreground">This Week</p>
                 </div>
-                <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 p-5 transition-all hover:border-primary/30 hover:shadow-md">
-                  <div className="text-3xl font-black text-primary">{totalWorkoutsCompleted}</div>
-                  <p className="text-sm font-medium text-muted-foreground mt-1">Workouts Done</p>
-                  <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/5 transition-transform group-hover:scale-150" />
+                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                  <div className="text-4xl font-semibold text-primary mb-2">{totalWorkoutsCompleted}</div>
+                  <p className="text-caption text-muted-foreground">Workouts Done</p>
                 </div>
               </div>
             </CardContent>
@@ -111,50 +108,50 @@ export function DashboardPage() {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
               ) : workout ? (
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-                    <h3 className="font-bold text-lg text-foreground">{workout.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                <div className="space-y-6">
+                  <div className="rounded-2xl bg-muted/30 p-6">
+                    <h3 className="font-semibold text-xl text-foreground mb-1">{workout.name}</h3>
+                    <p className="text-caption text-muted-foreground">
                       {workout.daysPerWeek}-Day Split
                     </p>
                     {/* Prominent Week/Day Display */}
-                    <div className="mt-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <div className="mt-5 p-5 bg-primary/5 rounded-xl">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="text-2xl font-black text-primary">Week {workout.currentWeek}</div>
-                          <div className="text-sm text-muted-foreground">Day {currentDay} of {daysPerWeek}</div>
+                          <div className="text-3xl font-semibold text-primary">Week {workout.currentWeek}</div>
+                          <div className="text-caption text-muted-foreground mt-1">Day {currentDay} of {daysPerWeek}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs text-muted-foreground">Block {workout.currentBlock}</div>
-                          <div className="text-xs text-muted-foreground">{workout.currentWeek}/{workout.totalWeeks} weeks</div>
+                          <div className="text-caption text-muted-foreground">Block {workout.currentBlock}</div>
+                          <div className="text-caption text-muted-foreground">{workout.currentWeek}/{workout.totalWeeks} weeks</div>
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <div className="mt-5">
+                      <div className="flex justify-between text-caption text-muted-foreground mb-2">
                         <span>Overall Progress</span>
                         <span>{Math.round((workout.currentWeek / workout.totalWeeks) * 100)}%</span>
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary transition-all duration-300"
+                          className="h-full bg-primary transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
                           style={{ width: `${(workout.currentWeek / workout.totalWeeks) * 100}%` }}
                         />
                       </div>
                     </div>
                   </div>
                   <Link to={`/workout/session/${currentDay}`}>
-                    <Button variant="glow" className="w-full" data-testid="start-current-workout">
+                    <Button className="w-full" data-testid="start-current-workout">
                       Start {dayNames[currentDay - 1]}'s Workout
                     </Button>
                   </Link>
                 </div>
               ) : (
                 <>
-                  <div className="mb-5 flex items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20 py-8 transition-colors group-hover:border-primary/30">
-                    <p className="text-sm text-muted-foreground">No program selected</p>
+                  <div className="mb-6 flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 py-12 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
+                    <p className="text-body text-muted-foreground">No program selected</p>
                   </div>
-                  <Button variant="glow" className="w-full" onClick={() => navigate('/setup')}>
+                  <Button className="w-full" onClick={() => navigate('/setup')}>
                     Start A2S Program
                   </Button>
                 </>
