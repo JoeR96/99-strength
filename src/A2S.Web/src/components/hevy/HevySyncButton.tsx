@@ -3,6 +3,7 @@
  * Button to sync workout to Hevy
  */
 
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useHevy } from '@/contexts/HevyContext';
 import { useSyncWorkoutToHevy } from '@/hooks/useHevySync';
@@ -15,6 +16,24 @@ interface HevySyncButtonProps {
   className?: string;
 }
 
+/**
+ * Check if the current week is fully synced to Hevy
+ */
+function isWeekFullySynced(workout: WorkoutDto): boolean {
+  const syncedRoutines = workout.hevySyncedRoutines || {};
+  const currentWeek = workout.currentWeek;
+  const daysPerWeek = workout.daysPerWeek || 4;
+
+  for (let day = 1; day <= daysPerWeek; day++) {
+    const key = `week${currentWeek}-day${day}`;
+    if (!syncedRoutines[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function HevySyncButton({
   workout,
   variant = 'outline',
@@ -23,6 +42,8 @@ export function HevySyncButton({
 }: HevySyncButtonProps) {
   const { isConfigured, isValid } = useHevy();
   const syncMutation = useSyncWorkoutToHevy();
+
+  const isAlreadySynced = useMemo(() => isWeekFullySynced(workout), [workout]);
 
   const handleSync = () => {
     syncMutation.mutate(workout);
@@ -46,6 +67,18 @@ export function HevySyncButton({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         Hevy Error
+      </Button>
+    );
+  }
+
+  // If already synced for this week, show synced state
+  if (isAlreadySynced) {
+    return (
+      <Button variant={variant} size={size} className={className} disabled>
+        <svg className="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+        Week {workout.currentWeek} Synced
       </Button>
     );
   }

@@ -2,9 +2,10 @@ import { useCurrentWorkout } from "@/hooks/useWorkouts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeekOverview } from "./WeekOverview";
+import { NextWeekPreview } from "./NextWeekPreview";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
-import { WeightUnit, type LinearProgressionDto, type RepsPerSetProgressionDto } from "@/types/workout";
+import { WeightUnit, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
 
 export function WorkoutDashboard() {
   const { data: workout, isLoading, error } = useCurrentWorkout();
@@ -104,14 +105,20 @@ export function WorkoutDashboard() {
         {/* Week Overview */}
         <WeekOverview workout={workout} />
 
+        {/* Next Week Preview */}
+        <NextWeekPreview workout={workout} />
+
         {/* Exercises Summary with Full Details */}
         <Card className="mt-6 p-6">
           <h2 className="text-xl font-bold mb-4">Your Exercises</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {workout.exercises.map((exercise) => {
               const isLinear = exercise.progression.type === "Linear";
+              const isRepsPerSet = exercise.progression.type === "RepsPerSet";
+              const isMinimalSets = exercise.progression.type === "MinimalSets";
               const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
-              const repsPerSetProg = !isLinear ? (exercise.progression as RepsPerSetProgressionDto) : null;
+              const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
+              const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
 
               return (
                 <div key={exercise.id} className="p-4 border rounded-lg bg-card hover:border-primary/30 transition-colors">
@@ -164,16 +171,41 @@ export function WorkoutDashboard() {
                       <div className="flex justify-between text-muted-foreground">
                         <span>Rep Range:</span>
                         <span className="font-medium text-foreground">
-                          {repsPerSetProg.repRange.minimum}-{repsPerSetProg.repRange.target}-{repsPerSetProg.repRange.maximum}
+                          {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.target ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
                         </span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Target Reps:</span>
-                        <span className="font-medium text-foreground">{repsPerSetProg.repRange.target}</span>
+                        <span className="font-medium text-foreground">{repsPerSetProg.repRange?.target ?? 0}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Progression:</span>
                         <span className="font-medium text-foreground">Reps Per Set</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {minimalSetsProg && (
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Weight:</span>
+                        <span className="font-medium text-foreground">
+                          {minimalSetsProg.currentWeight} {minimalSetsProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Sets:</span>
+                        <span className="font-medium text-foreground">
+                          {minimalSetsProg.currentSetCount} ({minimalSetsProg.minimumSets}-{minimalSetsProg.maximumSets})
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Target Total Reps:</span>
+                        <span className="font-medium text-foreground">{minimalSetsProg.targetTotalReps}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Progression:</span>
+                        <span className="font-medium text-foreground">Minimal Sets</span>
                       </div>
                     </div>
                   )}

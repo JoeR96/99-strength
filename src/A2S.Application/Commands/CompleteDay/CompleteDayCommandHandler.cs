@@ -98,12 +98,15 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 var performance = new ExercisePerformance(
                     exercise.Id,
                     plannedSets,
-                    completedSets);
+                    completedSets,
+                    skipProgression: performanceRequest.WasTemporarySubstitution);
 
                 performances.Add(performance);
 
                 // Track progression changes for the response
-                var changeDescription = GetProgressionChangeDescription(exercise, performance);
+                var changeDescription = performanceRequest.WasTemporarySubstitution
+                    ? "Skipped (temporary substitution)"
+                    : GetProgressionChangeDescription(exercise, performance);
                 progressionChanges.Add(new ProgressionChangeDto
                 {
                     ExerciseId = exercise.Id.Value,

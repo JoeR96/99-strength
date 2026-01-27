@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useHevy } from "@/contexts/HevyContext";
-import { syncDayAsRoutine, syncWorkoutToHevy } from "@/services/hevySyncService";
+import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy } from "@/services/hevySyncService";
 import toast from "react-hot-toast";
-import { WeightUnit, type WorkoutDto, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto } from "@/types/workout";
+import { WeightUnit, type WorkoutDto, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { EditExercisesModal } from "./EditExercisesModal";
 
 interface WeekOverviewProps {
   workout: WorkoutDto;
@@ -34,6 +35,8 @@ function getSyncedDaysForCurrentWeek(workout: WorkoutDto): Set<number> {
 export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const { isConfigured, isValid } = useHevy();
   const [isSyncingWeek, setIsSyncingWeek] = useState(false);
+  const [editingDay, setEditingDay] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   // Get already synced days from the workout data (persisted in DB)
   const persistedSyncedDays = useMemo(() => getSyncedDaysForCurrentWeek(workout), [workout]);
@@ -64,7 +67,8 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const completedDays = new Set(workout.completedDaysInCurrentWeek || []);
   const currentDay = workout.currentDay || 1;
 
-  const hevyEnabled = isConfigured && isValid;
+  // Show Hevy buttons if configured (even if validation is pending/null)
+  const hevyEnabled = isConfigured && isValid !== false;
 
   // Check if already fully synced for this week
   const isWeekFullySynced = syncedDays.size >= days.length;
@@ -114,6 +118,29 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sync day to Hevy';
       toast.error(message);
+    }
+  };
+
+  const handlePullWorkout = async (dayNumber: number) => {
+    try {
+      toast.loading('Pulling workout from Hevy...', { id: 'pull-workout' });
+      const result = await pullWorkoutFromHevy(workout, dayNumber);
+
+      if (result.success && (result.exercises || result.substitutions)) {
+        toast.success(result.message, { id: 'pull-workout' });
+        // Navigate to workout session with pulled data and substitutions
+        navigate(`/workout/session/${dayNumber}`, {
+          state: {
+            pulledData: result.exercises || [],
+            pulledSubstitutions: result.substitutions || [],
+          }
+        });
+      } else {
+        toast.error(result.message, { id: 'pull-workout' });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to pull workout from Hevy';
+      toast.error(message, { id: 'pull-workout' });
     }
   };
 
@@ -194,6 +221,7 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
         {days.map((day) => (
           <DayCard
             key={day}
+            weekNumber={workout.currentWeek}
             dayNumber={day}
             exercises={exercisesByDay[day] || []}
             isCompleted={completedDays.has(day)}
@@ -201,14 +229,31 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
             hevyEnabled={hevyEnabled}
             isSynced={syncedDays.has(day)}
             onSyncToHevy={() => handleSyncDayToHevy(day)}
+            onEdit={() => setEditingDay(day)}
+            onPullWorkout={() => handlePullWorkout(day)}
           />
         ))}
       </div>
+
+      {/* Edit Exercises Modal */}
+      <EditExercisesModal
+        workout={workout}
+        day={editingDay || 1}
+        isOpen={editingDay !== null}
+        onClose={() => setEditingDay(null)}
+        onSyncRequired={() => {
+          // Clear session synced days when exercises are edited - they need to be re-synced
+          setSessionSyncedDays(new Set());
+          onWorkoutUpdated?.();
+          toast.success('Exercises updated! Re-sync to Hevy to apply changes.');
+        }}
+      />
     </Card>
   );
 }
 
 interface DayCardProps {
+  weekNumber: number;
   dayNumber: number;
   exercises: ExerciseDto[];
   isCompleted: boolean;
@@ -216,12 +261,15 @@ interface DayCardProps {
   hevyEnabled: boolean;
   isSynced: boolean;
   onSyncToHevy: () => void;
+  onEdit: () => void;
+  onPullWorkout: () => void;
 }
 
-function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, onSyncToHevy }: DayCardProps) {
+function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, onSyncToHevy, onEdit, onPullWorkout }: DayCardProps) {
   const [isSyncing, setIsSyncing] = useState(false);
-  const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const dayName = dayNames[dayNumber - 1] || `Day ${dayNumber}`;
+  const [isPulling, setIsPulling] = useState(false);
+  // Use Week/Day format instead of weekday names
+  const dayLabel = `W${weekNumber} D${dayNumber}`;
 
   // Day is locked if it's not completed and not current
   const isLocked = !isCompleted && !isCurrent;
@@ -232,6 +280,15 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, is
       await onSyncToHevy();
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handlePull = async () => {
+    setIsPulling(true);
+    try {
+      await onPullWorkout();
+    } finally {
+      setIsPulling(false);
     }
   };
 
@@ -250,7 +307,7 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, is
     >
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="font-semibold">{dayName}</h3>
+          <h3 className="font-semibold">{dayLabel}</h3>
           {isCurrent && !isCompleted && (
             <span className="text-xs text-primary font-medium">Current</span>
           )}
@@ -258,33 +315,45 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, is
             <span className="text-xs text-muted-foreground">Locked</span>
           )}
         </div>
-        {isCompleted && (
-          <svg
-            className="w-5 h-5 text-green-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            data-testid={`day-${dayNumber}-completed-icon`}
+        <div className="flex items-center gap-2">
+          {/* Edit button */}
+          <button
+            onClick={onEdit}
+            className="p-1 hover:bg-muted rounded transition-colors"
+            title="Edit exercises"
           >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-        {isLocked && (
-          <svg
-            className="w-5 h-5 text-muted-foreground"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
+            <svg className="w-4 h-4 text-muted-foreground hover:text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          {isCompleted && (
+            <svg
+              className="w-5 h-5 text-green-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              data-testid={`day-${dayNumber}-completed-icon`}
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {isLocked && (
+            <svg
+              className="w-5 h-5 text-muted-foreground"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3 mb-4">
@@ -321,16 +390,39 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, is
             Locked
           </Button>
         ) : (
-          <Link to={`/workout/session/${dayNumber}`}>
-            <Button
-              variant={isCurrent ? "default" : "outline"}
-              size="sm"
-              className="w-full"
-              data-testid={`start-workout-day-${dayNumber}`}
-            >
-              {isCurrent ? "Start Workout" : "Start"}
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to={`/workout/session/${dayNumber}`} className="flex-1">
+              <Button
+                variant={isCurrent ? "default" : "outline"}
+                size="sm"
+                className="w-full"
+                data-testid={`start-workout-day-${dayNumber}`}
+              >
+                {isCurrent ? "Start" : "Start"}
+              </Button>
+            </Link>
+            {hevyEnabled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePull}
+                disabled={isPulling}
+                title="Pull workout data from Hevy"
+                data-testid={`pull-workout-day-${dayNumber}`}
+              >
+                {isPulling ? (
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                )}
+              </Button>
+            )}
+          </div>
         )}
 
         {/* Send to Hevy button - visible for all days including locked */}
@@ -374,8 +466,11 @@ function DayCard({ dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, is
 
 function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
   const isLinear = exercise.progression.type === "Linear";
+  const isRepsPerSet = exercise.progression.type === "RepsPerSet";
+  const isMinimalSets = exercise.progression.type === "MinimalSets";
   const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
-  const repsPerSetProg = !isLinear ? (exercise.progression as RepsPerSetProgressionDto) : null;
+  const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
+  const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
 
   return (
     <div className="border-l-2 border-primary/30 pl-3 py-1">
@@ -420,19 +515,42 @@ function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
           <div className="flex justify-between">
             <span>Reps:</span>
             <span className="font-medium text-foreground">
-              {repsPerSetProg.repRange.target}
+              {repsPerSetProg.repRange?.target ?? 0}
             </span>
           </div>
           <div className="flex justify-between">
             <span>Range:</span>
             <span className="font-medium text-foreground">
-              {repsPerSetProg.repRange.minimum}-{repsPerSetProg.repRange.maximum}
+              {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
             </span>
           </div>
           <div className="flex justify-between">
             <span>Target Sets:</span>
             <span className="font-medium text-foreground">
               {repsPerSetProg.targetSets}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {minimalSetsProg && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+          <div className="flex justify-between">
+            <span>Weight:</span>
+            <span className="font-medium text-foreground">
+              {minimalSetsProg.currentWeight} {minimalSetsProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Sets:</span>
+            <span className="font-medium text-foreground">
+              {minimalSetsProg.currentSetCount} ({minimalSetsProg.minimumSets}-{minimalSetsProg.maximumSets})
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Target Reps:</span>
+            <span className="font-medium text-foreground">
+              {minimalSetsProg.targetTotalReps}
             </span>
           </div>
         </div>

@@ -41,6 +41,7 @@ export function HevyManagementPage() {
         hevyApi.getAllRoutines(),
         apiClient.get<WorkoutSummaryDto[]>('/workouts').then(res => res.data),
       ]);
+      console.log('Fetched routines from Hevy:', routinesData.map(r => ({ id: r.id, title: r.title })));
       setRoutines(routinesData);
       setPrograms(programsData);
     } catch (err) {
@@ -56,13 +57,27 @@ export function HevyManagementPage() {
       return;
     }
 
+    console.log('Attempting to delete routine with ID:', routineId);
     setDeletingRoutine(routineId);
+    setError(null);
     try {
       await hevyApi.deleteRoutine(routineId);
       setRoutines(prev => prev.filter(r => r.id !== routineId));
     } catch (err) {
       console.error('Failed to delete routine:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete routine');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete routine';
+      // If 404, Hevy API may not support deletion for this routine type
+      // or the routine was already deleted. Either way, remove from view.
+      if (errorMessage.includes('404')) {
+        console.log('Routine deletion returned 404 - Hevy API may not support routine deletion');
+        // Note: The Hevy API may not support deleting routines via API.
+        // Users should delete routines directly in the Hevy app.
+        setError('Could not delete routine via API. Try deleting directly in the Hevy app.');
+        // Still refresh to show current state
+        setTimeout(() => fetchData(), 500);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setDeletingRoutine(null);
     }

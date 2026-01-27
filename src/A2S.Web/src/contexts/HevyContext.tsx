@@ -22,20 +22,26 @@ const HevyContext = createContext<HevyContextType | undefined>(undefined);
 const STORAGE_KEY = 'hevy-api-key';
 
 export function HevyProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setApiKeyState] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isValid, setIsValid] = useState<boolean | null>(null);
-
-  // Load API key from localStorage on mount
-  useEffect(() => {
+  // Initialize state from localStorage synchronously to avoid flash of "invalid" state
+  const [apiKey, setApiKeyState] = useState<string | null>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      setApiKeyState(stored);
       hevyApi.setApiKey(stored);
-      // Validate the stored key
-      validateStoredKey(stored);
     }
-  }, []);
+    return stored;
+  });
+  // If we have a stored key, start in validating state to prevent "invalid" flash
+  const [isValidating, setIsValidating] = useState(() => {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  });
+  const [isValid, setIsValid] = useState<boolean | null>(null);
+
+  // Validate stored API key on mount
+  useEffect(() => {
+    if (apiKey) {
+      validateStoredKey(apiKey);
+    }
+  }, []); // Only run once on mount - apiKey is already set from initializer
 
   const validateStoredKey = async (key: string) => {
     setIsValidating(true);

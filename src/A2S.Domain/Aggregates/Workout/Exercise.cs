@@ -336,6 +336,28 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
+    /// Substitutes this exercise with a different exercise.
+    /// Preserves all progression data, only changes the name and optionally the Hevy template ID.
+    /// </summary>
+    /// <param name="newName">New exercise name</param>
+    /// <param name="newHevyExerciseTemplateId">Optional new Hevy template ID. If not provided, keeps the existing one.</param>
+    /// <returns>The original name for audit purposes</returns>
+    public string Substitute(string newName, string? newHevyExerciseTemplateId = null)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(newName), "New exercise name cannot be empty");
+
+        var originalName = Name;
+        Name = newName;
+
+        if (!string.IsNullOrWhiteSpace(newHevyExerciseTemplateId))
+        {
+            HevyExerciseTemplateId = newHevyExerciseTemplateId;
+        }
+
+        return originalName;
+    }
+
+    /// <summary>
     /// Gets a summary of the current progression state.
     /// </summary>
     public ProgressionSummary GetProgressionSummary()

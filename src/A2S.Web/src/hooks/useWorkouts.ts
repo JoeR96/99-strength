@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsApi } from "../api/workouts";
-import type { CreateWorkoutRequest } from "../types/workout";
+import type { CreateWorkoutRequest, UpdateExercisesRequest, SubstituteExerciseRequest } from "../types/workout";
 
 /**
  * Query key factory for workouts
@@ -88,6 +88,36 @@ export function useDeleteWorkout() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
       queryClient.invalidateQueries({ queryKey: workoutKeys.list() });
+    },
+  });
+}
+
+/**
+ * Hook to update exercises in a workout
+ */
+export function useUpdateExercises() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workoutId, request }: { workoutId: string; request: UpdateExercisesRequest }) =>
+      workoutsApi.updateExercises(workoutId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+    },
+  });
+}
+
+/**
+ * Hook to substitute an exercise permanently in a workout
+ */
+export function useSubstituteExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workoutId, request }: { workoutId: string; request: SubstituteExerciseRequest }) =>
+      workoutsApi.substituteExercise(workoutId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
     },
   });
 }

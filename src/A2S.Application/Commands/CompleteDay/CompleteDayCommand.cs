@@ -27,6 +27,13 @@ public sealed record ExercisePerformanceRequest
     /// The sets completed for this exercise.
     /// </summary>
     public required IReadOnlyList<CompletedSetRequest> CompletedSets { get; init; }
+
+    /// <summary>
+    /// Whether this exercise was temporarily substituted for this session only.
+    /// When true, progression rules are skipped (no TM changes, no set changes).
+    /// The performance is still recorded but the original exercise's progression state is preserved.
+    /// </summary>
+    public bool WasTemporarySubstitution { get; init; }
 }
 
 /// <summary>

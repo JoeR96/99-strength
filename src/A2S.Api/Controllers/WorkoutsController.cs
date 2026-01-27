@@ -5,6 +5,8 @@ using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.Commands.SetActiveWorkout;
 using A2S.Application.Commands.SetHevyFolderId;
 using A2S.Application.Commands.SetHevySyncedRoutine;
+using A2S.Application.Commands.SubstituteExercise;
+using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
@@ -455,6 +457,97 @@ public class WorkoutsController : ControllerBase
 
         return Ok(result.Value);
     }
+
+    /// <summary>
+    /// Updates one or more exercises in a workout.
+    /// Supports updating Training Max for Linear progression exercises
+    /// and Weight for RepsPerSet/MinimalSets progression exercises.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="request">The exercise update request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result of the update operation</returns>
+    [HttpPut("{id:guid}/exercises")]
+    [ProducesResponseType(typeof(UpdateExercisesResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateExercises(
+        [FromRoute] Guid id,
+        [FromBody] UpdateExercisesRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Updating {Count} exercises in workout {WorkoutId}", request.Updates.Count, id);
+
+        var command = new UpdateExercisesCommand(id, request.Updates);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to update exercises: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        _logger.LogInformation("Updated {Count} exercises in workout {WorkoutId}", result.Value!.UpdatedCount, id);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Substitutes an exercise with another exercise permanently.
+    /// Preserves all progression data, only changes the exercise name.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="exerciseId">The exercise ID to substitute</param>
+    /// <param name="request">The substitution request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result of the substitution</returns>
+    [HttpPut("{id:guid}/exercises/{exerciseId:guid}/substitute")]
+    [ProducesResponseType(typeof(SubstituteExerciseResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SubstituteExercise(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] SubstituteExerciseRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Substituting exercise {ExerciseId} with '{NewName}' in workout {WorkoutId}",
+            exerciseId, request.NewExerciseName, id);
+
+        var command = new SubstituteExerciseCommand(
+            id,
+            exerciseId,
+            request.NewExerciseName,
+            request.NewHevyExerciseTemplateId,
+            request.Reason);
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to substitute exercise: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        _logger.LogInformation(
+            "Substituted exercise '{OriginalName}' with '{NewName}' in workout {WorkoutId}",
+            result.Value!.OriginalName, result.Value.NewName, id);
+
+        return Ok(result.Value);
+    }
 }
 
 /// <summary>
@@ -498,4 +591,36 @@ public sealed record SetHevySyncedRoutineRequest
     /// The Hevy routine ID.
     /// </summary>
     public required string RoutineId { get; init; }
+}
+
+/// <summary>
+/// Request body for updating exercises.
+/// </summary>
+public sealed record UpdateExercisesRequest
+{
+    /// <summary>
+    /// The list of exercise updates to apply.
+    /// </summary>
+    public required IReadOnlyList<ExerciseUpdateRequest> Updates { get; init; }
+}
+
+/// <summary>
+/// Request body for substituting an exercise.
+/// </summary>
+public sealed record SubstituteExerciseRequest
+{
+    /// <summary>
+    /// The new exercise name to substitute with.
+    /// </summary>
+    public required string NewExerciseName { get; init; }
+
+    /// <summary>
+    /// Optional new Hevy exercise template ID.
+    /// </summary>
+    public string? NewHevyExerciseTemplateId { get; init; }
+
+    /// <summary>
+    /// Optional reason for the substitution.
+    /// </summary>
+    public string? Reason { get; init; }
 }

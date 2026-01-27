@@ -102,6 +102,8 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     exerciseRequest.TrainingMaxUnit ?? WeightUnit.Kilograms
                 );
 
+                // All Linear progression exercises use AMRAP on the last set by default
+                // This can be overridden via UseAmrap property if provided
                 exercise = Exercise.CreateWithLinearProgression(
                     name: template.Name,
                     category: exerciseRequest.Category,
@@ -110,7 +112,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     orderInDay: exerciseRequest.OrderInDay,
                     hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
                     trainingMax: trainingMax,
-                    useAmrap: exerciseRequest.Category == ExerciseCategory.MainLift,
+                    useAmrap: exerciseRequest.UseAmrap ?? true, // Default to true for all Linear exercises
                     baseSetsPerExercise: template.DefaultSets ?? 4
                 );
             }

@@ -168,8 +168,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
             CheckRule(exercise.AssignedDay == day,
                 $"Exercise {exercise.Name} is not assigned to {day}");
 
-            // Apply progression to the exercise
-            exercise.ApplyProgression(performance);
+            // Apply progression to the exercise (unless it was a temporary substitution)
+            if (!performance.SkipProgression)
+            {
+                exercise.ApplyProgression(performance);
+            }
         }
 
         // Record the completed activity
@@ -293,6 +296,42 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
         exercise.UpdateStartingWeight(newWeight);
+    }
+
+    /// <summary>
+    /// Manually adjusts the weight for exercises using weight-based progression.
+    /// Works for both RepsPerSet and MinimalSets exercises.
+    /// </summary>
+    public void AdjustWeight(ExerciseId exerciseId, Weight newWeight)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+
+        exercise.UpdateWeight(newWeight);
+    }
+
+    /// <summary>
+    /// Gets an exercise by its ID.
+    /// </summary>
+    public Exercise? GetExerciseById(ExerciseId exerciseId)
+    {
+        return _exercises.FirstOrDefault(e => e.Id == exerciseId);
+    }
+
+    /// <summary>
+    /// Substitutes an exercise with a different exercise.
+    /// Preserves all progression data, only changes the name and optionally the Hevy template ID.
+    /// </summary>
+    /// <param name="exerciseId">The exercise to substitute</param>
+    /// <param name="newExerciseName">The new exercise name</param>
+    /// <param name="newHevyExerciseTemplateId">Optional new Hevy template ID</param>
+    /// <returns>The original exercise name for audit purposes</returns>
+    public string SubstituteExercise(ExerciseId exerciseId, string newExerciseName, string? newHevyExerciseTemplateId = null)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+
+        return exercise.Substitute(newExerciseName, newHevyExerciseTemplateId);
     }
 
     /// <summary>

@@ -158,10 +158,13 @@ class HevyApiService {
 
   /**
    * Get paginated list of routines
+   * Note: Hevy API max pageSize for routines is 10
    */
   async getRoutines(page: number = 1, pageSize: number = 10): Promise<HevyRoutinesResponse> {
+    // Clamp pageSize to max allowed by Hevy API
+    const clampedPageSize = Math.min(pageSize, 10);
     return this.request<HevyRoutinesResponse>(
-      `/routines?page=${page}&pageSize=${pageSize}`
+      `/routines?page=${page}&pageSize=${clampedPageSize}`
     );
   }
 
@@ -207,13 +210,15 @@ class HevyApiService {
    * Delete a routine
    */
   async deleteRoutine(routineId: string): Promise<void> {
-    await this.request<void>(`/routines/${routineId}`, {
+    const encodedId = encodeURIComponent(routineId);
+    await this.request<void>(`/routines/${encodedId}`, {
       method: 'DELETE',
     });
   }
 
   /**
    * Get all routines (handles pagination)
+   * Note: Hevy API max pageSize for routines is 10
    */
   async getAllRoutines(): Promise<HevyRoutine[]> {
     const allRoutines: HevyRoutine[] = [];
@@ -221,7 +226,7 @@ class HevyApiService {
     let hasMore = true;
 
     while (hasMore) {
-      const response = await this.getRoutines(page, 100);
+      const response = await this.getRoutines(page, 10);
       allRoutines.push(...response.routines);
       hasMore = page < response.page_count;
       page++;

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using A2S.Application.Commands.CreateWorkout;
+using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.DTOs;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Domain.Enums;
@@ -875,6 +876,408 @@ public class WorkoutsIntegrationTests
     }
 
     #endregion
+
+    #region Update Exercises Tests
+
+    /// <summary>
+    /// Tests updating the Training Max of a Linear progression exercise.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_UpdateTrainingMax_UpdatesSuccessfully()
+    {
+        // Arrange - create a workout first
+        var client = CreateClient();
+        var exercises = new List<CreateExerciseRequest>
+        {
+            new()
+            {
+                TemplateName = "Squat",
+                HevyExerciseTemplateId = "D04AC939",
+                Category = ExerciseCategory.MainLift,
+                ProgressionType = "Linear",
+                AssignedDay = DayNumber.Day1,
+                OrderInDay = 1,
+                TrainingMaxValue = 100m,
+                TrainingMaxUnit = WeightUnit.Kilograms
+            }
+        };
+
+        var createCommand = new CreateWorkoutCommand(
+            Name: "Update TM Test Program",
+            Variant: ProgramVariant.FourDay,
+            TotalWeeks: 21,
+            Exercises: exercises
+        );
+
+        var createResponse = await client.PostAsJsonAsync("/api/v1/workouts", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        // Get the workout to find the exercise ID
+        var getResponse = await client.GetAsync("/api/v1/workouts/current");
+        var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+        workout.Should().NotBeNull();
+
+        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat");
+        var originalTM = (squatExercise.Progression as LinearProgressionDto)?.TrainingMax.Value;
+        originalTM.Should().Be(100m);
+
+        // Act - Update the training max
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.Parse(squatExercise.Id),
+                    TrainingMaxValue = 110m,
+                    TrainingMaxUnit = WeightUnit.Kilograms,
+                    Reason = "Adjusted based on recent performance"
+                }
+            }
+        };
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/v1/workouts/{workout.Id}/exercises", updateRequest);
+
+        // Assert
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await updateResponse.Content.ReadFromJsonAsync<UpdateExercisesResult>();
+        result.Should().NotBeNull();
+        result!.UpdatedCount.Should().Be(1);
+        result.Results.Should().ContainSingle();
+        result.Results[0].Success.Should().BeTrue();
+        result.Results[0].ExerciseName.Should().Be("Squat");
+        result.Results[0].PreviousValue.Should().Be("100 Kilograms");
+        result.Results[0].NewValue.Should().Be("110 Kilograms");
+
+        // Verify the change persisted
+        var verifyResponse = await client.GetAsync("/api/v1/workouts/current");
+        var updatedWorkout = await verifyResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+        var updatedSquat = updatedWorkout!.Exercises.First(e => e.Name == "Squat");
+        var newTM = (updatedSquat.Progression as LinearProgressionDto)?.TrainingMax.Value;
+        newTM.Should().Be(110m);
+    }
+
+    /// <summary>
+    /// Tests updating the weight of a RepsPerSet progression exercise.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_UpdateWeight_UpdatesSuccessfully()
+    {
+        // Arrange - create a workout with RepsPerSet exercise
+        var client = CreateClient();
+        var exercises = new List<CreateExerciseRequest>
+        {
+            new()
+            {
+                TemplateName = "Bicep Curl",
+                HevyExerciseTemplateId = "ADA8623C",
+                Category = ExerciseCategory.Accessory,
+                ProgressionType = "RepsPerSet",
+                AssignedDay = DayNumber.Day1,
+                OrderInDay = 1,
+                StartingWeight = 15m,
+                WeightUnit = WeightUnit.Kilograms
+            }
+        };
+
+        var createCommand = new CreateWorkoutCommand(
+            Name: "Update Weight Test Program",
+            Variant: ProgramVariant.FourDay,
+            TotalWeeks: 21,
+            Exercises: exercises
+        );
+
+        var createResponse = await client.PostAsJsonAsync("/api/v1/workouts", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        // Get the workout to find the exercise ID
+        var getResponse = await client.GetAsync("/api/v1/workouts/current");
+        var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+        var curlExercise = workout!.Exercises.First(e => e.Name == "Bicep Curl");
+
+        // Act - Update the weight
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.Parse(curlExercise.Id),
+                    WeightValue = 17.5m,
+                    WeightUnit = WeightUnit.Kilograms
+                }
+            }
+        };
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/v1/workouts/{workout.Id}/exercises", updateRequest);
+
+        // Assert
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await updateResponse.Content.ReadFromJsonAsync<UpdateExercisesResult>();
+        result.Should().NotBeNull();
+        result!.UpdatedCount.Should().Be(1);
+        result.Results[0].Success.Should().BeTrue();
+
+        // Verify the change persisted
+        var verifyResponse = await client.GetAsync("/api/v1/workouts/current");
+        var updatedWorkout = await verifyResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+        var updatedCurl = updatedWorkout!.Exercises.First(e => e.Name == "Bicep Curl");
+        var newWeight = (updatedCurl.Progression as RepsPerSetProgressionDto)?.CurrentWeight;
+        newWeight.Should().Be(17.5m);
+    }
+
+    /// <summary>
+    /// Tests updating multiple exercises in a single request.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_UpdateMultipleExercises_UpdatesAllSuccessfully()
+    {
+        // Arrange - create a workout with multiple exercises
+        var client = CreateClient();
+        var exercises = new List<CreateExerciseRequest>
+        {
+            new()
+            {
+                TemplateName = "Squat",
+                HevyExerciseTemplateId = "D04AC939",
+                Category = ExerciseCategory.MainLift,
+                ProgressionType = "Linear",
+                AssignedDay = DayNumber.Day1,
+                OrderInDay = 1,
+                TrainingMaxValue = 100m,
+                TrainingMaxUnit = WeightUnit.Kilograms
+            },
+            new()
+            {
+                TemplateName = "Bench Press",
+                HevyExerciseTemplateId = "79D0BB3A",
+                Category = ExerciseCategory.MainLift,
+                ProgressionType = "Linear",
+                AssignedDay = DayNumber.Day2,
+                OrderInDay = 1,
+                TrainingMaxValue = 80m,
+                TrainingMaxUnit = WeightUnit.Kilograms
+            }
+        };
+
+        var createCommand = new CreateWorkoutCommand(
+            Name: "Multi-Update Test Program",
+            Variant: ProgramVariant.FourDay,
+            TotalWeeks: 21,
+            Exercises: exercises
+        );
+
+        var createResponse = await client.PostAsJsonAsync("/api/v1/workouts", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var getResponse = await client.GetAsync("/api/v1/workouts/current");
+        var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat");
+        var benchExercise = workout.Exercises.First(e => e.Name == "Bench Press");
+
+        // Act - Update both exercises
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.Parse(squatExercise.Id),
+                    TrainingMaxValue = 110m,
+                    TrainingMaxUnit = WeightUnit.Kilograms
+                },
+                new()
+                {
+                    ExerciseId = Guid.Parse(benchExercise.Id),
+                    TrainingMaxValue = 85m,
+                    TrainingMaxUnit = WeightUnit.Kilograms
+                }
+            }
+        };
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/v1/workouts/{workout.Id}/exercises", updateRequest);
+
+        // Assert
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await updateResponse.Content.ReadFromJsonAsync<UpdateExercisesResult>();
+        result.Should().NotBeNull();
+        result!.UpdatedCount.Should().Be(2);
+        result.Results.Should().HaveCount(2);
+        result.Results.Should().OnlyContain(r => r.Success);
+    }
+
+    /// <summary>
+    /// Tests that updating non-existent exercise returns failure in results.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_WithNonExistentExercise_ReturnsFailureForThatExercise()
+    {
+        // Arrange
+        var client = CreateClient();
+        var exercises = new List<CreateExerciseRequest>
+        {
+            new()
+            {
+                TemplateName = "Squat",
+                HevyExerciseTemplateId = "D04AC939",
+                Category = ExerciseCategory.MainLift,
+                ProgressionType = "Linear",
+                AssignedDay = DayNumber.Day1,
+                OrderInDay = 1,
+                TrainingMaxValue = 100m,
+                TrainingMaxUnit = WeightUnit.Kilograms
+            }
+        };
+
+        var createCommand = new CreateWorkoutCommand(
+            Name: "Non-Existent Exercise Test",
+            Variant: ProgramVariant.FourDay,
+            TotalWeeks: 21,
+            Exercises: exercises
+        );
+
+        var createResponse = await client.PostAsJsonAsync("/api/v1/workouts", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var getResponse = await client.GetAsync("/api/v1/workouts/current");
+        var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+
+        // Act - Try to update non-existent exercise
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.NewGuid(), // Non-existent
+                    TrainingMaxValue = 110m,
+                    TrainingMaxUnit = WeightUnit.Kilograms
+                }
+            }
+        };
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/v1/workouts/{workout!.Id}/exercises", updateRequest);
+
+        // Assert - Still returns 200 but with failure in results
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await updateResponse.Content.ReadFromJsonAsync<UpdateExercisesResult>();
+        result.Should().NotBeNull();
+        result!.UpdatedCount.Should().Be(0);
+        result.Results.Should().ContainSingle();
+        result.Results[0].Success.Should().BeFalse();
+        result.Results[0].Message.Should().Contain("not found");
+    }
+
+    /// <summary>
+    /// Tests that unauthenticated requests to update exercises are rejected.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_WithoutAuthentication_ReturnsUnauthorized()
+    {
+        // Arrange
+        var unauthenticatedClient = _factory.CreateClient();
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.NewGuid(),
+                    TrainingMaxValue = 110m,
+                    TrainingMaxUnit = WeightUnit.Kilograms
+                }
+            }
+        };
+
+        // Act
+        var response = await unauthenticatedClient.PutAsJsonAsync($"/api/v1/workouts/{Guid.NewGuid()}/exercises", updateRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    /// <summary>
+    /// Tests that updating exercises for non-existent workout returns not found.
+    /// </summary>
+    [Fact]
+    public async Task UpdateExercises_WithNonExistentWorkout_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var updateRequest = new UpdateExercisesApiRequest
+        {
+            Updates = new List<ExerciseUpdateApiRequest>
+            {
+                new()
+                {
+                    ExerciseId = Guid.NewGuid(),
+                    TrainingMaxValue = 110m,
+                    TrainingMaxUnit = WeightUnit.Kilograms
+                }
+            }
+        };
+
+        // Act
+        var response = await client.PutAsJsonAsync($"/api/v1/workouts/{Guid.NewGuid()}/exercises", updateRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    /// <summary>
+    /// Tests that Linear progression exercises now have AMRAP enabled by default.
+    /// This validates the AMRAP bug fix for Auxiliary exercises.
+    /// </summary>
+    [Fact]
+    public async Task CreateWorkout_LinearProgressionAuxiliary_HasAmrapEnabled()
+    {
+        // Arrange - create a workout with an Auxiliary Linear progression exercise (like OHP in Monk Mode)
+        var client = CreateClient();
+        var exercises = new List<CreateExerciseRequest>
+        {
+            new()
+            {
+                TemplateName = "Overhead Press",
+                HevyExerciseTemplateId = "7B8D84E8",
+                Category = ExerciseCategory.Auxiliary, // Auxiliary, not MainLift
+                ProgressionType = "Linear",
+                AssignedDay = DayNumber.Day1,
+                OrderInDay = 1,
+                TrainingMaxValue = 65m,
+                TrainingMaxUnit = WeightUnit.Kilograms
+                // Note: NOT setting UseAmrap, it should default to true
+            }
+        };
+
+        var createCommand = new CreateWorkoutCommand(
+            Name: "AMRAP Bug Fix Test",
+            Variant: ProgramVariant.FourDay,
+            TotalWeeks: 21,
+            Exercises: exercises
+        );
+
+        // Act
+        var createResponse = await client.PostAsJsonAsync("/api/v1/workouts", createCommand);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var getResponse = await client.GetAsync("/api/v1/workouts/current");
+        var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+
+        // Assert - AMRAP should be enabled for Linear progression even though it's Auxiliary
+        var ohp = workout!.Exercises.First(e => e.Name == "Overhead Press");
+        ohp.Category.Should().Be(ExerciseCategory.Auxiliary);
+        ohp.Progression.Type.Should().Be("Linear");
+
+        var linearProg = ohp.Progression as LinearProgressionDto;
+        linearProg.Should().NotBeNull();
+        linearProg!.UseAmrap.Should().BeTrue("All Linear progression exercises should have AMRAP enabled by default");
+    }
+
+    #endregion
 }
 
 #region Response DTOs
@@ -888,6 +1291,21 @@ internal class ErrorResponse
 {
     public string? Error { get; set; }
     public string? Message { get; set; }
+}
+
+internal class UpdateExercisesApiRequest
+{
+    public List<ExerciseUpdateApiRequest> Updates { get; set; } = new();
+}
+
+internal class ExerciseUpdateApiRequest
+{
+    public Guid ExerciseId { get; set; }
+    public decimal? TrainingMaxValue { get; set; }
+    public WeightUnit? TrainingMaxUnit { get; set; }
+    public decimal? WeightValue { get; set; }
+    public WeightUnit? WeightUnit { get; set; }
+    public string? Reason { get; set; }
 }
 
 #endregion

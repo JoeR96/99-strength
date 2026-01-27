@@ -8,6 +8,10 @@ import type {
   CompleteDayResult,
   ProgressWeekResult,
   DayNumber,
+  UpdateExercisesRequest,
+  UpdateExercisesResult,
+  SubstituteExerciseRequest,
+  SubstituteExerciseResult,
 } from "../types/workout";
 
 /**
@@ -120,5 +124,33 @@ export const workoutsApi = {
       dayNumber,
       routineId,
     });
+  },
+
+  /**
+   * Update exercises in a workout (training max, weight, etc.)
+   */
+  updateExercises: async (
+    workoutId: string,
+    request: UpdateExercisesRequest
+  ): Promise<UpdateExercisesResult> => {
+    const response = await apiClient.put<UpdateExercisesResult>(
+      `/workouts/${workoutId}/exercises`,
+      request
+    );
+    return response.data;
+  },
+
+  /**
+   * Substitute an exercise permanently in the workout
+   */
+  substituteExercise: async (
+    workoutId: string,
+    request: SubstituteExerciseRequest
+  ): Promise<SubstituteExerciseResult> => {
+    const response = await apiClient.put<SubstituteExerciseResult>(
+      `/workouts/${workoutId}/exercises/${request.exerciseId}/substitute`,
+      request
+    );
+    return response.data;
   },
 };

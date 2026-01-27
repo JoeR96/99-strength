@@ -1,168 +1,184 @@
 @import "tailwindcss";
 
+/* Import retro pixel font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;500;600;700;800;900&family=VT323&display=swap');
+
 @theme {
-  /* Golden Twilight Theme - Modern & Polished */
+  /* RETRO ARCADE THEME - Clean White with Neon Accents */
 
-  /* Light Mode Colors */
-  --color-background: 220 20% 97%;
-  --color-foreground: 222 47% 11%;
+  /* Arcade Neon Colors - for accents only */
+  --color-neon-cyan: 180 100% 50%;
+  --color-neon-magenta: 300 100% 60%;
+  --color-neon-yellow: 50 100% 50%;
+  --color-neon-green: 120 100% 45%;
+  --color-neon-orange: 30 100% 55%;
+  --color-neon-pink: 330 100% 65%;
+  --color-neon-purple: 270 100% 60%;
+  --color-neon-blue: 210 100% 55%;
 
-  --color-card: 240 2% 18%; /* Space Gray #2c2c2e */
-  --color-card-foreground: 240 9% 96%;
+  /* Dark arcade backgrounds */
+  --color-arcade-black: 240 10% 4%;
+  --color-arcade-dark: 240 10% 8%;
+  --color-arcade-panel: 240 10% 12%;
+  --color-arcade-surface: 240 10% 16%;
 
-  --color-popover: 240 2% 18%;
-  --color-popover-foreground: 240 9% 96%;
+  /* Default theme colors - Clean readable with white text */
+  --color-background: 240 10% 4%;
+  --color-foreground: 0 0% 95%; /* White text */
 
-  --color-primary: 207 100% 50%; /* Slightly brighter Apple Blue */
-  --color-primary-foreground: 0 0% 100%; /* White text on blue */
+  --color-card: 240 10% 10%;
+  --color-card-foreground: 0 0% 95%; /* White text */
 
-  --color-secondary: 240 2% 18%; /* Space Gray */
-  --color-secondary-foreground: 240 9% 96%;
+  --color-popover: 240 10% 10%;
+  --color-popover-foreground: 0 0% 95%;
 
-  --color-muted: 240 2% 18%;
-  --color-muted-foreground: 240 5% 65%;
+  --color-primary: 300 100% 60%; /* Neon Magenta for buttons/accents */
+  --color-primary-foreground: 0 0% 100%;
 
-  --color-accent: 207 100% 50%; /* Apple Blue */
-  --color-accent-foreground: 0 0% 100%;
+  --color-secondary: 240 10% 20%;
+  --color-secondary-foreground: 0 0% 95%;
 
-  --color-destructive: 0 72% 51%;
+  --color-muted: 240 10% 16%;
+  --color-muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
+
+  --color-accent: 50 100% 50%; /* Neon Yellow for highlights */
+  --color-accent-foreground: 240 10% 4%;
+
+  --color-destructive: 0 100% 55%;
   --color-destructive-foreground: 0 0% 100%;
 
-  --color-success: 142 71% 45%;
-  --color-success-foreground: 0 0% 100%;
+  --color-success: 120 100% 45%;
+  --color-success-foreground: 240 10% 4%;
 
-  --color-warning: 38 92% 55%;
-  --color-warning-foreground: 0 0% 100%;
+  --color-warning: 50 100% 50%;
+  --color-warning-foreground: 240 10% 4%;
 
-  --color-border: 0 0% 100% / 0.1; /* White with 10% opacity */
-  --color-input: 0 0% 100% / 0.1;
-  --color-ring: 207 100% 50%; /* Apple Blue for focus */
+  --color-border: 0 0% 25%;
+  --color-input: 0 0% 20%;
+  --color-ring: 300 100% 60%;
 
-  /* Apple-specific colors */
-  --color-apple-black: 240 2% 11%; /* #1d1d1f */
-  --color-apple-gray: 240 3% 44%; /* #6e6e73 */
-  --color-apple-blue: 207 100% 45%; /* #0071e3 */
-  --color-apple-off-white: 240 9% 96%; /* #f5f5f7 */
-  --color-space-black: 0 0% 0%; /* #000000 */
-  --color-space-gray: 240 2% 18%; /* #2c2c2e */
-
-  /* Apple radius values (12-16px) */
-  --radius-sm: 0.5rem; /* 8px */
-  --radius-md: 0.75rem; /* 12px */
-  --radius-lg: 1rem; /* 16px */
-  --radius-xl: 1.5rem; /* 24px */
-  --radius-2xl: 2rem; /* 32px */
+  /* Arcade radius - sharp/pixel feel */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
   --radius-full: 9999px;
 
-  /* Apple shadows - more prominent for dark backgrounds */
-  --shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
-  --shadow-md: 0 2px 8px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 4px 20px rgb(0 0 0 / 0.4);
-  --shadow-xl: 0 8px 30px rgb(0 0 0 / 0.5);
-  --shadow-lift: 0 8px 16px rgb(0 0 0 / 0.3);
+  /* Arcade shadows - subtle glow effects */
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.4);
+  --shadow-xl: 0 20px 25px hsl(0 0% 0% / 0.5);
+  --shadow-lift: 0 10px 20px hsl(0 0% 0% / 0.4);
 
-  /* Apple animation - smooth and natural */
-  --duration-fast: 200ms;
-  --duration-normal: 300ms;
-  --duration-slow: 400ms;
-  --ease-apple: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Arcade animations - snappy retro feel */
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 250ms;
+  --ease-arcade: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  /* Spacing - generous whitespace */
-  --space-section: 5rem; /* 80px vertical sections */
-  --space-container: 3.75rem; /* 60px padding */
-  --space-element: 2.5rem; /* 40px between elements */
+  /* Spacing */
+  --space-section: 4rem;
+  --space-container: 2rem;
+  --space-element: 1.5rem;
+
+  /* Fonts */
+  --font-arcade: 'Press Start 2P', monospace;
+  --font-display: 'Orbitron', sans-serif;
+  --font-text: 'VT323', monospace;
 }
 
 @layer base {
   :root {
-    /* Light mode - white/light gray background */
-    --color-background: 0 0% 100%; /* Pure white */
-    --color-foreground: 240 2% 11%; /* Apple Black #1d1d1f */
+    /* Light mode - Dark background with white text */
+    --color-background: 240 10% 6%;
+    --color-foreground: 0 0% 95%;
 
-    --color-card: 0 0% 100%; /* White cards */
-    --color-card-foreground: 240 2% 11%;
+    --color-card: 240 10% 10%;
+    --color-card-foreground: 0 0% 95%;
 
-    --color-popover: 0 0% 100%;
-    --color-popover-foreground: 240 2% 11%;
+    --color-popover: 240 10% 10%;
+    --color-popover-foreground: 0 0% 95%;
 
-    --color-primary: 207 100% 45%; /* Apple Blue */
+    --color-primary: 300 100% 60%; /* Magenta */
     --color-primary-foreground: 0 0% 100%;
 
-    --color-secondary: 240 5% 96%; /* Very light gray */
-    --color-secondary-foreground: 240 2% 11%;
+    --color-secondary: 240 10% 18%;
+    --color-secondary-foreground: 0 0% 95%;
 
-    --color-muted: 240 5% 96%;
-    --color-muted-foreground: 240 3% 44%; /* Apple Gray #6e6e73 */
+    --color-muted: 240 10% 14%;
+    --color-muted-foreground: 0 0% 60%;
 
-    --color-accent: 207 100% 45%;
-    --color-accent-foreground: 0 0% 100%;
+    --color-accent: 50 100% 50%; /* Yellow */
+    --color-accent-foreground: 240 10% 4%;
 
-    --color-destructive: 0 84% 60%;
+    --color-destructive: 0 100% 55%;
     --color-destructive-foreground: 0 0% 100%;
 
-    --color-success: 142 76% 36%;
+    --color-success: 120 100% 45%;
     --color-success-foreground: 0 0% 100%;
 
-    --color-warning: 38 92% 50%;
-    --color-warning-foreground: 0 0% 100%;
+    --color-warning: 50 100% 50%;
+    --color-warning-foreground: 240 10% 4%;
 
-    --color-border: 240 6% 90%; /* Subtle light gray */
-    --color-input: 240 6% 90%;
-    --color-ring: 207 100% 45%;
+    --color-border: 0 0% 22%;
+    --color-input: 0 0% 18%;
+    --color-ring: 300 100% 60%;
 
-    /* Light mode shadows */
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-    --shadow-md: 0 2px 8px rgb(0 0 0 / 0.04);
-    --shadow-lg: 0 4px 20px rgb(0 0 0 / 0.08);
-    --shadow-xl: 0 8px 30px rgb(0 0 0 / 0.12);
-    --shadow-lift: 0 8px 16px rgb(0 0 0 / 0.1);
+    /* Subtle shadows */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.4);
+    --shadow-xl: 0 20px 25px hsl(0 0% 0% / 0.5);
+    --shadow-lift: 0 10px 20px hsl(0 0% 0% / 0.4);
 
     background-color: hsl(var(--color-background));
     color: hsl(var(--color-foreground));
   }
 
   .dark {
-    /* Dark mode - dark background with light text */
-    --color-background: 240 2% 11%; /* Apple Black #1d1d1f */
-    --color-foreground: 240 9% 96%; /* Off-white */
+    /* Dark mode - Same as light (always dark theme) */
+    --color-background: 240 10% 4%;
+    --color-foreground: 0 0% 95%;
 
-    --color-card: 240 2% 18%; /* Space Gray #2c2c2e */
-    --color-card-foreground: 240 9% 96%;
+    --color-card: 240 10% 8%;
+    --color-card-foreground: 0 0% 95%;
 
-    --color-popover: 240 2% 18%;
-    --color-popover-foreground: 240 9% 96%;
+    --color-popover: 240 10% 8%;
+    --color-popover-foreground: 0 0% 95%;
 
-    --color-primary: 207 100% 50%; /* Slightly brighter Apple Blue for dark mode */
+    --color-primary: 300 100% 60%; /* Magenta */
     --color-primary-foreground: 0 0% 100%;
 
-    --color-secondary: 240 2% 18%; /* Space Gray */
-    --color-secondary-foreground: 240 9% 96%;
+    --color-secondary: 240 10% 16%;
+    --color-secondary-foreground: 0 0% 95%;
 
-    --color-muted: 240 2% 18%;
-    --color-muted-foreground: 240 5% 65%;
+    --color-muted: 240 10% 12%;
+    --color-muted-foreground: 0 0% 55%;
 
-    --color-accent: 207 100% 50%;
-    --color-accent-foreground: 0 0% 100%;
+    --color-accent: 50 100% 50%; /* Yellow */
+    --color-accent-foreground: 240 10% 4%;
 
-    --color-destructive: 0 72% 51%;
+    --color-destructive: 0 100% 55%;
     --color-destructive-foreground: 0 0% 100%;
 
-    --color-success: 142 71% 45%;
+    --color-success: 120 100% 45%;
     --color-success-foreground: 0 0% 100%;
 
-    --color-warning: 38 92% 55%;
-    --color-warning-foreground: 0 0% 100%;
+    --color-warning: 50 100% 50%;
+    --color-warning-foreground: 240 10% 4%;
 
-    --color-border: 0 0% 100% / 0.1; /* White with 10% opacity */
-    --color-input: 0 0% 100% / 0.1;
-    --color-ring: 207 100% 50%;
+    --color-border: 0 0% 20%;
+    --color-input: 0 0% 15%;
+    --color-ring: 300 100% 60%;
 
-    /* Dark mode shadows - more prominent */
-    --shadow-sm: 0 2px 4px rgb(0 0 0 / 0.2);
-    --shadow-md: 0 2px 8px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 4px 20px rgb(0 0 0 / 0.4);
-    --shadow-xl: 0 8px 30px rgb(0 0 0 / 0.5);
-    --shadow-lift: 0 8px 16px rgb(0 0 0 / 0.3);
+    /* Subtle shadows */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.5);
+    --shadow-xl: 0 20px 25px hsl(0 0% 0% / 0.6);
+    --shadow-lift: 0 10px 20px hsl(0 0% 0% / 0.5);
   }
 
   * {
@@ -171,88 +187,197 @@
 
   body {
     font-family: var(--font-text);
-    font-size: 1.0625rem; /* 17px - Apple's optimal reading size */
-    line-height: 1.5;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(ellipse at top, hsl(300 100% 60% / 0.02) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom, hsl(50 100% 50% / 0.02) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Subtle scanline effect - reduced opacity for readability */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      hsl(0 0% 0% / 0.015) 3px,
+      hsl(0 0% 0% / 0.015) 6px
+    );
+    z-index: 9999;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: hsl(0 0% 100%); /* Pure white for headings */
   }
 
   h1 {
-    font-size: 3rem; /* 48px */
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: 2.75rem;
+    line-height: 1.2;
   }
 
   h2 {
-    font-size: 2.5rem; /* 40px */
+    font-size: 2rem;
     line-height: 1.2;
-    letter-spacing: -0.01em;
   }
 
   h3 {
-    font-size: 2rem; /* 32px */
-    line-height: 1.2;
+    font-size: 1.5rem;
+    line-height: 1.3;
   }
 
   h4 {
-    font-size: 1.5rem; /* 24px */
+    font-size: 1.25rem;
     line-height: 1.3;
+  }
+
+  /* Clean selection */
+  ::selection {
+    background: hsl(var(--color-primary));
+    color: hsl(var(--color-primary-foreground));
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--color-background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 30%);
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(0 0% 40%);
   }
 }
 
 @layer utilities {
-  /* Apple Glass/Frosted effect - premium backdrop blur */
+  /* Arcade Glass effect - dark with subtle border */
   .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: hsl(240 10% 8% / 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid hsl(0 0% 20%);
   }
 
   .dark .glass {
-    background: rgba(44, 44, 46, 0.8);
+    background: hsl(240 10% 6% / 0.95);
   }
 
-  /* Apple-style hover lift effect */
+  /* Neon glow text effect - for special highlights only */
+  .neon-text {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+  }
+
+  .neon-text-magenta {
+    color: hsl(300 100% 70%);
+    text-shadow:
+      0 0 5px hsl(300 100% 60%),
+      0 0 10px hsl(300 100% 60%);
+  }
+
+  .neon-text-yellow {
+    color: hsl(50 100% 60%);
+    text-shadow:
+      0 0 5px hsl(50 100% 50%),
+      0 0 10px hsl(50 100% 50%);
+  }
+
+  .neon-text-green {
+    color: hsl(120 100% 55%);
+    text-shadow:
+      0 0 5px hsl(120 100% 45%),
+      0 0 10px hsl(120 100% 45%);
+  }
+
+  /* Neon border glow - subtle */
+  .neon-border {
+    border: 1px solid hsl(var(--color-primary));
+    box-shadow: 0 0 10px hsl(var(--color-primary) / 0.3);
+  }
+
+  /* Arcade button press effect */
+  .arcade-btn {
+    position: relative;
+    border: 2px solid hsl(var(--color-primary));
+    background: hsl(var(--color-primary));
+    color: hsl(0 0% 100%);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 0 hsl(300 100% 40%);
+    transition: all var(--duration-fast) var(--ease-arcade);
+  }
+
+  .arcade-btn:hover {
+    box-shadow:
+      0 4px 0 hsl(300 100% 40%),
+      0 0 15px hsl(var(--color-primary) / 0.5);
+  }
+
+  .arcade-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 hsl(300 100% 40%);
+  }
+
+  /* Hover lift */
   .hover-lift {
-    transition: transform var(--duration-normal) var(--ease-apple),
-                box-shadow var(--duration-normal) var(--ease-apple);
+    transition: transform var(--duration-normal) var(--ease-arcade),
+                box-shadow var(--duration-normal) var(--ease-arcade);
   }
 
   .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px hsl(0 0% 0% / 0.3);
   }
 
-  /* Subtle hover scale for interactive elements */
+  /* Hover scale */
   .hover-scale {
-    transition: transform var(--duration-normal) var(--ease-apple);
+    transition: transform var(--duration-normal) var(--ease-arcade);
   }
 
   .hover-scale:hover {
     transform: scale(1.02);
   }
 
-  /* Apple focus ring - 2px blue outline with offset */
+  /* Focus ring */
   .focus-ring {
     outline: 2px solid hsl(var(--color-ring));
     outline-offset: 2px;
   }
 
-  /* Smooth scroll animations */
+  /* Fade in animation */
   .fade-in-up {
-    animation: fadeInUp var(--duration-slow) var(--ease-apple);
+    animation: arcadeFadeIn var(--duration-slow) var(--ease-arcade);
   }
 
-  @keyframes fadeInUp {
+  @keyframes arcadeFadeIn {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
@@ -260,57 +385,76 @@
     }
   }
 
-  /* Text gradient for premium headlines */
-  .text-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--color-foreground)) 0%,
-      hsl(var(--color-muted-foreground)) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  /* Neon pulse animation - subtle */
+  .neon-pulse {
+    animation: neonPulse 3s ease-in-out infinite;
   }
 
-  /* Apple typography utilities */
+  @keyframes neonPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  /* Pixel-perfect text */
+  .pixel-text {
+    font-family: var(--font-arcade);
+    font-size: 0.625rem;
+    line-height: 1.5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Typography utilities */
   .text-hero {
     font-family: var(--font-display);
-    font-size: 3.5rem; /* 56px */
-    font-weight: 700;
+    font-size: 3rem;
+    font-weight: 800;
     line-height: 1.1;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(0 0% 100%);
   }
 
   .text-headline {
     font-family: var(--font-display);
-    font-size: 3rem; /* 48px */
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: hsl(0 0% 100%);
   }
 
   .text-title {
     font-family: var(--font-display);
-    font-size: 2rem; /* 32px */
+    font-size: 1.5rem;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: hsl(0 0% 100%);
   }
 
   .text-body {
     font-family: var(--font-text);
-    font-size: 1.0625rem; /* 17px - Apple's optimal reading size */
-    line-height: 1.5;
+    font-size: 1.375rem;
+    line-height: 1.6;
+    color: hsl(0 0% 90%);
   }
 
   .text-caption {
     font-family: var(--font-text);
-    font-size: 0.875rem; /* 14px */
-    line-height: 1.4;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    color: hsl(0 0% 70%);
   }
 
-  /* Container with Apple's max-width */
+  /* Container */
   .container-apple {
-    max-width: 980px;
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 1.5rem;
@@ -319,18 +463,81 @@
 
   @media (min-width: 1024px) {
     .container-apple {
-      max-width: 1200px;
+      max-width: 1400px;
     }
 
     .text-hero {
-      font-size: 4.5rem; /* 72px on desktop */
+      font-size: 3rem;
     }
   }
 
-  /* Smooth transitions for theme switching */
+  /* Theme transition */
   .theme-transition {
-    transition: background-color var(--duration-normal) var(--ease-apple),
-                color var(--duration-normal) var(--ease-apple),
-                border-color var(--duration-normal) var(--ease-apple);
+    transition: background-color var(--duration-normal) var(--ease-arcade),
+                color var(--duration-normal) var(--ease-arcade);
+  }
+
+  /* Arcade card style */
+  .arcade-card {
+    background: hsl(var(--color-card));
+    border: 1px solid hsl(var(--color-border));
+    transition: all var(--duration-normal) var(--ease-arcade);
+  }
+
+  .arcade-card:hover {
+    border-color: hsl(0 0% 30%);
+  }
+
+  /* Progress bar arcade style */
+  .arcade-progress {
+    background: hsl(var(--color-muted));
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .arcade-progress-bar {
+    background: linear-gradient(
+      90deg,
+      hsl(300 100% 60%) 0%,
+      hsl(330 100% 60%) 100%
+    );
+  }
+
+  /* Score/stat display */
+  .arcade-stat {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2rem;
+    color: hsl(0 0% 100%);
+  }
+
+  /* Grid pattern background */
+  .grid-bg {
+    background-image:
+      linear-gradient(hsl(0 0% 15%) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 15%) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Dot matrix pattern - subtle */
+  .dot-matrix {
+    background-image: radial-gradient(
+      hsl(0 0% 20%) 1px,
+      transparent 1px
+    );
+    background-size: 4px 4px;
+  }
+
+  /* High contrast text classes for better readability */
+  .text-white {
+    color: hsl(0 0% 100%) !important;
+  }
+
+  .text-bright {
+    color: hsl(0 0% 95%) !important;
+  }
+
+  .text-readable {
+    color: hsl(0 0% 85%) !important;
   }
 }

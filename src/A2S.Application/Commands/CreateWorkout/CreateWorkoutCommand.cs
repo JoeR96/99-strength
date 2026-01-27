@@ -28,6 +28,11 @@ public sealed record CreateExerciseRequest
     // For Linear progression
     public decimal? TrainingMaxValue { get; init; }
     public WeightUnit? TrainingMaxUnit { get; init; }
+    /// <summary>
+    /// Whether to use AMRAP (As Many Reps As Possible) on the last set.
+    /// Defaults to true for all Linear progression exercises.
+    /// </summary>
+    public bool? UseAmrap { get; init; }
 
     // For RepsPerSet progression
     public decimal? StartingWeight { get; init; }

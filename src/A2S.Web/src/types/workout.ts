@@ -50,10 +50,10 @@ export const ProgramVariant = {
 export type ProgramVariant = typeof ProgramVariant[keyof typeof ProgramVariant];
 
 export const WorkoutStatus = {
-  NotStarted: 0,
-  InProgress: 1,
-  Paused: 2,
-  Completed: 3,
+  NotStarted: 1,
+  Active: 2,
+  Paused: 3,
+  Completed: 4,
 } as const;
 export type WorkoutStatus = typeof WorkoutStatus[keyof typeof WorkoutStatus];
 
@@ -251,6 +251,8 @@ export interface CompletedSetRequest {
 export interface ExercisePerformanceRequest {
   exerciseId: string;
   completedSets: CompletedSetRequest[];
+  /** When true, progression rules are skipped for this exercise (used for temporary substitutions) */
+  wasTemporarySubstitution?: boolean;
 }
 
 export interface CompleteDayRequest {
@@ -302,4 +304,51 @@ export interface NextSessionExercise {
   weight: string;
   outcome: ProgressionOutcome;
   changeDescription: string;
+}
+
+// Exercise update types
+export interface ExerciseUpdateRequest {
+  exerciseId: string;
+  // For Linear progression
+  trainingMaxValue?: number;
+  trainingMaxUnit?: WeightUnit;
+  // For RepsPerSet/MinimalSets progression
+  weightValue?: number;
+  weightUnit?: WeightUnit;
+  reason?: string;
+}
+
+export interface UpdateExercisesRequest {
+  updates: ExerciseUpdateRequest[];
+}
+
+export interface ExerciseUpdateResult {
+  exerciseId: string;
+  exerciseName: string;
+  success: boolean;
+  message?: string;
+  previousValue?: string;
+  newValue?: string;
+}
+
+export interface UpdateExercisesResult {
+  workoutId: string;
+  updatedCount: number;
+  results: ExerciseUpdateResult[];
+}
+
+// Exercise substitution types
+export interface SubstituteExerciseRequest {
+  exerciseId: string;
+  newExerciseName: string;
+  newHevyExerciseTemplateId?: string;
+  reason?: string;
+}
+
+export interface SubstituteExerciseResult {
+  exerciseId: string;
+  originalName: string;
+  newName: string;
+  success: boolean;
+  message?: string;
 }

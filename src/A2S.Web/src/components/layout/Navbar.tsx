@@ -4,10 +4,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/workout', label: 'Current Workout' },
+  { href: '/workout', label: 'Workout' },
   { href: '/history', label: 'History' },
-  { href: '/programs', label: 'My Programs' },
-  { href: '/exercises', label: 'Exercise Library' },
+  { href: '/programs', label: 'Programs' },
+  { href: '/exercises', label: 'Exercises' },
   { href: '/hevy', label: 'Hevy' },
   { href: '/settings', label: 'Settings' },
 ];
@@ -18,32 +18,32 @@ export function Navbar() {
   const { mode, toggleMode } = useTheme();
 
   return (
-    <nav className="sticky top-0 z-50 glass border-b border-border/10">
+    <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border">
       <div className="container-apple">
         <div className="flex h-16 justify-between items-center">
-          {/* Logo - Apple minimalist style */}
+          {/* Logo */}
           <div className="flex items-center gap-8">
             <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-foreground transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-105">
-                <span className="text-base font-bold text-background">A</span>
+              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
+                <span className="text-lg font-bold text-white font-[Orbitron,sans-serif]">99</span>
               </div>
-              <h1 className="text-xl font-semibold text-foreground tracking-tight">
-                A2S Tracker
+              <h1 className="text-xl font-bold text-white tracking-wide uppercase font-[Orbitron,sans-serif] hidden sm:block">
+                99 Strength
               </h1>
             </Link>
 
-            {/* Navigation Links - Apple style */}
-            <div className="hidden md:flex items-center gap-2">
+            {/* Navigation Links */}
+            <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     to={link.href}
-                    className={`px-4 py-2 rounded-lg text-[0.9375rem] font-normal transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                    className={`px-4 py-2 rounded text-base font-medium uppercase tracking-wide font-[Orbitron,sans-serif] transition-all duration-150 ${
                       isActive
-                        ? 'bg-muted text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {link.label}
@@ -55,44 +55,56 @@ export function Navbar() {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            {/* Dark Mode Toggle */}
+            {/* Theme Toggle */}
             <button
               onClick={toggleMode}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-              aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-gray-600 bg-transparent text-gray-400 hover:text-white hover:border-gray-500 transition-all duration-150"
+              aria-label={mode === 'dark' ? 'Switch to CRT mode' : 'Switch to Neon mode'}
             >
               {mode === 'dark' ? (
-                // Sun icon - currently in dark mode, click to go light
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               ) : (
-                // Moon icon - currently in light mode, click to go dark
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               )}
             </button>
 
-            <span className="text-[0.9375rem] font-normal text-muted-foreground hidden sm:inline">
-              {user?.firstName || 'User'}
-            </span>
-            <UserButton afterSignOutUrl="/sign-in" />
+            {/* Player Name */}
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded bg-white/5 border border-gray-700">
+              <span className="text-sm font-medium text-gray-500 uppercase tracking-wide font-[Orbitron,sans-serif]">
+                Player:
+              </span>
+              <span className="text-lg font-semibold text-white font-[VT323,monospace]">
+                {user?.firstName || 'Guest'}
+              </span>
+            </div>
+
+            <UserButton
+              afterSignOutUrl="/sign-in"
+              appearance={{
+                elements: {
+                  avatarBox: "h-11 w-11 rounded-md border border-gray-600"
+                }
+              }}
+            />
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden pb-3 flex gap-2 overflow-x-auto">
+        <div className="lg:hidden pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.href;
             return (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-normal whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                className={`px-4 py-2 rounded text-sm font-medium uppercase tracking-wide font-[Orbitron,sans-serif] whitespace-nowrap transition-all duration-150 ${
                   isActive
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {link.label}

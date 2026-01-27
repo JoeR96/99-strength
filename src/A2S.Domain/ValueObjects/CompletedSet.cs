@@ -32,9 +32,15 @@ public sealed class CompletedSet : ValueObject
     /// Calculates the rep delta compared to a planned set.
     /// Positive means exceeded target, negative means fell short.
     /// </summary>
+    /// <remarks>
+    /// Note: Set numbers do NOT need to match. This is intentional because:
+    /// 1. When pulling from Hevy, the user may have done fewer/more sets than planned
+    /// 2. The AMRAP comparison is about reps vs target, not set position
+    /// 3. Example: User completes 4 sets (AMRAP on set 4), but week plan calls for 5 sets
+    ///    We still want to compare the AMRAP reps to the target reps for progression.
+    /// </remarks>
     public int CalculateDelta(PlannedSet plannedSet)
     {
-        CheckRule(plannedSet.SetNumber == SetNumber, "Set numbers must match");
         return ActualReps - plannedSet.TargetReps;
     }
 

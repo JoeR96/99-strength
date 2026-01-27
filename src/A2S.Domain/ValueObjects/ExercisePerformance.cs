@@ -15,6 +15,13 @@ public sealed class ExercisePerformance : ValueObject
     public List<PlannedSet> PlannedSets { get; private init; } = new();
     public DateTime CompletedAt { get; private init; }
 
+    /// <summary>
+    /// When true, progression rules should be skipped for this exercise.
+    /// Used for temporary substitutions where the user performed a different exercise
+    /// but wants to preserve the original exercise's progression state.
+    /// </summary>
+    public bool SkipProgression { get; private init; }
+
     // EF Core constructor for JSON deserialization
     private ExercisePerformance()
     {
@@ -25,22 +32,26 @@ public sealed class ExercisePerformance : ValueObject
         ExerciseId exerciseId,
         IEnumerable<PlannedSet> plannedSets,
         IEnumerable<CompletedSet> completedSets,
-        DateTime? completedAt = null)
+        DateTime? completedAt = null,
+        bool skipProgression = false)
     {
         var plannedSetsList = plannedSets.ToList();
         var completedSetsList = completedSets.ToList();
 
         CheckRule(plannedSetsList.Any(), "At least one planned set is required");
         CheckRule(completedSetsList.Any(), "At least one completed set is required");
-        CheckRule(
-            completedSetsList.Count <= plannedSetsList.Count,
-            "Cannot have more completed sets than planned sets"
-        );
+        // Note: We no longer enforce that completed sets must equal planned sets.
+        // This allows flexibility when:
+        // 1. User pulls data from Hevy with different set counts
+        // 2. User adds extra sets or skips sets during workout
+        // 3. Frontend/backend week parameter calculations differ slightly
+        // The progression logic will use whatever sets are provided.
 
         ExerciseId = exerciseId;
         PlannedSets = plannedSetsList;
         CompletedSets = completedSetsList;
         CompletedAt = completedAt ?? DateTime.UtcNow;
+        SkipProgression = skipProgression;
     }
 
     /// <summary>

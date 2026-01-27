@@ -7,6 +7,7 @@
 
 import { hevyApi } from './hevyApi';
 import { workoutsApi } from '@/api/workouts';
+import { getWeekParameters, roundToGymIncrement as roundToGymIncrementUtil } from '@/utils/weekParameters';
 import type {
   HevyCreateWorkoutRequest,
   HevyCreateRoutineRequest,
@@ -67,54 +68,7 @@ function roundToGymIncrement(weight: number, unit: 'kg' | 'lbs' = 'kg'): number 
   return Math.round(weight / increment) * increment;
 }
 
-/**
- * A2S 2.0 Hypertrophy Program Week Parameters
- * 21-week program with 3 blocks of 7 weeks each
- */
-interface WeekParameters {
-  intensity: number;  // Percentage of Training Max (e.g., 0.75 = 75%)
-  sets: number;       // Number of working sets
-  targetReps: number; // Target reps per set
-  isDeload: boolean;  // Whether this is a deload week
-}
-
-/**
- * Get the A2S 2.0 parameters for a specific week
- */
-function getWeekParameters(weekNumber: number): WeekParameters {
-  // A2S 2.0 Hypertrophy program structure
-  const weekParams: Record<number, WeekParameters> = {
-    // Block 1 - Volume Phase (Weeks 1-7)
-    1:  { intensity: 0.75, sets: 5, targetReps: 10, isDeload: false },
-    2:  { intensity: 0.85, sets: 4, targetReps: 8,  isDeload: false },
-    3:  { intensity: 0.90, sets: 3, targetReps: 6,  isDeload: false },
-    4:  { intensity: 0.80, sets: 5, targetReps: 9,  isDeload: false },
-    5:  { intensity: 0.85, sets: 4, targetReps: 7,  isDeload: false },
-    6:  { intensity: 0.90, sets: 3, targetReps: 5,  isDeload: false },
-    7:  { intensity: 0.65, sets: 5, targetReps: 10, isDeload: true },
-
-    // Block 2 - Intensity Phase (Weeks 8-14)
-    8:  { intensity: 0.85, sets: 4, targetReps: 8, isDeload: false },
-    9:  { intensity: 0.90, sets: 3, targetReps: 6, isDeload: false },
-    10: { intensity: 0.95, sets: 2, targetReps: 4, isDeload: false },
-    11: { intensity: 0.85, sets: 4, targetReps: 7, isDeload: false },
-    12: { intensity: 0.90, sets: 3, targetReps: 5, isDeload: false },
-    13: { intensity: 0.95, sets: 2, targetReps: 3, isDeload: false },
-    14: { intensity: 0.65, sets: 5, targetReps: 10, isDeload: true },
-
-    // Block 3 - Peak Phase (Weeks 15-21)
-    15: { intensity: 0.90, sets: 3, targetReps: 6, isDeload: false },
-    16: { intensity: 0.95, sets: 2, targetReps: 4, isDeload: false },
-    17: { intensity: 1.00, sets: 1, targetReps: 2, isDeload: false },
-    18: { intensity: 0.95, sets: 2, targetReps: 4, isDeload: false },
-    19: { intensity: 1.00, sets: 1, targetReps: 2, isDeload: false },
-    20: { intensity: 1.05, sets: 1, targetReps: 2, isDeload: false },
-    21: { intensity: 0.65, sets: 5, targetReps: 10, isDeload: true },
-  };
-
-  // Default to week 1 if out of range
-  return weekParams[weekNumber] || weekParams[1];
-}
+// Week parameters imported from @/utils/weekParameters
 
 /**
  * Convert completed exercise data to Hevy workout exercise format
@@ -616,6 +570,72 @@ export async function deleteRoutineFromHevy(routineId: string): Promise<SyncResu
 }
 
 /**
+ * Resync a day's routine to Hevy (delete existing and recreate)
+ * This is used after editing exercises to update the Hevy routine with new values
+ */
+export async function resyncDayToHevy(
+  workout: WorkoutDto,
+  dayNumber: number
+): Promise<SyncResult> {
+  if (!hevyApi.isConfigured()) {
+    return {
+      success: false,
+      message: 'Hevy API key not configured. Please set your API key in settings.',
+    };
+  }
+
+  const errors: string[] = [];
+
+  try {
+    // 1. Check if there's an existing synced routine for this day
+    const syncKey = `week${workout.currentWeek}-day${dayNumber}`;
+    const existingRoutineId = workout.hevySyncedRoutines?.[syncKey];
+
+    if (existingRoutineId) {
+      // Delete the existing routine
+      console.log(`Deleting existing routine: ${existingRoutineId}`);
+      try {
+        await hevyApi.deleteRoutine(existingRoutineId);
+        console.log(`Deleted routine: ${existingRoutineId}`);
+      } catch (deleteError) {
+        // If 404, the routine doesn't exist anymore - that's fine
+        const errMsg = deleteError instanceof Error ? deleteError.message : 'Unknown error';
+        if (!errMsg.includes('404')) {
+          errors.push(`Failed to delete existing routine: ${errMsg}`);
+          console.error(`Failed to delete routine:`, deleteError);
+        }
+      }
+    }
+
+    // 2. Create new routine with updated exercise data
+    const result = await syncDayAsRoutine(workout, dayNumber, workout.hevyRoutineFolderId);
+
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+    }
+
+    return {
+      success: true,
+      message: existingRoutineId
+        ? `Day ${dayNumber} routine updated in Hevy!`
+        : `Day ${dayNumber} routine created in Hevy!`,
+      routine: result.routine,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return {
+      success: false,
+      message: `Failed to resync routine: ${message}`,
+    };
+  }
+}
+
+/**
  * Get all routines from Hevy, optionally filtered by program name prefix
  */
 export async function getRoutinesFromHevy(
@@ -636,6 +656,237 @@ export async function getRoutinesFromHevy(
   } catch (error) {
     console.error('Failed to fetch routines:', error);
     return [];
+  }
+}
+
+/**
+ * Pull workout data from Hevy by finding a workout matching the routine name
+ * This fetches actual completed workout data from Hevy to prefill the log form
+ *
+ * Searches for workouts with title matching: "Program Name - Week X / Day Y"
+ * or the routine name format: "Program Name - Week X Day Y"
+ */
+export interface PulledSetData {
+  setNumber: number;
+  weight: number; // in kg
+  reps: number;
+  isAmrap: boolean;
+}
+
+export interface PulledWorkoutData {
+  exerciseId: string;
+  exerciseName: string;
+  hevyTemplateId: string;
+  sets: PulledSetData[];
+}
+
+// Detected substitution when pulling from Hevy
+export interface DetectedSubstitution {
+  originalExerciseId: string;
+  originalExerciseName: string;
+  originalHevyTemplateId: string;
+  hevyExerciseName: string; // The name used in Hevy
+  hevyTemplateId: string; // The template ID from Hevy
+  sets: PulledSetData[];
+}
+
+export interface PullWorkoutResult {
+  success: boolean;
+  message: string;
+  exercises?: PulledWorkoutData[];
+  substitutions?: DetectedSubstitution[]; // Exercises that were substituted in Hevy
+  unmatchedHevyExercises?: string[]; // Hevy exercises we couldn't match at all
+  workoutTitle?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+export async function pullWorkoutFromHevy(
+  workout: WorkoutDto,
+  dayNumber: number
+): Promise<PullWorkoutResult> {
+  if (!hevyApi.isConfigured()) {
+    return {
+      success: false,
+      message: 'Hevy API key not configured. Please set your API key in settings.',
+    };
+  }
+
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayName = dayNames[dayNumber - 1] || `Day ${dayNumber}`;
+
+  // Try multiple title formats that might match
+  const possibleTitles = [
+    // Format used when syncing completed workouts
+    `${workout.name} - Week ${workout.currentWeek} / Day ${dayNumber} (${dayName})`,
+    // Format used for routines
+    `${workout.name} - Week ${workout.currentWeek} Day ${dayNumber}`,
+    // Just the routine name (user might have named it differently)
+    `Week ${workout.currentWeek} Day ${dayNumber}`,
+  ];
+
+  try {
+    // Fetch recent workouts from Hevy (fetch more pages to find the workout)
+    let allWorkouts: HevyWorkout[] = [];
+    let page = 1;
+    const maxPages = 5; // Search through first 5 pages (50 workouts)
+
+    while (page <= maxPages) {
+      const response = await hevyApi.getWorkouts(page, 10);
+      allWorkouts = allWorkouts.concat(response.workouts);
+      if (page >= response.page_count) break;
+      page++;
+    }
+
+    console.log(`Pulled ${allWorkouts.length} workouts from Hevy, searching for match...`);
+
+    // Find a workout that matches one of our title patterns
+    let matchedWorkout: HevyWorkout | undefined;
+
+    for (const title of possibleTitles) {
+      matchedWorkout = allWorkouts.find(
+        (w) => w.title.toLowerCase() === title.toLowerCase()
+      );
+      if (matchedWorkout) {
+        console.log(`Found matching workout: "${matchedWorkout.title}"`);
+        break;
+      }
+    }
+
+    // If no exact match, try partial match on week/day
+    if (!matchedWorkout) {
+      const weekDayPattern = `week ${workout.currentWeek}`;
+      const dayPattern = `day ${dayNumber}`;
+
+      matchedWorkout = allWorkouts.find(
+        (w) => {
+          const lowerTitle = w.title.toLowerCase();
+          return lowerTitle.includes(weekDayPattern) &&
+                 (lowerTitle.includes(dayPattern) || lowerTitle.includes(dayName.toLowerCase()));
+        }
+      );
+
+      if (matchedWorkout) {
+        console.log(`Found partial match workout: "${matchedWorkout.title}"`);
+      }
+    }
+
+    if (!matchedWorkout) {
+      return {
+        success: false,
+        message: `No workout found for Week ${workout.currentWeek} Day ${dayNumber}. Make sure you've completed this workout in Hevy.`,
+      };
+    }
+
+    // Fetch all exercise templates to get names for Hevy exercises
+    console.log('Fetching exercise templates from Hevy...');
+    const exerciseTemplates = await hevyApi.getAllExerciseTemplates();
+    const templateMap = new Map(exerciseTemplates.map(t => [t.id, t]));
+    console.log(`Loaded ${exerciseTemplates.length} exercise templates`);
+
+    // Get exercises for this day from our workout to map Hevy data back
+    const dayExercises = workout.exercises
+      .filter((e) => e.assignedDay === dayNumber)
+      .sort((a, b) => a.orderInDay - b.orderInDay);
+
+    // Map Hevy workout exercises to our format
+    const pulledExercises: PulledWorkoutData[] = [];
+    const substitutions: DetectedSubstitution[] = [];
+    const unmatchedHevyExercises: string[] = [];
+
+    // Track which of our exercises have been matched
+    const matchedOurExercises = new Set<string>();
+
+    for (const hevyExercise of matchedWorkout.exercises) {
+      const hevyTemplate = templateMap.get(hevyExercise.exercise_template_id);
+      const hevyExerciseName = hevyTemplate?.title || `Unknown (${hevyExercise.exercise_template_id})`;
+
+      // First, try exact match by Hevy template ID
+      let matchingExercise = dayExercises.find(
+        (e) => e.hevyExerciseTemplateId === hevyExercise.exercise_template_id && !matchedOurExercises.has(e.id)
+      );
+
+      const sets: PulledSetData[] = hevyExercise.sets.map((set, index) => ({
+        setNumber: index + 1,
+        weight: set.weight_kg || 0,
+        reps: set.reps || 0,
+        isAmrap: set.type === 'failure',
+      }));
+
+      if (matchingExercise) {
+        // Exact match found
+        matchedOurExercises.add(matchingExercise.id);
+        pulledExercises.push({
+          exerciseId: matchingExercise.id,
+          exerciseName: matchingExercise.name,
+          hevyTemplateId: hevyExercise.exercise_template_id,
+          sets,
+        });
+      } else {
+        // No exact match - this is a substitution
+        // Try to match by order (position in workout)
+        const hevyExerciseIndex = matchedWorkout.exercises.indexOf(hevyExercise);
+        const unmatchedDayExercises = dayExercises.filter(e => !matchedOurExercises.has(e.id));
+
+        // Find exercise at same position that hasn't been matched yet
+        matchingExercise = unmatchedDayExercises.find(e => e.orderInDay === hevyExerciseIndex + 1);
+
+        // If no match by position, just take the next unmatched exercise
+        if (!matchingExercise && unmatchedDayExercises.length > 0) {
+          matchingExercise = unmatchedDayExercises[0];
+        }
+
+        if (matchingExercise) {
+          // Found a likely match - record as substitution
+          matchedOurExercises.add(matchingExercise.id);
+          substitutions.push({
+            originalExerciseId: matchingExercise.id,
+            originalExerciseName: matchingExercise.name,
+            originalHevyTemplateId: matchingExercise.hevyExerciseTemplateId,
+            hevyExerciseName: hevyExerciseName,
+            hevyTemplateId: hevyExercise.exercise_template_id,
+            sets,
+          });
+          console.log(`Detected substitution: "${matchingExercise.name}" -> "${hevyExerciseName}"`);
+        } else {
+          // Couldn't match at all
+          unmatchedHevyExercises.push(hevyExerciseName);
+          console.warn(`Could not match Hevy exercise: "${hevyExerciseName}"`);
+        }
+      }
+    }
+
+    const totalMatched = pulledExercises.length + substitutions.length;
+    if (totalMatched === 0) {
+      return {
+        success: false,
+        message: 'Could not match any exercises from Hevy workout to your program.',
+        unmatchedHevyExercises,
+      };
+    }
+
+    // Build result message
+    let message = `Pulled workout data from "${matchedWorkout.title}"`;
+    if (substitutions.length > 0) {
+      message += ` (${substitutions.length} substitution${substitutions.length > 1 ? 's' : ''} detected)`;
+    }
+
+    return {
+      success: true,
+      message,
+      exercises: pulledExercises,
+      substitutions: substitutions.length > 0 ? substitutions : undefined,
+      unmatchedHevyExercises: unmatchedHevyExercises.length > 0 ? unmatchedHevyExercises : undefined,
+      workoutTitle: matchedWorkout.title,
+      startTime: matchedWorkout.start_time,
+      endTime: matchedWorkout.end_time,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return {
+      success: false,
+      message: `Failed to pull workout from Hevy: ${message}`,
+    };
   }
 }
 
