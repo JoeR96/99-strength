@@ -189,9 +189,9 @@ public class BlockSequenceIntegrationTests
         // Block type should be 1 (since program week 8 maps to Block 1 in [1,1,2,3])
         weekPlan!.BlockNumber.Should().Be(1, "program week 8 in [1,1,2,3] should be Block 1");
 
-        // Intensity should be 75% (Block 1 Week 1)
-        weekPlan.IntensityPercentage.Should().Be(75m,
-            "program week 8 in [1,1,2,3] maps to template week 1 (75% intensity)");
+        // Intensity should be 65% (Block 1 Week 1 — Hypertrophy variant)
+        weekPlan.IntensityPercentage.Should().Be(65m,
+            "program week 8 in [1,1,2,3] maps to template week 1 (65% intensity)");
     }
 
     [Fact]

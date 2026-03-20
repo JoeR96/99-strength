@@ -13,9 +13,18 @@ namespace A2S.Infrastructure.Persistence;
 /// </summary>
 public class A2SDbContext : IdentityDbContext<ApplicationUser>
 {
+    private readonly IDomainEventDispatcher? _domainEventDispatcher;
+
+    /// <summary>Used by EF Core tooling (migrations, design-time). Domain events are not dispatched.</summary>
     public A2SDbContext(DbContextOptions<A2SDbContext> options)
         : base(options)
     {
+    }
+
+    public A2SDbContext(DbContextOptions<A2SDbContext> options, IDomainEventDispatcher domainEventDispatcher)
+        : base(options)
+    {
+        _domainEventDispatcher = domainEventDispatcher;
     }
 
     public DbSet<Workout> Workouts => Set<Workout>();
@@ -37,19 +46,30 @@ public class A2SDbContext : IdentityDbContext<ApplicationUser>
     /// </summary>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: Implement domain event dispatcher in Phase 0.3
-        // For now, just save changes
-        var result = await base.SaveChangesAsync(cancellationToken);
-
-        // Clear domain events after successful save
-        var entities = ChangeTracker
+        // Collect domain events before save
+        var aggregatesWithEvents = ChangeTracker
             .Entries<AggregateRoot<WorkoutId>>()
             .Where(e => e.Entity.DomainEvents.Any())
-            .Select(e => e.Entity);
+            .Select(e => e.Entity)
+            .ToList();
 
-        foreach (var entity in entities)
+        var domainEvents = aggregatesWithEvents
+            .SelectMany(e => e.DomainEvents)
+            .ToList();
+
+        // Clear domain events before save to avoid duplicate dispatching on retry
+        foreach (var entity in aggregatesWithEvents)
         {
             entity.ClearDomainEvents();
+        }
+
+        // Persist changes
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // Dispatch events after successful save
+        if (_domainEventDispatcher is not null && domainEvents.Count > 0)
+        {
+            await _domainEventDispatcher.DispatchEventsAsync(domainEvents, cancellationToken);
         }
 
         return result;

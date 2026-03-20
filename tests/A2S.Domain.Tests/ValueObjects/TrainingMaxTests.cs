@@ -113,17 +113,17 @@ public class TrainingMaxTests
     }
 
     [Fact]
-    public void ApplyAdjustment_ShouldRoundToNearestIncrement()
+    public void ApplyAdjustment_ShouldRoundToTwoDecimalPlaces()
     {
         // Arrange
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var adjustment = TrainingMaxAdjustment.Percentage(0.012m); // 1.2% = 101.2, should round to 100
+        var adjustment = TrainingMaxAdjustment.Percentage(0.012m); // 1.2% = 101.2
 
         // Act
         var result = tm.ApplyAdjustment(adjustment);
 
         // Assert
-        result.Value.Should().Be(100m);
+        result.Value.Should().Be(101.20m);
     }
 
     [Fact]

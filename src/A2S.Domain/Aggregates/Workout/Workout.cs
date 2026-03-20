@@ -20,6 +20,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 {
     private readonly List<Exercise> _exercises = new();
     private readonly List<WorkoutActivity> _completedActivities = new();
+    private readonly List<WorkoutActivity> _archivedActivities = new();
     private readonly List<ProgressionAuditEntry> _auditEntries = new();
     private List<int> _blockSequence = new() { 1, 2, 3 };
 
@@ -66,6 +67,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
     public IReadOnlyCollection<Exercise> Exercises => _exercises.AsReadOnly();
     public IReadOnlyCollection<WorkoutActivity> CompletedActivities => _completedActivities.AsReadOnly();
+    public IReadOnlyCollection<WorkoutActivity> ArchivedActivities => _archivedActivities.AsReadOnly();
     public IReadOnlyCollection<ProgressionAuditEntry> AuditEntries => _auditEntries.AsReadOnly();
 
     // EF Core constructor
@@ -478,11 +480,26 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     /// </summary>
     public void UpdateBlockSequence(List<int> newSequence)
     {
-        CheckRule(Status != WorkoutStatus.Completed,
-            "Cannot update block sequence on a completed workout");
         ValidateBlockSequence(newSequence);
 
         var newTotalWeeks = newSequence.Count * 7;
+
+        // Allow restart on completed workouts: reset week and status
+        if (Status == WorkoutStatus.Completed)
+        {
+            _blockSequence = new List<int>(newSequence);
+            TotalWeeks = newTotalWeeks;
+            CurrentWeek = 1;
+            CurrentDay = 1;
+            CurrentBlock = CalculateBlockNumber(1);
+            Status = WorkoutStatus.Active;
+            CompletedAt = null;
+            _archivedActivities.AddRange(_completedActivities);
+            _completedActivities.Clear();
+            AddDomainEvent(new ProgramRestarted(Id, _archivedActivities.Count));
+            return;
+        }
+
         CheckRule(CurrentWeek <= newTotalWeeks,
             $"Cannot shorten program to {newTotalWeeks} weeks when already at week {CurrentWeek}");
 
@@ -787,21 +804,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
             if (performance != null && !performance.SkipProgression)
             {
                 var delta = performance.GetAmrapDelta();
-                var adjustmentPct = delta switch
-                {
-                    >= 5 => 0.03m,
-                    4 => 0.02m,
-                    3 => 0.015m,
-                    2 => 0.01m,
-                    1 => 0.005m,
-                    0 => 0m,
-                    -1 => -0.02m,
-                    _ => -0.05m
-                };
+                var adjustment = AmrapDeltaTable.GetAdjustment(delta);
 
-                if (adjustmentPct != 0m)
+                if (adjustment.Type != ValueObjects.AdjustmentType.None)
                 {
-                    currentTm = Math.Round(currentTm * (1 + adjustmentPct), 2);
+                    currentTm = Math.Round(currentTm * (1 + adjustment.Amount), 2);
                 }
             }
         }

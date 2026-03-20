@@ -7,6 +7,7 @@
  */
 
 import { getWeekParameters, roundToGymIncrement } from './weekParameters';
+import { lbsToKg } from './constants';
 import type {
   ExerciseDto,
   LinearProgressionDto,
@@ -28,21 +29,21 @@ export function calculatePrescribedWeight(exercise: ExerciseDto, weekNumber: num
     // Training Max × Intensity, rounded to gym increment
     const trainingMaxKg = linear.trainingMax.unit === 1
       ? linear.trainingMax.value
-      : linear.trainingMax.value * 0.453592; // Convert lbs to kg
+      : lbsToKg(linear.trainingMax.value); // Convert lbs to kg
 
     return roundToGymIncrement(trainingMaxKg * weekParams.intensity, 'kg');
   } else if (prog.type === 'RepsPerSet') {
     const reps = prog as RepsPerSetProgressionDto;
     // Return weight in kg
     if (reps.weightUnit?.toLowerCase() === 'pounds') {
-      return reps.currentWeight * 0.453592;
+      return lbsToKg(reps.currentWeight);
     }
     return reps.currentWeight;
   } else if (prog.type === 'MinimalSets') {
     const minimal = prog as MinimalSetsProgressionDto;
     // Return weight in kg
     if (minimal.weightUnit?.toLowerCase() === 'pounds') {
-      return minimal.currentWeight * 0.453592;
+      return lbsToKg(minimal.currentWeight);
     }
     return minimal.currentWeight;
   }

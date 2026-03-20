@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -16,6 +17,35 @@ export function Navbar() {
   const { user } = useUser();
   const location = useLocation();
   const { mode, toggleMode } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [mobileMenuOpen]);
+
+  // Prevent body scroll when menu open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
 
   return (
     <nav className={`sticky top-0 z-50 border-b ${
@@ -79,6 +109,28 @@ export function Navbar() {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
+            {/* Hamburger Menu Button — mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className={`lg:hidden flex h-11 w-11 items-center justify-center rounded-md border transition-all duration-150 ${
+                mode === 'dark'
+                  ? 'border-[hsl(45,80%,45%)] bg-[hsl(30,30%,20%)] text-[hsl(45,100%,55%)] hover:bg-[hsl(30,35%,25%)]'
+                  : 'border-gray-600 bg-transparent text-gray-400 hover:text-white hover:border-gray-500'
+              }`}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+
             {/* Theme Toggle */}
             <button
               onClick={toggleMode}
@@ -136,33 +188,68 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="lg:hidden pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
-          {navLinks.map((link) => {
-            const isActive = location.pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                to={link.href}
-                className={`px-4 py-2 rounded text-sm font-medium uppercase tracking-wide whitespace-nowrap transition-all duration-150 ${
-                  mode === 'dark'
-                    ? `font-[RuneScape_UF,Times_New_Roman,serif] ${
-                        isActive
-                          ? 'bg-[hsl(45,100%,45%)]/20 text-[hsl(45,100%,55%)]'
-                          : 'text-[hsl(40,20%,65%)] hover:text-[hsl(45,100%,55%)] hover:bg-[hsl(30,30%,20%)]'
-                      }`
-                    : `font-[Orbitron,sans-serif] ${
-                        isActive
-                          ? 'bg-primary/20 text-primary'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
+        {/* Mobile Slide-Out Menu */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden" aria-modal="true" role="dialog">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+
+            {/* Menu panel */}
+            <div
+              ref={menuRef}
+              className={`absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto border-b shadow-lg ${
+                mode === 'dark'
+                  ? 'bg-[hsl(30,28%,14%)] border-[hsl(30,40%,30%)]'
+                  : 'bg-card border-border'
+              }`}
+            >
+              <nav className="px-4 py-3 space-y-1">
+                {navLinks.map((link) => {
+                  const isActive = location.pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      className={`block px-4 py-3 rounded text-base font-medium uppercase tracking-wide transition-all duration-150 ${
+                        mode === 'dark'
+                          ? `font-[RuneScape_UF,Times_New_Roman,serif] ${
+                              isActive
+                                ? 'bg-[hsl(45,100%,45%)]/20 text-[hsl(45,100%,55%)]'
+                                : 'text-[hsl(40,20%,65%)] hover:text-[hsl(45,100%,55%)] hover:bg-[hsl(30,30%,20%)]'
+                            }`
+                          : `font-[Orbitron,sans-serif] ${
+                              isActive
+                                ? 'bg-primary/20 text-primary'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Player name — visible on small screens in menu */}
+              <div className={`sm:hidden px-4 py-3 border-t ${
+                mode === 'dark' ? 'border-[hsl(30,40%,30%)]' : 'border-gray-700'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium uppercase tracking-wide ${
+                    mode === 'dark'
+                      ? 'text-[hsl(40,20%,60%)] font-[RuneScape_UF,Times_New_Roman,serif]'
+                      : 'text-gray-500 font-[Orbitron,sans-serif]'
+                  }`}>Player:</span>
+                  <span className={`text-lg font-semibold ${
+                    mode === 'dark'
+                      ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif]'
+                      : 'text-white font-[VT323,monospace]'
+                  }`}>{user?.firstName || 'Guest'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

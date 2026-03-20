@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using A2S.Application.Interfaces;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Enums;
 using A2S.Domain.Services;

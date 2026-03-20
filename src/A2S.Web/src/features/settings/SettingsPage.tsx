@@ -32,33 +32,33 @@ const scenarios: PerformanceScenario[] = [
   { name: 'Failed Moderate', outcome: 'Failed', amrapDelta: -2, repsPerSetReps: 6 },
 ];
 
-// A2S spreadsheet weekly data
+// A2S Hypertrophy variant weekly data (matches backend A2SHypertrophyProgram)
 const spreadsheetWeeklyData: { intensity: number; sets: number; reps: number; isDeload: boolean }[] = [
   { intensity: 0, sets: 0, reps: 0, isDeload: false }, // Week 0 placeholder
   // Block 1
-  { intensity: 75, sets: 5, reps: 10, isDeload: false },
-  { intensity: 85, sets: 4, reps: 8, isDeload: false },
-  { intensity: 90, sets: 3, reps: 6, isDeload: false },
-  { intensity: 80, sets: 5, reps: 9, isDeload: false },
-  { intensity: 85, sets: 4, reps: 7, isDeload: false },
-  { intensity: 90, sets: 3, reps: 5, isDeload: false },
-  { intensity: 65, sets: 5, reps: 10, isDeload: true },
+  { intensity: 65, sets: 4, reps: 12, isDeload: false },
+  { intensity: 68, sets: 4, reps: 11, isDeload: false },
+  { intensity: 70, sets: 4, reps: 10, isDeload: false },
+  { intensity: 68, sets: 4, reps: 11, isDeload: false },
+  { intensity: 70, sets: 4, reps: 10, isDeload: false },
+  { intensity: 73, sets: 4, reps: 9, isDeload: false },
+  { intensity: 60, sets: 4, reps: 5, isDeload: true },
   // Block 2
-  { intensity: 85, sets: 4, reps: 8, isDeload: false },
-  { intensity: 90, sets: 3, reps: 6, isDeload: false },
-  { intensity: 95, sets: 2, reps: 4, isDeload: false },
-  { intensity: 85, sets: 4, reps: 7, isDeload: false },
-  { intensity: 90, sets: 3, reps: 5, isDeload: false },
-  { intensity: 95, sets: 2, reps: 3, isDeload: false },
-  { intensity: 65, sets: 5, reps: 10, isDeload: true },
+  { intensity: 68, sets: 4, reps: 11, isDeload: false },
+  { intensity: 70, sets: 4, reps: 10, isDeload: false },
+  { intensity: 73, sets: 4, reps: 9, isDeload: false },
+  { intensity: 70, sets: 4, reps: 10, isDeload: false },
+  { intensity: 73, sets: 4, reps: 9, isDeload: false },
+  { intensity: 76, sets: 4, reps: 8, isDeload: false },
+  { intensity: 60, sets: 4, reps: 5, isDeload: true },
   // Block 3
-  { intensity: 90, sets: 3, reps: 6, isDeload: false },
-  { intensity: 95, sets: 2, reps: 4, isDeload: false },
-  { intensity: 100, sets: 1, reps: 2, isDeload: false },
-  { intensity: 95, sets: 2, reps: 4, isDeload: false },
-  { intensity: 100, sets: 1, reps: 2, isDeload: false },
-  { intensity: 105, sets: 1, reps: 2, isDeload: false },
-  { intensity: 65, sets: 5, reps: 10, isDeload: true },
+  { intensity: 70, sets: 4, reps: 10, isDeload: false },
+  { intensity: 73, sets: 4, reps: 9, isDeload: false },
+  { intensity: 76, sets: 4, reps: 8, isDeload: false },
+  { intensity: 76, sets: 4, reps: 8, isDeload: false },
+  { intensity: 79, sets: 4, reps: 7, isDeload: false },
+  { intensity: 79, sets: 4, reps: 7, isDeload: false },
+  { intensity: 60, sets: 4, reps: 5, isDeload: true },
 ];
 
 function getScenarioForExercise(exerciseIndex: number, week: number, day: number, counter: number): PerformanceScenario {

@@ -5,9 +5,9 @@ using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.DTOs;
 using A2S.Application.Queries.GetWeekPlan;
-using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Enums;
 using A2S.Tests.Shared;
+using A2S.Tests.Shared.Helpers;
 using A2S.Tests.Shared.TestData;
 using FluentAssertions;
 
@@ -206,11 +206,11 @@ public class WorkoutFlowIntegrationTests
         result.Should().NotBeNull();
         result!.Day.Should().Be(DayNumber.Day1);
 
-        // OHP with high AMRAP (19 actual vs 10 target = +9 delta) should show "TM increased 3%"
-        // Week 1 target is 10 reps per the domain WeeklyProgram table
+        // OHP with high AMRAP (19 actual vs 15 rep-out target = +4 delta) should show "TM increased 2%"
+        // Week 1 Hypertrophy rep-out target is 15
         var ohpChange = result.ProgressionChanges.FirstOrDefault(c => c.ExerciseName == "Overhead Press (Smith Machine)");
         ohpChange.Should().NotBeNull();
-        ohpChange!.Change.Should().Contain("3%", "AMRAP +9 delta (19-10) should result in 3% TM increase");
+        ohpChange!.Change.Should().Contain("2%", "AMRAP +4 delta (19-15) should result in 2% TM increase");
     }
 
     #endregion
@@ -759,7 +759,9 @@ public class WorkoutFlowIntegrationTests
             +4, +3, +5, -2, +4, +5, 0,   // Block 2 (week 14 = deload)
             +3, +4, 0, +5, -1, +4, 0     // Block 3 (week 21 = deload)
         };
-        var expectedTmValues = CalculateExpectedTmSequence(startingTm, weeklyDeltas);
+        // Pre-computed TM sequence (OHP starting at 65m, verified against domain logic)
+        startingTm.Should().Be(65m, "OHP starting TM must be 65m for pre-computed assertions");
+        var expectedTmValues = new[] { 65m, 66.95m, 68.29m, 69.31m, 69.31m, 67.92m, 69.96m, 69.96m, 71.36m, 72.43m, 74.60m, 70.87m, 72.29m, 74.46m, 74.46m, 75.58m, 77.09m, 77.09m, 79.40m, 77.81m, 79.37m, 79.37m };
 
         // --- Bilateral RepsPerSet setup (Lat Pulldown, Day 1) ---
         // Cable +2.5kg, startingSets=3, targetSets=5, maxSets=5 (bilateral)
@@ -851,7 +853,8 @@ public class WorkoutFlowIntegrationTests
                 {
                     if (exercise.Name == "Overhead Press (Smith Machine)")
                     {
-                        performances.Add(CreateLinearPerformance(exercise, week, isDeload, delta));
+                        performances.Add(PerformanceRequestBuilders.CreateLinearPerformance(
+                            exercise, week, isDeload, delta, setCount: 4, skipAmrapOnDeload: true));
                     }
                     else if (exercise.Name == "Lat Pulldown (Cable)")
                     {
@@ -936,11 +939,11 @@ public class WorkoutFlowIntegrationTests
             if (plannedExercise.Name == "Overhead Press (Smith Machine)")
             {
                 // Linear: verify set count, weight (TM * intensity), AMRAP on last set
-                var expectedSets = LinearProgressionStrategy.GetSetsForWeek(week);
-                var expectedNormalReps = GetRepsPerSetForWeek(week);
-                var expectedAmrapReps = GetRepOutTargetForWeek(week);
-                var intensity = GetIntensityForWeek(week);
-                var isDeload = week == 7 || week == 14 || week == 21;
+                var expectedSets = 4; // A2S2 Hypertrophy always has 4 sets
+                var expectedNormalReps = ProgramWeekHelpers.GetRepsPerSetForWeek(week);
+                var expectedAmrapReps = ProgramWeekHelpers.GetRepOutTargetForWeek(week);
+                var intensity = ProgramWeekHelpers.GetIntensityForWeek(week);
+                var isDeloadWeek = week == 7 || week == 14 || week == 21;
 
                 // Get the TM at the START of this week (before completion applies progression).
                 // expectedTmValues[0] = starting TM, expectedTmValues[n] = TM after week n.
@@ -956,7 +959,7 @@ public class WorkoutFlowIntegrationTests
                 plannedExercise.PlannedSets.First().WeightKg.Should().Be(expectedWeight,
                     $"Week {week} OHP: weight should be {expectedWeight}kg ({intensity * 100}% of TM {currentTm})");
 
-                if (!isDeload)
+                if (!isDeloadWeek)
                 {
                     // AMRAP: last set should be AMRAP with rep-out target
                     plannedExercise.PlannedSets.Last().IsAmrap.Should().BeTrue(
@@ -1017,45 +1020,6 @@ public class WorkoutFlowIntegrationTests
     }
 
     /// <summary>
-    /// Creates a performance request for a Linear exercise with week-specific AMRAP delta.
-    /// </summary>
-    private static ExercisePerformanceRequest CreateLinearPerformance(
-        ExerciseDto exercise, int week, bool isDeload, int delta)
-    {
-        var linear = exercise.Progression as LinearProgressionDto;
-        var weightUnit = linear!.TrainingMax.Unit == 1 ? WeightUnit.Kilograms : WeightUnit.Pounds;
-        var setsForWeek = LinearProgressionStrategy.GetSetsForWeek(week);
-        var repsPerSet = GetRepsPerSetForWeek(week);
-        var repOutTarget = GetRepOutTargetForWeek(week);
-
-        var setsList = new List<CompletedSetRequest>();
-        for (int i = 1; i <= setsForWeek; i++)
-        {
-            var isAmrap = i == setsForWeek && !isDeload;
-            // AMRAP set: actual reps = repOutTarget + delta
-            // Normal sets: repsPerSet
-            var actualReps = isAmrap
-                ? Math.Max(1, repOutTarget + delta)
-                : repsPerSet;
-
-            setsList.Add(new CompletedSetRequest
-            {
-                SetNumber = i,
-                Weight = linear.TrainingMax.Value * GetIntensityForWeek(week),
-                WeightUnit = weightUnit,
-                ActualReps = actualReps,
-                WasAmrap = isAmrap
-            });
-        }
-
-        return new ExercisePerformanceRequest
-        {
-            ExerciseId = exercise.Id,
-            CompletedSets = setsList
-        };
-    }
-
-    /// <summary>
     /// Creates a performance request for a RepsPerSet exercise.
     /// reps = -1 means FAILED (one set at 7, rest at 10).
     /// reps >= 12 means SUCCESS, reps 8-11 means MAINTAINED.
@@ -1088,77 +1052,6 @@ public class WorkoutFlowIntegrationTests
             ExerciseId = exercise.Id,
             CompletedSets = setsList
         };
-    }
-
-    /// <summary>
-    /// Calculates the expected TM sequence for all 21 weeks given a starting TM and deltas.
-    /// Mirrors the domain logic exactly: adjustment percentage, stored at 2dp precision.
-    /// TM is NOT rounded to gym increments — only working weight is.
-    /// </summary>
-    private static decimal[] CalculateExpectedTmSequence(decimal startingTm, int[] deltas)
-    {
-        var expected = new decimal[22]; // 1-indexed
-        expected[0] = startingTm; // Index 0 = starting TM before any weeks
-        var tm = startingTm;
-
-        for (int week = 1; week <= 21; week++)
-        {
-            var isDeload = week == 7 || week == 14 || week == 21;
-            var delta = deltas[week - 1];
-
-            if (!isDeload && delta != 0)
-            {
-                var adjustmentPercent = delta switch
-                {
-                    >= 5 => 0.03m,
-                    4 => 0.02m,
-                    3 => 0.015m,
-                    2 => 0.01m,
-                    1 => 0.005m,
-                    -1 => -0.02m,
-                    _ => -0.05m
-                };
-
-                var newVal = tm * (1 + adjustmentPercent);
-                // TM stored at full precision (2dp), NOT rounded to gym increments
-                tm = Math.Round(newVal, 2);
-            }
-
-            expected[week] = tm;
-        }
-
-        return expected;
-    }
-
-    /// <summary>
-    /// Gets the rep-out target (AMRAP baseline) for a given week.
-    /// Returns repsPerSet for deload weeks (no AMRAP).
-    /// </summary>
-    private static int GetRepOutTargetForWeek(int week)
-    {
-        // Rep-out targets from A2S2 Hypertrophy spreadsheet (null = deload, use repsPerSet)
-        int?[] repOutTargets = { null, 15, 13, 12, 13, 12, 11, null, 13, 12, 11, 12, 11, 10, null, 12, 11, 10, 11, 10, 9, null };
-        return repOutTargets[week] ?? GetRepsPerSetForWeek(week);
-    }
-
-    /// <summary>
-    /// Gets reps per set (for normal sets) for a given week from the A2S2 Hypertrophy table.
-    /// </summary>
-    private static int GetRepsPerSetForWeek(int week)
-    {
-        var reps = new[] { 0, 12, 11, 10, 11, 10, 9, 5, 11, 10, 9, 10, 9, 8, 5, 10, 9, 8, 9, 8, 7, 5 };
-        return reps[week];
-    }
-
-    /// <summary>
-    /// Gets intensity percentage for a given week from the A2S2 Hypertrophy table.
-    /// </summary>
-    private static decimal GetIntensityForWeek(int week)
-    {
-        var intensities = new[] { 0m, 0.65m, 0.68m, 0.70m, 0.68m, 0.70m, 0.73m, 0.60m,
-            0.68m, 0.70m, 0.73m, 0.70m, 0.73m, 0.76m, 0.60m,
-            0.70m, 0.73m, 0.76m, 0.73m, 0.76m, 0.79m, 0.60m };
-        return intensities[week];
     }
 
     #endregion

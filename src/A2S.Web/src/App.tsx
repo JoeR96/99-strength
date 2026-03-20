@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useInitializeApiClient } from './api';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignUpPage } from './features/auth/SignUpPage';
 import { DashboardPage } from './features/auth/DashboardPage';
@@ -18,180 +20,75 @@ function AppContent() {
   useInitializeApiClient();
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route
-        path="/sign-in/*"
-        element={
-          <>
-            <SignedIn>
-              <Navigate to="/dashboard" replace />
-            </SignedIn>
-            <SignedOut>
-              <LoginPage />
-            </SignedOut>
-          </>
-        }
-      />
-      <Route
-        path="/sign-up/*"
-        element={
-          <>
-            <SignedIn>
-              <Navigate to="/dashboard" replace />
-            </SignedIn>
-            <SignedOut>
-              <SignUpPage />
-            </SignedOut>
-          </>
-        }
-      />
+    <ErrorBoundary>
+      <Routes>
+        {/* Public routes */}
+        <Route
+          path="/sign-in/*"
+          element={
+            <>
+              <SignedIn>
+                <Navigate to="/dashboard" replace />
+              </SignedIn>
+              <SignedOut>
+                <LoginPage />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/sign-up/*"
+          element={
+            <>
+              <SignedIn>
+                <Navigate to="/dashboard" replace />
+              </SignedIn>
+              <SignedOut>
+                <SignUpPage />
+              </SignedOut>
+            </>
+          }
+        />
 
-      {/* Protected routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <>
-            <SignedIn>
-              <DashboardPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
+        {/* Protected routes */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/workout" element={<ProtectedRoute><WorkoutDashboard /></ProtectedRoute>} />
+        <Route
+          path="/workout/session/:day"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <WorkoutSession />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/setup" element={<ProtectedRoute><SetupWizard /></ProtectedRoute>} />
+        <Route path="/programs" element={<ProtectedRoute><ProgramsPage /></ProtectedRoute>} />
+        <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
+        <Route path="/hevy" element={<ProtectedRoute><HevyManagementPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
 
-      <Route
-        path="/workout"
-        element={
-          <>
-            <SignedIn>
-              <WorkoutDashboard />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
+        {/* Default route */}
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <Navigate to="/dashboard" replace />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/sign-in" replace />
+              </SignedOut>
+            </>
+          }
+        />
 
-      <Route
-        path="/workout/session/:day"
-        element={
-          <>
-            <SignedIn>
-              <WorkoutSession />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/setup"
-        element={
-          <>
-            <SignedIn>
-              <SetupWizard />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/programs"
-        element={
-          <>
-            <SignedIn>
-              <ProgramsPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/exercises"
-        element={
-          <>
-            <SignedIn>
-              <ExerciseLibraryPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/hevy"
-        element={
-          <>
-            <SignedIn>
-              <HevyManagementPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/settings"
-        element={
-          <>
-            <SignedIn>
-              <SettingsPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      <Route
-        path="/history"
-        element={
-          <>
-            <SignedIn>
-              <WorkoutHistoryPage />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      {/* Default route */}
-      <Route
-        path="/"
-        element={
-          <>
-            <SignedIn>
-              <Navigate to="/dashboard" replace />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-
-      {/* 404 fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* 404 fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 

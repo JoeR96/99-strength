@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using A2S.Api.Controllers;
 using A2S.Tests.Shared;
@@ -22,35 +21,13 @@ public class AutoProvisionMiddlewareTests
         _client = factory.CreateClient();
     }
 
-    private async Task<(string Token, string Email)> RegisterAndGetTokenAsync()
-    {
-        var email = $"autoprovision-{Guid.NewGuid()}@example.com";
-        var registerRequest = new RegisterRequest
-        {
-            Email = email,
-            Password = "TestPassword123!"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        return (authResponse!.Token, email);
-    }
-
-    private HttpClient CreateAuthenticatedClient(string token)
-    {
-        var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return client;
-    }
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     [Fact]
     public async Task AuthenticatedRequest_ShouldAutoProvisionUser()
     {
-        // Arrange - Register a user (this creates ApplicationUser in Identity)
-        var (token, email) = await RegisterAndGetTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        // Arrange - Create an authenticated client (test JWT auth)
+        var client = CreateClient();
 
         // Act - Make any authenticated request, which should trigger auto-provision
         // The middleware should auto-create the User entity
@@ -61,15 +38,13 @@ public class AutoProvisionMiddlewareTests
 
         var userResponse = await getUsersResponse.Content.ReadFromJsonAsync<UserResponse>();
         userResponse.Should().NotBeNull();
-        userResponse!.Email.Should().Be(email.ToLowerInvariant());
     }
 
     [Fact]
     public async Task MultipleAuthenticatedRequests_ShouldUseSameUser()
     {
         // Arrange
-        var (token, email) = await RegisterAndGetTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         // Act - Make two authenticated requests
         var response1 = await client.GetAsync("/api/v1/users/me");
@@ -85,6 +60,5 @@ public class AutoProvisionMiddlewareTests
         user1.Should().NotBeNull();
         user2.Should().NotBeNull();
         user1!.Id.Should().Be(user2!.Id);
-        user1.Email.Should().Be(email.ToLowerInvariant());
     }
 }

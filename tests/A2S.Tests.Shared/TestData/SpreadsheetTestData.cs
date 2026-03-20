@@ -1563,3 +1563,130 @@ public enum ProgressionTestType
     RepsPerSet,  // Set/rep based (green in spreadsheet)
     MinimalSets  // Total reps in minimal sets (yellow in spreadsheet)
 }
+
+/// <summary>
+/// A single week's expected state for a RepsPerSet progression scenario.
+/// Reps=-1 signals FAILED: first set at 7 reps (below minimum), rest at 10.
+/// </summary>
+public sealed record RepsPerSetWeekScenario(
+    int Reps,
+    int ExpectedSets,
+    decimal ExpectedWeight,
+    string Description)
+{
+    /// <summary>Sentinel value indicating a failed week (first set below minimum reps).</summary>
+    public const int FailedWeekSentinel = -1;
+}
+
+/// <summary>
+/// Hand-computed RepsPerSet validation scenarios extracted from E2E test data.
+/// </summary>
+public static class RepsPerSetValidationData
+{
+    /// <summary>
+    /// Bilateral Bent Over Row (Barbell): +2.5kg increments.
+    /// StartingSets=3, TargetSets=5, MaxSets=5 (bilateral).
+    /// RepRange: Min=8, Target=10, Max=12.
+    /// SUCCESS (all sets ≥ 12): add set. At MaxSets + SUCCESS: weight +2.5kg, reset to StartingSets.
+    /// MAINTAINED (all sets ≥ 8 but not all ≥ 12): no change.
+    /// FAILED (any set < 8): remove set.
+    /// </summary>
+    public static IReadOnlyList<RepsPerSetWeekScenario> BilateralBarbellScenarios { get; } = new[]
+    {
+        new RepsPerSetWeekScenario(12, 4, 60m,   "S: 3→4"),
+        new RepsPerSetWeekScenario(12, 5, 60m,   "S: 4→5"),
+        new RepsPerSetWeekScenario(12, 3, 62.5m, "S at target: +2.5kg, reset 3"),
+        new RepsPerSetWeekScenario(10, 3, 62.5m, "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 62.5m, "S: 3→4"),
+        new RepsPerSetWeekScenario(12, 5, 62.5m, "S: 4→5"),
+        new RepsPerSetWeekScenario(12, 3, 65m,   "S at target: +2.5kg, reset 3"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 2, 65m,   "F: 3→2"),
+        new RepsPerSetWeekScenario(10, 2, 65m,   "M: no change"),
+        new RepsPerSetWeekScenario(12, 3, 65m,   "S: 2→3"),
+        new RepsPerSetWeekScenario(12, 4, 65m,   "S: 3→4"),
+        new RepsPerSetWeekScenario(12, 5, 65m,   "S: 4→5"),
+        new RepsPerSetWeekScenario(12, 3, 67.5m, "S at target: +2.5kg, reset 3"),
+        new RepsPerSetWeekScenario(10, 3, 67.5m, "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 67.5m, "S: 3→4"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 3, 67.5m, "F: 4→3"),
+        new RepsPerSetWeekScenario(12, 4, 67.5m, "S: 3→4"),
+        new RepsPerSetWeekScenario(12, 5, 67.5m, "S: 4→5"),
+        new RepsPerSetWeekScenario(12, 3, 70m,   "S at target: +2.5kg, reset 3"),
+        new RepsPerSetWeekScenario(10, 3, 70m,   "M: no change"),
+        new RepsPerSetWeekScenario(10, 3, 70m,   "M: no change"),
+    };
+
+    /// <summary>
+    /// Unilateral Single Arm Lat Pulldown (Cable): +2.5kg increments.
+    /// StartingSets=4, TargetSets=6, MaxSets=3 (unilateral cap).
+    /// EffectiveMaxSets = min(6, 3) = 3. StartingSets(4) > EffectiveMaxSets(3),
+    /// so SUCCESS (sets ≥ 3) always increases weight and resets to StartingSets(4).
+    /// FAILED drops sets. Only when sets < 3 does SUCCESS add a set instead.
+    /// RepRange: Min=8, Target=10, Max=12.
+    /// </summary>
+    public static IReadOnlyList<RepsPerSetWeekScenario> UnilateralCableScenarios { get; } = new[]
+    {
+        new RepsPerSetWeekScenario(12, 4, 81.5m,  "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(12, 4, 84m,    "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(10, 4, 84m,    "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 86.5m,  "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 3, 86.5m,  "F: 4→3"),
+        new RepsPerSetWeekScenario(10, 3, 86.5m,  "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 89m,    "S: 3>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 3, 89m,    "F: 4→3"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 2, 89m,    "F: 3→2"),
+        new RepsPerSetWeekScenario(12, 3, 89m,    "S: 2<3, add set 2→3"),
+        new RepsPerSetWeekScenario(12, 4, 91.5m,  "S: 3>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(10, 4, 91.5m,  "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 94m,    "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(10, 4, 94m,    "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 96.5m,  "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(10, 4, 96.5m,  "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 99m,    "S: 4>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(RepsPerSetWeekScenario.FailedWeekSentinel, 3, 99m,    "F: 4→3"),
+        new RepsPerSetWeekScenario(10, 3, 99m,    "M: no change"),
+        new RepsPerSetWeekScenario(12, 4, 101.5m, "S: 3>=3, +2.5kg, reset 4"),
+        new RepsPerSetWeekScenario(10, 4, 101.5m, "M: no change"),
+    };
+
+    /// <summary>
+    /// Smith Squat Linear Progression validation data from A2S2_Validation_Data.md.
+    /// Initial TM=110kg. Hand-crafted deltas to exercise ALL 8 TM adjustment multipliers.
+    /// </summary>
+    public static IReadOnlyList<int> SmithSquatAmrapDeltas { get; } = new[]
+    {
+        +5, +2, +2, +2, +2, +1, 0,   // Block 1 (week 7 = deload)
+        +3, +4, 0, -1, -3, 0, 0,     // Block 2 (week 14 = deload, weeks 13+ no AMRAP)
+        0, 0, 0, 0, 0, 0, 0          // Block 3 (no AMRAP entered)
+    };
+
+    /// <summary>
+    /// Expected Smith Squat TM values after each week (0-indexed: [0]=initial, [1]=after week 1, etc.).
+    /// From A2S2_Validation_Data.md scenario summary.
+    /// </summary>
+    public static IReadOnlyList<decimal> SmithSquatExpectedTms { get; } = new[]
+    {
+        110.00m,   // Initial
+        113.30m,   // After week 1: +5 → ×1.03
+        114.43m,   // After week 2: +2 → ×1.01 (114.433 rounded to 2dp)
+        115.58m,   // After week 3: +2 → ×1.01 (115.57733)
+        116.73m,   // After week 4: +2 → ×1.01 (116.7331)
+        117.90m,   // After week 5: +2 → ×1.01 (117.90043)
+        118.49m,   // After week 6: +1 → ×1.005 (118.48993)
+        118.49m,   // After week 7: DELOAD (no change)
+        120.27m,   // After week 8: +3 → ×1.015 (120.26735)
+        122.67m,   // After week 9: +4 → ×1.02 (122.6727)
+        122.67m,   // After week 10: 0 → ×1.0 (no change)
+        120.22m,   // After week 11: -1 → ×0.98 (120.2165)
+        114.21m,   // After week 12: -3(≤-2) → ×0.95 (114.20568)
+        114.21m,   // After week 13: no AMRAP
+        114.21m,   // After week 14: DELOAD
+        114.21m,   // After weeks 15-21: no AMRAP entered
+        114.21m,
+        114.21m,
+        114.21m,
+        114.21m,
+        114.21m,
+        114.21m,
+    };
+}

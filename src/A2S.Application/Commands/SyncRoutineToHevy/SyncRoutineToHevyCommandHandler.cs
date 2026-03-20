@@ -1,8 +1,8 @@
 using A2S.Application.Common;
+using A2S.Application.Interfaces;
 using A2S.Application.Services;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
-using A2S.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

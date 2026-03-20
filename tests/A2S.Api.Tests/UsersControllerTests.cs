@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using A2S.Api.Controllers;
 using A2S.Tests.Shared;
@@ -23,35 +22,13 @@ public class UsersControllerTests
         _client = factory.CreateClient();
     }
 
-    private async Task<string> GetAuthTokenAsync()
-    {
-        var email = $"test-{Guid.NewGuid()}@example.com";
-        var registerRequest = new RegisterRequest
-        {
-            Email = email,
-            Password = "TestPassword123!"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        return authResponse!.Token;
-    }
-
-    private HttpClient CreateAuthenticatedClient(string token)
-    {
-        var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return client;
-    }
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     [Fact]
     public async Task CreateUser_WithValidData_ReturnsCreated()
     {
         // Arrange
-        var token = await GetAuthTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         var request = new CreateUserRequest(
             $"newuser-{Guid.NewGuid()}@example.com",
@@ -74,8 +51,7 @@ public class UsersControllerTests
     public async Task CreateUser_WithInvalidEmail_ReturnsBadRequest()
     {
         // Arrange
-        var token = await GetAuthTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         var request = new CreateUserRequest("invalid-email", "Test User");
 
@@ -90,8 +66,7 @@ public class UsersControllerTests
     public async Task CreateUser_WithDuplicateEmail_ReturnsBadRequest()
     {
         // Arrange
-        var token = await GetAuthTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         var email = $"duplicate-{Guid.NewGuid()}@example.com";
         var request = new CreateUserRequest(email, "First User");
@@ -112,8 +87,7 @@ public class UsersControllerTests
     public async Task GetUserById_WhenUserExists_ReturnsOk()
     {
         // Arrange
-        var token = await GetAuthTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         var createRequest = new CreateUserRequest(
             $"getuser-{Guid.NewGuid()}@example.com",
@@ -138,8 +112,7 @@ public class UsersControllerTests
     public async Task GetUserById_WhenUserDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        var token = await GetAuthTokenAsync();
-        var client = CreateAuthenticatedClient(token);
+        var client = CreateClient();
 
         var nonExistentId = Guid.NewGuid();
 

@@ -8,6 +8,7 @@
 import { hevyApi } from './hevyApi';
 import { workoutsApi } from '@/api/workouts';
 import { getWeekParameters } from '@/utils/weekParameters';
+import { lbsToKg } from '@/utils/constants';
 import type {
   HevyCreateWorkoutRequest,
   HevyCreateRoutineRequest,
@@ -48,7 +49,7 @@ export interface CompletedExerciseData {
 function convertToKg(weight: number, unit: string): number {
   let weightKg = weight;
   if (unit.toLowerCase() === 'lbs' || unit.toLowerCase() === 'pounds') {
-    weightKg = weight * 0.453592;
+    weightKg = lbsToKg(weight);
   }
   // Round to 2 decimal places
   return Math.round(weightKg * 100) / 100;
@@ -201,7 +202,7 @@ function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: number,
     // Calculate working weight: Training Max × Intensity, rounded to gym increment
     const trainingMaxKg = prog.trainingMax.unit === 1
       ? prog.trainingMax.value
-      : prog.trainingMax.value * 0.453592; // Convert lbs to kg
+      : lbsToKg(prog.trainingMax.value); // Convert lbs to kg
     const workingWeight = roundToGymIncrement(trainingMaxKg * weekParams.intensity, 'kg');
 
     // Create sets based on week parameters
@@ -235,7 +236,7 @@ function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: number,
 
     // Convert weight to kg if needed
     const weightKg = prog.weightUnit?.toLowerCase() === 'pounds'
-      ? prog.currentWeight * 0.453592
+      ? lbsToKg(prog.currentWeight)
       : prog.currentWeight;
 
     // For unilateral exercises, double the sets (once per side)
@@ -259,7 +260,7 @@ function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: number,
 
     // Convert weight to kg if needed
     const weightKg = prog.weightUnit?.toLowerCase() === 'pounds'
-      ? prog.currentWeight * 0.453592
+      ? lbsToKg(prog.currentWeight)
       : prog.currentWeight;
 
     const repsPerSet = Math.ceil(prog.targetTotalReps / prog.currentSetCount);

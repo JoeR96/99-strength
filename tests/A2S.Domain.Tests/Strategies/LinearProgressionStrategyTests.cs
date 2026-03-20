@@ -1,6 +1,7 @@
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
+using A2S.Domain.Services;
 using A2S.Domain.ValueObjects;
 using FluentAssertions;
 using Xunit;
@@ -280,15 +281,15 @@ public class LinearProgressionStrategyTests
     [InlineData(21, 4)]  // Final Deload
     public void GetSetsForWeek_AllWeeks_ShouldMatchSpreadsheet(int week, int expectedSets)
     {
-        var sets = LinearProgressionStrategy.GetSetsForWeek(week);
+        var sets = A2SHypertrophyProgram.GetSetsForWeek(week);
         sets.Should().Be(expectedSets, $"Week {week} should have {expectedSets} sets (hypertrophy always 4)");
     }
 
     [Fact]
     public void GetSetsForWeek_InvalidWeek_ShouldThrowException()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => LinearProgressionStrategy.GetSetsForWeek(0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => LinearProgressionStrategy.GetSetsForWeek(22));
+        Assert.Throws<ArgumentOutOfRangeException>(() => A2SHypertrophyProgram.GetSetsForWeek(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => A2SHypertrophyProgram.GetSetsForWeek(22));
     }
 
     #endregion

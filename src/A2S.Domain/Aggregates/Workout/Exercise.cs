@@ -233,7 +233,7 @@ public sealed class Exercise : Entity<ExerciseId>
             if (!linearStrategyAfter.TrainingMax.Equals(previousTm))
             {
                 var delta = performance.GetAmrapDelta();
-                var adjustment = CalculateAdjustmentFromDelta(delta);
+                var adjustment = AmrapDeltaTable.GetAdjustment(delta);
                 return new TrainingMaxAdjusted(
                     Progression.Id,
                     linearStrategyAfter.TrainingMax,
@@ -243,21 +243,6 @@ public sealed class Exercise : Entity<ExerciseId>
         }
 
         return null;
-    }
-
-    private static TrainingMaxAdjustment CalculateAdjustmentFromDelta(int delta)
-    {
-        return delta switch
-        {
-            >= 5 => TrainingMaxAdjustment.Percentage(0.03m),
-            4 => TrainingMaxAdjustment.Percentage(0.02m),
-            3 => TrainingMaxAdjustment.Percentage(0.015m),
-            2 => TrainingMaxAdjustment.Percentage(0.01m),
-            1 => TrainingMaxAdjustment.Percentage(0.005m),
-            0 => TrainingMaxAdjustment.None,
-            -1 => TrainingMaxAdjustment.Percentage(-0.02m),
-            _ => TrainingMaxAdjustment.Percentage(-0.05m)
-        };
     }
 
     /// <summary>
@@ -287,7 +272,6 @@ public sealed class Exercise : Entity<ExerciseId>
     {
         if (Progression is LinearProgressionStrategy linearStrategy)
         {
-            var previousTm = linearStrategy.TrainingMax;
             linearStrategy.UpdateTrainingMax(trainingMax, reason);
 
             return new TrainingMaxAdjusted(

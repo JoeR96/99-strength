@@ -527,6 +527,242 @@ namespace A2S.Infrastructure.Migrations
                                 .HasForeignKey("WorkoutId");
                         });
 
+                    b.OwnsMany("A2S.Domain.ValueObjects.WorkoutActivity", "ArchivedActivities", b1 =>
+                        {
+                            b1.Property<Guid>("WorkoutId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("BlockNumber")
+                                .HasColumnType("integer");
+
+                            b1.Property<DateTime>("CompletedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("Day")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("WeekNumber")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("WorkoutId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Workouts");
+
+                            b1.ToJson("ArchivedActivities");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WorkoutId");
+
+                            b1.OwnsMany("A2S.Domain.ValueObjects.ExercisePerformance", "Performances", b2 =>
+                                {
+                                    b2.Property<Guid>("WorkoutActivityWorkoutId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WorkoutActivity__synthesizedOrdinal")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<DateTime>("CompletedAt")
+                                        .HasColumnType("timestamp with time zone");
+
+                                    b2.Property<Guid>("ExerciseId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<bool>("SkipProgression")
+                                        .HasColumnType("boolean");
+
+                                    b2.HasKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                    b2.ToTable("Workouts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal");
+
+                                    b2.OwnsMany("A2S.Domain.ValueObjects.CompletedSet", "CompletedSets", b3 =>
+                                        {
+                                            b3.Property<Guid>("ExercisePerformanceWorkoutActivityWorkoutId")
+                                                .HasColumnType("uuid");
+
+                                            b3.Property<int>("ExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ExercisePerformance__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("__synthesizedOrdinal")
+                                                .ValueGeneratedOnAdd()
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ActualReps")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("SetNumber")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<bool>("WasAmrap")
+                                                .HasColumnType("boolean");
+
+                                            b3.HasKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                            b3.ToTable("Workouts");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal");
+
+                                            b3.OwnsOne("A2S.Domain.ValueObjects.Weight", "Weight", b4 =>
+                                                {
+                                                    b4.Property<Guid>("CompletedSetExercisePerformanceWorkoutActivityWorkoutId")
+                                                        .HasColumnType("uuid");
+
+                                                    b4.Property<int>("CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                        .HasColumnType("integer")
+                                                        .HasColumnName("CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrd~");
+
+                                                    b4.Property<int>("CompletedSetExercisePerformance__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<int>("CompletedSet__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<string>("Unit")
+                                                        .IsRequired()
+                                                        .HasColumnType("text");
+
+                                                    b4.Property<decimal>("Value")
+                                                        .HasColumnType("numeric");
+
+                                                    b4.HasKey("CompletedSetExercisePerformanceWorkoutActivityWorkoutId", "CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "CompletedSetExercisePerformance__synthesizedOrdinal", "CompletedSet__synthesizedOrdinal");
+
+                                                    b4.ToTable("Workouts");
+
+                                                    b4.WithOwner()
+                                                        .HasForeignKey("CompletedSetExercisePerformanceWorkoutActivityWorkoutId", "CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "CompletedSetExercisePerformance__synthesizedOrdinal", "CompletedSet__synthesizedOrdinal");
+                                                });
+
+                                            b3.Navigation("Weight")
+                                                .IsRequired();
+                                        });
+
+                                    b2.OwnsMany("A2S.Domain.ValueObjects.PlannedSet", "PlannedSets", b3 =>
+                                        {
+                                            b3.Property<Guid>("ExercisePerformanceWorkoutActivityWorkoutId")
+                                                .HasColumnType("uuid");
+
+                                            b3.Property<int>("ExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ExercisePerformance__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("__synthesizedOrdinal")
+                                                .ValueGeneratedOnAdd()
+                                                .HasColumnType("integer");
+
+                                            b3.Property<bool>("IsAmrap")
+                                                .HasColumnType("boolean");
+
+                                            b3.Property<int>("SetNumber")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("TargetReps")
+                                                .HasColumnType("integer");
+
+                                            b3.HasKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                            b3.ToTable("Workouts");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal");
+
+                                            b3.OwnsOne("A2S.Domain.ValueObjects.Weight", "Weight", b4 =>
+                                                {
+                                                    b4.Property<Guid>("PlannedSetExercisePerformanceWorkoutActivityWorkoutId")
+                                                        .HasColumnType("uuid");
+
+                                                    b4.Property<int>("PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                        .HasColumnType("integer")
+                                                        .HasColumnName("PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdin~");
+
+                                                    b4.Property<int>("PlannedSetExercisePerformance__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<int>("PlannedSet__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<string>("Unit")
+                                                        .IsRequired()
+                                                        .HasColumnType("text");
+
+                                                    b4.Property<decimal>("Value")
+                                                        .HasColumnType("numeric");
+
+                                                    b4.HasKey("PlannedSetExercisePerformanceWorkoutActivityWorkoutId", "PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "PlannedSetExercisePerformance__synthesizedOrdinal", "PlannedSet__synthesizedOrdinal");
+
+                                                    b4.ToTable("Workouts");
+
+                                                    b4.WithOwner()
+                                                        .HasForeignKey("PlannedSetExercisePerformanceWorkoutActivityWorkoutId", "PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "PlannedSetExercisePerformance__synthesizedOrdinal", "PlannedSet__synthesizedOrdinal");
+                                                });
+
+                                            b3.Navigation("Weight")
+                                                .IsRequired();
+                                        });
+
+                                    b2.Navigation("CompletedSets");
+
+                                    b2.Navigation("PlannedSets");
+                                });
+
+                            b1.OwnsMany("A2S.Domain.ValueObjects.ProgressionSnapshot", "ProgressionSnapshots", b2 =>
+                                {
+                                    b2.Property<Guid>("WorkoutActivityWorkoutId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WorkoutActivity__synthesizedOrdinal")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<Guid>("ExerciseId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<string>("ExerciseName")
+                                        .IsRequired()
+                                        .HasMaxLength(200)
+                                        .HasColumnType("character varying(200)");
+
+                                    b2.Property<string>("ProgressionStateJson")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("ProgressionType")
+                                        .IsRequired()
+                                        .HasMaxLength(50)
+                                        .HasColumnType("character varying(50)");
+
+                                    b2.HasKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                    b2.ToTable("Workouts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal");
+                                });
+
+                            b1.Navigation("Performances");
+
+                            b1.Navigation("ProgressionSnapshots");
+                        });
+
                     b.OwnsMany("A2S.Domain.ValueObjects.WorkoutActivity", "CompletedActivities", b1 =>
                         {
                             b1.Property<Guid>("WorkoutId")
@@ -762,6 +998,8 @@ namespace A2S.Infrastructure.Migrations
 
                             b1.Navigation("ProgressionSnapshots");
                         });
+
+                    b.Navigation("ArchivedActivities");
 
                     b.Navigation("AuditEntries");
 

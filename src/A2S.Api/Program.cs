@@ -55,19 +55,8 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-// Configure Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 8;
-
-    // User settings
-    options.User.RequireUniqueEmail = true;
-})
+// Configure Identity (required for IdentityDbContext schema — Clerk is the sole auth provider)
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 .AddEntityFrameworkStores<A2SDbContext>()
 .AddDefaultTokenProviders();
 

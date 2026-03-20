@@ -162,5 +162,58 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                 snap.Property(s => s.ProgressionStateJson);
             });
         });
+
+        // ArchivedActivities as owned complex type (JSON column)
+        // Stores historical activities from completed program cycles
+        builder.OwnsMany(w => w.ArchivedActivities, activity =>
+        {
+            activity.ToJson();
+            activity.Property(a => a.Day).HasConversion<string>();
+            activity.Property(a => a.WeekNumber);
+            activity.Property(a => a.BlockNumber);
+            activity.Property(a => a.CompletedAt);
+
+            activity.OwnsMany(a => a.Performances, perf =>
+            {
+                perf.Property(p => p.ExerciseId)
+                    .HasConversion(
+                        id => id.Value,
+                        value => new ExerciseId(value));
+                perf.Property(p => p.CompletedAt);
+                perf.OwnsMany(p => p.CompletedSets, set =>
+                {
+                    set.Property(s => s.SetNumber);
+                    set.Property(s => s.ActualReps);
+                    set.Property(s => s.WasAmrap);
+                    set.OwnsOne(s => s.Weight, w =>
+                    {
+                        w.Property(x => x.Value);
+                        w.Property(x => x.Unit).HasConversion<string>();
+                    });
+                });
+                perf.OwnsMany(p => p.PlannedSets, set =>
+                {
+                    set.Property(s => s.SetNumber);
+                    set.Property(s => s.TargetReps);
+                    set.Property(s => s.IsAmrap);
+                    set.OwnsOne(s => s.Weight, w =>
+                    {
+                        w.Property(x => x.Value);
+                        w.Property(x => x.Unit).HasConversion<string>();
+                    });
+                });
+            });
+
+            activity.OwnsMany(a => a.ProgressionSnapshots, snap =>
+            {
+                snap.Property(s => s.ExerciseId);
+                snap.Property(s => s.ExerciseName).HasMaxLength(200);
+                snap.Property(s => s.ProgressionType).HasMaxLength(50);
+                snap.Property(s => s.ProgressionStateJson);
+            });
+        });
+
+        builder.Navigation(w => w.ArchivedActivities)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

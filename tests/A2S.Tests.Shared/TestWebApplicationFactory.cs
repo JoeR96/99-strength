@@ -78,9 +78,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Jwt:Secret"] = TestJwtSecret,
-                ["Jwt:Issuer"] = TestJwtIssuer,
-                ["Jwt:Audience"] = TestJwtAudience,
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning" // Reduce logging noise in tests
             });

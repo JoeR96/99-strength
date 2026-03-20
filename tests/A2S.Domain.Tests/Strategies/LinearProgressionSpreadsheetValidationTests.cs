@@ -469,8 +469,8 @@ public class LinearProgressionSpreadsheetValidationTests
     /// it will be wrong for Smith Squat (5kg rounding).
     /// </summary>
     [Theory]
-    [InlineData(76.86, 0.60, 47.5, 45.0)]   // Deload: 2.5→47.5 vs 5→45.0 ← DIFFERENT
-    [InlineData(76.86, 0.73, 57.5, 55.0)]   // Week 10: 2.5→57.5 vs 5→55.0 ← DIFFERENT
+    [InlineData(76.86, 0.68, 52.5, 50.0)]   // Week 2: 2.5→52.5 vs 5→50.0 ← DIFFERENT
+    [InlineData(76.86, 0.82, 62.5, 65.0)]   // Week 19: 2.5→62.5 vs 5→65.0 ← DIFFERENT
     [InlineData(76.86, 0.76, 57.5, 60.0)]   // Week 13: 2.5→57.5 vs 5→60.0 ← DIFFERENT
     public void WorkingWeight_RoundingDiscrepancy_2_5kg_vs_5kg(
         double tmD, double intensityD, double ww2_5D, double ww5D)
