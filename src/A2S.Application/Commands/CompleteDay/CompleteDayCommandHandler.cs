@@ -82,8 +82,10 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                         $"Exercise {performanceRequest.ExerciseId} not found or not assigned to {request.Day}.");
                 }
 
-                // Get planned sets for this exercise
-                var plannedSets = exercise.CalculatePlannedSets(workout.CurrentWeek, workout.CurrentBlock).ToList();
+                // Get planned sets for this exercise (translate program week to template week)
+                var templateWeek = workout.GetTemplateWeek(workout.CurrentWeek);
+                var blockType = workout.GetBlockType(workout.CurrentWeek);
+                var plannedSets = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
 
                 // Convert request data to domain value objects
                 var completedSets = performanceRequest.CompletedSets

@@ -58,7 +58,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 request.Name,
                 request.Variant,
                 exercises,
-                request.TotalWeeks);
+                request.BlockSequence);
 
             // Start the workout immediately
             workout.Start();
@@ -144,6 +144,14 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
                 );
 
+                RepRange repRange = (exerciseRequest.RepRangeMinimum.HasValue
+                    && exerciseRequest.RepRangeTarget.HasValue
+                    && exerciseRequest.RepRangeMaximum.HasValue)
+                    ? RepRange.Create(exerciseRequest.RepRangeMinimum.Value,
+                                      exerciseRequest.RepRangeTarget.Value,
+                                      exerciseRequest.RepRangeMaximum.Value)
+                    : template.DefaultRepRange ?? RepRange.Common.Medium;
+
                 exercise = Exercise.CreateWithRepsPerSetProgression(
                     name: template.Name,
                     category: exerciseRequest.Category,
@@ -151,7 +159,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
                     hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
-                    repRange: template.DefaultRepRange ?? RepRange.Common.Medium,
+                    repRange: repRange,
                     startingWeight: weight,
                     startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
                     targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
@@ -180,7 +188,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
         const string OverheadPressHevyId = "7B8D84E8";
 
         // Create default main 4 lifts with Linear progression
-        ExerciseLibrary.ExerciseTemplate? squat = ExerciseLibrary.GetByName("Squat");
+        ExerciseLibrary.ExerciseTemplate? squat = ExerciseLibrary.GetByName("Squat (Barbell)");
         if (squat != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -196,7 +204,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? bench = ExerciseLibrary.GetByName("Bench Press");
+        ExerciseLibrary.ExerciseTemplate? bench = ExerciseLibrary.GetByName("Bench Press (Barbell)");
         if (bench != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -212,7 +220,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? deadlift = ExerciseLibrary.GetByName("Deadlift");
+        ExerciseLibrary.ExerciseTemplate? deadlift = ExerciseLibrary.GetByName("Deadlift (Barbell)");
         if (deadlift != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -228,7 +236,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? ohp = ExerciseLibrary.GetByName("Overhead Press");
+        ExerciseLibrary.ExerciseTemplate? ohp = ExerciseLibrary.GetByName("Overhead Press (Barbell)");
         if (ohp != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(

@@ -1,18 +1,25 @@
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
+using A2S.Application.Commands.RemoveExercise;
 using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.Commands.SetActiveWorkout;
 using A2S.Application.Commands.SetHevyFolderId;
 using A2S.Application.Commands.SetHevySyncedRoutine;
 using A2S.Application.Commands.SubstituteExercise;
+using A2S.Application.Commands.UndoCompletion;
 using A2S.Application.Commands.UpdateExercises;
+using A2S.Application.Commands.UpdateBlockSequence;
+using A2S.Application.Commands.RetrofixLinearTm;
+using A2S.Application.Commands.UpdateWorkingWeight;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetExerciseLibrary;
 using A2S.Application.Queries.GetWorkout;
 using A2S.Application.Queries.GetWorkoutHistory;
 using A2S.Application.Queries.GetExerciseHistory;
+using A2S.Application.Queries.GetWeekPlan;
 using A2S.Domain.Enums;
+using A2S.Domain.ValueObjects;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -526,7 +533,8 @@ public class WorkoutsController : ControllerBase
             exerciseId,
             request.NewExerciseName,
             request.NewHevyExerciseTemplateId,
-            request.Reason);
+            request.Reason,
+            request.NewProgressionConfig);
 
         var result = await _mediator.Send(command, cancellationToken);
 
@@ -545,6 +553,248 @@ public class WorkoutsController : ControllerBase
         _logger.LogInformation(
             "Substituted exercise '{OriginalName}' with '{NewName}' in workout {WorkoutId}",
             result.Value!.OriginalName, result.Value.NewName, id);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Removes an exercise from a workout.
+    /// </summary>
+    [HttpDelete("{id:guid}/exercises/{exerciseId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveExercise(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Removing exercise {ExerciseId} from workout {WorkoutId}", exerciseId, id);
+
+        var result = await _mediator.Send(
+            new RemoveExerciseCommand(id, exerciseId),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to remove exercise: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Updates the working weight for an accessory exercise (RepsPerSet or MinimalSets).
+    /// Linear progression exercises must use skip progression instead.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="exerciseId">The exercise ID to update</param>
+    /// <param name="request">The weight update request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>No content on success</returns>
+    [HttpPut("{id:guid}/exercises/{exerciseId:guid}/working-weight")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateWorkingWeight(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] UpdateWorkingWeightRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Updating working weight for exercise {ExerciseId} to {Weight}{Unit} in workout {WorkoutId}",
+            exerciseId, request.NewWeight, request.Unit, id);
+
+        var command = new UpdateWorkingWeightCommand(
+            id,
+            exerciseId,
+            request.NewWeight,
+            request.Unit,
+            request.Reason);
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to update working weight: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
+
+        _logger.LogInformation(
+            "Successfully updated working weight for exercise {ExerciseId} in workout {WorkoutId}",
+            exerciseId, id);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Retrofixes the Training Max history for a Linear progression exercise.
+    /// Recalculates TM values from the original starting TM using unrounded math,
+    /// correcting snapshots and the current TM.
+    /// </summary>
+    [HttpPost("{id:guid}/exercises/{exerciseId:guid}/retrofix-tm")]
+    [ProducesResponseType(typeof(List<RetrofixLinearTmResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RetrofixLinearTm(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] RetrofixLinearTmRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Retrofixing Linear TM history for exercise {ExerciseId} in workout {WorkoutId} from starting TM {StartingTm}",
+            exerciseId, id, request.OriginalStartingTm);
+
+        var command = new RetrofixLinearTmCommand(id, exerciseId, request.OriginalStartingTm);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to retrofix TM: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Updates the block sequence for a workout.
+    /// Recalculates total weeks and current block accordingly.
+    /// </summary>
+    [HttpPut("{id:guid}/block-sequence")]
+    [ProducesResponseType(typeof(UpdateBlockSequenceResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateBlockSequence(
+        [FromRoute] Guid id,
+        [FromBody] UpdateBlockSequenceRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateBlockSequenceCommand(id, request.BlockSequence);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error!.Contains("not found"))
+                return NotFound(new { error = result.Error });
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Undoes the last completed workout day, restoring progression state.
+    /// Only allows undoing the most recent completion.
+    /// </summary>
+    /// <param name="id">The workout ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating what was undone</returns>
+    [HttpPost("{id:guid}/undo-last-completion")]
+    [ProducesResponseType(typeof(UndoCompletionResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UndoLastCompletion(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new UndoCompletionCommand(id),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets the planned workout for a specific week and day.
+    /// Returns calculated working weights, sets, and reps based on domain progression strategies.
+    /// This is the authoritative source of truth - frontend should use this instead of calculating locally.
+    /// </summary>
+    /// <param name="id">Optional workout ID. If not provided, uses active workout.</param>
+    /// <param name="week">The week number (1-21)</param>
+    /// <param name="day">The day number (1-6)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The planned workout with exercises and sets</returns>
+    [HttpGet("weeks/{week:int}/days/{day:int}/plan")]
+    [ProducesResponseType(typeof(WeekPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetWeekPlan(
+        [FromQuery] Guid? id,
+        [FromRoute] int week,
+        [FromRoute] int day,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching week plan for week {Week}, day {Day}", week, day);
+
+        var result = await _mediator.Send(
+            new GetWeekPlanQuery(id, week, day),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to get week plan: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Gets the planned workout for a specific workout, week, and day.
+    /// Alternate route with workout ID in path.
+    /// </summary>
+    [HttpGet("{id:guid}/weeks/{week:int}/days/{day:int}/plan")]
+    [ProducesResponseType(typeof(WeekPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetWeekPlanById(
+        [FromRoute] Guid id,
+        [FromRoute] int week,
+        [FromRoute] int day,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching week plan for workout {WorkoutId}, week {Week}, day {Day}", id, week, day);
+
+        var result = await _mediator.Send(
+            new GetWeekPlanQuery(id, week, day),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to get week plan: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
 
         return Ok(result.Value);
     }
@@ -623,4 +873,47 @@ public sealed record SubstituteExerciseRequest
     /// Optional reason for the substitution.
     /// </summary>
     public string? Reason { get; init; }
+
+    /// <summary>
+    /// Optional new progression configuration.
+    /// When provided, the exercise's progression type will be changed.
+    /// </summary>
+    public ProgressionConfigDto? NewProgressionConfig { get; init; }
+}
+
+/// <summary>
+/// Request body for updating working weight.
+/// </summary>
+public sealed record UpdateWorkingWeightRequest
+{
+    /// <summary>
+    /// The new weight value.
+    /// </summary>
+    public required decimal NewWeight { get; init; }
+
+    /// <summary>
+    /// The weight unit (Kilograms or Pounds).
+    /// </summary>
+    public required WeightUnit Unit { get; init; }
+
+    /// <summary>
+    /// Optional reason for the weight update.
+    /// </summary>
+    public string? Reason { get; init; }
+}
+
+/// <summary>
+/// Request body for updating block sequence.
+/// </summary>
+public sealed record UpdateBlockSequenceRequest
+{
+    public required List<int> BlockSequence { get; init; }
+}
+
+/// <summary>
+/// Request body for retrofixing Linear TM history.
+/// </summary>
+public sealed record RetrofixLinearTmRequest
+{
+    public required decimal OriginalStartingTm { get; init; }
 }

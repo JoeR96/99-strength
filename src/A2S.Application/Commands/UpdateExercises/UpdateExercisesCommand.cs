@@ -40,6 +40,12 @@ public sealed record ExerciseUpdateRequest
     public WeightUnit? WeightUnit { get; init; }
 
     /// <summary>
+    /// Set whether the exercise is unilateral (performed one side at a time).
+    /// Only applicable for RepsPerSet progression exercises.
+    /// </summary>
+    public bool? IsUnilateral { get; init; }
+
+    /// <summary>
     /// Optional reason for the update (for audit purposes).
     /// </summary>
     public string? Reason { get; init; }

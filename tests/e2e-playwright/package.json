@@ -1,0 +1,12 @@
+{
+  "name": "a2s-e2e-playwright",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:21-week": "npx tsx run-21-week-cycle.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.58.0",
+    "tsx": "^4.0.0"
+  }
+}

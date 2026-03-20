@@ -264,6 +264,12 @@ public sealed class MinimalSetsStrategy : ExerciseProgression
     {
         CurrentSetCount = StartingSets;
     }
+
+    internal void RestoreState(decimal currentWeight, int currentSetCount, WeightUnit? weightUnit = null)
+    {
+        CurrentWeight = Weight.Create(currentWeight, weightUnit ?? CurrentWeight.Unit);
+        CurrentSetCount = currentSetCount;
+    }
 }
 
 /// <summary>

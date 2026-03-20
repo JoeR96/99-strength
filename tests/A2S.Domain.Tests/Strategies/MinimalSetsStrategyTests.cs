@@ -598,4 +598,110 @@ public class MinimalSetsStrategyTests
     }
 
     #endregion
+
+    #region Edge Cases
+
+    [Fact]
+    public void ApplyPerformanceResult_CompletedInOneLessSet_ReducesBy1()
+    {
+        // 4 sets target, complete in 3
+        // Verify reduction to 3 sets
+
+        // Arrange
+        var strategy = MinimalSetsStrategy.Create(
+            _assistedWeight,
+            targetTotalReps: 40,
+            startingSets: 4,
+            equipment: EquipmentType.Machine,
+            minimumSets: 2,
+            maximumSets: 8);
+
+        strategy.CurrentSetCount.Should().Be(4, "Should start at 4 sets");
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // Complete 40 reps in exactly 3 sets (one less than planned)
+        var completedSets = new List<CompletedSet>
+        {
+            new(1, plannedSets[0].Weight, 15, false),
+            new(2, plannedSets[1].Weight, 15, false),
+            new(3, plannedSets[2].Weight, 10, false)
+            // Total = 40 reps in 3 sets
+        };
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert
+        strategy.CurrentSetCount.Should().Be(3, "Should reduce to 3 sets when completed target in 3 (one less)");
+    }
+
+    [Fact]
+    public void ApplyPerformanceResult_ExceedsTargetRepsSignificantly_StillReducesByOnly1()
+    {
+        // Target 40 reps in 4 sets
+        // Complete 50 reps in 2 sets
+        // Verify only reduces to 3 sets (not 2)
+
+        // Arrange
+        var strategy = MinimalSetsStrategy.Create(
+            _assistedWeight,
+            targetTotalReps: 40,
+            startingSets: 4,
+            equipment: EquipmentType.Machine,
+            minimumSets: 2,
+            maximumSets: 8);
+
+        strategy.CurrentSetCount.Should().Be(4, "Should start at 4 sets");
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // Complete 50 reps in only 2 sets (significantly better than target)
+        var completedSets = new List<CompletedSet>
+        {
+            new(1, plannedSets[0].Weight, 25, false),
+            new(2, plannedSets[1].Weight, 25, false)
+            // Total = 50 reps in 2 sets (way better than 40 in 4)
+        };
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert - Even with 50 reps in 2 sets, only reduce by 1 (to 3)
+        strategy.CurrentSetCount.Should().Be(3,
+            "Should only reduce by 1 set at a time, even with significantly better performance");
+    }
+
+    [Fact]
+    public void UpdateWeight_ReducesAssistance_DoesNotAffectSets()
+    {
+        // Change weight from 32kg to 28kg assistance
+        // Verify set count unchanged
+
+        // Arrange
+        var strategy = MinimalSetsStrategy.Create(
+            _assistedWeight, // 32kg
+            targetTotalReps: 40,
+            startingSets: 4,
+            equipment: EquipmentType.Machine,
+            minimumSets: 2,
+            maximumSets: 8);
+
+        strategy.CurrentSetCount.Should().Be(4, "Should start at 4 sets");
+
+        var newWeight = Weight.Create(28m, WeightUnit.Kilograms); // Reduced assistance
+
+        // Act
+        strategy.UpdateWeight(newWeight);
+
+        // Assert
+        strategy.CurrentWeight.Value.Should().Be(28m, "Weight should be updated to 28kg");
+        strategy.CurrentSetCount.Should().Be(4, "Set count should remain unchanged after weight update");
+    }
+
+    #endregion
 }

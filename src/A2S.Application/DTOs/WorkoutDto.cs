@@ -45,6 +45,11 @@ public sealed record WorkoutDto
     /// <summary>
     /// Hevy routine folder ID for organizing routines.
     /// </summary>
+    /// <summary>
+    /// The block sequence defining block types and order (e.g., [1,2,3] or [1,1,2,3]).
+    /// </summary>
+    public IReadOnlyList<int> BlockSequence { get; init; } = new List<int> { 1, 2, 3 };
+
     public string? HevyRoutineFolderId { get; init; }
 
     /// <summary>
@@ -74,6 +79,7 @@ public sealed record WorkoutSummaryDto
     public DateTime? CompletedAt { get; init; }
     public int ExerciseCount { get; init; }
     public bool IsActive { get; init; }
+    public IReadOnlyList<int> BlockSequence { get; init; } = new List<int> { 1, 2, 3 };
 }
 
 /// <summary>
@@ -133,6 +139,7 @@ public sealed record TrainingMaxDto
 public sealed record RepsPerSetProgressionDto : ExerciseProgressionDto
 {
     public RepRangeDto RepRange { get; init; } = null!;
+    public int StartingSets { get; init; }
     public int CurrentSetCount { get; init; }
     public int TargetSets { get; init; }
     public decimal CurrentWeight { get; init; }

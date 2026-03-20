@@ -54,27 +54,36 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
 
     /// <summary>
     /// Calculates planned sets for a given week and block.
-    /// Intensity, sets, and reps are taken directly from the A2S spreadsheet.
+    /// Intensity, sets, and reps are taken directly from the A2S Hypertrophy spreadsheet.
+    /// Normal sets use RepsPerSet; the last (AMRAP) set uses the Rep-out Target
+    /// so that delta = actualReps - repOutTarget is calculated correctly.
     /// </summary>
     public override IEnumerable<PlannedSet> CalculatePlannedSets(int weekNumber, int blockNumber)
     {
         CheckRule(weekNumber >= 1 && weekNumber <= 21, "Week number must be between 1 and 21");
         CheckRule(blockNumber >= 1 && blockNumber <= 3, "Block number must be between 1 and 3");
 
-        var intensity = GetIntensityPercentage(weekNumber, blockNumber);
-        var targetReps = GetTargetReps(weekNumber, blockNumber);
-        var setsForWeek = GetSetsForWeek(weekNumber);
-        var workingWeight = TrainingMax.CalculateWorkingWeight(intensity);
+        var weekData = WeeklyProgram[weekNumber];
+        var workingWeight = TrainingMax.CalculateWorkingWeight(weekData.Intensity);
+        var setsForWeek = weekData.Sets;
 
         var sets = new List<PlannedSet>();
         for (int i = 1; i <= setsForWeek; i++)
         {
-            bool isAmrap = UseAmrap && i == setsForWeek;
-            sets.Add(new PlannedSet(i, workingWeight, targetReps, isAmrap));
+            bool isAmrap = UseAmrap && i == setsForWeek && !IsDeloadWeek(weekNumber);
+            // AMRAP set uses RepOutTarget for correct delta calculation;
+            // normal sets and deload sets use RepsPerSet.
+            var reps = (isAmrap && weekData.RepOutTarget.HasValue)
+                ? weekData.RepOutTarget.Value
+                : weekData.RepsPerSet;
+            sets.Add(new PlannedSet(i, workingWeight, reps, isAmrap));
         }
 
         return sets;
     }
+
+    private static bool IsDeloadWeek(int weekNumber)
+        => weekNumber == 7 || weekNumber == 14 || weekNumber == 21;
 
     /// <summary>
     /// Applies performance results and adjusts Training Max based on AMRAP performance.
@@ -162,90 +171,60 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     }
 
     /// <summary>
-    /// Week-by-week programming data matching the A2S 2024-2025 spreadsheet exactly.
-    /// Format: (Intensity%, Sets, TargetReps)
+    /// Week-by-week programming data matching the A2S2 Hypertrophy spreadsheet exactly.
+    /// Format: (Intensity%, Sets, RepsPerSet, RepOutTarget)
     /// </summary>
     /// <remarks>
-    /// Source: A2S 2024-2025 - Program (1).csv, Smith Squat row (line 22)
+    /// Source: A2S2 Hypertrophy spreadsheet (validated against A2S2_Validation_Data.md)
     ///
-    /// BLOCK 1 (Weeks 1-7): Volume accumulation phase
-    /// - 3-week mini-cycles: 75→85→90%, then 80→85→90%
-    /// - Week 7: Deload at 65%
+    /// Hypertrophy uses 6 intensity levels: a=0.65, b=0.68, c=0.70, d=0.73, e=0.76, f=0.79
+    /// mapped to 6 rep levels: 12, 11, 10, 9, 8, 7.
+    /// Rep-out target = RepsPerSet + 2 (except week 1 which is +3).
+    /// Always 4 sets. Deload weeks at 60% intensity, 5 reps, no AMRAP.
     ///
-    /// BLOCK 2 (Weeks 8-14): Intensity building phase
-    /// - 3-week mini-cycles: 85→90→95%, then 85→90→95%
-    /// - Week 14: Deload at 65%
-    ///
-    /// BLOCK 3 (Weeks 15-21): Peak/realization phase
-    /// - 3-week mini-cycles: 90→95→100%, then 95→100→105%
-    /// - Week 21: Deload at 65%
+    /// Block structure (3-week mini-cycles, overlapping):
+    ///   Block 1: MC1(a,b,c) MC2(b,c,d) Deload
+    ///   Block 2: MC1(b,c,d) MC2(c,d,e) Deload
+    ///   Block 3: MC1(c,d,e) MC2(d,e,f) Deload
     /// </remarks>
-    private static readonly (decimal Intensity, int Sets, int Reps)[] WeeklyProgram = new[]
+    private record struct WeekData(decimal Intensity, int Sets, int RepsPerSet, int? RepOutTarget);
+
+    private static readonly WeekData[] WeeklyProgram = new[]
     {
         // Week 0 placeholder (1-indexed access)
-        (0.00m, 0, 0),
+        new WeekData(0.00m, 0, 0, null),
 
         // BLOCK 1: Weeks 1-7
-        (0.75m, 5, 10),  // Week 1
-        (0.85m, 4, 8),   // Week 2
-        (0.90m, 3, 6),   // Week 3
-        (0.80m, 5, 9),   // Week 4
-        (0.85m, 4, 7),   // Week 5
-        (0.90m, 3, 5),   // Week 6
-        (0.65m, 5, 10),  // Week 7 - DELOAD (reps n/a in spreadsheet, using base)
+        new WeekData(0.65m, 4, 12, 15),  // Week 1
+        new WeekData(0.68m, 4, 11, 13),  // Week 2
+        new WeekData(0.70m, 4, 10, 12),  // Week 3
+        new WeekData(0.68m, 4, 11, 13),  // Week 4
+        new WeekData(0.70m, 4, 10, 12),  // Week 5
+        new WeekData(0.73m, 4,  9, 11),  // Week 6
+        new WeekData(0.60m, 4,  5, null), // Week 7 - DELOAD (no AMRAP)
 
         // BLOCK 2: Weeks 8-14
-        (0.85m, 4, 8),   // Week 8
-        (0.90m, 3, 6),   // Week 9
-        (0.95m, 2, 4),   // Week 10
-        (0.85m, 4, 7),   // Week 11
-        (0.90m, 3, 5),   // Week 12
-        (0.95m, 2, 3),   // Week 13
-        (0.65m, 5, 10),  // Week 14 - DELOAD
+        new WeekData(0.68m, 4, 11, 13),  // Week 8
+        new WeekData(0.70m, 4, 10, 12),  // Week 9
+        new WeekData(0.73m, 4,  9, 11),  // Week 10
+        new WeekData(0.70m, 4, 10, 12),  // Week 11
+        new WeekData(0.73m, 4,  9, 11),  // Week 12
+        new WeekData(0.76m, 4,  8, 10),  // Week 13
+        new WeekData(0.60m, 4,  5, null), // Week 14 - DELOAD
 
         // BLOCK 3: Weeks 15-21
-        (0.90m, 3, 6),   // Week 15
-        (0.95m, 2, 4),   // Week 16
-        (1.00m, 1, 2),   // Week 17
-        (0.95m, 2, 4),   // Week 18
-        (1.00m, 1, 2),   // Week 19
-        (1.05m, 1, 2),   // Week 20
-        (0.65m, 5, 10),  // Week 21 - DELOAD (final week)
+        new WeekData(0.70m, 4, 10, 12),  // Week 15
+        new WeekData(0.73m, 4,  9, 11),  // Week 16
+        new WeekData(0.76m, 4,  8, 10),  // Week 17
+        new WeekData(0.73m, 4,  9, 11),  // Week 18
+        new WeekData(0.76m, 4,  8, 10),  // Week 19
+        new WeekData(0.79m, 4,  7,  9),  // Week 20
+        new WeekData(0.60m, 4,  5, null), // Week 21 - DELOAD (final week)
     };
 
     /// <summary>
-    /// Gets intensity percentage based on week number.
-    /// Uses exact values from the A2S spreadsheet.
-    /// </summary>
-    private static decimal GetIntensityPercentage(int weekNumber, int blockNumber)
-    {
-        if (weekNumber < 1 || weekNumber > 21)
-        {
-            throw new ArgumentOutOfRangeException(nameof(weekNumber),
-                $"Week number must be between 1 and 21, got {weekNumber}");
-        }
-
-        return WeeklyProgram[weekNumber].Intensity;
-    }
-
-    /// <summary>
-    /// Gets target reps based on week number.
-    /// Uses exact values from the A2S spreadsheet.
-    /// </summary>
-    private static int GetTargetReps(int weekNumber, int blockNumber)
-    {
-        if (weekNumber < 1 || weekNumber > 21)
-        {
-            throw new ArgumentOutOfRangeException(nameof(weekNumber),
-                $"Week number must be between 1 and 21, got {weekNumber}");
-        }
-
-        return WeeklyProgram[weekNumber].Reps;
-    }
-
-    /// <summary>
     /// Gets the number of sets for a given week.
-    /// Uses exact values from the A2S spreadsheet.
+    /// In hypertrophy, always 4.
     /// </summary>
     public static int GetSetsForWeek(int weekNumber)
     {
@@ -259,6 +238,49 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     }
 
     /// <summary>
+    /// Gets the rep-out target (AMRAP baseline) for a given week.
+    /// Returns null for deload weeks.
+    /// </summary>
+    public static int? GetRepOutTarget(int weekNumber)
+    {
+        if (weekNumber < 1 || weekNumber > 21)
+        {
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
+        }
+
+        return WeeklyProgram[weekNumber].RepOutTarget;
+    }
+
+    /// <summary>
+    /// Gets the reps per set (for normal sets) for a given week.
+    /// </summary>
+    public static int GetRepsPerSet(int weekNumber)
+    {
+        if (weekNumber < 1 || weekNumber > 21)
+        {
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
+        }
+
+        return WeeklyProgram[weekNumber].RepsPerSet;
+    }
+
+    /// <summary>
+    /// Gets the intensity percentage for a given week.
+    /// </summary>
+    public static decimal GetIntensity(int weekNumber)
+    {
+        if (weekNumber < 1 || weekNumber > 21)
+        {
+            throw new ArgumentOutOfRangeException(nameof(weekNumber),
+                $"Week number must be between 1 and 21, got {weekNumber}");
+        }
+
+        return WeeklyProgram[weekNumber].Intensity;
+    }
+
+    /// <summary>
     /// Updates the Training Max to a new value.
     /// Used for manual TM adjustments by the user.
     /// </summary>
@@ -269,5 +291,10 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
 
         // Note: Domain events are raised by the Workout aggregate root, not by child entities
         // The Exercise/Workout will handle raising the TrainingMaxAdjusted event
+    }
+
+    internal void RestoreState(TrainingMax trainingMax)
+    {
+        TrainingMax = trainingMax;
     }
 }

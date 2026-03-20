@@ -187,7 +187,8 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
     /// 4. Verifies week auto-progresses after completing all 4 days
     /// 5. Verifies completion summary shows progression feedback
     /// </summary>
-    [Fact(Skip = "Long-running test - run manually: dotnet test --filter Complete21WeekCycle")]
+    [Fact(Skip = "Long-running test (~30min) - enable in nightly CI or run manually: dotnet test --filter Complete21WeekCycle")]
+    [Trait("Category", "LongRunning")]
     public async Task Complete21WeekCycle_ViaUI_84Workouts_AssertWeekAndDayProgression()
     {
         // Arrange - Delete any existing workouts
@@ -251,6 +252,17 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
                 {
                     await AssertCurrentWeekAndDayAsync(page, expectedWeek + 1, 1,
                         $"After completing Week {expectedWeek}, should be on Week {expectedWeek + 1} Day 1");
+                }
+                else
+                {
+                    // Final week completed - program should be marked as complete
+                    // The workout status is now Completed, so the dashboard shows "No Active Workout"
+                    await page.GotoAsync($"{FrontendUrl}/workout");
+                    await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                    var noWorkoutMessage = page.Locator("h2:has-text('No Active Workout')").First;
+                    var programCompleted = await noWorkoutMessage.IsVisibleAsync();
+                    programCompleted.Should().BeTrue("After completing all 21 weeks, program should be marked as complete");
+                    Console.WriteLine("  ✓ Program correctly marked as complete after Week 21");
                 }
             }
 
@@ -435,6 +447,230 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
         }
     }
 
+    /// <summary>
+    /// Tests that a workout with a repeated block sequence [1,1,2,3] correctly uses Block 1
+    /// parameters for weeks 8-14 (the second Block 1) while maintaining progression state
+    /// from the first Block 1.
+    ///
+    /// This validates the core block sequence translation logic:
+    /// - Program weeks 1-7: Block 1 (template weeks 1-7)
+    /// - Program weeks 8-14: Block 1 again (template weeks 1-7, same intensities)
+    /// - Program weeks 15-21: Block 2 (template weeks 8-14)
+    /// - Program weeks 22-28: Block 3 (template weeks 15-21)
+    /// </summary>
+    [Fact]
+    public async Task BlockRepeatSequence_ViaAPI_UsesBlock1ParametersForRepeatedBlock()
+    {
+        // Arrange - Delete any existing workouts
+        await DeleteAllWorkoutsAsync();
+
+        var page = await LoginAndNavigateToDashboardAsync();
+
+        try
+        {
+            // Create a workout with block sequence [1,1,2,3] via UI wizard
+            await CreateTestWorkoutProgramAsync(page);
+
+            // Get the workout via API and update its block sequence
+            var workoutJson = await GetCurrentWorkoutViaApiAsync(page);
+            workoutJson.Should().NotBeNull("Should have an active workout");
+
+            var workoutId = workoutJson!.Value.GetProperty("id").GetString()!;
+            var originalTotalWeeks = workoutJson.Value.GetProperty("totalWeeks").GetInt32();
+            originalTotalWeeks.Should().Be(21, "Default sequence [1,2,3] should have 21 weeks");
+
+            // Update block sequence to [1,1,2,3] = 28 weeks
+            var updateResult = await UpdateBlockSequenceViaApiAsync(page, workoutId, new[] { 1, 1, 2, 3 });
+            updateResult.Should().NotBeNull("Block sequence update should succeed");
+
+            var newTotalWeeks = updateResult!.Value.GetProperty("totalWeeks").GetInt32();
+            newTotalWeeks.Should().Be(28, "Sequence [1,1,2,3] should have 28 weeks");
+
+            var newBlockSequence = updateResult.Value.GetProperty("blockSequence");
+            newBlockSequence.GetArrayLength().Should().Be(4, "Should have 4 blocks");
+
+            Console.WriteLine($"Block sequence updated: totalWeeks={newTotalWeeks}");
+
+            // Validate week plan parameters for weeks in the first Block 1 (weeks 1-7)
+            // and second Block 1 (weeks 8-14) - they should have the same intensity/sets/reps
+            Console.WriteLine("\n=== Validating Block 1 (first) vs Block 1 (repeat) week plans ===");
+
+            for (int weekInBlock = 1; weekInBlock <= 7; weekInBlock++)
+            {
+                var firstBlockWeek = weekInBlock;           // Week 1-7 (first Block 1)
+                var secondBlockWeek = weekInBlock + 7;      // Week 8-14 (repeated Block 1)
+
+                var plan1 = await GetWeekPlanViaApiAsync(page, workoutId, firstBlockWeek, day: 1);
+                var plan2 = await GetWeekPlanViaApiAsync(page, workoutId, secondBlockWeek, day: 1);
+
+                plan1.Should().NotBeNull($"Week plan for week {firstBlockWeek} should exist");
+                plan2.Should().NotBeNull($"Week plan for week {secondBlockWeek} should exist");
+
+                var intensity1 = plan1!.Value.GetProperty("intensityPercentage").GetDecimal();
+                var intensity2 = plan2!.Value.GetProperty("intensityPercentage").GetDecimal();
+
+                var isDeload1 = plan1.Value.GetProperty("isDeloadWeek").GetBoolean();
+                var isDeload2 = plan2.Value.GetProperty("isDeloadWeek").GetBoolean();
+
+                var block1 = plan1.Value.GetProperty("blockNumber").GetInt32();
+                var block2 = plan2.Value.GetProperty("blockNumber").GetInt32();
+
+                // Both should report block type 1
+                block1.Should().Be(1, $"Week {firstBlockWeek} should be Block 1");
+                block2.Should().Be(1, $"Week {secondBlockWeek} should also be Block 1");
+
+                // Both should have the same intensity percentage
+                intensity2.Should().Be(intensity1,
+                    $"Week {secondBlockWeek} (repeated Block 1, week-in-block {weekInBlock}) should have same intensity as Week {firstBlockWeek}: {intensity1}%");
+
+                // Both should have the same deload status
+                isDeload2.Should().Be(isDeload1,
+                    $"Week {secondBlockWeek} deload status should match Week {firstBlockWeek}");
+
+                // Compare exercise-level set counts and target reps (first exercise only = Linear)
+                var exercises1 = plan1.Value.GetProperty("exercises");
+                var exercises2 = plan2.Value.GetProperty("exercises");
+
+                if (exercises1.GetArrayLength() > 0 && exercises2.GetArrayLength() > 0)
+                {
+                    var ex1Sets = exercises1[0].GetProperty("plannedSets").GetArrayLength();
+                    var ex2Sets = exercises2[0].GetProperty("plannedSets").GetArrayLength();
+                    ex2Sets.Should().Be(ex1Sets,
+                        $"Week {secondBlockWeek} exercise set count should match Week {firstBlockWeek}");
+
+                    var ex1Reps = exercises1[0].GetProperty("plannedSets")[0].GetProperty("targetReps").GetInt32();
+                    var ex2Reps = exercises2[0].GetProperty("plannedSets")[0].GetProperty("targetReps").GetInt32();
+                    ex2Reps.Should().Be(ex1Reps,
+                        $"Week {secondBlockWeek} exercise target reps should match Week {firstBlockWeek}");
+                }
+
+                Console.WriteLine($"  ✓ Week {firstBlockWeek} vs Week {secondBlockWeek}: intensity={intensity1}%, deload={isDeload1}, block={block1}");
+            }
+
+            // Validate that weeks 15-21 use Block 2 parameters (intensity starts at 85%)
+            Console.WriteLine("\n=== Validating Block 2 (weeks 15-21) ===");
+            var block2Week1Plan = await GetWeekPlanViaApiAsync(page, workoutId, 15, day: 1);
+            block2Week1Plan.Should().NotBeNull("Week 15 plan should exist");
+            var block2Type = block2Week1Plan!.Value.GetProperty("blockNumber").GetInt32();
+            block2Type.Should().Be(2, "Week 15 should be Block 2");
+            var block2Intensity = block2Week1Plan.Value.GetProperty("intensityPercentage").GetDecimal();
+            block2Intensity.Should().Be(85m, "Block 2 week 1 should have 85% intensity");
+            Console.WriteLine($"  ✓ Week 15: block={block2Type}, intensity={block2Intensity}%");
+
+            // Validate that weeks 22-28 use Block 3 parameters (intensity starts at 90%)
+            Console.WriteLine("\n=== Validating Block 3 (weeks 22-28) ===");
+            var block3Week1Plan = await GetWeekPlanViaApiAsync(page, workoutId, 22, day: 1);
+            block3Week1Plan.Should().NotBeNull("Week 22 plan should exist");
+            var block3Type = block3Week1Plan!.Value.GetProperty("blockNumber").GetInt32();
+            block3Type.Should().Be(3, "Week 22 should be Block 3");
+            var block3Intensity = block3Week1Plan.Value.GetProperty("intensityPercentage").GetDecimal();
+            block3Intensity.Should().Be(90m, "Block 3 week 1 should have 90% intensity");
+            Console.WriteLine($"  ✓ Week 22: block={block3Type}, intensity={block3Intensity}%");
+
+            Console.WriteLine("\n=== Block Repeat Sequence validation complete ===");
+        }
+        finally
+        {
+            await page.CloseAsync();
+        }
+    }
+
+    #region API Helper Methods
+
+    /// <summary>
+    /// Gets the current workout via API using Clerk auth token from the browser.
+    /// </summary>
+    private async Task<System.Text.Json.JsonElement?> GetCurrentWorkoutViaApiAsync(IPage page)
+    {
+        var jsonString = await page.EvaluateAsync<string>($@"async () => {{
+            const clerk = window.Clerk;
+            if (!clerk) return JSON.stringify({{ error: 'Clerk not available' }});
+            const token = await clerk.session?.getToken();
+            if (!token) return JSON.stringify({{ error: 'No auth token' }});
+            const response = await fetch('{ApiBaseUrl}/api/v1/workouts/current', {{
+                headers: {{ 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }}
+            }});
+            if (!response.ok) return JSON.stringify({{ error: response.status }});
+            return JSON.stringify(await response.json());
+        }}");
+
+        if (string.IsNullOrEmpty(jsonString))
+            return null;
+
+        var json = System.Text.Json.JsonDocument.Parse(jsonString);
+        if (json.RootElement.TryGetProperty("error", out _))
+            return null;
+
+        return json.RootElement;
+    }
+
+    /// <summary>
+    /// Updates the block sequence for a workout via API.
+    /// </summary>
+    private async Task<System.Text.Json.JsonElement?> UpdateBlockSequenceViaApiAsync(IPage page, string workoutId, int[] blockSequence)
+    {
+        var sequenceJson = System.Text.Json.JsonSerializer.Serialize(blockSequence);
+
+        var jsonString = await page.EvaluateAsync<string>($@"async () => {{
+            const clerk = window.Clerk;
+            if (!clerk) return JSON.stringify({{ error: 'Clerk not available' }});
+            const token = await clerk.session?.getToken();
+            if (!token) return JSON.stringify({{ error: 'No auth token' }});
+            const response = await fetch('{ApiBaseUrl}/api/v1/workouts/{workoutId}/block-sequence', {{
+                method: 'PUT',
+                headers: {{
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }},
+                body: JSON.stringify({{ blockSequence: {sequenceJson} }})
+            }});
+            if (!response.ok) return JSON.stringify({{ error: response.status, body: await response.text() }});
+            return JSON.stringify(await response.json());
+        }}");
+
+        if (string.IsNullOrEmpty(jsonString))
+            return null;
+
+        var json = System.Text.Json.JsonDocument.Parse(jsonString);
+        if (json.RootElement.TryGetProperty("error", out _))
+        {
+            Console.WriteLine($"  Block sequence update failed: {jsonString}");
+            return null;
+        }
+
+        return json.RootElement;
+    }
+
+    /// <summary>
+    /// Gets the week plan for a specific week and day via API.
+    /// </summary>
+    private async Task<System.Text.Json.JsonElement?> GetWeekPlanViaApiAsync(IPage page, string workoutId, int week, int day)
+    {
+        var jsonString = await page.EvaluateAsync<string>($@"async () => {{
+            const clerk = window.Clerk;
+            if (!clerk) return JSON.stringify({{ error: 'Clerk not available' }});
+            const token = await clerk.session?.getToken();
+            if (!token) return JSON.stringify({{ error: 'No auth token' }});
+            const response = await fetch('{ApiBaseUrl}/api/v1/workouts/weeks/{week}/days/{day}/plan?id={workoutId}', {{
+                headers: {{ 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }}
+            }});
+            if (!response.ok) return JSON.stringify({{ error: response.status }});
+            return JSON.stringify(await response.json());
+        }}");
+
+        if (string.IsNullOrEmpty(jsonString))
+            return null;
+
+        var json = System.Text.Json.JsonDocument.Parse(jsonString);
+        if (json.RootElement.TryGetProperty("error", out _))
+            return null;
+
+        return json.RootElement;
+    }
+
+    #endregion
+
     #region Helper Methods
 
     /// <summary>
@@ -568,9 +804,10 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
     /// Completes a single workout day through the UI with varied performance.
     /// Returns list of outcome strings for tracking.
     /// </summary>
-    private async Task<List<string>> CompleteWorkoutDayViaUIAsync(IPage page, int day, int week)
+    private async Task<List<string>> CompleteWorkoutDayViaUIAsync(IPage page, int day, int week, int totalWeeks = TotalWeeks)
     {
         var outcomes = new List<string>();
+        bool isFinalDay = (week == totalWeeks && day == DaysPerWeek);
 
         // Navigate to workout page
         await page.GotoAsync($"{FrontendUrl}/workout");
@@ -610,9 +847,18 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
         await completeButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
         await completeButton.ClickAsync();
 
-        // Wait for completion summary
+        // Wait for completion summary - use longer timeout for final day (backend does more processing)
+        var completionTimeout = isFinalDay ? 45000 : 15000;
         var completionTitle = page.Locator("[data-testid='completion-title']").First;
-        await completionTitle.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 15000 });
+        await completionTitle.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = completionTimeout });
+
+        // Check if program completed
+        var programCompleteNotice = page.Locator("[data-testid='program-complete-notice']").First;
+        var isProgramComplete = await programCompleteNotice.IsVisibleAsync();
+        if (isProgramComplete)
+        {
+            Console.WriteLine($"    ★ PROGRAM COMPLETE after Week {week} Day {day}!");
+        }
 
         // Collect the progression outcomes
         var outcomeLabels = page.Locator("[data-testid^='outcome-label-']");
@@ -636,8 +882,10 @@ public class Complete21WeekCycleE2ETests : E2ETestBase
         var continueButton = page.Locator("[data-testid='continue-button']").First;
         await continueButton.ClickAsync();
 
-        // Wait for navigation back to workout page
-        await page.WaitForURLAsync(url => url.Contains("/workout") && !url.Contains("/session"), new() { Timeout = 10000 });
+        // Wait for navigation back to workout page (or dashboard if program completed)
+        await page.WaitForURLAsync(
+            url => (url.Contains("/workout") && !url.Contains("/session")) || url.Contains("/dashboard"),
+            new() { Timeout = 10000 });
 
         return outcomes;
     }

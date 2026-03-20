@@ -3,10 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useHevy } from "@/contexts/HevyContext";
-import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy } from "@/services/hevySyncService";
+import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy, getOrCreateRoutineFolder } from "@/services/hevySyncService";
+import { workoutsApi } from "@/api/workouts";
 import toast from "react-hot-toast";
-import { WeightUnit, type WorkoutDto, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { WeightUnit, type WorkoutDto, type ExerciseDto, type ExerciseTemplate, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
 import { EditExercisesModal } from "./EditExercisesModal";
+import { ExerciseSubstitutionConfigModal, type ProgressionConfig, type LinearConfig, type RepsPerSetConfig, type MinimalSetsConfig } from "./ExerciseSubstitutionConfigModal";
+import { useSubstituteExercise, useUpdateExercises, useUndoCompletion } from "@/hooks/useWorkouts";
+import { hevyApi } from "@/services/hevyApi";
+import { UndoConfirmationModal } from "@/components/shared/UndoConfirmationModal";
 
 interface WeekOverviewProps {
   workout: WorkoutDto;
@@ -36,13 +41,21 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const { isConfigured, isValid } = useHevy();
   const [isSyncingWeek, setIsSyncingWeek] = useState(false);
   const [editingDay, setEditingDay] = useState<number | null>(null);
+  const [exerciseToSubstitute, setExerciseToSubstitute] = useState<ExerciseDto | null>(null);
   const navigate = useNavigate();
+  const substituteExerciseMutation = useSubstituteExercise();
+  const updateExercisesMutation = useUpdateExercises();
+  const undoCompletionMutation = useUndoCompletion();
+  const [showUndoModal, setShowUndoModal] = useState(false);
 
   // Get already synced days from the workout data (persisted in DB)
   const persistedSyncedDays = useMemo(() => getSyncedDaysForCurrentWeek(workout), [workout]);
 
   // Track additional syncs from this session (will be merged with persisted)
   const [sessionSyncedDays, setSessionSyncedDays] = useState<Set<number>>(new Set());
+
+  // Track sync timestamps for this session (day -> timestamp)
+  const [syncTimestamps, setSyncTimestamps] = useState<Record<number, Date>>({});
 
   // Combine persisted and session synced days
   const syncedDays = useMemo(() => {
@@ -84,8 +97,12 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
       const result = await syncWorkoutToHevy(workout);
       if (result.success) {
         toast.success(result.message);
-        // Mark all days as synced in this session
+        // Mark all days as synced in this session with timestamps
+        const now = new Date();
         setSessionSyncedDays(new Set(days));
+        const timestamps: Record<number, Date> = {};
+        days.forEach(d => { timestamps[d] = now; });
+        setSyncTimestamps(prev => ({ ...prev, ...timestamps }));
         // Trigger refetch to update workout with new hevySyncedRoutines
         onWorkoutUpdated?.();
       } else {
@@ -106,10 +123,27 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
     }
 
     try {
-      const result = await syncDayAsRoutine(workout, dayNumber);
+      // Ensure the routine folder exists before syncing the day
+      let folderId = workout.hevyRoutineFolderId;
+      if (!folderId) {
+        const folderResult = await getOrCreateRoutineFolder(workout.name);
+        if (folderResult) {
+          folderId = folderResult.folderId;
+          // Persist folder ID to workout in database
+          try {
+            await workoutsApi.setHevyFolderId(workout.id, folderId);
+          } catch (err) {
+            console.error('Failed to save folder ID:', err);
+            // Continue anyway - folder was created in Hevy
+          }
+        }
+      }
+
+      const result = await syncDayAsRoutine(workout, dayNumber, folderId);
       if (result.success) {
         toast.success(result.message);
         setSessionSyncedDays(prev => new Set([...prev, dayNumber]));
+        setSyncTimestamps(prev => ({ ...prev, [dayNumber]: new Date() }));
         // Trigger refetch to update workout with new hevySyncedRoutines
         onWorkoutUpdated?.();
       } else {
@@ -126,21 +160,170 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
       toast.loading('Pulling workout from Hevy...', { id: 'pull-workout' });
       const result = await pullWorkoutFromHevy(workout, dayNumber);
 
-      if (result.success && (result.exercises || result.substitutions)) {
-        toast.success(result.message, { id: 'pull-workout' });
-        // Navigate to workout session with pulled data and substitutions
-        navigate(`/workout/session/${dayNumber}`, {
-          state: {
-            pulledData: result.exercises || [],
-            pulledSubstitutions: result.substitutions || [],
-          }
-        });
+      if (result.success) {
+        const hasData = result.exercises?.length
+          || result.substitutions?.length
+          || result.weightDiscrepancies?.length
+          || result.missingExercises?.length;
+
+        if (hasData) {
+          toast.success(result.message, { id: 'pull-workout' });
+          // Navigate to workout session with all pulled data
+          navigate(`/workout/session/${dayNumber}`, {
+            state: {
+              pulledData: result.exercises || [],
+              pulledSubstitutions: result.substitutions || [],
+              weightDiscrepancies: result.weightDiscrepancies || [],
+              missingExercises: result.missingExercises || [],
+            }
+          });
+        } else {
+          toast.error(result.message || 'No workout data found', { id: 'pull-workout' });
+        }
       } else {
         toast.error(result.message, { id: 'pull-workout' });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to pull workout from Hevy';
       toast.error(message, { id: 'pull-workout' });
+    }
+  };
+
+  // Exercise substitution handlers (for planning ahead)
+  const handleOpenSubstitution = (exercise: ExerciseDto) => {
+    setExerciseToSubstitute(exercise);
+  };
+
+  // Toggle unilateral status for RepsPerSet exercises
+  const handleToggleUnilateral = async (exercise: ExerciseDto) => {
+    if (exercise.progression.type !== "RepsPerSet") {
+      toast.error("Unilateral toggle is only available for RepsPerSet exercises");
+      return;
+    }
+
+    const repsPerSetProg = exercise.progression as RepsPerSetProgressionDto;
+    const newUnilateral = !repsPerSetProg.isUnilateral;
+
+    try {
+      await updateExercisesMutation.mutateAsync({
+        workoutId: workout.id,
+        request: {
+          updates: [{
+            exerciseId: exercise.id,
+            isUnilateral: newUnilateral,
+            reason: `Set ${newUnilateral ? "unilateral" : "bilateral"} mode`,
+          }],
+        },
+      });
+
+      toast.success(`${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}`);
+      // Clear session synced days since exercises changed
+      setSessionSyncedDays(new Set());
+      onWorkoutUpdated?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to toggle unilateral";
+      toast.error(message);
+    }
+  };
+
+  const handleUndoCompletion = async () => {
+    try {
+      await undoCompletionMutation.mutateAsync(workout.id);
+      toast.success("Last workout undone successfully!");
+      onWorkoutUpdated?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to undo workout";
+      toast.error(message);
+      throw error; // Re-throw so modal knows it failed
+    }
+  };
+
+  const handleSubstituteWithConfig = async (
+    originalExercise: ExerciseDto,
+    substituteTemplate: ExerciseTemplate,
+    progressionConfig: ProgressionConfig
+  ) => {
+    try {
+      // Step 0: Look up the Hevy template ID for the new exercise
+      let hevyTemplateId = substituteTemplate.name; // Fallback to name
+      if (hevyApi.isConfigured()) {
+        try {
+          const hevyTemplates = await hevyApi.getAllExerciseTemplates();
+          const matchingTemplate = hevyTemplates.find(
+            t => t.title.toLowerCase() === substituteTemplate.name.toLowerCase()
+          );
+          if (matchingTemplate) {
+            hevyTemplateId = matchingTemplate.id;
+            console.log(`Found Hevy template ID for "${substituteTemplate.name}": ${hevyTemplateId}`);
+          } else {
+            console.warn(`No Hevy template found for "${substituteTemplate.name}", using name as fallback`);
+          }
+        } catch (hevyError) {
+          console.error('Failed to lookup Hevy template:', hevyError);
+          // Continue with name as fallback
+        }
+      }
+
+      // Step 1: Substitute the exercise name
+      await substituteExerciseMutation.mutateAsync({
+        workoutId: workout.id,
+        request: {
+          exerciseId: originalExercise.id,
+          newExerciseName: substituteTemplate.name,
+          newHevyExerciseTemplateId: hevyTemplateId,
+          reason: "User substitution from week overview",
+        },
+      });
+
+      // Step 2: Update the weight/training max based on progression type
+      if (progressionConfig.type === "Linear") {
+        const config = progressionConfig as LinearConfig;
+        await updateExercisesMutation.mutateAsync({
+          workoutId: workout.id,
+          request: {
+            updates: [{
+              exerciseId: originalExercise.id,
+              trainingMaxValue: config.trainingMaxValue,
+              trainingMaxUnit: config.trainingMaxUnit,
+              reason: "Updated during substitution",
+            }],
+          },
+        });
+      } else if (progressionConfig.type === "RepsPerSet") {
+        const config = progressionConfig as RepsPerSetConfig;
+        await updateExercisesMutation.mutateAsync({
+          workoutId: workout.id,
+          request: {
+            updates: [{
+              exerciseId: originalExercise.id,
+              weightValue: config.startingWeight,
+              weightUnit: config.weightUnit,
+              reason: "Updated during substitution",
+            }],
+          },
+        });
+      } else if (progressionConfig.type === "MinimalSets") {
+        const config = progressionConfig as MinimalSetsConfig;
+        await updateExercisesMutation.mutateAsync({
+          workoutId: workout.id,
+          request: {
+            updates: [{
+              exerciseId: originalExercise.id,
+              weightValue: config.weight,
+              weightUnit: config.weightUnit,
+              reason: "Updated during substitution",
+            }],
+          },
+        });
+      }
+
+      toast.success(`Substituted ${originalExercise.name} with ${substituteTemplate.name}`);
+      // Clear session synced days since exercises changed
+      setSessionSyncedDays(new Set());
+      onWorkoutUpdated?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to substitute exercise";
+      toast.error(message);
     }
   };
 
@@ -155,6 +338,20 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
               <span className="ml-2 text-green-500 font-medium">✓ Week Complete</span>
             )}
           </div>
+          {/* Undo Last Workout Button - only show if there are completed days */}
+          {completedDays.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUndoModal(true)}
+              className="flex items-center gap-2 text-destructive border-destructive hover:bg-destructive/10"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+              Undo Last Workout
+            </Button>
+          )}
           {hevyEnabled && (
             <Button
               variant="outline"
@@ -228,9 +425,12 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
             isCurrent={day === currentDay && !completedDays.has(day)}
             hevyEnabled={hevyEnabled}
             isSynced={syncedDays.has(day)}
+            syncTimestamp={syncTimestamps[day]}
             onSyncToHevy={() => handleSyncDayToHevy(day)}
             onEdit={() => setEditingDay(day)}
             onPullWorkout={() => handlePullWorkout(day)}
+            onSubstituteExercise={handleOpenSubstitution}
+            onToggleUnilateral={handleToggleUnilateral}
           />
         ))}
       </div>
@@ -248,6 +448,26 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
           toast.success('Exercises updated! Re-sync to Hevy to apply changes.');
         }}
       />
+
+      {/* Exercise Substitution Modal with Configuration */}
+      {exerciseToSubstitute && (
+        <ExerciseSubstitutionConfigModal
+          exercise={exerciseToSubstitute}
+          isOpen={exerciseToSubstitute !== null}
+          onClose={() => setExerciseToSubstitute(null)}
+          onSubstitute={handleSubstituteWithConfig}
+        />
+      )}
+
+      {/* Undo Confirmation Modal */}
+      <UndoConfirmationModal
+        isOpen={showUndoModal}
+        onClose={() => setShowUndoModal(false)}
+        onConfirm={handleUndoCompletion}
+        dayNumber={Math.max(...Array.from(completedDays), 1)}
+        weekNumber={workout.currentWeek}
+        wouldRollbackWeek={false}
+      />
     </Card>
   );
 }
@@ -260,19 +480,44 @@ interface DayCardProps {
   isCurrent: boolean;
   hevyEnabled: boolean;
   isSynced: boolean;
+  syncTimestamp?: Date;
   onSyncToHevy: () => void;
   onEdit: () => void;
   onPullWorkout: () => void;
+  onSubstituteExercise: (exercise: ExerciseDto) => void;
+  onToggleUnilateral: (exercise: ExerciseDto) => void;
 }
 
-function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, onSyncToHevy, onEdit, onPullWorkout }: DayCardProps) {
+// Helper to format sync timestamp
+function formatSyncTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  // Format as "Jan 31, 4:30 PM"
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ', ' + date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, onToggleUnilateral }: DayCardProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   // Use Week/Day format instead of weekday names
   const dayLabel = `W${weekNumber} D${dayNumber}`;
 
-  // Day is locked if it's not completed and not current
-  const isLocked = !isCompleted && !isCurrent;
+  // Day is upcoming if it's not completed and not current
+  const isUpcoming = !isCompleted && !isCurrent;
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -299,7 +544,7 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
           ? "border-green-500 bg-green-50 dark:bg-green-950"
           : isCurrent
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-          : isLocked
+          : isUpcoming
           ? "border-border bg-muted/30 opacity-60"
           : "border-border"
       }`}
@@ -311,8 +556,8 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
           {isCurrent && !isCompleted && (
             <span className="text-xs text-primary font-medium">Current</span>
           )}
-          {isLocked && (
-            <span className="text-xs text-muted-foreground">Locked</span>
+          {isUpcoming && (
+            <span className="text-xs text-muted-foreground">Upcoming</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -340,16 +585,18 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
               />
             </svg>
           )}
-          {isLocked && (
+          {isUpcoming && (
             <svg
               className="w-5 h-5 text-muted-foreground"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
               <path
-                fillRule="evenodd"
-                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                clipRule="evenodd"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
           )}
@@ -361,7 +608,12 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
           exercises
             .sort((a, b) => a.orderInDay - b.orderInDay)
             .map((exercise) => (
-              <ExerciseDetailCard key={exercise.id} exercise={exercise} />
+              <ExerciseDetailCard
+                key={exercise.id}
+                exercise={exercise}
+                onSubstitute={() => onSubstituteExercise(exercise)}
+                onToggleUnilateral={() => onToggleUnilateral(exercise)}
+              />
             ))
         ) : (
           <p className="text-sm text-muted-foreground">No exercises assigned</p>
@@ -379,7 +631,7 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
           >
             Completed
           </Button>
-        ) : isLocked ? (
+        ) : isUpcoming ? (
           <Button
             variant="outline"
             size="sm"
@@ -387,7 +639,7 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
             disabled
             data-testid={`start-workout-day-${dayNumber}`}
           >
-            Locked
+            Upcoming
           </Button>
         ) : (
           <div className="flex gap-2">
@@ -443,12 +695,12 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
                 Syncing...
               </>
             ) : isSynced ? (
-              <>
-                <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <span className="flex items-center gap-1" title={syncTimestamp ? `Synced ${syncTimestamp.toLocaleString()}` : 'Synced to Hevy'}>
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Sent to Hevy
-              </>
+                {syncTimestamp ? `Synced ${formatSyncTime(syncTimestamp)}` : 'Sent to Hevy'}
+              </span>
             ) : (
               <>
                 <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -464,7 +716,7 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
   );
 }
 
-function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
+function ExerciseDetailCard({ exercise, onSubstitute, onToggleUnilateral }: { exercise: ExerciseDto; onSubstitute: () => void; onToggleUnilateral: () => void }) {
   const isLinear = exercise.progression.type === "Linear";
   const isRepsPerSet = exercise.progression.type === "RepsPerSet";
   const isMinimalSets = exercise.progression.type === "MinimalSets";
@@ -473,8 +725,19 @@ function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
   const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
 
   return (
-    <div className="border-l-2 border-primary/30 pl-3 py-1">
-      <div className="font-medium text-sm">{exercise.name}</div>
+    <div className="border-l-2 border-primary/30 pl-3 py-1 group">
+      <div className="flex items-center justify-between">
+        <div className="font-medium text-sm">{exercise.name}</div>
+        <button
+          onClick={onSubstitute}
+          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-muted rounded transition-all"
+          title="Substitute exercise"
+        >
+          <svg className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+        </button>
+      </div>
 
       {linearProg && (
         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -530,6 +793,29 @@ function ExerciseDetailCard({ exercise }: { exercise: ExerciseDto }) {
               {repsPerSetProg.targetSets}
             </span>
           </div>
+          {/* Unilateral toggle */}
+          <div className="flex justify-between items-center pt-1 mt-1 border-t border-border/50">
+            <span>Unilateral:</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleUnilateral();
+              }}
+              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                repsPerSetProg.isUnilateral
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+              title={repsPerSetProg.isUnilateral ? "Click to set bilateral" : "Click to set unilateral (per side)"}
+            >
+              {repsPerSetProg.isUnilateral ? "Per Side" : "Both"}
+            </button>
+          </div>
+          {repsPerSetProg.isUnilateral && (
+            <div className="text-primary text-[10px] font-medium">
+              {repsPerSetProg.currentSetCount} sets × 2 sides = {repsPerSetProg.currentSetCount * 2} total
+            </div>
+          )}
         </div>
       )}
 

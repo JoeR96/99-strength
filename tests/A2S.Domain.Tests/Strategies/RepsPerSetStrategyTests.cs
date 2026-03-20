@@ -568,4 +568,297 @@ public class RepsPerSetStrategyTests
     }
 
     #endregion
+
+    #region Unilateral Edge Cases
+
+    [Fact]
+    public void SetUnilateral_At4Sets_CapsAt3Sets()
+    {
+        // Create at 4 sets bilateral
+        // Toggle unilateral
+        // Verify CurrentSetCount is now 3
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Dumbbell,
+            startingSets: 4,
+            targetSets: 5,
+            isUnilateral: false);
+
+        strategy.CurrentSetCount.Should().Be(4, "Should start at 4 sets bilateral");
+
+        // Act
+        strategy.SetUnilateral(true);
+
+        // Assert
+        strategy.CurrentSetCount.Should().Be(3, "Should cap at 3 sets when switching to unilateral");
+        strategy.MaxSets.Should().Be(3, "Unilateral max should be 3");
+    }
+
+    [Fact]
+    public void SetUnilateral_ThenSuccess_DoesNotExceedMaxSets()
+    {
+        // Create unilateral at 3 sets
+        // Apply success performance
+        // Verify sets stay at 3, weight increases
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Dumbbell,
+            startingSets: 3,
+            targetSets: 5,
+            isUnilateral: true);
+
+        strategy.CurrentSetCount.Should().Be(3, "Should start at 3 sets");
+        strategy.MaxSets.Should().Be(3, "Unilateral max should be 3");
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // All sets hit max reps (15) - SUCCESS
+        var completedSets = plannedSets.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 15, wasAmrap: false)).ToList();
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert - At max sets (3 for unilateral), so weight should increase
+        strategy.CurrentSetCount.Should().Be(3, "Sets should reset to starting (already at max)");
+        strategy.CurrentWeight.Value.Should().Be(22m, "Weight should increase by 2kg for dumbbell >= 10kg");
+    }
+
+    [Fact]
+    public void ToggleUnilateral_BackToBilateral_AllowsMoreSets()
+    {
+        // Start at 3 sets unilateral
+        // Toggle to bilateral
+        // Apply success
+        // Verify sets can now increase to 4
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Dumbbell,
+            startingSets: 3,
+            targetSets: 5,
+            isUnilateral: true);
+
+        strategy.CurrentSetCount.Should().Be(3, "Should start at 3 sets");
+
+        // Toggle to bilateral
+        strategy.SetUnilateral(false);
+
+        strategy.MaxSets.Should().Be(5, "Bilateral max should be 5");
+        strategy.CurrentSetCount.Should().Be(3, "Sets should remain at 3 after toggle");
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // All sets hit max reps (15) - SUCCESS
+        var completedSets = plannedSets.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 15, wasAmrap: false)).ToList();
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert - Not at max sets (5 for bilateral), so should add a set
+        strategy.CurrentSetCount.Should().Be(4, "Sets should increase to 4 as bilateral allows more");
+    }
+
+    #endregion
+
+    #region StartingSets vs TargetSets Reset Tests
+
+    [Fact]
+    public void ApplyPerformanceResult_AtTargetSets_DifferentStartingSets_ResetsToStartingSets()
+    {
+        // Arrange - StartingSets=3, TargetSets=5, so after weight increase, sets should reset to 3
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Cable,
+            startingSets: 3,
+            targetSets: 5);
+
+        // Progress from 3 to 4 sets (first success)
+        var planned1 = strategy.CalculatePlannedSets(1, 1).ToList();
+        var completed1 = planned1.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 15, wasAmrap: false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned1, completed1));
+        strategy.CurrentSetCount.Should().Be(4, "First success: 3 -> 4 sets");
+
+        // Progress from 4 to 5 sets (second success)
+        var planned2 = strategy.CalculatePlannedSets(2, 1).ToList();
+        var completed2 = planned2.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 15, wasAmrap: false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned2, completed2));
+        strategy.CurrentSetCount.Should().Be(5, "Second success: 4 -> 5 sets (at target)");
+        strategy.CurrentWeight.Value.Should().Be(20m, "Weight should still be 20kg");
+
+        // At target sets (5), success should increase weight and reset to StartingSets (3)
+        var planned3 = strategy.CalculatePlannedSets(3, 1).ToList();
+        planned3.Should().HaveCount(5, "Should have 5 planned sets");
+        var completed3 = planned3.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 15, wasAmrap: false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned3, completed3));
+
+        // Assert - weight increased, sets reset to StartingSets (3, not 5)
+        strategy.CurrentWeight.Value.Should().Be(22.5m, "Weight should increase by 2.5kg for cable");
+        strategy.CurrentSetCount.Should().Be(3, "Sets should reset to StartingSets (3), not stay at TargetSets (5)");
+    }
+
+    #endregion
+
+    #region Rep Range Edge Cases
+
+    [Fact]
+    public void ApplyPerformanceResult_ExactlyMinReps_IsMaintained()
+    {
+        // All sets hit exactly minimum reps
+        // Should be maintained (not failed)
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange, // Min=8, Target=12, Max=15
+            _startingWeight,
+            EquipmentType.Cable,
+            startingSets: 3,
+            targetSets: 5);
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // All sets hit exactly minimum reps (8)
+        var completedSets = plannedSets.Select((s, i) => new CompletedSet(
+            i + 1, s.Weight, 8, wasAmrap: false)).ToList();
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert - Exactly at minimum is considered maintained, not failed
+        strategy.CurrentSetCount.Should().Be(3, "Sets should remain unchanged when hitting exactly minimum");
+        strategy.CurrentWeight.Value.Should().Be(20m, "Weight should remain unchanged");
+    }
+
+    [Fact]
+    public void ApplyPerformanceResult_OneBelowMin_IsFailed()
+    {
+        // One set at min-1, others at max
+        // Should be failed (remove set)
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange, // Min=8, Target=12, Max=15
+            _startingWeight,
+            EquipmentType.Cable,
+            startingSets: 3,
+            targetSets: 5);
+
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // Two sets hit max (15), one set at min-1 (7)
+        var completedSets = new List<CompletedSet>
+        {
+            new(1, plannedSets[0].Weight, 15, false), // Max
+            new(2, plannedSets[1].Weight, 15, false), // Max
+            new(3, plannedSets[2].Weight, 7, false)   // Below min
+        };
+
+        var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
+
+        // Act
+        strategy.ApplyPerformanceResult(performance);
+
+        // Assert - One set below minimum triggers failure
+        strategy.CurrentSetCount.Should().Be(2, "Sets should decrease by 1 due to one set below minimum");
+    }
+
+    #endregion
+
+    #region Planned Sets for Hevy Sync Assertions
+
+    [Fact]
+    public void PlannedSets_ForRepsPerSetExercise_NeverHaveAmrap()
+    {
+        // Verifies that RepsPerSet exercises never send AMRAP sets to Hevy.
+        // All sets should be type "normal" in Hevy (never "failure").
+
+        // Arrange
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Cable,
+            startingSets: 4,
+            targetSets: 5);
+
+        // Act
+        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
+
+        // Assert
+        plannedSets.Should().HaveCount(4);
+        foreach (var set in plannedSets)
+        {
+            set.IsAmrap.Should().BeFalse("RepsPerSet sets should always be 'normal' type in Hevy (never AMRAP)");
+            set.Weight.Value.Should().Be(20m, "All sets should use CurrentWeight");
+            set.TargetReps.Should().Be(12, "All sets should use RepRange.Target reps");
+        }
+    }
+
+    [Fact]
+    public void PlannedSets_AfterProgression_ReflectUpdatedSetCountAndWeight()
+    {
+        // Verifies that after progression, the planned sets reflect the new state.
+        // This is what would get sent to Hevy for the next routine.
+
+        // Arrange - start at 3 sets, 20kg, target 5
+        var strategy = RepsPerSetStrategy.Create(
+            _standardRepRange,
+            _startingWeight,
+            EquipmentType.Cable,
+            startingSets: 3,
+            targetSets: 5);
+
+        // Week 1: 3 sets -> SUCCESS -> 4 sets
+        var planned1 = strategy.CalculatePlannedSets(1, 1).ToList();
+        planned1.Should().HaveCount(3, "Should start with 3 sets");
+
+        var completed1 = planned1.Select((s, i) => new CompletedSet(i + 1, s.Weight, 15, false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned1, completed1));
+
+        // Act - get planned sets after progression (this is what Hevy would receive)
+        var planned2 = strategy.CalculatePlannedSets(2, 1).ToList();
+
+        // Assert - should now have 4 sets at same weight
+        planned2.Should().HaveCount(4, "After success, Hevy should receive 4 sets");
+        planned2.All(s => s.Weight.Value == 20m).Should().BeTrue("Weight should still be 20kg");
+        planned2.All(s => s.TargetReps == 12).Should().BeTrue("Target reps should be RepRange.Target (12)");
+        planned2.All(s => !s.IsAmrap).Should().BeTrue("All sets should be normal (no AMRAP)");
+
+        // Progress to 5 sets, then weight increase + reset
+        var completed2 = planned2.Select((s, i) => new CompletedSet(i + 1, s.Weight, 15, false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned2, completed2));
+
+        var planned3 = strategy.CalculatePlannedSets(3, 1).ToList();
+        planned3.Should().HaveCount(5, "After second success, Hevy should receive 5 sets");
+
+        var completed3 = planned3.Select((s, i) => new CompletedSet(i + 1, s.Weight, 15, false)).ToList();
+        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, planned3, completed3));
+
+        // Act - after weight increase, planned sets should reflect new weight and reset set count
+        var planned4 = strategy.CalculatePlannedSets(4, 1).ToList();
+
+        // Assert
+        planned4.Should().HaveCount(3, "After weight increase, Hevy should receive StartingSets (3)");
+        planned4.All(s => s.Weight.Value == 22.5m).Should().BeTrue("Weight should be 22.5kg (cable +2.5kg)");
+    }
+
+    #endregion
 }

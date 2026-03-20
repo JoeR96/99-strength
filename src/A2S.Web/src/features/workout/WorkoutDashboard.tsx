@@ -1,15 +1,63 @@
-import { useCurrentWorkout } from "@/hooks/useWorkouts";
+import { useState } from "react";
+import { useCurrentWorkout, useUpdateExercises, useSubstituteExercise } from "@/hooks/useWorkouts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeekOverview } from "./WeekOverview";
 import { NextWeekPreview } from "./NextWeekPreview";
+import { BlockSequenceEditor } from "./BlockSequenceEditor";
+import { ExerciseProgressionModal } from "./ExerciseProgressionModal";
+import type { ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
-import { WeightUnit, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
+import { getBlockType } from "@/utils/weekParameters";
+import toast from "react-hot-toast";
 
 export function WorkoutDashboard() {
-  const { data: workout, isLoading, error } = useCurrentWorkout();
+  const { data: workout, isLoading, error, refetch } = useCurrentWorkout();
   const navigate = useNavigate();
+  const [showBlockEditor, setShowBlockEditor] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseDto | null>(null);
+  const updateExercises = useUpdateExercises();
+  const substituteExercise = useSubstituteExercise();
+
+  const handleSaveExerciseConfig = async (exerciseId: string, config: ExerciseConfigUpdate) => {
+    if (!workout) return;
+    await updateExercises.mutateAsync({
+      workoutId: workout.id,
+      request: {
+        updates: [{
+          exerciseId,
+          trainingMaxValue: config.trainingMaxValue,
+          trainingMaxUnit: config.trainingMaxUnit,
+          weightValue: config.weightValue,
+          weightUnit: config.weightUnit,
+          isUnilateral: config.isUnilateral,
+        }],
+      },
+    });
+    toast.success("Exercise updated");
+    refetch();
+  };
+
+  const handleChangeProgression = async (exerciseId: string, config: ProgressionConfigRequest) => {
+    if (!workout) return;
+    const exercise = workout.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return;
+
+    toast.loading("Changing progression...", { id: "change-progression" });
+    await substituteExercise.mutateAsync({
+      workoutId: workout.id,
+      request: {
+        exerciseId,
+        newExerciseName: exercise.name,
+        reason: `Changed progression from ${exercise.progression.type} to ${config.type}`,
+        newProgressionConfig: config,
+      },
+    });
+    toast.success("Progression type changed", { id: "change-progression" });
+    refetch();
+  };
 
   if (isLoading) {
     return (
@@ -61,7 +109,9 @@ export function WorkoutDashboard() {
     );
   }
 
-  const currentBlock = Math.ceil(workout.currentWeek / 7);
+  const blockSequence = workout.blockSequence ?? [1, 2, 3];
+  const blockIndex = Math.floor((workout.currentWeek - 1) / 7);
+  const currentBlockType = getBlockType(workout.currentWeek, blockSequence);
   const weekInBlock = ((workout.currentWeek - 1) % 7) + 1;
 
   return (
@@ -77,12 +127,47 @@ export function WorkoutDashboard() {
             </span>
             <span>-</span>
             <span>
-              Block {currentBlock}, Week {weekInBlock}
+              Block {blockIndex + 1}/{blockSequence.length} (Type {currentBlockType}), Week {weekInBlock}
             </span>
             <span>-</span>
             <span>{workout.variant}-Day Program</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs px-2 py-1 h-auto"
+              onClick={() => setShowBlockEditor(true)}
+            >
+              Manage Blocks
+            </Button>
           </div>
         </div>
+
+        {/* Block Sequence Visual */}
+        <Card className="p-4 mb-6">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-muted-foreground mr-2">Blocks:</span>
+            {blockSequence.map((blockType, idx) => {
+              const isCurrentBlock = idx === blockIndex;
+              return (
+                <div
+                  key={idx}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                    isCurrentBlock
+                      ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
+                      : idx < blockIndex
+                      ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  B{blockType}
+                </div>
+              );
+            })}
+            <span className="text-xs text-muted-foreground ml-2">
+              = {blockSequence.length * 7} weeks
+            </span>
+          </div>
+        </Card>
 
         {/* Progress bar */}
         <Card className="p-6 mb-6">
@@ -103,117 +188,155 @@ export function WorkoutDashboard() {
         </Card>
 
         {/* Week Overview */}
-        <WeekOverview workout={workout} />
+        <WeekOverview workout={workout} onWorkoutUpdated={refetch} />
 
         {/* Next Week Preview */}
-        <NextWeekPreview workout={workout} />
+        <NextWeekPreview workout={workout} onWorkoutUpdated={refetch} />
 
-        {/* Exercises Summary with Full Details */}
+        {/* Exercises Summary grouped by Day */}
         <Card className="mt-6 p-6">
           <h2 className="text-xl font-bold mb-4">Your Exercises</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {workout.exercises.map((exercise) => {
-              const isLinear = exercise.progression.type === "Linear";
-              const isRepsPerSet = exercise.progression.type === "RepsPerSet";
-              const isMinimalSets = exercise.progression.type === "MinimalSets";
-              const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
-              const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
-              const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
+          {(() => {
+            const exercisesByDay = workout.exercises.reduce((acc, ex) => {
+              const day = ex.assignedDay;
+              if (!acc[day]) acc[day] = [];
+              acc[day].push(ex);
+              return acc;
+            }, {} as Record<number, ExerciseDto[]>);
 
-              return (
-                <div key={exercise.id} className="p-4 border rounded-lg bg-card hover:border-primary/30 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-semibold text-foreground">{exercise.name}</div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                      Day {exercise.assignedDay}
-                    </span>
-                  </div>
+            const sortedDays = Object.keys(exercisesByDay).map(Number).sort((a, b) => a - b);
 
-                  {linearProg && (
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Training Max:</span>
-                        <span className="font-medium text-foreground">
-                          {linearProg.trainingMax.value} {linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Sets:</span>
-                        <span className="font-medium text-foreground">{linearProg.baseSetsPerExercise}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>AMRAP:</span>
-                        <span className={`font-medium ${linearProg.useAmrap ? "text-primary" : "text-muted-foreground"}`}>
-                          {linearProg.useAmrap ? "Yes (last set)" : "No"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Progression:</span>
-                        <span className="font-medium text-foreground">Linear (A2S)</span>
-                      </div>
-                    </div>
-                  )}
+            return sortedDays.map((day) => (
+              <div key={day} className="mb-6 last:mb-0">
+                <h3 className="text-lg font-semibold mb-3 text-muted-foreground">Day {day}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {exercisesByDay[day]
+                    .sort((a, b) => a.orderInDay - b.orderInDay)
+                    .map((exercise) => {
+                      const isLinear = exercise.progression.type === "Linear";
+                      const isRepsPerSet = exercise.progression.type === "RepsPerSet";
+                      const isMinimalSets = exercise.progression.type === "MinimalSets";
+                      const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
+                      const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
+                      const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
 
-                  {repsPerSetProg && (
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Weight:</span>
-                        <span className="font-medium text-foreground">
-                          {repsPerSetProg.currentWeight} {repsPerSetProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Sets:</span>
-                        <span className="font-medium text-foreground">
-                          {repsPerSetProg.currentSetCount} / {repsPerSetProg.targetSets}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Rep Range:</span>
-                        <span className="font-medium text-foreground">
-                          {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.target ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Target Reps:</span>
-                        <span className="font-medium text-foreground">{repsPerSetProg.repRange?.target ?? 0}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Progression:</span>
-                        <span className="font-medium text-foreground">Reps Per Set</span>
-                      </div>
-                    </div>
-                  )}
+                      return (
+                        <div
+                          key={exercise.id}
+                          className="p-4 border rounded-lg bg-card hover:border-primary/30 transition-colors cursor-pointer"
+                          onClick={() => setSelectedExercise(exercise)}
+                        >
+                          <div className="font-semibold text-foreground mb-2">{exercise.name}</div>
 
-                  {minimalSetsProg && (
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Weight:</span>
-                        <span className="font-medium text-foreground">
-                          {minimalSetsProg.currentWeight} {minimalSetsProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Sets:</span>
-                        <span className="font-medium text-foreground">
-                          {minimalSetsProg.currentSetCount} ({minimalSetsProg.minimumSets}-{minimalSetsProg.maximumSets})
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Target Total Reps:</span>
-                        <span className="font-medium text-foreground">{minimalSetsProg.targetTotalReps}</span>
-                      </div>
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Progression:</span>
-                        <span className="font-medium text-foreground">Minimal Sets</span>
-                      </div>
-                    </div>
-                  )}
+                          {linearProg && (
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Training Max:</span>
+                                <span className="font-medium text-foreground">
+                                  {linearProg.trainingMax.value} {linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Sets:</span>
+                                <span className="font-medium text-foreground">{linearProg.baseSetsPerExercise}</span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>AMRAP:</span>
+                                <span className={`font-medium ${linearProg.useAmrap ? "text-primary" : "text-muted-foreground"}`}>
+                                  {linearProg.useAmrap ? "Yes (last set)" : "No"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Progression:</span>
+                                <span className="font-medium text-foreground">Linear (A2S)</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {repsPerSetProg && (
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Weight:</span>
+                                <span className="font-medium text-foreground">
+                                  {repsPerSetProg.currentWeight} {repsPerSetProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Sets:</span>
+                                <span className="font-medium text-foreground">
+                                  {repsPerSetProg.currentSetCount} / {repsPerSetProg.targetSets}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Rep Range:</span>
+                                <span className="font-medium text-foreground">
+                                  {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.target ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Progression:</span>
+                                <span className="font-medium text-foreground">Reps Per Set</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {minimalSetsProg && (
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Weight:</span>
+                                <span className="font-medium text-foreground">
+                                  {minimalSetsProg.currentWeight} {minimalSetsProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Sets:</span>
+                                <span className="font-medium text-foreground">
+                                  {minimalSetsProg.currentSetCount} ({minimalSetsProg.minimumSets}-{minimalSetsProg.maximumSets})
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Target Total Reps:</span>
+                                <span className="font-medium text-foreground">{minimalSetsProg.targetTotalReps}</span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Progression:</span>
+                                <span className="font-medium text-foreground">Minimal Sets</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            ));
+          })()}
         </Card>
+
+        {/* Exercise Progression Modal */}
+        {selectedExercise && (
+          <ExerciseProgressionModal
+            exercise={selectedExercise}
+            workoutId={workout.id}
+            blockSequence={blockSequence}
+            isOpen={!!selectedExercise}
+            onClose={() => setSelectedExercise(null)}
+            onSave={handleSaveExerciseConfig}
+            onChangeProgression={handleChangeProgression}
+            onWorkoutUpdated={() => {
+              refetch();
+              setSelectedExercise(null);
+            }}
+          />
+        )}
+
+        {/* Block Sequence Editor Modal */}
+        <BlockSequenceEditor
+          workout={workout}
+          isOpen={showBlockEditor}
+          onClose={() => setShowBlockEditor(false)}
+          onUpdated={refetch}
+        />
       </div>
     </div>
   );

@@ -96,6 +96,7 @@ export interface SelectedExercise {
   targetSets?: number;
   startingWeight?: number;
   weightUnit?: WeightUnit;
+  isUnilateral?: boolean;
 }
 
 // DEPRECATED: For backwards compatibility with existing stories
@@ -133,6 +134,7 @@ export interface WorkoutDto {
   completedDaysInCurrentWeek: number[];
   isWeekComplete: boolean;
   totalWeeks: number;
+  blockSequence: number[];
   startDate: string;
   createdAt: string;
   startedAt?: string;
@@ -169,10 +171,48 @@ export interface LinearProgressionDto extends ExerciseProgressionDto {
 export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
   type: "RepsPerSet";
   repRange: RepRange;
+  startingSets: number;
   currentSetCount: number;
   targetSets: number;
   currentWeight: number;
   weightUnit: string; // Backend returns string "Kilograms" or "Pounds"
+  isUnilateral: boolean; // True if exercise is performed one side at a time
+}
+
+export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {
+  type: "MinimalSets";
+  currentWeight: number;
+  weightUnit: string;
+  targetTotalReps: number;
+  currentSetCount: number;
+  minimumSets: number;
+  maximumSets: number;
+}
+
+// Hevy sync discrepancy types
+export interface WeightDiscrepancy {
+  exerciseId: string;
+  exerciseName: string;
+  prescribedWeight: number;  // in kg
+  actualWeights: number[];   // Array of weights from Hevy (one per set, in kg)
+  hasVaryingWeights: boolean; // True if sets have different weights
+  sets: PulledSetData[];     // Include all set data
+  progressionType: string;   // "Linear" | "RepsPerSet" | "MinimalSets"
+}
+
+export interface MissingExercise {
+  exerciseId: string;
+  exerciseName: string;
+  prescribedSets: number;
+  prescribedReps: number;
+  prescribedWeight: number;  // in kg
+}
+
+export interface PulledSetData {
+  setNumber: number;
+  weight: number;  // in kg
+  reps: number;
+  isAmrap: boolean;
 }
 
 // Request DTOs
@@ -192,6 +232,9 @@ export interface CreateExerciseRequest {
   startingSets?: number;
   targetSets?: number;
   isUnilateral?: boolean;
+  repRangeMinimum?: number;
+  repRangeTarget?: number;
+  repRangeMaximum?: number;
   // For MinimalSets progression
   targetTotalReps?: number;
 }
@@ -200,6 +243,7 @@ export interface CreateWorkoutRequest {
   name: string;
   variant: ProgramVariant;
   totalWeeks: number;
+  blockSequence?: number[];
   exercises?: CreateExerciseRequest[];
 }
 
@@ -220,6 +264,7 @@ export interface WorkoutSummaryDto {
   daysPerWeek: number;
   completedDaysInCurrentWeek: number[];
   isWeekComplete: boolean;
+  blockSequence: number[];
   status: string;
   createdAt: string;
   startedAt?: string;
@@ -315,6 +360,8 @@ export interface ExerciseUpdateRequest {
   // For RepsPerSet/MinimalSets progression
   weightValue?: number;
   weightUnit?: WeightUnit;
+  // For RepsPerSet progression - unilateral toggle
+  isUnilateral?: boolean;
   reason?: string;
 }
 
@@ -337,12 +384,37 @@ export interface UpdateExercisesResult {
   results: ExerciseUpdateResult[];
 }
 
+// Progression configuration for changing an exercise's progression type
+export interface ProgressionConfigRequest {
+  type: "Linear" | "RepsPerSet" | "MinimalSets";
+  // Linear progression options
+  trainingMaxValue?: number;
+  trainingMaxUnit?: WeightUnit;
+  useAmrap?: boolean;
+  baseSetsPerExercise?: number;
+  // RepsPerSet progression options
+  repRangeMinimum?: number;
+  repRangeTarget?: number;
+  repRangeMaximum?: number;
+  targetSets?: number;
+  startingSets?: number;
+  currentSets?: number;
+  startingWeight?: number;
+  weightUnit?: WeightUnit;
+  isUnilateral?: boolean;
+  // MinimalSets progression options
+  targetTotalReps?: number;
+  minimumSets?: number;
+  maximumSets?: number;
+}
+
 // Exercise substitution types
 export interface SubstituteExerciseRequest {
   exerciseId: string;
   newExerciseName: string;
   newHevyExerciseTemplateId?: string;
   reason?: string;
+  newProgressionConfig?: ProgressionConfigRequest;
 }
 
 export interface SubstituteExerciseResult {
@@ -350,5 +422,90 @@ export interface SubstituteExerciseResult {
   originalName: string;
   newName: string;
   success: boolean;
+  progressionTypeChanged?: boolean;
+  newProgressionType?: string;
   message?: string;
+}
+
+// === Workout History Types ===
+
+export interface WorkoutHistoryResponse {
+  workoutId: string;
+  workoutName: string;
+  variant: string;
+  totalWeeks: number;
+  currentWeek: number;
+  currentBlock: number;
+  daysPerWeek: number;
+  startedAt?: string;
+  totalWorkoutsCompleted: number;
+  completedActivities: WorkoutActivityHistoryDto[];
+  exerciseHistories: ExerciseHistoryDto[];
+}
+
+export interface WorkoutActivityHistoryDto {
+  day: string;
+  dayNumber: number;
+  weekNumber: number;
+  blockNumber: number;
+  completedAt: string;
+  isDeloadWeek: boolean;
+  performances: ExercisePerformanceHistoryDto[];
+}
+
+export interface ExercisePerformanceHistoryDto {
+  exerciseId: string;
+  completedAt: string;
+  completedSets: CompletedSetHistoryDto[];
+}
+
+export interface CompletedSetHistoryDto {
+  setNumber: number;
+  weight: number;
+  weightUnit: string;
+  actualReps: number;
+  wasAmrap: boolean;
+}
+
+export interface ExerciseHistoryDto {
+  exerciseId: string;
+  name: string;
+  progressionType: string;
+  assignedDay: number;
+  category: string;
+  equipment: string;
+  currentWeight: number;
+  weightUnit: string;
+  currentSets: number;
+  targetSets: number;
+  trainingMax?: number;
+  weeklyHistory: WeeklyPerformanceDto[];
+  progressionChanges?: ProgressionChangeDto[];
+}
+
+export interface ProgressionChangeDto {
+  occurredAt: string;
+  weekNumber: number;
+  oldProgressionType?: string;
+  newProgressionType?: string;
+  reason?: string;
+}
+
+export interface WeeklyPerformanceDto {
+  weekNumber: number;
+  blockNumber: number;
+  completedAt?: string;
+  isDeloadWeek: boolean;
+  totalVolume: number;
+  averageWeight: number;
+  totalReps: number;
+  setsCompleted: number;
+  amrapReps?: number;
+  sets: CompletedSetHistoryDto[];
+  // Progression state at this week (from ProgressionSnapshot)
+  trainingMaxAtWeek?: number;
+  trainingMaxUnitAtWeek?: string;
+  weightAtWeek?: number;
+  setCountAtWeek?: number;
+  progressionTypeAtWeek?: string;
 }

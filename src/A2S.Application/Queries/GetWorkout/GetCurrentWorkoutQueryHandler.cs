@@ -68,6 +68,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CompletedAt = workout.CompletedAt,
                 ExerciseCount = workout.Exercises.Count,
                 Exercises = exerciseDtos,
+                BlockSequence = workout.BlockSequence.ToList(),
                 HevyRoutineFolderId = workout.HevyRoutineFolderId,
                 HevySyncedRoutines = workout.HevySyncedRoutines
             };
@@ -109,6 +110,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                     Target = repsPerSet.RepRange.Target,
                     Maximum = repsPerSet.RepRange.Maximum
                 },
+                StartingSets = repsPerSet.StartingSets,
                 CurrentSetCount = repsPerSet.CurrentSetCount,
                 TargetSets = repsPerSet.TargetSets,
                 CurrentWeight = repsPerSet.CurrentWeight.Value,

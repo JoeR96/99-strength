@@ -20,6 +20,8 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 {
     private readonly List<Exercise> _exercises = new();
     private readonly List<WorkoutActivity> _completedActivities = new();
+    private readonly List<ProgressionAuditEntry> _auditEntries = new();
+    private List<int> _blockSequence = new() { 1, 2, 3 };
 
     /// <summary>
     /// The ID of the user who owns this workout.
@@ -55,8 +57,16 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     /// </summary>
     public Dictionary<string, string> HevySyncedRoutines { get; private set; } = new();
 
+    /// <summary>
+    /// The block sequence defining which block types to run and in what order.
+    /// Default is [1, 2, 3] for the standard 21-week program.
+    /// Example: [1, 1, 2, 3] runs Block 1 twice, then Block 2, then Block 3 (28 weeks).
+    /// </summary>
+    public IReadOnlyList<int> BlockSequence => _blockSequence.AsReadOnly();
+
     public IReadOnlyCollection<Exercise> Exercises => _exercises.AsReadOnly();
     public IReadOnlyCollection<WorkoutActivity> CompletedActivities => _completedActivities.AsReadOnly();
+    public IReadOnlyCollection<ProgressionAuditEntry> AuditEntries => _auditEntries.AsReadOnly();
 
     // EF Core constructor
     private Workout()
@@ -69,13 +79,13 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         string userId,
         string name,
         ProgramVariant variant,
-        int totalWeeks,
+        List<int> blockSequence,
         IEnumerable<Exercise> exercises)
         : base(id)
     {
         CheckRule(!string.IsNullOrWhiteSpace(userId), "User ID cannot be empty");
         CheckRule(!string.IsNullOrWhiteSpace(name), "Workout name cannot be empty");
-        CheckRule(totalWeeks > 0, "Total weeks must be greater than zero");
+        ValidateBlockSequence(blockSequence);
 
         var exercisesList = exercises.ToList();
         CheckRule(exercisesList.Any(), "Workout must have at least one exercise");
@@ -86,9 +96,10 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         UserId = userId;
         Name = name;
         Variant = variant;
-        TotalWeeks = totalWeeks;
+        _blockSequence = new List<int>(blockSequence);
+        TotalWeeks = blockSequence.Count * 7;
         CurrentWeek = 1;
-        CurrentBlock = 1;
+        CurrentBlock = blockSequence[0];
         CurrentDay = 1;
         Status = WorkoutStatus.NotStarted;
         CreatedAt = DateTime.UtcNow;
@@ -105,20 +116,21 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     /// <param name="name">The name of the workout program.</param>
     /// <param name="variant">The program variant (e.g., FiveDay).</param>
     /// <param name="exercises">The exercises included in the program.</param>
-    /// <param name="totalWeeks">The total number of weeks in the program (default: 21).</param>
+    /// <param name="blockSequence">The block sequence (e.g., [1,2,3] or [1,1,2,3]). Defaults to [1,2,3].</param>
     public static Workout Create(
         string userId,
         string name,
         ProgramVariant variant,
         IEnumerable<Exercise> exercises,
-        int totalWeeks = 21)
+        List<int>? blockSequence = null)
     {
+        var sequence = blockSequence ?? new List<int> { 1, 2, 3 };
         return new Workout(
             new WorkoutId(Guid.NewGuid()),
             userId,
             name,
             variant,
-            totalWeeks,
+            sequence,
             exercises);
     }
 
@@ -160,6 +172,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(exercisesForDay.Any(),
             $"No exercises are assigned to {day}");
 
+        // Capture snapshots BEFORE applying progression
+        var snapshots = exercisesForDay
+            .Select(e => e.CaptureProgressionSnapshot())
+            .ToList();
+
         foreach (var performance in performancesList)
         {
             var exercise = _exercises.FirstOrDefault(e => e.Id == performance.ExerciseId);
@@ -175,8 +192,24 @@ public sealed class Workout : AggregateRoot<WorkoutId>
             }
         }
 
-        // Record the completed activity
-        var activity = new WorkoutActivity(day, CurrentWeek, CurrentBlock, performancesList);
+        // Record audit entries for exercises that skipped progression
+        foreach (var perf in performancesList.Where(p => p.SkipProgression))
+        {
+            var exercise = exercisesForDay.FirstOrDefault(e => e.Id == perf.ExerciseId);
+            if (exercise != null)
+            {
+                _auditEntries.Add(ProgressionAuditEntry.TemporarySubstitution(
+                    perf.ExerciseId.Value,
+                    exercise.Name,
+                    CurrentWeek,
+                    (int)day,
+                    "Temporary substitution - progression skipped"));
+                AddDomainEvent(new ProgressionSkipped(Id, perf.ExerciseId.Value, exercise.Name, CurrentWeek, "Temporary substitution"));
+            }
+        }
+
+        // Record the completed activity with progression snapshots
+        var activity = new WorkoutActivity(day, CurrentWeek, CurrentBlock, performancesList, snapshots);
         _completedActivities.Add(activity);
 
         AddDomainEvent(new DayCompleted(Id, day, CurrentWeek, performancesList.Count));
@@ -311,6 +344,18 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Sets whether an exercise is unilateral (performed one side at a time).
+    /// Only applicable for exercises using RepsPerSet progression.
+    /// </summary>
+    public void SetExerciseUnilateral(ExerciseId exerciseId, bool isUnilateral)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+
+        exercise.SetUnilateral(isUnilateral);
+    }
+
+    /// <summary>
     /// Gets an exercise by its ID.
     /// </summary>
     public Exercise? GetExerciseById(ExerciseId exerciseId)
@@ -336,6 +381,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
     /// <summary>
     /// Gets planned sets for all exercises on a specific day.
+    /// Translates the current program week to a template week for the WeeklyProgram table.
     /// </summary>
     public IEnumerable<PlannedSet> GetPlannedSetsForDay(DayNumber day)
     {
@@ -343,10 +389,13 @@ public sealed class Workout : AggregateRoot<WorkoutId>
             .Where(e => e.AssignedDay == day)
             .OrderBy(e => e.OrderInDay);
 
+        var templateWeek = GetTemplateWeek(CurrentWeek);
+        var blockType = GetBlockType(CurrentWeek);
+
         var allPlannedSets = new List<PlannedSet>();
         foreach (var exercise in exercisesForDay)
         {
-            var sets = exercise.CalculatePlannedSets(CurrentWeek, CurrentBlock);
+            var sets = exercise.CalculatePlannedSets(templateWeek, blockType);
             allPlannedSets.AddRange(sets);
         }
 
@@ -355,13 +404,16 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
     /// <summary>
     /// Gets planned sets for a specific exercise.
+    /// Translates the current program week to a template week for the WeeklyProgram table.
     /// </summary>
     public IEnumerable<PlannedSet> GetPlannedSetsForExercise(ExerciseId exerciseId)
     {
         var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
-        return exercise.CalculatePlannedSets(CurrentWeek, CurrentBlock);
+        var templateWeek = GetTemplateWeek(CurrentWeek);
+        var blockType = GetBlockType(CurrentWeek);
+        return exercise.CalculatePlannedSets(templateWeek, blockType);
     }
 
     /// <summary>
@@ -389,6 +441,54 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     public int GetCurrentBlockNumber()
     {
         return CurrentBlock;
+    }
+
+    /// <summary>
+    /// Translates a program week number (1-N) to a template week (1-21)
+    /// that indexes into the standard WeeklyProgram table.
+    /// </summary>
+    public int GetTemplateWeek(int programWeek)
+    {
+        CheckRule(programWeek >= 1 && programWeek <= TotalWeeks,
+            $"Program week {programWeek} must be between 1 and {TotalWeeks}");
+
+        var blockIndex = (programWeek - 1) / 7;
+        var blockType = _blockSequence[blockIndex];
+        var weekInBlock = ((programWeek - 1) % 7) + 1;
+        return ((blockType - 1) * 7) + weekInBlock;
+    }
+
+    /// <summary>
+    /// Gets the block type (1, 2, or 3) for a given program week
+    /// based on the block sequence.
+    /// </summary>
+    public int GetBlockType(int programWeek)
+    {
+        CheckRule(programWeek >= 1 && programWeek <= TotalWeeks,
+            $"Program week {programWeek} must be between 1 and {TotalWeeks}");
+
+        var blockIndex = (programWeek - 1) / 7;
+        return _blockSequence[blockIndex];
+    }
+
+    /// <summary>
+    /// Updates the block sequence for this workout.
+    /// Recalculates TotalWeeks and CurrentBlock accordingly.
+    /// Cannot shorten the program past the current week position.
+    /// </summary>
+    public void UpdateBlockSequence(List<int> newSequence)
+    {
+        CheckRule(Status != WorkoutStatus.Completed,
+            "Cannot update block sequence on a completed workout");
+        ValidateBlockSequence(newSequence);
+
+        var newTotalWeeks = newSequence.Count * 7;
+        CheckRule(CurrentWeek <= newTotalWeeks,
+            $"Cannot shorten program to {newTotalWeeks} weeks when already at week {CurrentWeek}");
+
+        _blockSequence = new List<int>(newSequence);
+        TotalWeeks = newTotalWeeks;
+        CurrentBlock = CalculateBlockNumber(CurrentWeek);
     }
 
     /// <summary>
@@ -539,18 +639,27 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
-    /// Calculates the block number based on week number.
-    /// Block 1: weeks 1-7, Block 2: weeks 8-14, Block 3: weeks 15-21.
+    /// Calculates the block type based on week number and block sequence.
     /// </summary>
-    private static int CalculateBlockNumber(int weekNumber)
+    private int CalculateBlockNumber(int weekNumber)
     {
-        return weekNumber switch
+        if (_blockSequence == null || _blockSequence.Count == 0)
         {
-            <= 7 => 1,
-            <= 14 => 2,
-            <= 21 => 3,
-            _ => throw new ArgumentException($"Week number {weekNumber} exceeds standard 21-week program")
-        };
+            // Legacy fallback
+            return weekNumber switch
+            {
+                <= 7 => 1,
+                <= 14 => 2,
+                <= 21 => 3,
+                _ => 3
+            };
+        }
+
+        var blockIndex = (weekNumber - 1) / 7;
+        if (blockIndex >= _blockSequence.Count)
+            throw new ArgumentException($"Week number {weekNumber} exceeds program length of {_blockSequence.Count * 7} weeks");
+
+        return _blockSequence[blockIndex];
     }
 
     /// <summary>
@@ -606,6 +715,168 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Records an audit entry for tracking progression changes.
+    /// </summary>
+    public void RecordAuditEntry(ProgressionAuditEntry entry)
+    {
+        _auditEntries.Add(entry);
+    }
+
+    /// <summary>
+    /// Retrofixes the Training Max history for a Linear progression exercise.
+    /// Recalculates TM values from the original starting TM using unrounded math,
+    /// then updates all snapshot JSON and the current exercise TM.
+    /// Used to fix data that was incorrectly rounded to gym increments.
+    /// </summary>
+    /// <returns>A summary of old vs new TM values per week.</returns>
+    public List<(int Week, decimal OldTm, decimal NewTm)> RetrofixLinearTmHistory(
+        ExerciseId exerciseId, decimal originalStartingTm)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId)
+            ?? throw new InvalidOperationException($"Exercise {exerciseId} not found in this workout");
+        if (exercise.Progression is not LinearProgressionStrategy linear)
+            throw new InvalidOperationException($"Exercise {exercise.Name} does not use Linear progression");
+        var changes = new List<(int Week, decimal OldTm, decimal NewTm)>();
+
+        // Sort activities chronologically for this exercise's day
+        var activitiesForExercise = _completedActivities
+            .Where(a => a.Performances.Any(p => p.ExerciseId == exerciseId))
+            .OrderBy(a => a.WeekNumber)
+            .ThenBy(a => a.CompletedAt)
+            .ToList();
+
+        if (!activitiesForExercise.Any())
+            return changes;
+
+        // Walk through activities, recalculating TM with proper precision
+        var currentTm = originalStartingTm;
+
+        foreach (var activity in activitiesForExercise)
+        {
+            // Find the snapshot for this exercise (captured BEFORE progression)
+            var snapshotIndex = activity.ProgressionSnapshots
+                .FindIndex(s => s.ExerciseId == exerciseId.Value);
+
+            if (snapshotIndex >= 0)
+            {
+                var oldSnapshot = activity.ProgressionSnapshots[snapshotIndex];
+                var oldJson = System.Text.Json.JsonDocument.Parse(oldSnapshot.ProgressionStateJson);
+                var oldTmValue = oldJson.RootElement.GetProperty("TrainingMaxValue").GetDecimal();
+
+                // Create corrected snapshot with the recalculated TM
+                var correctedJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    TrainingMaxValue = currentTm,
+                    TrainingMaxUnit = oldJson.RootElement.GetProperty("TrainingMaxUnit").GetInt32(),
+                    UseAmrap = oldJson.RootElement.GetProperty("UseAmrap").GetBoolean(),
+                    BaseSetsPerExercise = oldJson.RootElement.GetProperty("BaseSetsPerExercise").GetInt32()
+                });
+
+                // Replace the snapshot in the list
+                activity.ProgressionSnapshots[snapshotIndex] = new ProgressionSnapshot(
+                    oldSnapshot.ExerciseId,
+                    oldSnapshot.ExerciseName,
+                    oldSnapshot.ProgressionType,
+                    correctedJson);
+
+                changes.Add((activity.WeekNumber, oldTmValue, currentTm));
+            }
+
+            // Now apply the AMRAP delta to get the TM for the NEXT week
+            var performance = activity.Performances.FirstOrDefault(p => p.ExerciseId == exerciseId);
+            if (performance != null && !performance.SkipProgression)
+            {
+                var delta = performance.GetAmrapDelta();
+                var adjustmentPct = delta switch
+                {
+                    >= 5 => 0.03m,
+                    4 => 0.02m,
+                    3 => 0.015m,
+                    2 => 0.01m,
+                    1 => 0.005m,
+                    0 => 0m,
+                    -1 => -0.02m,
+                    _ => -0.05m
+                };
+
+                if (adjustmentPct != 0m)
+                {
+                    currentTm = Math.Round(currentTm * (1 + adjustmentPct), 2);
+                }
+            }
+        }
+
+        // Update the current exercise TM to the correctly calculated value
+        linear.RestoreState(TrainingMax.Create(currentTm, linear.TrainingMax.Unit));
+
+        return changes;
+    }
+
+    /// <summary>
+    /// Undoes the last completed day, restoring progression state.
+    /// Only allows undoing the most recent completion (single undo).
+    /// </summary>
+    public UndoResult UndoLastCompletion()
+    {
+        CheckRule(Status == WorkoutStatus.Active, "Cannot undo when workout is not active");
+        CheckRule(_completedActivities.Any(), "No completed activities to undo");
+
+        // Get the last activity (most recent)
+        var lastActivity = _completedActivities
+            .OrderByDescending(a => a.CompletedAt)
+            .First();
+
+        // Check if this would cross week boundary
+        var wouldRollbackWeek = lastActivity.WeekNumber < CurrentWeek;
+
+        // Restore progression snapshots (if available - older activities may not have them)
+        var snapshots = lastActivity.ProgressionSnapshots;
+        if (snapshots != null && snapshots.Count > 0)
+        {
+            foreach (var snapshot in snapshots)
+            {
+                var exercise = _exercises.FirstOrDefault(e => e.Id.Value == snapshot.ExerciseId);
+                exercise?.RestoreFromSnapshot(snapshot);
+            }
+        }
+        // Note: If no snapshots exist (older completion), we can only remove the activity
+        // but cannot restore the progression state. The user should be aware of this.
+
+        // Remove the activity
+        _completedActivities.Remove(lastActivity);
+
+        // Adjust current day/week
+        if (wouldRollbackWeek)
+        {
+            CurrentWeek = lastActivity.WeekNumber;
+            CurrentBlock = CalculateBlockNumber(CurrentWeek);
+        }
+        CurrentDay = (int)lastActivity.Day;
+
+        // Record audit entry
+        var hasSnapshots = snapshots != null && snapshots.Count > 0;
+        _auditEntries.Add(ProgressionAuditEntry.UndoCompletion(
+            lastActivity.WeekNumber,
+            (int)lastActivity.Day,
+            hasSnapshots ? "User initiated undo" : "User initiated undo (progression not restored - completed before snapshot feature)"));
+
+        AddDomainEvent(new CompletionUndone(Id, lastActivity.Day, lastActivity.WeekNumber));
+
+        return new UndoResult(lastActivity.Day, lastActivity.WeekNumber, wouldRollbackWeek);
+    }
+
+    /// <summary>
+    /// Validates a block sequence: non-empty, each element 1-3, max 10 blocks.
+    /// </summary>
+    private static void ValidateBlockSequence(List<int> sequence)
+    {
+        CheckRule(sequence != null && sequence.Count > 0, "Block sequence cannot be empty");
+        CheckRule(sequence!.Count <= 10, "Block sequence cannot exceed 10 blocks (70 weeks)");
+        CheckRule(sequence.All(b => b >= 1 && b <= 3),
+            "Each block type must be 1, 2, or 3");
+    }
+
+    /// <summary>
     /// Validates that exercises have proper ordering (no gaps, no duplicates).
     /// </summary>
     private static void ValidateExerciseOrdering(List<Exercise> exercises)
@@ -636,3 +907,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         }
     }
 }
+
+/// <summary>
+/// Result of an undo operation, indicating what was undone.
+/// </summary>
+public sealed record UndoResult(
+    DayNumber Day,
+    int WeekNumber,
+    bool WeekRolledBack);

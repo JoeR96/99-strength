@@ -75,9 +75,10 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         EquipmentType equipment,
         int startingSets = 2,
         int targetSets = 4,
-        bool isUnilateral = false)
+        bool isUnilateral = false,
+        int? currentSets = null)
     {
-        return new RepsPerSetStrategy(
+        var strategy = new RepsPerSetStrategy(
             new ExerciseProgressionId(Guid.NewGuid()),
             repRange,
             startingSets,
@@ -85,6 +86,15 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
             startingWeight,
             equipment,
             isUnilateral);
+
+        if (currentSets.HasValue && currentSets.Value != startingSets)
+        {
+            CheckRule(currentSets.Value >= 1 && currentSets.Value <= 10,
+                "Current sets must be between 1 and 10");
+            strategy.CurrentSetCount = currentSets.Value;
+        }
+
+        return strategy;
     }
 
     /// <summary>
@@ -273,6 +283,29 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     public void UpdateRepRange(RepRange newRepRange)
     {
         RepRange = newRepRange;
+    }
+
+    /// <summary>
+    /// Sets the unilateral flag for this exercise.
+    /// Unilateral exercises have a lower max set target (3 per side).
+    /// When switching to unilateral, set count is capped at 3 if currently higher.
+    /// </summary>
+    public void SetUnilateral(bool isUnilateral)
+    {
+        IsUnilateral = isUnilateral;
+
+        // If switching to unilateral and current sets exceed the new max, cap it
+        if (isUnilateral && CurrentSetCount > MaxSets)
+        {
+            CurrentSetCount = MaxSets;
+        }
+    }
+
+    internal void RestoreState(decimal currentWeight, int currentSetCount, bool isUnilateral, WeightUnit? weightUnit = null)
+    {
+        CurrentWeight = Weight.Create(currentWeight, weightUnit ?? CurrentWeight.Unit);
+        CurrentSetCount = currentSetCount;
+        IsUnilateral = isUnilateral;
     }
 }
 

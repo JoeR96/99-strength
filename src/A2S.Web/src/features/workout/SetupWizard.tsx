@@ -24,6 +24,7 @@ export function SetupWizard() {
   const [workoutName, setWorkoutName] = useState("My A2S Program");
   const [variant, setVariant] = useState<ProgramVariant>(ProgramVariant.FourDay);
   const [totalWeeks, setTotalWeeks] = useState(21);
+  const [blockSequence, setBlockSequence] = useState<number[]>([1, 2, 3]);
   const [selectedExercises, setSelectedExercises] = useState<SelectedExercise[]>([]);
 
   // Convert template exercises to SelectedExercise format
@@ -51,10 +52,11 @@ export function SetupWizard() {
         isPrimary: ex.category === ExerciseCategory.MainLift,
         baseSetsPerExercise: templateData?.defaultSets || 4,
         repRange: templateData?.defaultRepRange,
-        currentSets: templateData?.defaultSets || 3,
-        targetSets: (templateData?.defaultSets || 3) + 2,
+        currentSets: ex.startingSets ?? templateData?.defaultSets ?? 3,
+        targetSets: ex.targetSets ?? (templateData?.defaultSets ?? 3) + 2,
         startingWeight: ex.startingWeight,
         weightUnit: ex.weightUnit || WeightUnit.Kilograms,
+        isUnilateral: ex.isUnilateral,
       };
     });
 
@@ -62,6 +64,7 @@ export function SetupWizard() {
     setWorkoutName(template.name);
     setVariant(template.variant as ProgramVariant);
     setTotalWeeks(template.totalWeeks);
+    setBlockSequence(template.blockSequence ?? [1, 2, 3]);
   };
 
   const getSteps = (): WizardStep[] => {
@@ -110,12 +113,14 @@ export function SetupWizard() {
         weightUnit: ex.weightUnit,
         startingSets: ex.currentSets,
         targetSets: ex.targetSets,
+        isUnilateral: ex.isUnilateral,
       }));
 
       await createWorkout.mutateAsync({
         name: workoutName,
         variant,
         totalWeeks,
+        blockSequence,
         exercises: exercises.length > 0 ? exercises : undefined,
       });
 

@@ -1,5 +1,7 @@
 using A2S.Application.Services;
 using A2S.Domain.Repositories;
+using A2S.Domain.Services;
+using A2S.Infrastructure.ExternalServices;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.Repositories;
 using A2S.Infrastructure.Services;
@@ -63,6 +65,12 @@ public static class DependencyInjection
 
         // Register Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Register Domain Services
+        services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
+
+        // Register External Services
+        services.AddScoped<IHevyIntegrationService, HevyIntegrationService>();
 
         return services;
     }

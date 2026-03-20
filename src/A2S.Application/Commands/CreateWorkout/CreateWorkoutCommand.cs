@@ -10,7 +10,8 @@ public sealed record CreateWorkoutCommand(
     string Name,
     ProgramVariant Variant,
     int TotalWeeks = 21,
-    IReadOnlyList<CreateExerciseRequest>? Exercises = null
+    IReadOnlyList<CreateExerciseRequest>? Exercises = null,
+    List<int>? BlockSequence = null
 ) : ICommand<Result<Guid>>;
 
 /// <summary>
@@ -40,6 +41,9 @@ public sealed record CreateExerciseRequest
     public int? StartingSets { get; init; }
     public int? TargetSets { get; init; }
     public bool IsUnilateral { get; init; }
+    public int? RepRangeMinimum { get; init; }
+    public int? RepRangeTarget { get; init; }
+    public int? RepRangeMaximum { get; init; }
 
     // For MinimalSets progression
     public int? TargetTotalReps { get; init; }

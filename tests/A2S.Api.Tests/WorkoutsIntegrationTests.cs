@@ -73,12 +73,12 @@ public class WorkoutsIntegrationTests
         linearExercises.Should().HaveCount(4, "Default workout should have 4 Linear progression exercises");
 
         // Verify all default main lifts use linear progression
-        var benchPress = workout.Exercises.FirstOrDefault(e => e.Name == "Bench Press");
+        var benchPress = workout.Exercises.FirstOrDefault(e => e.Name == "Bench Press (Barbell)");
         benchPress.Should().NotBeNull();
         benchPress!.Category.Should().Be(ExerciseCategory.MainLift);
         benchPress.Progression.Type.Should().Be("Linear");
 
-        var squat = workout.Exercises.FirstOrDefault(e => e.Name == "Squat");
+        var squat = workout.Exercises.FirstOrDefault(e => e.Name == "Squat (Barbell)");
         squat.Should().NotBeNull();
         squat!.Category.Should().Be(ExerciseCategory.MainLift);
         squat.Progression.Type.Should().Be("Linear");
@@ -156,13 +156,13 @@ public class WorkoutsIntegrationTests
 
         // Verify each day has exactly one main lift
         day1Exercises.Should().ContainSingle("Day 1 should have one main lift")
-            .Which.Name.Should().Be("Squat");
+            .Which.Name.Should().Be("Squat (Barbell)");
         day2Exercises.Should().ContainSingle("Day 2 should have one main lift")
-            .Which.Name.Should().Be("Bench Press");
+            .Which.Name.Should().Be("Bench Press (Barbell)");
         day3Exercises.Should().ContainSingle("Day 3 should have one main lift")
-            .Which.Name.Should().Be("Deadlift");
+            .Which.Name.Should().Be("Deadlift (Barbell)");
         day4Exercises.Should().ContainSingle("Day 4 should have one main lift")
-            .Which.Name.Should().Be("Overhead Press");
+            .Which.Name.Should().Be("Overhead Press (Barbell)");
 
         // All exercises should be main lifts with linear progression
         workout.Exercises.Should().OnlyContain(
@@ -210,17 +210,17 @@ public class WorkoutsIntegrationTests
     }
 
     /// <summary>
-    /// Tests creating a workout with custom total weeks.
+    /// Tests creating a workout with a custom block sequence (2 blocks = 14 weeks).
     /// </summary>
     [Fact]
-    public async Task CreateWorkout_WithCustomWeeks_CreatesSuccessfully()
+    public async Task CreateWorkout_WithCustomBlockSequence_CreatesSuccessfully()
     {
         // Arrange - use same client for create and get to ensure same user
         var client = CreateClient();
         var command = new CreateWorkoutCommand(
             Name: "Short Program",
             Variant: ProgramVariant.FiveDay,
-            TotalWeeks: 12
+            BlockSequence: new List<int> { 1, 2 }
         );
 
         // Act
@@ -234,7 +234,8 @@ public class WorkoutsIntegrationTests
         var workout = await getCurrentResponse.Content.ReadFromJsonAsync<WorkoutDto>();
 
         workout.Should().NotBeNull();
-        workout!.TotalWeeks.Should().Be(12);
+        workout!.TotalWeeks.Should().Be(14);
+        workout.BlockSequence.Should().BeEquivalentTo(new[] { 1, 2 });
     }
 
     #endregion
@@ -475,14 +476,14 @@ public class WorkoutsIntegrationTests
 
         // Verify we have exercise templates
         library.Templates.Count.Should().BeGreaterThanOrEqualTo(20);
-        library.Templates.Should().Contain(e => e.Name == "Squat");
-        library.Templates.Should().Contain(e => e.Name == "Bench Press");
-        library.Templates.Should().Contain(e => e.Name == "Deadlift");
-        library.Templates.Should().Contain(e => e.Name == "Overhead Press");
+        library.Templates.Should().Contain(e => e.Name == "Squat (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Bench Press (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Deadlift (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Overhead Press (Barbell)");
 
         // Verify we have accessory exercises
-        library.Templates.Should().Contain(e => e.Name == "Bicep Curl");
-        library.Templates.Should().Contain(e => e.Name == "Lateral Raise");
+        library.Templates.Should().Contain(e => e.Name == "Bicep Curl (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Lateral Raise (Dumbbell)");
     }
 
     /// <summary>
@@ -496,14 +497,14 @@ public class WorkoutsIntegrationTests
         var library = await response.Content.ReadFromJsonAsync<ExerciseLibraryDto>();
 
         // Assert - Exercises should have equipment but no category
-        var squat = library!.Templates.First(e => e.Name == "Squat");
+        var squat = library!.Templates.First(e => e.Name == "Squat (Barbell)");
         squat.Equipment.Should().Be(EquipmentType.Barbell);
         squat.DefaultRepRange.Should().NotBeNull();
         squat.DefaultSets.Should().NotBeNull();
 
         // Verify accessory exercises have rep ranges defined
-        var curl = library.Templates.First(e => e.Name == "Bicep Curl");
-        curl.Equipment.Should().Be(EquipmentType.Dumbbell);
+        var curl = library.Templates.First(e => e.Name == "Bicep Curl (Barbell)");
+        curl.Equipment.Should().Be(EquipmentType.Barbell);
         curl.DefaultRepRange.Should().NotBeNull();
     }
 
@@ -540,7 +541,8 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
+                HevyExerciseTemplateId = "test-squat-1",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -550,7 +552,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Bench Press",
+                TemplateName = "Bench Press (Barbell)",
+                HevyExerciseTemplateId = "test-benchpress-1",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -560,7 +563,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Barbell Row",
+                TemplateName = "Bent Over Row (Barbell)",
+                HevyExerciseTemplateId = "test-barbellrow-1",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -570,7 +574,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Bicep Curl",
+                TemplateName = "Bicep Curl (Barbell)",
+                HevyExerciseTemplateId = "test-bicepcurl-1",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -602,27 +607,27 @@ public class WorkoutsIntegrationTests
         workout!.Exercises.Count.Should().Be(4);
 
         // Verify Squat configuration
-        var squat = workout.Exercises.First(e => e.Name == "Squat");
+        var squat = workout.Exercises.First(e => e.Name == "Squat (Barbell)");
         squat.Category.Should().Be(ExerciseCategory.MainLift);
         squat.Progression.Type.Should().Be("Linear");
         squat.AssignedDay.Should().Be(DayNumber.Day1);
         squat.OrderInDay.Should().Be(1);
 
         // Verify Bench Press configuration
-        var bench = workout.Exercises.First(e => e.Name == "Bench Press");
+        var bench = workout.Exercises.First(e => e.Name == "Bench Press (Barbell)");
         bench.Category.Should().Be(ExerciseCategory.MainLift);
         bench.AssignedDay.Should().Be(DayNumber.Day2);
         bench.OrderInDay.Should().Be(1);
 
         // Verify Barbell Row configuration (auxiliary with Linear progression)
-        var row = workout.Exercises.First(e => e.Name == "Barbell Row");
+        var row = workout.Exercises.First(e => e.Name == "Bent Over Row (Barbell)");
         row.Category.Should().Be(ExerciseCategory.Auxiliary);
         row.Progression.Type.Should().Be("Linear");
         row.AssignedDay.Should().Be(DayNumber.Day1);
         row.OrderInDay.Should().Be(2);
 
         // Verify Bicep Curl configuration (accessory with RepsPerSet)
-        var curl = workout.Exercises.First(e => e.Name == "Bicep Curl");
+        var curl = workout.Exercises.First(e => e.Name == "Bicep Curl (Barbell)");
         curl.Category.Should().Be(ExerciseCategory.Accessory);
         curl.Progression.Type.Should().Be("RepsPerSet");
         curl.AssignedDay.Should().Be(DayNumber.Day2);
@@ -670,7 +675,8 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
+                HevyExerciseTemplateId = "test-squat-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -680,7 +686,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Bench Press",
+                TemplateName = "Bench Press (Barbell)",
+                HevyExerciseTemplateId = "test-benchpress-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -690,7 +697,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Deadlift",
+                TemplateName = "Deadlift (Barbell)",
+                HevyExerciseTemplateId = "test-deadlift-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -700,7 +708,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Overhead Press",
+                TemplateName = "Overhead Press (Barbell)",
+                HevyExerciseTemplateId = "test-ohp-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,
@@ -732,10 +741,10 @@ public class WorkoutsIntegrationTests
         var day3Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day3).ToList();
         var day4Exercises = workout.Exercises.Where(e => e.AssignedDay == DayNumber.Day4).ToList();
 
-        day1Exercises.Should().ContainSingle(e => e.Name == "Squat");
-        day2Exercises.Should().ContainSingle(e => e.Name == "Bench Press");
-        day3Exercises.Should().ContainSingle(e => e.Name == "Deadlift");
-        day4Exercises.Should().ContainSingle(e => e.Name == "Overhead Press");
+        day1Exercises.Should().ContainSingle(e => e.Name == "Squat (Barbell)");
+        day2Exercises.Should().ContainSingle(e => e.Name == "Bench Press (Barbell)");
+        day3Exercises.Should().ContainSingle(e => e.Name == "Deadlift (Barbell)");
+        day4Exercises.Should().ContainSingle(e => e.Name == "Overhead Press (Barbell)");
     }
 
     /// <summary>
@@ -750,7 +759,8 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
+                HevyExerciseTemplateId = "test-squat-3",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -761,6 +771,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "NonExistentExercise", // Invalid template
+                HevyExerciseTemplateId = "test-nonexistent-3",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -770,7 +781,8 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Bench Press",
+                TemplateName = "Bench Press (Barbell)",
+                HevyExerciseTemplateId = "test-benchpress-3",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -798,8 +810,8 @@ public class WorkoutsIntegrationTests
 
         workout.Should().NotBeNull();
         workout!.Exercises.Count.Should().Be(2, "Invalid exercise should be skipped");
-        workout.Exercises.Should().Contain(e => e.Name == "Squat");
-        workout.Exercises.Should().Contain(e => e.Name == "Bench Press");
+        workout.Exercises.Should().Contain(e => e.Name == "Squat (Barbell)");
+        workout.Exercises.Should().Contain(e => e.Name == "Bench Press (Barbell)");
         workout.Exercises.Should().NotContain(e => e.Name == "NonExistentExercise");
     }
 
@@ -891,7 +903,7 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
                 HevyExerciseTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
@@ -917,7 +929,7 @@ public class WorkoutsIntegrationTests
         var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
         workout.Should().NotBeNull();
 
-        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat");
+        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat (Barbell)");
         var originalTM = (squatExercise.Progression as LinearProgressionDto)?.TrainingMax.Value;
         originalTM.Should().Be(100m);
 
@@ -928,7 +940,7 @@ public class WorkoutsIntegrationTests
             {
                 new()
                 {
-                    ExerciseId = Guid.Parse(squatExercise.Id),
+                    ExerciseId = squatExercise.Id,
                     TrainingMaxValue = 110m,
                     TrainingMaxUnit = WeightUnit.Kilograms,
                     Reason = "Adjusted based on recent performance"
@@ -946,14 +958,14 @@ public class WorkoutsIntegrationTests
         result!.UpdatedCount.Should().Be(1);
         result.Results.Should().ContainSingle();
         result.Results[0].Success.Should().BeTrue();
-        result.Results[0].ExerciseName.Should().Be("Squat");
-        result.Results[0].PreviousValue.Should().Be("100 Kilograms");
-        result.Results[0].NewValue.Should().Be("110 Kilograms");
+        result.Results[0].ExerciseName.Should().Be("Squat (Barbell)");
+        result.Results[0].PreviousValue.Should().Contain("100").And.Contain("Kilograms");
+        result.Results[0].NewValue.Should().Contain("110").And.Contain("Kilograms");
 
         // Verify the change persisted
         var verifyResponse = await client.GetAsync("/api/v1/workouts/current");
         var updatedWorkout = await verifyResponse.Content.ReadFromJsonAsync<WorkoutDto>();
-        var updatedSquat = updatedWorkout!.Exercises.First(e => e.Name == "Squat");
+        var updatedSquat = updatedWorkout!.Exercises.First(e => e.Name == "Squat (Barbell)");
         var newTM = (updatedSquat.Progression as LinearProgressionDto)?.TrainingMax.Value;
         newTM.Should().Be(110m);
     }
@@ -970,7 +982,7 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Bicep Curl",
+                TemplateName = "Bicep Curl (Barbell)",
                 HevyExerciseTemplateId = "ADA8623C",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
@@ -994,7 +1006,7 @@ public class WorkoutsIntegrationTests
         // Get the workout to find the exercise ID
         var getResponse = await client.GetAsync("/api/v1/workouts/current");
         var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
-        var curlExercise = workout!.Exercises.First(e => e.Name == "Bicep Curl");
+        var curlExercise = workout!.Exercises.First(e => e.Name == "Bicep Curl (Barbell)");
 
         // Act - Update the weight
         var updateRequest = new UpdateExercisesApiRequest
@@ -1003,7 +1015,7 @@ public class WorkoutsIntegrationTests
             {
                 new()
                 {
-                    ExerciseId = Guid.Parse(curlExercise.Id),
+                    ExerciseId = curlExercise.Id,
                     WeightValue = 17.5m,
                     WeightUnit = WeightUnit.Kilograms
                 }
@@ -1023,7 +1035,7 @@ public class WorkoutsIntegrationTests
         // Verify the change persisted
         var verifyResponse = await client.GetAsync("/api/v1/workouts/current");
         var updatedWorkout = await verifyResponse.Content.ReadFromJsonAsync<WorkoutDto>();
-        var updatedCurl = updatedWorkout!.Exercises.First(e => e.Name == "Bicep Curl");
+        var updatedCurl = updatedWorkout!.Exercises.First(e => e.Name == "Bicep Curl (Barbell)");
         var newWeight = (updatedCurl.Progression as RepsPerSetProgressionDto)?.CurrentWeight;
         newWeight.Should().Be(17.5m);
     }
@@ -1040,7 +1052,7 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
                 HevyExerciseTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
@@ -1051,7 +1063,7 @@ public class WorkoutsIntegrationTests
             },
             new()
             {
-                TemplateName = "Bench Press",
+                TemplateName = "Bench Press (Barbell)",
                 HevyExerciseTemplateId = "79D0BB3A",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
@@ -1074,8 +1086,8 @@ public class WorkoutsIntegrationTests
 
         var getResponse = await client.GetAsync("/api/v1/workouts/current");
         var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
-        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat");
-        var benchExercise = workout.Exercises.First(e => e.Name == "Bench Press");
+        var squatExercise = workout!.Exercises.First(e => e.Name == "Squat (Barbell)");
+        var benchExercise = workout.Exercises.First(e => e.Name == "Bench Press (Barbell)");
 
         // Act - Update both exercises
         var updateRequest = new UpdateExercisesApiRequest
@@ -1084,13 +1096,13 @@ public class WorkoutsIntegrationTests
             {
                 new()
                 {
-                    ExerciseId = Guid.Parse(squatExercise.Id),
+                    ExerciseId = squatExercise.Id,
                     TrainingMaxValue = 110m,
                     TrainingMaxUnit = WeightUnit.Kilograms
                 },
                 new()
                 {
-                    ExerciseId = Guid.Parse(benchExercise.Id),
+                    ExerciseId = benchExercise.Id,
                     TrainingMaxValue = 85m,
                     TrainingMaxUnit = WeightUnit.Kilograms
                 }
@@ -1121,7 +1133,7 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
                 HevyExerciseTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
@@ -1241,7 +1253,7 @@ public class WorkoutsIntegrationTests
         {
             new()
             {
-                TemplateName = "Overhead Press",
+                TemplateName = "Overhead Press (Barbell)",
                 HevyExerciseTemplateId = "7B8D84E8",
                 Category = ExerciseCategory.Auxiliary, // Auxiliary, not MainLift
                 ProgressionType = "Linear",
@@ -1268,7 +1280,7 @@ public class WorkoutsIntegrationTests
         var workout = await getResponse.Content.ReadFromJsonAsync<WorkoutDto>();
 
         // Assert - AMRAP should be enabled for Linear progression even though it's Auxiliary
-        var ohp = workout!.Exercises.First(e => e.Name == "Overhead Press");
+        var ohp = workout!.Exercises.First(e => e.Name == "Overhead Press (Barbell)");
         ohp.Category.Should().Be(ExerciseCategory.Auxiliary);
         ohp.Progression.Type.Should().Be("Linear");
 

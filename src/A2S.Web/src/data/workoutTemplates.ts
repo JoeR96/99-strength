@@ -10,6 +10,7 @@ export interface WorkoutTemplate {
   description: string;
   variant: 4 | 5 | 6;
   totalWeeks: number;
+  blockSequence: number[];
   exercises: CreateExerciseRequest[];
 }
 
@@ -28,6 +29,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
   description: 'A balanced 4-day split focusing on hypertrophy with 3 main lifts and targeted accessories.',
   variant: 4,
   totalWeeks: 21,
+  blockSequence: [1, 2, 3],
   exercises: [
     // ==================== DAY 1 ====================
     // Lat Pulldown - RepsPerSet (3 sets x 12 reps -> 5 sets)
@@ -324,23 +326,25 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
 const monkModeTemplate: WorkoutTemplate = {
   id: 'monk-mode',
   name: 'Monk Mode',
-  description: 'A focused 4-day Upper/Lower split emphasizing compound movements with linear progression on main lifts.',
+  description: 'A focused 4-day Upper/Lower split emphasizing compound movements with linear progression on main lifts. Updated from Hevy workout data.',
   variant: 4,
   totalWeeks: 21,
+  blockSequence: [1, 2, 3],
   exercises: [
     // ==================== DAY 1: Upper Push/Pull ====================
-    // Larsen Press (using Feet Up Bench Press) - Linear (TM: 60kg)
+    // Overhead Press (Smith Machine) - Linear (TM: 65kg)
+    // From Hevy Week 2 Day 1: working weight 56.3kg at 85% → TM ≈ 65kg
     {
-      templateName: "Feet Up Bench Press (Barbell)",
-      hevyExerciseTemplateId: "867AC3B6",
+      templateName: "Overhead Press (Smith Machine)",
+      hevyExerciseTemplateId: "B09A1304",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 1,
       orderInDay: 1,
-      trainingMaxValue: 60,
+      trainingMaxValue: 65,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
-    // Bent Over Row (Barbell) - RepsPerSet (4 sets x 8-12 reps)
+    // Bent Over Row (Barbell) - RepsPerSet (3 sets)
     {
       templateName: "Bent Over Row (Barbell)",
       hevyExerciseTemplateId: "55E6546F",
@@ -350,75 +354,65 @@ const monkModeTemplate: WorkoutTemplate = {
       orderInDay: 2,
       startingWeight: 60,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 4,
+      startingSets: 3,
       targetSets: 5,
     },
-    // Overhead Press (Smith Machine) - Linear (TM: 65kg)
+    // Hanging Knee Raise - Bodyweight core work (3 sets)
     {
-      templateName: "Overhead Press (Smith Machine)",
-      hevyExerciseTemplateId: "B09A1304",
-      category: ExerciseCategory.Auxiliary,
-      progressionType: "Linear",
-      assignedDay: 1,
-      orderInDay: 3,
-      trainingMaxValue: 65,
-      trainingMaxUnit: WeightUnit.Kilograms,
-    },
-    // Chest Fly (Machine) - RepsPerSet (3 sets x 8-12 reps)
-    {
-      templateName: "Chest Fly (Machine)",
-      hevyExerciseTemplateId: "78683336",
+      templateName: "Hanging Knee Raise",
+      hevyExerciseTemplateId: "08590920",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
-      orderInDay: 4,
-      startingWeight: 80,
+      orderInDay: 3,
+      startingWeight: 0,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
-    // Lateral Raise (Cable) - RepsPerSet (3 sets x 8-12 reps)
+    // Lateral Raise (Cable) - RepsPerSet (6 sets from Hevy)
     {
       templateName: "Lateral Raise (Cable)",
       hevyExerciseTemplateId: "BE289E45",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
-      orderInDay: 5,
-      startingWeight: 17.5,
+      orderInDay: 4,
+      startingWeight: 18,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
+      startingSets: 6,
+      targetSets: 8,
     },
-    // Bicep Curl (Cable) - RepsPerSet (3 sets x 8-12 reps)
+    // Bicep Curl (Cable) - RepsPerSet (3 sets)
     {
       templateName: "Bicep Curl (Cable)",
       hevyExerciseTemplateId: "ADA8623C",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
-      orderInDay: 6,
-      startingWeight: 20,
+      orderInDay: 5,
+      startingWeight: 50,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
-    // Tricep Crucifix Pushdown (Cable) - using Triceps Pushdown
+    // Crucifix Tricep Pulldown - RepsPerSet (3 sets)
     {
-      templateName: "Triceps Pushdown",
-      hevyExerciseTemplateId: "93A552C6",
+      templateName: "Crucifix Tricep Pulldown",
+      hevyExerciseTemplateId: "4296b371-d566-46c0-8c63-88fc3e97054a",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
-      orderInDay: 7,
-      startingWeight: 10,
+      orderInDay: 6,
+      startingWeight: 36,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
 
     // ==================== DAY 2: Legs (Posterior Focus) ====================
-    // Squat (Barbell) - Linear (TM: 105kg)
+    // Squat (Barbell) - Linear (TM: 110kg)
+    // From Hevy Week 2 Day 2: working weight 92.5kg at 85% → TM ≈ 110kg
     {
       templateName: "Squat (Barbell)",
       hevyExerciseTemplateId: "D04AC939",
@@ -426,10 +420,10 @@ const monkModeTemplate: WorkoutTemplate = {
       progressionType: "Linear",
       assignedDay: 2,
       orderInDay: 1,
-      trainingMaxValue: 105,
+      trainingMaxValue: 110,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
-    // Romanian Deadlift (Dumbbell) - RepsPerSet (4 sets x 8-12 reps)
+    // Romanian Deadlift (Dumbbell) - RepsPerSet (3 sets, unilateral)
     {
       templateName: "Romanian Deadlift (Dumbbell)",
       hevyExerciseTemplateId: "72CFFAD5",
@@ -437,234 +431,175 @@ const monkModeTemplate: WorkoutTemplate = {
       progressionType: "RepsPerSet",
       assignedDay: 2,
       orderInDay: 2,
-      startingWeight: 46,
+      startingWeight: 80,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 4,
+      startingSets: 3,
       targetSets: 5,
       isUnilateral: true,
     },
-    // Lunge (Barbell) - RepsPerSet (3 sets x 8-12 reps)
-    {
-      templateName: "Lunge (Barbell)",
-      hevyExerciseTemplateId: "6E6EE645",
-      category: ExerciseCategory.Auxiliary,
-      progressionType: "RepsPerSet",
-      assignedDay: 2,
-      orderInDay: 3,
-      startingWeight: 62.5,
-      weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
-    },
-    // Hip Abduction (Machine) - RepsPerSet (3 sets x 8-12 reps)
+    // Hip Abduction (Machine) - RepsPerSet (4 sets)
     {
       templateName: "Hip Abduction (Machine)",
       hevyExerciseTemplateId: "F4B4C6EE",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
-      orderInDay: 4,
+      orderInDay: 3,
       startingWeight: 45,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
+      startingSets: 4,
+      targetSets: 6,
     },
-    // Leg Extension (Machine) - Light quad work (2 sets x 8-12 reps)
+    // Leg Extension (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Leg Extension (Machine)",
       hevyExerciseTemplateId: "75A4F6C4",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
-      orderInDay: 5,
+      orderInDay: 4,
       startingWeight: 40,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 2,
-      targetSets: 3,
+      startingSets: 3,
+      targetSets: 5,
     },
-    // Calf Press (Machine) - RepsPerSet (3 sets x 8-12 reps)
+    // Calf Press (Machine) - RepsPerSet (4 sets)
     {
       templateName: "Calf Press (Machine)",
       hevyExerciseTemplateId: "91237BDD",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
-      orderInDay: 6,
+      orderInDay: 5,
       startingWeight: 65,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
+      startingSets: 4,
+      targetSets: 6,
     },
 
     // ==================== DAY 3: Upper Pull/Arms ====================
-    // Pull Up (Assisted) - MinimalSets (4 sets x 8-12 reps target)
+    // Single Arm Lat Pulldown - RepsPerSet (4 sets, UNILATERAL)
     {
-      templateName: "Pull Up (Assisted)",
-      hevyExerciseTemplateId: "2C37EC5E",
+      templateName: "Single Arm Lat Pulldown",
+      hevyExerciseTemplateId: "2EE45F81",
       category: ExerciseCategory.Auxiliary,
-      progressionType: "MinimalSets",
+      progressionType: "RepsPerSet",
       assignedDay: 3,
       orderInDay: 1,
-      startingWeight: 37,
+      startingWeight: 79,
       weightUnit: WeightUnit.Kilograms,
-      targetTotalReps: 32,
       startingSets: 4,
+      targetSets: 6,
+      isUnilateral: true,
     },
-    // Triceps Dip (Assisted) - MinimalSets (3 sets x 8-12 reps target)
+    // Overhead Press (Barbell) - RepsPerSet (3 sets)
     {
-      templateName: "Triceps Dip (Assisted)",
-      hevyExerciseTemplateId: "4B4BF8C2",
+      templateName: "Overhead Press (Barbell)",
+      hevyExerciseTemplateId: "7B8D84E8",
       category: ExerciseCategory.Auxiliary,
-      progressionType: "MinimalSets",
+      progressionType: "RepsPerSet",
       assignedDay: 3,
       orderInDay: 2,
-      startingWeight: 37,
+      startingWeight: 40,
       weightUnit: WeightUnit.Kilograms,
-      targetTotalReps: 24,
       startingSets: 3,
+      targetSets: 5,
     },
-    // Lat Pulldown (Cable) - RepsPerSet (3 sets x 8-12 reps)
+    // Lateral Raise (Dumbbell) - RepsPerSet (3 sets)
     {
-      templateName: "Lat Pulldown (Cable)",
-      hevyExerciseTemplateId: "6A6C31A5",
+      templateName: "Lateral Raise (Dumbbell)",
+      hevyExerciseTemplateId: "422B08F1",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
       orderInDay: 3,
-      startingWeight: 57.5,
+      startingWeight: 20,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
-    // Seated Cable Row - V Grip - RepsPerSet (3 sets x 8-12 reps)
+    // Single Arm Cable Row - RepsPerSet (4 sets)
     {
-      templateName: "Seated Cable Row - V Grip (Cable)",
-      hevyExerciseTemplateId: "0393F233",
+      templateName: "Single Arm Cable Row",
+      hevyExerciseTemplateId: "D0C4A899",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
       orderInDay: 4,
-      startingWeight: 45,
+      startingWeight: 35,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
+      startingSets: 4,
+      targetSets: 6,
     },
-    // Rear Delt Reverse Fly (Cable) - RepsPerSet (3 sets x 8-12 reps)
-    {
-      templateName: "Rear Delt Reverse Fly (Cable)",
-      hevyExerciseTemplateId: "C315DC2A",
-      category: ExerciseCategory.Accessory,
-      progressionType: "RepsPerSet",
-      assignedDay: 3,
-      orderInDay: 5,
-      startingWeight: 17.5,
-      weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
-    },
-    // EZ Bar Biceps Curl - RepsPerSet (3 sets x 8-12 reps)
+    // EZ Bar Biceps Curl - RepsPerSet (2 sets)
     {
       templateName: "EZ Bar Biceps Curl",
       hevyExerciseTemplateId: "01A35BF9",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
-      orderInDay: 6,
+      orderInDay: 5,
       startingWeight: 25,
       weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
+      startingSets: 2,
       targetSets: 4,
     },
-    // Skull Crushers (EZ Bar) - using Skullcrusher (Barbell)
+    // Skullcrusher (Barbell) - RepsPerSet (3 sets)
     {
       templateName: "Skullcrusher (Barbell)",
       hevyExerciseTemplateId: "875F585F",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
-      orderInDay: 7,
+      orderInDay: 6,
       startingWeight: 20,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
 
     // ==================== DAY 4: Legs (Quad Focus) ====================
-    // Leg Extension (Machine) - Pre-exhaust (3 sets x 8-12 reps)
+    // Pause Squat (Barbell) - RepsPerSet (3 sets, rep range 3-4-5)
     {
-      templateName: "Leg Extension (Machine)",
-      hevyExerciseTemplateId: "75A4F6C4",
-      category: ExerciseCategory.Accessory,
+      templateName: "Pause Squat (Barbell)",
+      hevyExerciseTemplateId: "CE1054CE",
+      category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 4,
       orderInDay: 1,
-      startingWeight: 47.5,
+      startingWeight: 72.5,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
+      repRangeMinimum: 3,
+      repRangeTarget: 4,
+      repRangeMaximum: 5,
     },
-    // Leg Press (Machine) - Linear (TM: 150kg)
-    {
-      templateName: "Leg Press (Machine)",
-      hevyExerciseTemplateId: "C7973E0E",
-      category: ExerciseCategory.MainLift,
-      progressionType: "Linear",
-      assignedDay: 4,
-      orderInDay: 2,
-      trainingMaxValue: 150,
-      trainingMaxUnit: WeightUnit.Kilograms,
-    },
-    // Hip Thrust (Machine) - RepsPerSet (3 sets x 8-12 reps)
+    // Hip Thrust (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Hip Thrust (Machine)",
       hevyExerciseTemplateId: "68CE0B9B",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 4,
-      orderInDay: 3,
-      startingWeight: 67.5,
+      orderInDay: 2,
+      startingWeight: 70,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
-    // Hip Adduction (Machine) - RepsPerSet (3 sets x 8-12 reps)
+    // Hip Adduction (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Hip Adduction (Machine)",
       hevyExerciseTemplateId: "8BEBFED6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
-      orderInDay: 4,
+      orderInDay: 3,
       startingWeight: 45,
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
-      targetSets: 4,
-    },
-    // Lying Leg Curl (Machine) - Light hamstring work (2 sets x 8-12 reps)
-    {
-      templateName: "Lying Leg Curl (Machine)",
-      hevyExerciseTemplateId: "B8127AD1",
-      category: ExerciseCategory.Accessory,
-      progressionType: "RepsPerSet",
-      assignedDay: 4,
-      orderInDay: 5,
-      startingWeight: 30,
-      weightUnit: WeightUnit.Kilograms,
-      startingSets: 2,
-      targetSets: 3,
-    },
-    // Calf Press (Machine) - RepsPerSet (3 sets x 8-12 reps)
-    {
-      templateName: "Calf Press (Machine)",
-      hevyExerciseTemplateId: "91237BDD",
-      category: ExerciseCategory.Accessory,
-      progressionType: "RepsPerSet",
-      assignedDay: 4,
-      orderInDay: 6,
-      startingWeight: 65,
-      weightUnit: WeightUnit.Kilograms,
-      startingSets: 3,
-      targetSets: 4,
+      targetSets: 5,
     },
   ] as CreateExerciseRequest[],
 };

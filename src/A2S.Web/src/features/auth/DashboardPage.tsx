@@ -179,7 +179,7 @@ export function DashboardPage() {
           {/* Next Week Preview - Uses shared component with blur logic */}
           {workout && workout.currentWeek < workout.totalWeeks && (
             <div className="md:col-span-2 lg:col-span-3">
-              <NextWeekPreview workout={workout} />
+              <NextWeekPreview workout={workout} onWorkoutUpdated={refetch} />
             </div>
           )}
 

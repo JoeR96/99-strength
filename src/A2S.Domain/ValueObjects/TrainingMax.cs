@@ -47,6 +47,8 @@ public sealed class TrainingMax : ValueObject
 
     /// <summary>
     /// Applies an adjustment to the Training Max (e.g., from AMRAP performance).
+    /// The TM is stored at full precision so small percentage gains accumulate
+    /// over multiple weeks. Rounding only happens when calculating working weight.
     /// </summary>
     public TrainingMax ApplyAdjustment(TrainingMaxAdjustment adjustment)
     {
@@ -58,9 +60,9 @@ public sealed class TrainingMax : ValueObject
             _ => throw new ArgumentException($"Unknown adjustment type: {adjustment.Type}")
         };
 
-        // Round to nearest 2.5kg/5lbs
-        var increment = Unit == WeightUnit.Kilograms ? 2.5m : 5m;
-        newValue = Math.Round(newValue / increment) * increment;
+        // Round to 2 decimal places for clean storage, but NOT to gym increments.
+        // Gym increment rounding only happens in CalculateWorkingWeight().
+        newValue = Math.Round(newValue, 2);
 
         CheckRule(newValue > 0, "Adjusted Training Max must be greater than zero");
 

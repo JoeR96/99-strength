@@ -10,6 +10,7 @@ export const workoutKeys = {
   current: () => [...workoutKeys.all, "current"] as const,
   list: () => [...workoutKeys.all, "list"] as const,
   exerciseLibrary: () => ["exerciseLibrary"] as const,
+  history: (workoutId?: string) => [...workoutKeys.all, "history", workoutId] as const,
 };
 
 /**
@@ -118,6 +119,66 @@ export function useSubstituteExercise() {
       workoutsApi.substituteExercise(workoutId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+    },
+  });
+}
+
+/**
+ * Hook to remove an exercise from a workout
+ */
+export function useRemoveExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workoutId, exerciseId }: { workoutId: string; exerciseId: string }) =>
+      workoutsApi.removeExercise(workoutId, exerciseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+    },
+  });
+}
+
+/**
+ * Hook to update the block sequence of a workout
+ */
+export function useUpdateBlockSequence() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workoutId, blockSequence }: { workoutId: string; blockSequence: number[] }) =>
+      workoutsApi.updateBlockSequence(workoutId, blockSequence),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+      queryClient.invalidateQueries({ queryKey: workoutKeys.list() });
+    },
+  });
+}
+
+/**
+ * Hook to fetch workout history for exercise progression modal.
+ * Only fetches when enabled (i.e., when the modal is open).
+ */
+export function useWorkoutHistory(workoutId?: string, enabled = false) {
+  return useQuery({
+    queryKey: workoutKeys.history(workoutId),
+    queryFn: () => workoutsApi.getWorkoutHistory(workoutId),
+    staleTime: 1000 * 60 * 5,
+    enabled,
+  });
+}
+
+/**
+ * Hook to undo the last completed day
+ */
+export function useUndoCompletion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workoutId: string) => workoutsApi.undoLastCompletion(workoutId),
+    onSuccess: () => {
+      // Invalidate workout queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['workout'] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
     },
   });
 }

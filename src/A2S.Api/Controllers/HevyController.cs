@@ -1,3 +1,5 @@
+using A2S.Application.Commands.SyncRoutineToHevy;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -14,12 +16,17 @@ namespace A2S.Api.Controllers;
 public class HevyController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMediator _mediator;
     private readonly ILogger<HevyController> _logger;
     private const string HevyApiBaseUrl = "https://api.hevyapp.com/v1";
 
-    public HevyController(IHttpClientFactory httpClientFactory, ILogger<HevyController> logger)
+    public HevyController(
+        IHttpClientFactory httpClientFactory,
+        IMediator mediator,
+        ILogger<HevyController> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _mediator = mediator;
         _logger = logger;
     }
 
@@ -236,4 +243,67 @@ public class HevyController : ControllerBase
             return StatusCode(500, new { error = "Failed to communicate with Hevy API" });
         }
     }
+
+    // ==================== Domain-Driven Sync Operations ====================
+    // These endpoints use the backend domain service for sync operations,
+    // calculating planned sets from the domain instead of the frontend.
+
+    /// <summary>
+    /// Sync a workout day's routine to Hevy using domain-calculated planned sets.
+    /// This is the proper DDD approach where all business logic lives in the backend.
+    /// </summary>
+    /// <param name="request">The sync request</param>
+    /// <param name="apiKey">The user's Hevy API key</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result of the sync operation</returns>
+    [HttpPost("sync/routine")]
+    [ProducesResponseType(typeof(SyncRoutineResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SyncRoutineToHevy(
+        [FromBody] SyncRoutineRequest request,
+        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            return BadRequest(new { error = "Hevy API key is required" });
+        }
+
+        _logger.LogInformation(
+            "Syncing routine for workout {WorkoutId}, week {Week}, day {Day}",
+            request.WorkoutId, request.WeekNumber, request.DayNumber);
+
+        var command = new SyncRoutineToHevyCommand(
+            request.WorkoutId,
+            request.WeekNumber,
+            request.DayNumber,
+            apiKey);
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to sync routine: {Error}", result.Error);
+
+            if (result.Error?.Contains("not found") == true)
+            {
+                return NotFound(new { error = result.Error });
+            }
+
+            return BadRequest(new { error = result.Error });
+        }
+
+        return Ok(result.Value);
+    }
+}
+
+/// <summary>
+/// Request body for syncing a routine to Hevy.
+/// </summary>
+public sealed record SyncRoutineRequest
+{
+    public Guid WorkoutId { get; init; }
+    public int WeekNumber { get; init; }
+    public int DayNumber { get; init; }
 }

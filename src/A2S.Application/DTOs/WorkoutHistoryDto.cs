@@ -99,6 +99,11 @@ public sealed record ExerciseHistoryDto
     /// Week-by-week performance history.
     /// </summary>
     public IReadOnlyList<WeeklyPerformanceDto> WeeklyHistory { get; init; } = Array.Empty<WeeklyPerformanceDto>();
+
+    /// <summary>
+    /// Audit entries for progression type changes on this exercise.
+    /// </summary>
+    public IReadOnlyList<ProgressionChangeDto> ProgressionChanges { get; init; } = Array.Empty<ProgressionChangeDto>();
 }
 
 /// <summary>
@@ -140,6 +145,31 @@ public sealed record WeeklyPerformanceDto
     /// Individual sets for this week.
     /// </summary>
     public IReadOnlyList<CompletedSetDto> Sets { get; init; } = Array.Empty<CompletedSetDto>();
+
+    /// <summary>
+    /// For Linear progression: training max value at this week (from ProgressionSnapshot, captured BEFORE progression).
+    /// </summary>
+    public decimal? TrainingMaxAtWeek { get; init; }
+
+    /// <summary>
+    /// For Linear progression: training max unit at this week.
+    /// </summary>
+    public string? TrainingMaxUnitAtWeek { get; init; }
+
+    /// <summary>
+    /// For RepsPerSet/MinimalSets: working weight at this week.
+    /// </summary>
+    public decimal? WeightAtWeek { get; init; }
+
+    /// <summary>
+    /// For RepsPerSet/MinimalSets: set count at this week.
+    /// </summary>
+    public int? SetCountAtWeek { get; init; }
+
+    /// <summary>
+    /// The progression type active for this exercise at this week (from ProgressionSnapshot).
+    /// </summary>
+    public string? ProgressionTypeAtWeek { get; init; }
 }
 
 /// <summary>
@@ -221,4 +251,16 @@ public sealed record ExerciseSessionDto
     /// Sets completed in this session.
     /// </summary>
     public IReadOnlyList<CompletedSetDto> Sets { get; init; } = Array.Empty<CompletedSetDto>();
+}
+
+/// <summary>
+/// Audit entry for a progression type change on an exercise.
+/// </summary>
+public sealed record ProgressionChangeDto
+{
+    public DateTime OccurredAt { get; init; }
+    public int WeekNumber { get; init; }
+    public string? OldProgressionType { get; init; }
+    public string? NewProgressionType { get; init; }
+    public string? Reason { get; init; }
 }

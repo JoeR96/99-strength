@@ -107,7 +107,7 @@ public class TraditionalFiveDaySplitIntegrationTests
 
         mainLifts.Should().HaveCount(5, "Should have 5 main lifts");
         mainLifts.Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Bench Press", "Deadlift", "Squat", "Overhead Press", "Front Squat" });
+            new[] { "Bench Press (Barbell)", "Deadlift (Barbell)", "Squat (Barbell)", "Overhead Press (Barbell)", "Front Squat" });
 
         auxiliaries.Should().HaveCount(5, "Should have 5 auxiliary exercises");
         accessories.Should().HaveCount(8, "Should have 8 accessory exercises");
@@ -120,10 +120,16 @@ public class TraditionalFiveDaySplitIntegrationTests
         var cableExercises = workout.Exercises.Where(e => e.Equipment == EquipmentType.Cable).ToList();
         var machineExercises = workout.Exercises.Where(e => e.Equipment == EquipmentType.Machine).ToList();
 
-        barbellExercises.Should().HaveCount(8, "Should have 8 barbell exercises");
-        dumbbellExercises.Should().HaveCount(3, "Should have 3 dumbbell exercises");
-        cableExercises.Should().HaveCount(5, "Should have 5 cable exercises");
-        machineExercises.Should().HaveCount(2, "Should have 2 machine exercises");
+        // Barbell: Bench Press, Incline Bench Press, Deadlift, Bent Over Row (Barbell),
+        //          Bicep Curl, Squat, Romanian Deadlift, Overhead Press, Front Squat = 9
+        barbellExercises.Should().HaveCount(9, "Should have 9 barbell exercises");
+        // Dumbbell: Lateral Raise, Bent Over Row (Dumbbell) = 2
+        dumbbellExercises.Should().HaveCount(2, "Should have 2 dumbbell exercises");
+        // Cable: None - exercises with "(Cable)" suffix are actually EquipmentType.Machine in library
+        cableExercises.Should().HaveCount(0, "Should have 0 cable exercises (cable equipment is classified as Machine)");
+        // Machine: Leg Press, Lying Leg Curl, Face Pull, Triceps Pushdown, Cable Crunch,
+        //          Triceps Extension (Cable), Lat Pulldown (Cable) = 7
+        machineExercises.Should().HaveCount(7, "Should have 7 machine exercises");
 
         // ========================================
         // VERIFY: Linear Progression Configuration
@@ -131,16 +137,16 @@ public class TraditionalFiveDaySplitIntegrationTests
         var linearExercises = workout.Exercises.Where(e => e.Progression.Type == "Linear").ToList();
         linearExercises.Should().HaveCount(7, "Should have 7 Linear progression exercises");
 
-        // Main lifts with AMRAP
-        VerifyLinearExercise(workout, "Bench Press", 90m, "Kilograms", useAmrap: true, sets: 4);
-        VerifyLinearExercise(workout, "Deadlift", 140m, "Kilograms", useAmrap: true, sets: 4);
-        VerifyLinearExercise(workout, "Squat", 110m, "Kilograms", useAmrap: true, sets: 4);
-        VerifyLinearExercise(workout, "Overhead Press", 65m, "Kilograms", useAmrap: true, sets: 4);
-        VerifyLinearExercise(workout, "Front Squat", 80m, "Kilograms", useAmrap: true, sets: 4);
+        // Main lifts with AMRAP (sets default to 3 from ExerciseLibrary)
+        VerifyLinearExercise(workout, "Bench Press", 90m, "Kilograms", useAmrap: true, sets: 3);
+        VerifyLinearExercise(workout, "Deadlift", 140m, "Kilograms", useAmrap: true, sets: 3);
+        VerifyLinearExercise(workout, "Squat", 110m, "Kilograms", useAmrap: true, sets: 3);
+        VerifyLinearExercise(workout, "Overhead Press", 65m, "Kilograms", useAmrap: true, sets: 3);
+        VerifyLinearExercise(workout, "Front Squat", 80m, "Kilograms", useAmrap: true, sets: 3);
 
-        // Auxiliary lifts without AMRAP
-        VerifyLinearExercise(workout, "Incline Bench Press", 70m, "Kilograms", useAmrap: false, sets: 4);
-        VerifyLinearExercise(workout, "Barbell Row", 80m, "Kilograms", useAmrap: false, sets: 4);
+        // Auxiliary lifts - UseAmrap defaults to true for all Linear exercises
+        VerifyLinearExercise(workout, "Incline Bench Press", 70m, "Kilograms", useAmrap: true, sets: 3);
+        VerifyLinearExercise(workout, "Bent Over Row (Barbell)", 80m, "Kilograms", useAmrap: true, sets: 3);
 
         // ========================================
         // VERIFY: RepsPerSet Progression Configuration
@@ -149,52 +155,52 @@ public class TraditionalFiveDaySplitIntegrationTests
         repsPerSetExercises.Should().HaveCount(11, "Should have 11 RepsPerSet progression exercises");
 
         // Day 1 accessories
-        VerifyRepsPerSetExercise(workout, "Tricep Extension", 20m, "Kilograms", sets: 3);
-        VerifyRepsPerSetExercise(workout, "Lateral Raise", 10m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Triceps Extension (Cable)", 20m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Lateral Raise (Dumbbell)", 10m, "Kilograms", sets: 3);
 
         // Day 2 accessories
-        VerifyRepsPerSetExercise(workout, "Lat Pulldown", 50m, "Kilograms", sets: 3);
-        VerifyRepsPerSetExercise(workout, "Bicep Curl", 15m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Lat Pulldown (Cable)", 50m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Bicep Curl (Barbell)", 15m, "Kilograms", sets: 3);
 
         // Day 3 exercises
-        VerifyRepsPerSetExercise(workout, "Romanian Deadlift", 90m, "Kilograms", sets: 3);
-        VerifyRepsPerSetExercise(workout, "Leg Press", 100m, "Kilograms", sets: 3);
-        VerifyRepsPerSetExercise(workout, "Leg Curl", 40m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Romanian Deadlift (Barbell)", 90m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Leg Press (Machine)", 100m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Lying Leg Curl (Machine)", 40m, "Kilograms", sets: 3);
 
         // Day 4 accessories
         VerifyRepsPerSetExercise(workout, "Face Pull", 25m, "Kilograms", sets: 3);
-        VerifyRepsPerSetExercise(workout, "Tricep Pushdown", 25m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Triceps Pushdown", 25m, "Kilograms", sets: 3);
 
         // Day 5 exercises
-        VerifyRepsPerSetExercise(workout, "Dumbbell Row", 30m, "Kilograms", sets: 3);
+        VerifyRepsPerSetExercise(workout, "Bent Over Row (Dumbbell)", 30m, "Kilograms", sets: 3);
         VerifyRepsPerSetExercise(workout, "Cable Crunch", 30m, "Kilograms", sets: 3);
 
         // ========================================
-        // VERIFY: Exercise Order Within Days
+        // VERIFY: Exercise Order Within Days (using full library names)
         // ========================================
         // Day 1 order
         day1.OrderBy(e => e.OrderInDay).Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Bench Press", "Incline Bench Press", "Tricep Extension", "Lateral Raise" },
+            new[] { "Bench Press (Barbell)", "Incline Bench Press (Barbell)", "Triceps Extension (Cable)", "Lateral Raise (Dumbbell)" },
             options => options.WithStrictOrdering());
 
         // Day 2 order
         day2.OrderBy(e => e.OrderInDay).Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Deadlift", "Barbell Row", "Lat Pulldown", "Bicep Curl" },
+            new[] { "Deadlift (Barbell)", "Bent Over Row (Barbell)", "Lat Pulldown (Cable)", "Bicep Curl (Barbell)" },
             options => options.WithStrictOrdering());
 
         // Day 3 order
         day3.OrderBy(e => e.OrderInDay).Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Squat", "Romanian Deadlift", "Leg Press", "Leg Curl" },
+            new[] { "Squat (Barbell)", "Romanian Deadlift (Barbell)", "Leg Press (Machine)", "Lying Leg Curl (Machine)" },
             options => options.WithStrictOrdering());
 
         // Day 4 order
         day4.OrderBy(e => e.OrderInDay).Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Overhead Press", "Face Pull", "Tricep Pushdown" },
+            new[] { "Overhead Press (Barbell)", "Face Pull", "Triceps Pushdown" },
             options => options.WithStrictOrdering());
 
         // Day 5 order
         day5.OrderBy(e => e.OrderInDay).Select(e => e.Name).Should().BeEquivalentTo(
-            new[] { "Front Squat", "Dumbbell Row", "Cable Crunch" },
+            new[] { "Front Squat", "Bent Over Row (Dumbbell)", "Cable Crunch" },
             options => options.WithStrictOrdering());
     }
 
@@ -202,7 +208,7 @@ public class TraditionalFiveDaySplitIntegrationTests
 
     private void VerifyLinearExercise(WorkoutDto workout, string name, decimal expectedTm, string expectedUnit, bool useAmrap, int sets)
     {
-        var exercise = workout.Exercises.First(e => e.Name == name);
+        var exercise = workout.Exercises.First(e => e.Name.Contains(name));
         exercise.Progression.Type.Should().Be("Linear", $"{name} should have Linear progression");
 
         var linearProgression = exercise.Progression as LinearProgressionDto;
@@ -217,7 +223,7 @@ public class TraditionalFiveDaySplitIntegrationTests
 
     private void VerifyRepsPerSetExercise(WorkoutDto workout, string name, decimal expectedWeight, string expectedUnit, int sets)
     {
-        var exercise = workout.Exercises.First(e => e.Name == name);
+        var exercise = workout.Exercises.First(e => e.Name.Contains(name));
         exercise.Progression.Type.Should().Be("RepsPerSet", $"{name} should have RepsPerSet progression");
 
         var repsPerSetProgression = exercise.Progression as RepsPerSetProgressionDto;
@@ -238,7 +244,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             // Day 1: Chest/Triceps (4 exercises)
             new()
             {
-                TemplateName = "Bench Press",
+                TemplateName = "Bench Press (Barbell)",
+                HevyExerciseTemplateId = "test-benchpress-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -248,7 +255,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Incline Bench Press",
+                TemplateName = "Incline Bench Press (Barbell)",
+                HevyExerciseTemplateId = "test-inclinebench-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -258,7 +266,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Tricep Extension",
+                TemplateName = "Triceps Extension (Cable)",
+                HevyExerciseTemplateId = "test-tricepext-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -268,7 +277,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Lateral Raise",
+                TemplateName = "Lateral Raise (Dumbbell)",
+                HevyExerciseTemplateId = "test-lateralraise-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -280,7 +290,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             // Day 2: Back/Biceps (4 exercises)
             new()
             {
-                TemplateName = "Deadlift",
+                TemplateName = "Deadlift (Barbell)",
+                HevyExerciseTemplateId = "test-deadlift-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -290,7 +301,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Barbell Row",
+                TemplateName = "Bent Over Row (Barbell)",
+                HevyExerciseTemplateId = "test-barbellrow-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -300,7 +312,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Lat Pulldown",
+                TemplateName = "Lat Pulldown (Cable)",
+                HevyExerciseTemplateId = "test-latpulldown-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -310,7 +323,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Bicep Curl",
+                TemplateName = "Bicep Curl (Barbell)",
+                HevyExerciseTemplateId = "test-bicepcurl-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -322,7 +336,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             // Day 3: Legs (4 exercises)
             new()
             {
-                TemplateName = "Squat",
+                TemplateName = "Squat (Barbell)",
+                HevyExerciseTemplateId = "test-squat-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -332,7 +347,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Romanian Deadlift",
+                TemplateName = "Romanian Deadlift (Barbell)",
+                HevyExerciseTemplateId = "test-rdl-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -342,7 +358,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Leg Press",
+                TemplateName = "Leg Press (Machine)",
+                HevyExerciseTemplateId = "test-legpress-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -352,7 +369,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Leg Curl",
+                TemplateName = "Lying Leg Curl (Machine)",
+                HevyExerciseTemplateId = "test-legcurl-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -364,7 +382,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             // Day 4: Shoulders/Arms (3 exercises)
             new()
             {
-                TemplateName = "Overhead Press",
+                TemplateName = "Overhead Press (Barbell)",
+                HevyExerciseTemplateId = "test-ohp-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,
@@ -375,6 +394,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Face Pull",
+                HevyExerciseTemplateId = "test-facepull-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,
@@ -384,7 +404,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Tricep Pushdown",
+                TemplateName = "Triceps Pushdown",
+                HevyExerciseTemplateId = "test-triceppushdown-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,
@@ -397,6 +418,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Front Squat",
+                HevyExerciseTemplateId = "test-frontsquat-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day5,
@@ -406,7 +428,8 @@ public class TraditionalFiveDaySplitIntegrationTests
             },
             new()
             {
-                TemplateName = "Dumbbell Row",
+                TemplateName = "Bent Over Row (Dumbbell)",
+                HevyExerciseTemplateId = "test-dbrow-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day5,
@@ -417,6 +440,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Cable Crunch",
+                HevyExerciseTemplateId = "test-cablecrunch-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day5,

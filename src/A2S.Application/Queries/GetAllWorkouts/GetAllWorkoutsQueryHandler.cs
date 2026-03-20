@@ -50,7 +50,8 @@ public sealed class GetAllWorkoutsQueryHandler : IRequestHandler<GetAllWorkoutsQ
                 StartedAt = w.StartedAt,
                 CompletedAt = w.CompletedAt,
                 ExerciseCount = w.Exercises.Count,
-                IsActive = w.Status == WorkoutStatus.Active
+                IsActive = w.Status == WorkoutStatus.Active,
+                BlockSequence = w.BlockSequence.ToList()
             }).ToList();
 
             return Result.Success<IReadOnlyList<WorkoutSummaryDto>>(summaries);

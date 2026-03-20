@@ -137,25 +137,46 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
             }
             else if (exercise.Progression is RepsPerSetStrategy repsStrategy)
             {
+                var updated = false;
+                string? previousValue = null;
+                string? newValue = null;
+                var messages = new List<string>();
+
+                // Handle weight update
                 if (update.WeightValue.HasValue)
                 {
                     var previousWeight = repsStrategy.CurrentWeight;
-                    var previousValue = $"{previousWeight.Value} {previousWeight.Unit}";
+                    previousValue = $"{previousWeight.Value} {previousWeight.Unit}";
 
                     var newWeight = Weight.Create(
                         update.WeightValue.Value,
                         update.WeightUnit ?? previousWeight.Unit);
 
                     workout.AdjustWeight(exerciseId, newWeight);
+                    newValue = $"{newWeight.Value} {newWeight.Unit}";
+                    messages.Add("Weight updated");
+                    updated = true;
+                }
 
+                // Handle unilateral toggle
+                if (update.IsUnilateral.HasValue)
+                {
+                    var previousUnilateral = repsStrategy.IsUnilateral;
+                    workout.SetExerciseUnilateral(exerciseId, update.IsUnilateral.Value);
+                    messages.Add($"Unilateral: {previousUnilateral} → {update.IsUnilateral.Value}");
+                    updated = true;
+                }
+
+                if (updated)
+                {
                     return new ExerciseUpdateResult
                     {
                         ExerciseId = update.ExerciseId,
                         ExerciseName = exercise.Name,
                         Success = true,
-                        Message = "Weight updated successfully.",
+                        Message = string.Join(", ", messages),
                         PreviousValue = previousValue,
-                        NewValue = $"{newWeight.Value} {newWeight.Unit}"
+                        NewValue = newValue
                     };
                 }
 
@@ -164,7 +185,7 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                     ExerciseId = update.ExerciseId,
                     ExerciseName = exercise.Name,
                     Success = false,
-                    Message = "No weight value provided for RepsPerSet progression exercise."
+                    Message = "No weight or unilateral value provided for RepsPerSet progression exercise."
                 };
             }
             else if (exercise.Progression is MinimalSetsStrategy minimalSetsStrategy)

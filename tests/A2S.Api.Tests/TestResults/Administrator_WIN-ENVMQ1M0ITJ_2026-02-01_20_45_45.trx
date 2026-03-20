@@ -1,0 +1,923 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="80e571d3-7a11-44ba-9a31-48ff0389c762" name="Administrator@WIN-ENVMQ1M0ITJ 2026-02-01 20:45:45" runUser="WIN-ENVMQ1M0ITJ\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-02-01T20:45:45.1807777+00:00" queuing="2026-02-01T20:45:45.1807781+00:00" start="2026-02-01T20:45:38.7679700+00:00" finish="2026-02-01T20:45:46.7309115+00:00" />
+  <TestSettings name="default" id="fdad7fd0-0197-4206-9e77-4a8463d30406">
+    <Deployment runDeploymentRoot="Administrator_WIN-ENVMQ1M0ITJ_2026-02-01_20_45_45" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6bd627a5-1cee-47c0-b545-4fbc094c5729" testId="b36ccee5-ae2c-5565-3703-4d8b917eda96" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidDayNumber_ReturnsBadRequest" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0113130" startTime="2026-02-01T20:45:46.2356270+00:00" endTime="2026-02-01T20:45:46.2356271+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6bd627a5-1cee-47c0-b545-4fbc094c5729">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidDayNumber_ReturnsBadRequest() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 112&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="98af5b7d-4068-4339-95bf-5781e284c1e0" testId="d346e29d-ace6-97a2-c25b-7eb5043946e2" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0141280" startTime="2026-02-01T20:45:46.1183142+00:00" endTime="2026-02-01T20:45:46.1183142+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98af5b7d-4068-4339-95bf-5781e284c1e0">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 295&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c626de95-e908-40bf-8c2f-e05a5e914762" testId="be972fa6-0017-fd43-fbb4-15a16bd8a3f2" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0119910" startTime="2026-02-01T20:45:46.2653481+00:00" endTime="2026-02-01T20:45:46.2653481+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c626de95-e908-40bf-8c2f-e05a5e914762">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 147&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f340bc9c-5583-4c56-ad9f-1c97fc96f491" testId="3486c3be-f300-c83a-5328-e73094f8ebf4" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 4, allCompleted: True, isUnilateral: False, expectedSets: 5)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000011" startTime="2026-02-01T20:45:46.1040966+00:00" endTime="2026-02-01T20:45:46.1040966+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f340bc9c-5583-4c56-ad9f-1c97fc96f491" />
+    <UnitTestResult executionId="815d1f35-45e7-47aa-8f2e-b8e3dd77bbe8" testId="9706f970-9c4a-2ee6-1f78-f14e97df3954" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidWorkoutId_ReturnsNotFound" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0501732" startTime="2026-02-01T20:45:46.0849892+00:00" endTime="2026-02-01T20:45:46.0849892+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="815d1f35-45e7-47aa-8f2e-b8e3dd77bbe8">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.NotFound {value: 404}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidWorkoutId_ReturnsNotFound() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 101&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="71791751-fc70-47e8-862b-405a806efdb9" testId="5415a8dd-7871-203d-5d39-ab255063db70" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 40, setsUsed: 2, currentSets: 3, expectedNextSets: 2)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0001750" startTime="2026-02-01T20:45:46.1028513+00:00" endTime="2026-02-01T20:45:46.1028514+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="71791751-fc70-47e8-862b-405a806efdb9" />
+    <UnitTestResult executionId="bb8a34aa-2075-40d9-b157-fabb994c7b5e" testId="8061ef09-6faa-e8b7-aae2-4e4e939f45d4" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_RepsPerSetSuccess_AddsSets" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0112575" startTime="2026-02-01T20:45:46.2235529+00:00" endTime="2026-02-01T20:45:46.2235530+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bb8a34aa-2075-40d9-b157-fabb994c7b5e">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_RepsPerSetSuccess_AddsSets() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 395&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9bb28117-bbdd-4cce-85ae-dc697939d671" testId="620a3f2b-49af-4f43-1083-017a2cd95557" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 12, actualReps: 10, expectedAdjustmentPercentage: -0.05)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000015" startTime="2026-02-01T20:45:43.6588059+00:00" endTime="2026-02-01T20:45:43.6588059+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9bb28117-bbdd-4cce-85ae-dc697939d671" />
+    <UnitTestResult executionId="2ad8d2ed-bc3b-4cb7-8ce5-4a443f59d0e5" testId="4b94f160-508a-35b4-d710-0ceb0781cc9e" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 12, actualReps: 12, expectedAdjustmentPercentage: 0)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000015" startTime="2026-02-01T20:45:43.6587842+00:00" endTime="2026-02-01T20:45:43.6587842+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2ad8d2ed-bc3b-4cb7-8ce5-4a443f59d0e5" />
+    <UnitTestResult executionId="d1bbc961-429e-4753-9381-b8dae8212475" testId="6bb6488b-0841-5d41-6589-c227105b1bc3" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:02.3731672" startTime="2026-02-01T20:45:46.0359978+00:00" endTime="2026-02-01T20:45:46.0359984+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d1bbc961-429e-4753-9381-b8dae8212475">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 224&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6c84eaa9-f0da-4cdb-8451-79e8c660a7cc" testId="f50a908c-8c3d-1e2f-3b24-f6dd9fc6d874" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0113773" startTime="2026-02-01T20:45:46.2117253+00:00" endTime="2026-02-01T20:45:46.2117253+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c84eaa9-f0da-4cdb-8451-79e8c660a7cc">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="39085dd2-5e96-4645-8d7d-380884ffce98" testId="02c45fbb-a6e0-32f6-0664-90267d1b9f01" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteFullWeek_ThenProgress_WorksCorrectly" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0110964" startTime="2026-02-01T20:45:46.1999153+00:00" endTime="2026-02-01T20:45:46.1999154+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39085dd2-5e96-4645-8d7d-380884ffce98">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteFullWeek_ThenProgress_WorksCorrectly() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 568&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="363d7021-3b4f-4f76-9122-5477fb8265e8" testId="c5bda0da-f6f0-a884-abb9-b5ec7e6bb1b2" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 14, actualReps: 17, expectedAdjustmentPercentage: 0.015)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0065828" startTime="2026-02-01T20:45:43.6570926+00:00" endTime="2026-02-01T20:45:43.6571013+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="363d7021-3b4f-4f76-9122-5477fb8265e8" />
+    <UnitTestResult executionId="de94e2b8-eeed-4385-8777-ddcd3c50f8f1" testId="fa26e352-26d8-6db2-92dd-2726d227b57c" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0167360" startTime="2026-02-01T20:45:46.2527930+00:00" endTime="2026-02-01T20:45:46.2527932+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de94e2b8-eeed-4385-8777-ddcd3c50f8f1">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 485&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="3268268e-bf81-44a4-af21-86c0614676cf" testId="a6f96e74-873a-ebda-9f4e-f5a85fcd6e48" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0168245" startTime="2026-02-01T20:45:46.1026288+00:00" endTime="2026-02-01T20:45:46.1026290+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3268268e-bf81-44a4-af21-86c0614676cf">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.</Message>
+          <StackTrace>   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client) in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 688&#xD;
+   at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek() in C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs:line 251&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="576d47f4-21fb-41d7-9655-86221ff6e6ac" testId="ef08ada8-afeb-7da3-b4ae-3f4b7ed86796" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 5, allCompleted: True, isUnilateral: False, expectedSets: 5)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0001103" startTime="2026-02-01T20:45:46.1031236+00:00" endTime="2026-02-01T20:45:46.1031237+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="576d47f4-21fb-41d7-9655-86221ff6e6ac" />
+    <UnitTestResult executionId="34074501-b8b8-425f-bf11-54d91aec40a8" testId="e08dd746-264b-e125-d75b-c0bf1b9b6c8d" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 4, allCompleted: False, isUnilateral: False, expectedSets: 4)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000087" startTime="2026-02-01T20:45:46.1031499+00:00" endTime="2026-02-01T20:45:46.1031499+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="34074501-b8b8-425f-bf11-54d91aec40a8" />
+    <UnitTestResult executionId="eac7edce-7d4c-4cd2-943c-96561b87086f" testId="8e8cd885-7837-56da-231c-15b4946680af" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_WithInvalidWorkoutId_ReturnsNotFound" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0696210" startTime="2026-02-01T20:45:46.1877934+00:00" endTime="2026-02-01T20:45:46.1877934+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eac7edce-7d4c-4cd2-943c-96561b87086f" />
+    <UnitTestResult executionId="6449c42e-513a-469c-8bc3-375f24e13e02" testId="bb5dc737-cf00-9a5a-e9f8-cbb782bc0c09" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 40, setsUsed: 3, currentSets: 3, expectedNextSets: 3)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000033" startTime="2026-02-01T20:45:46.1028828+00:00" endTime="2026-02-01T20:45:46.1028828+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6449c42e-513a-469c-8bc3-375f24e13e02" />
+    <UnitTestResult executionId="6635827e-7007-4fcd-939f-1ea2b597f4a7" testId="93651ccc-c96c-f657-5c2b-e83f47598ad4" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 3, allCompleted: True, isUnilateral: True, expectedSets: 3)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000749" startTime="2026-02-01T20:45:46.1029858+00:00" endTime="2026-02-01T20:45:46.1029858+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6635827e-7007-4fcd-939f-1ea2b597f4a7" />
+    <UnitTestResult executionId="40583d37-d8cd-4243-a205-27b395270f76" testId="f92716bc-2289-4139-72ec-66dc239774a6" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 3, allCompleted: True, isUnilateral: False, expectedSets: 4)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000011" startTime="2026-02-01T20:45:46.1041313+00:00" endTime="2026-02-01T20:45:46.1041313+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="40583d37-d8cd-4243-a205-27b395270f76" />
+    <UnitTestResult executionId="75495e69-5f95-441e-a59e-92bff08c5c2d" testId="2eaa085e-dc2d-3df9-be80-b3233a1a055c" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 35, setsUsed: 3, currentSets: 3, expectedNextSets: 4)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0005253" startTime="2026-02-01T20:45:46.1027363+00:00" endTime="2026-02-01T20:45:46.1027364+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="75495e69-5f95-441e-a59e-92bff08c5c2d" />
+    <UnitTestResult executionId="c83408c1-8e06-4a7d-ac43-9ad58af02cdc" testId="778f3a77-55ab-1e4b-794d-95c4e8510348" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 15, actualReps: 19, expectedAdjustmentPercentage: 0.02)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0002387" startTime="2026-02-01T20:45:43.6585705+00:00" endTime="2026-02-01T20:45:43.6585705+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c83408c1-8e06-4a7d-ac43-9ad58af02cdc" />
+    <UnitTestResult executionId="867a560b-a8f9-492b-9d3d-a6400e9ab258" testId="d6410c59-0bdb-9619-9cd5-ff692a4b70d1" testName="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 10, actualReps: 16, expectedAdjustmentPercentage: 0.03)" computerName="WIN-ENVMQ1M0ITJ" duration="00:00:00.0000079" startTime="2026-02-01T20:45:43.6587605+00:00" endTime="2026-02-01T20:45:43.6587606+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="867a560b-a8f9-492b-9d3d-a6400e9ab258" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="be972fa6-0017-fd43-fbb4-15a16bd8a3f2">
+      <Execution id="c626de95-e908-40bf-8c2f-e05a5e914762" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 12, actualReps: 10, expectedAdjustmentPercentage: -0.05)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="620a3f2b-49af-4f43-1083-017a2cd95557">
+      <Execution id="9bb28117-bbdd-4cce-85ae-dc697939d671" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="6bb6488b-0841-5d41-6589-c227105b1bc3">
+      <Execution id="d1bbc961-429e-4753-9381-b8dae8212475" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 5, allCompleted: True, isUnilateral: False, expectedSets: 5)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="ef08ada8-afeb-7da3-b4ae-3f4b7ed86796">
+      <Execution id="576d47f4-21fb-41d7-9655-86221ff6e6ac" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 10, actualReps: 16, expectedAdjustmentPercentage: 0.03)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="d6410c59-0bdb-9619-9cd5-ff692a4b70d1">
+      <Execution id="867a560b-a8f9-492b-9d3d-a6400e9ab258" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 35, setsUsed: 3, currentSets: 3, expectedNextSets: 4)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="2eaa085e-dc2d-3df9-be80-b3233a1a055c">
+      <Execution id="75495e69-5f95-441e-a59e-92bff08c5c2d" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 3, allCompleted: True, isUnilateral: False, expectedSets: 4)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="f92716bc-2289-4139-72ec-66dc239774a6">
+      <Execution id="40583d37-d8cd-4243-a205-27b395270f76" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="a6f96e74-873a-ebda-9f4e-f5a85fcd6e48">
+      <Execution id="3268268e-bf81-44a4-af21-86c0614676cf" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 15, actualReps: 19, expectedAdjustmentPercentage: 0.02)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="778f3a77-55ab-1e4b-794d-95c4e8510348">
+      <Execution id="c83408c1-8e06-4a7d-ac43-9ad58af02cdc" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 4, allCompleted: True, isUnilateral: False, expectedSets: 5)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="3486c3be-f300-c83a-5328-e73094f8ebf4">
+      <Execution id="f340bc9c-5583-4c56-ad9f-1c97fc96f491" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 3, allCompleted: True, isUnilateral: True, expectedSets: 3)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="93651ccc-c96c-f657-5c2b-e83f47598ad4">
+      <Execution id="6635827e-7007-4fcd-939f-1ea2b597f4a7" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="d346e29d-ace6-97a2-c25b-7eb5043946e2">
+      <Execution id="98af5b7d-4068-4339-95bf-5781e284c1e0" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidWorkoutId_ReturnsNotFound" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="9706f970-9c4a-2ee6-1f78-f14e97df3954">
+      <Execution id="815d1f35-45e7-47aa-8f2e-b8e3dd77bbe8" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay_WithInvalidWorkoutId_ReturnsNotFound" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidDayNumber_ReturnsBadRequest" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="b36ccee5-ae2c-5565-3703-4d8b917eda96">
+      <Execution id="6bd627a5-1cee-47c0-b545-4fbc094c5729" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay_WithInvalidDayNumber_ReturnsBadRequest" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 12, actualReps: 12, expectedAdjustmentPercentage: 0)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="4b94f160-508a-35b4-d710-0ceb0781cc9e">
+      <Execution id="2ad8d2ed-bc3b-4cb7-8ce5-4a443f59d0e5" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="f50a908c-8c3d-1e2f-3b24-f6dd9fc6d874">
+      <Execution id="6c84eaa9-f0da-4cdb-8451-79e8c660a7cc" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteFullWeek_ThenProgress_WorksCorrectly" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="02c45fbb-a6e0-32f6-0664-90267d1b9f01">
+      <Execution id="39085dd2-5e96-4645-8d7d-380884ffce98" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteFullWeek_ThenProgress_WorksCorrectly" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment(targetReps: 14, actualReps: 17, expectedAdjustmentPercentage: 0.015)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="c5bda0da-f6f0-a884-abb9-b5ec7e6bb1b2">
+      <Execution id="363d7021-3b4f-4f76-9122-5477fb8265e8" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="LinearProgression_WithAmrapDelta_CalculatesCorrectAdjustment" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_RepsPerSetSuccess_AddsSets" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="8061ef09-6faa-e8b7-aae2-4e4e939f45d4">
+      <Execution id="bb8a34aa-2075-40d9-b157-fabb994c7b5e" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay1_RepsPerSetSuccess_AddsSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 40, setsUsed: 3, currentSets: 3, expectedNextSets: 3)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="bb5dc737-cf00-9a5a-e9f8-cbb782bc0c09">
+      <Execution id="6449c42e-513a-469c-8bc3-375f24e13e02" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets(currentSets: 4, allCompleted: False, isUnilateral: False, expectedSets: 4)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="e08dd746-264b-e125-d75b-c0bf1b9b6c8d">
+      <Execution id="34074501-b8b8-425f-bf11-54d91aec40a8" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="RepsPerSetProgression_WithCompletionStatus_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="fa26e352-26d8-6db2-92dd-2726d227b57c">
+      <Execution id="de94e2b8-eeed-4385-8777-ddcd3c50f8f1" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets(targetReps: 40, actualReps: 40, setsUsed: 2, currentSets: 3, expectedNextSets: 2)" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="5415a8dd-7871-203d-5d39-ab255063db70">
+      <Execution id="71791751-fc70-47e8-862b-405a806efdb9" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="MinimalSetsProgression_WithTotalReps_CalculatesCorrectNextSets" />
+    </UnitTest>
+    <UnitTest name="A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_WithInvalidWorkoutId_ReturnsNotFound" storage="c:\users\administrator\99-strength\tests\a2s.api.tests\bin\debug\net9.0\a2s.api.tests.dll" id="8e8cd885-7837-56da-231c-15b4946680af">
+      <Execution id="eac7edce-7d4c-4cd2-943c-96561b87086f" />
+      <TestMethod codeBase="C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\bin\Debug\net9.0\A2S.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="A2S.Api.Tests.WorkoutFlowIntegrationTests" name="ProgressWeek_WithInvalidWorkoutId_ReturnsNotFound" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="b36ccee5-ae2c-5565-3703-4d8b917eda96" executionId="6bd627a5-1cee-47c0-b545-4fbc094c5729" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d346e29d-ace6-97a2-c25b-7eb5043946e2" executionId="98af5b7d-4068-4339-95bf-5781e284c1e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="be972fa6-0017-fd43-fbb4-15a16bd8a3f2" executionId="c626de95-e908-40bf-8c2f-e05a5e914762" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3486c3be-f300-c83a-5328-e73094f8ebf4" executionId="f340bc9c-5583-4c56-ad9f-1c97fc96f491" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9706f970-9c4a-2ee6-1f78-f14e97df3954" executionId="815d1f35-45e7-47aa-8f2e-b8e3dd77bbe8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5415a8dd-7871-203d-5d39-ab255063db70" executionId="71791751-fc70-47e8-862b-405a806efdb9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8061ef09-6faa-e8b7-aae2-4e4e939f45d4" executionId="bb8a34aa-2075-40d9-b157-fabb994c7b5e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="620a3f2b-49af-4f43-1083-017a2cd95557" executionId="9bb28117-bbdd-4cce-85ae-dc697939d671" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4b94f160-508a-35b4-d710-0ceb0781cc9e" executionId="2ad8d2ed-bc3b-4cb7-8ce5-4a443f59d0e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6bb6488b-0841-5d41-6589-c227105b1bc3" executionId="d1bbc961-429e-4753-9381-b8dae8212475" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f50a908c-8c3d-1e2f-3b24-f6dd9fc6d874" executionId="6c84eaa9-f0da-4cdb-8451-79e8c660a7cc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="02c45fbb-a6e0-32f6-0664-90267d1b9f01" executionId="39085dd2-5e96-4645-8d7d-380884ffce98" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5bda0da-f6f0-a884-abb9-b5ec7e6bb1b2" executionId="363d7021-3b4f-4f76-9122-5477fb8265e8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa26e352-26d8-6db2-92dd-2726d227b57c" executionId="de94e2b8-eeed-4385-8777-ddcd3c50f8f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a6f96e74-873a-ebda-9f4e-f5a85fcd6e48" executionId="3268268e-bf81-44a4-af21-86c0614676cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ef08ada8-afeb-7da3-b4ae-3f4b7ed86796" executionId="576d47f4-21fb-41d7-9655-86221ff6e6ac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e08dd746-264b-e125-d75b-c0bf1b9b6c8d" executionId="34074501-b8b8-425f-bf11-54d91aec40a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e8cd885-7837-56da-231c-15b4946680af" executionId="eac7edce-7d4c-4cd2-943c-96561b87086f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bb5dc737-cf00-9a5a-e9f8-cbb782bc0c09" executionId="6449c42e-513a-469c-8bc3-375f24e13e02" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="93651ccc-c96c-f657-5c2b-e83f47598ad4" executionId="6635827e-7007-4fcd-939f-1ea2b597f4a7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f92716bc-2289-4139-72ec-66dc239774a6" executionId="40583d37-d8cd-4243-a205-27b395270f76" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2eaa085e-dc2d-3df9-be80-b3233a1a055c" executionId="75495e69-5f95-441e-a59e-92bff08c5c2d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="778f3a77-55ab-1e4b-794d-95c4e8510348" executionId="c83408c1-8e06-4a7d-ac43-9ad58af02cdc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d6410c59-0bdb-9619-9cd5-ff692a4b70d1" executionId="867a560b-a8f9-492b-9d3d-a6400e9ab258" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="24" executed="24" passed="14" failed="10" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.0)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: A2S.Api.Tests&#xD;
+[xUnit.net 00:00:00.09]   Discovered:  A2S.Api.Tests&#xD;
+[xUnit.net 00:00:00.09]   Starting:    A2S.Api.Tests&#xD;
+[testcontainers.org 00:00:00.08] Connected to Docker:&#xD;
+  Host: npipe://./pipe/docker_engine&#xD;
+  Server Version: 27.3.1&#xD;
+  Kernel Version: 6.6.87.2-microsoft-standard-WSL2&#xD;
+  API Version: 1.47&#xD;
+  Operating System: Docker Desktop&#xD;
+  Total Memory: 15.19 GB&#xD;
+  Labels: &#xD;
+    com.docker.desktop.address=npipe://\\.\pipe\docker_cli&#xD;
+[testcontainers.org 00:00:00.27] Docker container 53845c9300a2 created&#xD;
+[testcontainers.org 00:00:00.30] Start Docker container 53845c9300a2&#xD;
+[testcontainers.org 00:00:01.66] Wait for Docker container 53845c9300a2 to complete readiness checks&#xD;
+[testcontainers.org 00:00:01.67] Docker container 53845c9300a2 ready&#xD;
+[testcontainers.org 00:00:01.84] Docker container 621c3ceb203c created&#xD;
+[testcontainers.org 00:00:01.85] Start Docker container 621c3ceb203c&#xD;
+[testcontainers.org 00:00:02.18] Wait for Docker container 621c3ceb203c to complete readiness checks&#xD;
+[testcontainers.org 00:00:02.19] Execute "pg_isready --host localhost --dbname a2s_test --username postgres" at Docker container 621c3ceb203c&#xD;
+[testcontainers.org 00:00:03.28] Execute "pg_isready --host localhost --dbname a2s_test --username postgres" at Docker container 621c3ceb203c&#xD;
+[testcontainers.org 00:00:04.33] Execute "pg_isready --host localhost --dbname a2s_test --username postgres" at Docker container 621c3ceb203c&#xD;
+[testcontainers.org 00:00:04.40] Docker container 621c3ceb203c ready&#xD;
+     Warning:&#xD;
+     The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and&#xD;
+     the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for&#xD;
+     non-commercial use only. An active subscription is required to use Fluent Assertions for commercial use.&#xD;
+     Please contact Xceed Sales mailto:sales@xceed.com to acquire a subscription at a very low cost.&#xD;
+     A paid commercial license supports the development and continued increasing support of&#xD;
+     Fluent Assertions users under both commercial and community licenses. Help us&#xD;
+     keep Fluent Assertions at the forefront of unit testing.&#xD;
+     For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/&#xD;
+[20:45:44 WRN] The property 'Workout.HevySyncedRoutines' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.&#xD;
+[20:45:44 ERR] Failed executing DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT "MigrationId", "ProductVersion"&#xD;
+FROM "__EFMigrationsHistory"&#xD;
+ORDER BY "MigrationId";&#xD;
+[20:45:44 INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.&#xD;
+[20:45:44 INF] Applying migration '20260117133546_AddWorkoutAggregate'.&#xD;
+[20:45:44 INF] Applying migration '20260121214245_AddUserIdToWorkout'.&#xD;
+[20:45:44 INF] Applying migration '20260124000707_AddMinimalSetsStrategy'.&#xD;
+[20:45:44 INF] Applying migration '20260124001752_AddCurrentDayToWorkout'.&#xD;
+[20:45:44 INF] Applying migration '20260125111304_AddHevyIntegrationFields'.&#xD;
+[20:45:44 INF] Applying migration '20260131194716_AddAuditEntriesAndProgressionSnapshots'.&#xD;
+[20:45:44 INF] Executed DbCommand (16ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END&#xD;
+FROM pg_class AS cls&#xD;
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace&#xD;
+WHERE&#xD;
+        cls.relkind IN ('r', 'v', 'm', 'f', 'p') AND&#xD;
+        ns.nspname NOT IN ('pg_catalog', 'information_schema') AND&#xD;
+        -- Exclude tables which are members of PG extensions&#xD;
+        NOT EXISTS (&#xD;
+            SELECT 1 FROM pg_depend WHERE&#xD;
+                classid=(&#xD;
+                    SELECT cls.oid&#xD;
+                    FROM pg_class AS cls&#xD;
+                             JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace&#xD;
+                    WHERE relname='pg_class' AND ns.nspname='pg_catalog'&#xD;
+                ) AND&#xD;
+                objid=cls.oid AND&#xD;
+                deptype IN ('e', 'x')&#xD;
+        )&#xD;
+[20:45:44 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT "MigrationId", "ProductVersion"&#xD;
+FROM "__EFMigrationsHistory"&#xD;
+ORDER BY "MigrationId";&#xD;
+[20:45:44 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (&#xD;
+    "MigrationId" character varying(150) NOT NULL,&#xD;
+    "ProductVersion" character varying(32) NOT NULL,&#xD;
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")&#xD;
+);&#xD;
+[20:45:44 INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.&#xD;
+[20:45:44 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE&#xD;
+[20:45:44 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT "MigrationId", "ProductVersion"&#xD;
+FROM "__EFMigrationsHistory"&#xD;
+ORDER BY "MigrationId";&#xD;
+[20:45:44 INF] No migrations were applied. The database is already up to date.&#xD;
+[20:45:44 INF] User profile is available. Using 'C:\Users\Administrator\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.&#xD;
+[20:45:44 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:44 WRN] Failed to determine the https port for redirect.&#xD;
+[20:45:45 INF] Executed DbCommand (6ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:45 INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:45 INF] Auto-provisioned new user 459d3dc4-aae4-4a1d-859e-e3a84e02cebc with email test-f1fc7220-3159-40f9-987b-bff239e28270@example.com&#xD;
+[20:45:45 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:45 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:45 WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.&#xD;
+[20:45:45 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:45 INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:45 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 180.3449ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 1095.3002 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 1116.0563ms&#xD;
+[xUnit.net 00:00:07.00]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.00]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.00]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.00]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.00]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(224,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock()&#xD;
+[xUnit.net 00:00:07.00]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts/e3c46b5c-f742-462f-b591-a81f10a5c7de/days/1/complete - application/json; charset=utf-8 166&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 8c0299c3-26d6-400f-b966-27cf4824e532 with email test-ff2412ae-6935-4ef2-9c68-5b49f2c7b027@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CompleteDay (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CompleteDay", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CompleteDay(System.Guid, Int32, A2S.Api.Controllers.CompleteDayRequest, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Completing day 1 for workout e3c46b5c-f742-462f-b591-a81f10a5c7de&#xD;
+[20:45:46 WRN] Validation failed for complete day: Validation failed: &#xD;
+ -- Performances[0].CompletedSets[0].WeightUnit: Invalid weight unit. Severity: Error&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CompleteDay (A2S.Api) in 31.6363ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CompleteDay (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts/e3c46b5c-f742-462f-b591-a81f10a5c7de/days/1/complete responded 400 in 41.8478 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts/e3c46b5c-f742-462f-b591-a81f10a5c7de/days/1/complete - 400 null application/json; charset=utf-8 43.2249ms&#xD;
+[xUnit.net 00:00:07.05]       Expected response.StatusCode to be HttpStatusCode.NotFound {value: 404}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.05]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.05]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.05]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(101,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidWorkoutId_ReturnsNotFound()&#xD;
+[xUnit.net 00:00:07.05]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 25b4b1e8-8e08-4167-95fb-4a75f9ba42da with email test-538fbe49-e396-46aa-ab5b-de053b766f6c@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 7.0378ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 13.8970 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 14.3091ms&#xD;
+[xUnit.net 00:00:07.07]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.07]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.07]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.07]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.07]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(251,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek()&#xD;
+[xUnit.net 00:00:07.07]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 8df2e919-4b4c-45e6-bcb3-d2206362cf88 with email test-4e986293-83ad-4aa3-901d-f91eaad2400d@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 7.3735ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 11.4993 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 11.7975ms&#xD;
+[xUnit.net 00:00:07.08]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.08]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.08]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.08]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.08]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(295,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly()&#xD;
+[xUnit.net 00:00:07.08]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts/2e6a6af9-49a7-41d3-8529-20d531fcb9ef/progress-week - null null&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 468be338-5b19-467c-9aae-3a0f1d2269c4 with email test-886128e7-ba23-46f2-b97b-71ab6f6364e5@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.ProgressToNextWeek (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "ProgressToNextWeek", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ProgressToNextWeek(System.Guid, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Progressing to next week for workout 2e6a6af9-49a7-41d3-8529-20d531fcb9ef&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__id_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."Id" = @__id_0&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to progress week: Workout not found.&#xD;
+[20:45:46 INF] Executing NotFoundObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.ProgressToNextWeek (A2S.Api) in 60.5849ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.ProgressToNextWeek (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts/2e6a6af9-49a7-41d3-8529-20d531fcb9ef/progress-week responded 404 in 67.0926 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts/2e6a6af9-49a7-41d3-8529-20d531fcb9ef/progress-week - 404 null application/json; charset=utf-8 68.3624ms&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user b50d1220-4a58-4dc8-8aa5-8bb37252fd11 with email test-6e1ef10c-b9fd-4a25-aae5-299399da7656@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 3.8878ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 8.0959 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 8.3021ms&#xD;
+[xUnit.net 00:00:07.16]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.16]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.16]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.16]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.16]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(568,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteFullWeek_ThenProgress_WorksCorrectly()&#xD;
+[xUnit.net 00:00:07.16]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 48e7941d-8262-4995-9cba-b6a1f719582d with email test-4481e14a-d953-4f08-8171-2d975876da5e@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 4.0162ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 8.0301 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 8.3177ms&#xD;
+[xUnit.net 00:00:07.17]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.17]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.17]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.17]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.17]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(42,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges()&#xD;
+[xUnit.net 00:00:07.17]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 9349e3ea-1a6d-434a-a0de-5db7a8a230e8 with email test-881028b1-bfea-4cd2-b4d5-3b49302cbac2@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 4.3024ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 8.2285 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 8.5391ms&#xD;
+[xUnit.net 00:00:07.19]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.19]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.19]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.19]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.19]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(395,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_RepsPerSetSuccess_AddsSets()&#xD;
+[xUnit.net 00:00:07.19]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user b5a1354e-26ef-44db-adf0-d7dbbbca42ae with email test-c7dce700-bf87-4d8c-9be9-b558ef3b1faa@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 4.2948ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 8.2348 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 8.5122ms&#xD;
+[xUnit.net 00:00:07.20]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.20]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.20]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.20]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.20]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(112,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidDayNumber_ReturnsBadRequest()&#xD;
+[xUnit.net 00:00:07.20]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 4b811048-51c9-478a-b22c-ab770d0a78df with email test-b2729f9c-2d40-469c-ac9d-a4ef2663f1c4@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (7ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 9.6065ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 13.6914 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 13.9344ms&#xD;
+[xUnit.net 00:00:07.22]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.22]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.22]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.22]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.22]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(485,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression()&#xD;
+[xUnit.net 00:00:07.22]         --- End of stack trace from previous location ---&#xD;
+[20:45:46 INF] Request starting HTTP/1.1 POST http://localhost/api/v1/workouts - application/json; charset=utf-8 8544&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedEmail_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT u."Id", u."CreatedAt", u."Email", u."Name"&#xD;
+FROM "Users" AS u&#xD;
+WHERE u."Email" = @__normalizedEmail_0&#xD;
+LIMIT 1&#xD;
+[20:45:46 INF] Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?'], CommandType='Text', CommandTimeout='30']&#xD;
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "Name")&#xD;
+VALUES (@p0, @p1, @p2, @p3);&#xD;
+[20:45:46 INF] Auto-provisioned new user 3d05f5a9-dab0-40f0-84f6-539c0abc4bd0 with email test-75c957cd-d185-404a-9960-a630862d649f@example.com&#xD;
+[20:45:46 INF] Executing endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] Route matched with {action = "CreateWorkout", controller = "Workouts"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateWorkout(A2S.Application.Commands.CreateWorkout.CreateWorkoutCommand, System.Threading.CancellationToken) on controller A2S.Api.Controllers.WorkoutsController (A2S.Api).&#xD;
+[20:45:46 INF] Creating new workout: Spreadsheet Test Workout&#xD;
+[20:45:46 INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?'], CommandType='Text', CommandTimeout='30']&#xD;
+SELECT w0."Id", w0."CompletedAt", w0."CreatedAt", w0."CurrentBlock", w0."CurrentDay", w0."CurrentWeek", w0."HevyRoutineFolderId", w0."HevySyncedRoutines", w0."Name", w0."StartedAt", w0."Status", w0."TotalWeeks", w0."UserId", w0."Variant", w0.c, w0.c0, s."Id", s."AssignedDay", s."Category", s."Equipment", s."HevyExerciseTemplateId", s."Name", s."OrderInDay", s."WorkoutId", s."Id0", s."ExerciseId", s."ProgressionType", s."BaseSetsPerExercise", s."UseAmrap", s."MinimalSets_CurrentSetCount", s."MinimalSets_Equipment", s."MinimalSets_MaximumSets", s."MinimalSets_MinimumSets", s."MinimalSets_StartingSets", s."MinimalSets_TargetTotalReps", s."CurrentSetCount", s."Equipment0", s."IsUnilateral", s."StartingSets", s."TargetSets", s."TrainingMaxUnit", s."TrainingMaxValue", s."MinimalSets_CurrentWeightUnit", s."MinimalSets_CurrentWeightValue", s."CurrentWeightUnit", s."CurrentWeightValue", s."RepRangeMaximum", s."RepRangeMinimum", s."RepRangeTarget"&#xD;
+FROM (&#xD;
+    SELECT w."Id", w."CompletedAt", w."CreatedAt", w."CurrentBlock", w."CurrentDay", w."CurrentWeek", w."HevyRoutineFolderId", w."HevySyncedRoutines", w."Name", w."StartedAt", w."Status", w."TotalWeeks", w."UserId", w."Variant", w."AuditEntries" AS c, w."CompletedActivities" AS c0&#xD;
+    FROM "Workouts" AS w&#xD;
+    WHERE w."UserId" = @__userId_0 AND w."Status" = 'Active'&#xD;
+    ORDER BY w."StartedAt" DESC&#xD;
+    LIMIT 1&#xD;
+) AS w0&#xD;
+LEFT JOIN (&#xD;
+    SELECT e."Id", e."AssignedDay", e."Category", e."Equipment", e."HevyExerciseTemplateId", e."Name", e."OrderInDay", e."WorkoutId", e0."Id" AS "Id0", e0."ExerciseId", e0."ProgressionType", e0."BaseSetsPerExercise", e0."UseAmrap", e0."MinimalSets_CurrentSetCount", e0."MinimalSets_Equipment", e0."MinimalSets_MaximumSets", e0."MinimalSets_MinimumSets", e0."MinimalSets_StartingSets", e0."MinimalSets_TargetTotalReps", e0."CurrentSetCount", e0."Equipment" AS "Equipment0", e0."IsUnilateral", e0."StartingSets", e0."TargetSets", e0."TrainingMaxUnit", e0."TrainingMaxValue", e0."MinimalSets_CurrentWeightUnit", e0."MinimalSets_CurrentWeightValue", e0."CurrentWeightUnit", e0."CurrentWeightValue", e0."RepRangeMaximum", e0."RepRangeMinimum", e0."RepRangeTarget"&#xD;
+    FROM "Exercises" AS e&#xD;
+    LEFT JOIN "ExerciseProgressions" AS e0 ON e."Id" = e0."ExerciseId"&#xD;
+) AS s ON w0."Id" = s."WorkoutId"&#xD;
+ORDER BY w0."StartedAt" DESC, w0."Id", s."Id"&#xD;
+[20:45:46 WRN] Failed to create workout: Failed to create workout: Target sets must be between starting sets and 10&#xD;
+[20:45:46 INF] Executing BadRequestObjectResult, writing value of type '&lt;&gt;f__AnonymousType4`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.&#xD;
+[20:45:46 INF] Executed action A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api) in 4.44ms&#xD;
+[20:45:46 INF] Executed endpoint 'A2S.Api.Controllers.WorkoutsController.CreateWorkout (A2S.Api)'&#xD;
+[20:45:46 INF] HTTP POST /api/v1/workouts responded 400 in 8.7393 ms&#xD;
+[20:45:46 INF] Request finished HTTP/1.1 POST http://localhost/api/v1/workouts - 400 null application/json; charset=utf-8 9.0711ms&#xD;
+[xUnit.net 00:00:07.23]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.BadRequest {value: 400}.&#xD;
+[xUnit.net 00:00:07.23]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)&#xD;
+[xUnit.net 00:00:07.23]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)&#xD;
+[xUnit.net 00:00:07.23]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(688,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CreateSpreadsheetTestWorkoutAsync(HttpClient client)&#xD;
+[xUnit.net 00:00:07.23]         C:\Users\Administrator\99-strength\tests\A2S.Api.Tests\WorkoutFlowIntegrationTests.cs(147,0): at A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions()&#xD;
+[xUnit.net 00:00:07.23]         --- End of stack trace from previous location ---&#xD;
+[testcontainers.org 00:00:07.03] Delete Docker container 621c3ceb203c&#xD;
+[xUnit.net 00:00:07.63]   Finished:    A2S.Api.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.0348130+00:00">
+        <Text>[xUnit.net 00:00:07.00]     A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_FromWeek1ToWeek2_ReturnsCorrectWeekAndBlock [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.0849049+00:00">
+        <Text>[xUnit.net 00:00:07.05]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidWorkoutId_ReturnsNotFound [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.1024050+00:00">
+        <Text>[xUnit.net 00:00:07.06]     A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_ToWeek7_IdentifiesAsDeloadWeek [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.1181156+00:00">
+        <Text>[xUnit.net 00:00:07.08]     A2S.Api.Tests.WorkoutFlowIntegrationTests.ProgressWeek_AcrossBlocks_UpdatesBlockCorrectly [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.1998141+00:00">
+        <Text>[xUnit.net 00:00:07.16]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteFullWeek_ThenProgress_WorksCorrectly [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.2116449+00:00">
+        <Text>[xUnit.net 00:00:07.17]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithMixedProgressionTypes_ReturnsSuccessWithChanges [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.2234729+00:00">
+        <Text>[xUnit.net 00:00:07.19]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_RepsPerSetSuccess_AddsSets [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.2353967+00:00">
+        <Text>[xUnit.net 00:00:07.20]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay_WithInvalidDayNumber_ReturnsBadRequest [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.2527654+00:00">
+        <Text>[xUnit.net 00:00:07.22]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay3_WithMinimalSetsExercises_AppliesCorrectProgression [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="WIN-ENVMQ1M0ITJ" outcome="Error" timestamp="2026-02-01T20:45:46.2652865+00:00">
+        <Text>[xUnit.net 00:00:07.23]     A2S.Api.Tests.WorkoutFlowIntegrationTests.CompleteDay1_Week1_WithSpreadsheetData_AppliesCorrectProgressions [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

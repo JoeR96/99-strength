@@ -366,6 +366,17 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
+    /// Replaces the current progression strategy with a new one.
+    /// Used when substituting an exercise and changing its progression type.
+    /// </summary>
+    /// <param name="newProgression">The new progression strategy to use</param>
+    public void ReplaceProgression(ExerciseProgression newProgression)
+    {
+        CheckRule(newProgression != null, "New progression cannot be null");
+        Progression = newProgression;
+    }
+
+    /// <summary>
     /// Gets the Training Max if this exercise uses linear progression.
     /// Returns null for accessory exercises.
     /// </summary>
@@ -409,6 +420,131 @@ public sealed class Exercise : Entity<ExerciseId>
             throw new InvalidOperationException(
                 "Cannot update weight for exercises using linear progression. " +
                 "Use UpdateTrainingMax instead.");
+        }
+    }
+
+    /// <summary>
+    /// Sets whether this exercise is unilateral (performed one side at a time).
+    /// Only applicable for RepsPerSetStrategy.
+    /// Unilateral exercises have sets performed once per side (so 3 sets = 6 total).
+    /// </summary>
+    public void SetUnilateral(bool isUnilateral)
+    {
+        if (Progression is RepsPerSetStrategy repsStrategy)
+        {
+            repsStrategy.SetUnilateral(isUnilateral);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "Unilateral setting only applies to RepsPerSet progression exercises.");
+        }
+    }
+
+    /// <summary>
+    /// Gets whether this exercise is unilateral.
+    /// Returns false for non-RepsPerSet exercises.
+    /// </summary>
+    public bool IsUnilateral()
+    {
+        return Progression is RepsPerSetStrategy repsStrategy && repsStrategy.IsUnilateral;
+    }
+
+    /// <summary>
+    /// Captures the current progression state as a snapshot for undo capability.
+    /// </summary>
+    public ProgressionSnapshot CaptureProgressionSnapshot()
+    {
+        var progressionType = Progression switch
+        {
+            LinearProgressionStrategy => "Linear",
+            RepsPerSetStrategy => "RepsPerSet",
+            MinimalSetsStrategy => "MinimalSets",
+            _ => "Unknown"
+        };
+
+        var stateJson = Progression switch
+        {
+            LinearProgressionStrategy linear => System.Text.Json.JsonSerializer.Serialize(new
+            {
+                TrainingMaxValue = linear.TrainingMax.Value,
+                TrainingMaxUnit = (int)linear.TrainingMax.Unit,
+                UseAmrap = linear.UseAmrap,
+                BaseSetsPerExercise = linear.BaseSetsPerExercise
+            }),
+            RepsPerSetStrategy reps => System.Text.Json.JsonSerializer.Serialize(new
+            {
+                CurrentWeight = reps.CurrentWeight.Value,
+                WeightUnit = (int)reps.CurrentWeight.Unit,
+                CurrentSetCount = reps.CurrentSetCount,
+                TargetSets = reps.TargetSets,
+                RepRangeMinimum = reps.RepRange.Minimum,
+                RepRangeTarget = reps.RepRange.Target,
+                RepRangeMaximum = reps.RepRange.Maximum,
+                IsUnilateral = reps.IsUnilateral
+            }),
+            MinimalSetsStrategy minimal => System.Text.Json.JsonSerializer.Serialize(new
+            {
+                CurrentWeight = minimal.CurrentWeight.Value,
+                WeightUnit = (int)minimal.CurrentWeight.Unit,
+                CurrentSetCount = minimal.CurrentSetCount,
+                TargetTotalReps = minimal.TargetTotalReps,
+                MinimumSets = minimal.MinimumSets,
+                MaximumSets = minimal.MaximumSets
+            }),
+            _ => "{}"
+        };
+
+        return new ProgressionSnapshot(Id.Value, Name, progressionType, stateJson);
+    }
+
+    /// <summary>
+    /// Restores progression state from a snapshot (used when undoing a completed day).
+    /// </summary>
+    public void RestoreFromSnapshot(ProgressionSnapshot snapshot)
+    {
+        if (snapshot.ExerciseId != Id.Value)
+            throw new InvalidOperationException("Snapshot exercise ID does not match");
+
+        try
+        {
+            var json = System.Text.Json.JsonDocument.Parse(snapshot.ProgressionStateJson);
+            var root = json.RootElement;
+
+            switch (Progression)
+            {
+                case LinearProgressionStrategy linear:
+                    if (snapshot.ProgressionType == "Linear")
+                    {
+                        var tmValue = root.GetProperty("TrainingMaxValue").GetDecimal();
+                        var tmUnit = (WeightUnit)root.GetProperty("TrainingMaxUnit").GetInt32();
+                        linear.RestoreState(TrainingMax.Create(tmValue, tmUnit));
+                    }
+                    break;
+
+                case RepsPerSetStrategy reps:
+                    if (snapshot.ProgressionType == "RepsPerSet")
+                    {
+                        reps.RestoreState(
+                            root.GetProperty("CurrentWeight").GetDecimal(),
+                            root.GetProperty("CurrentSetCount").GetInt32(),
+                            root.GetProperty("IsUnilateral").GetBoolean());
+                    }
+                    break;
+
+                case MinimalSetsStrategy minimal:
+                    if (snapshot.ProgressionType == "MinimalSets")
+                    {
+                        minimal.RestoreState(
+                            root.GetProperty("CurrentWeight").GetDecimal(),
+                            root.GetProperty("CurrentSetCount").GetInt32());
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to restore progression from snapshot: {ex.Message}", ex);
         }
     }
 }

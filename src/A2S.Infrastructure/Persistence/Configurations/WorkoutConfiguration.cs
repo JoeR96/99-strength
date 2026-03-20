@@ -53,6 +53,21 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
         builder.Property(w => w.HevyRoutineFolderId)
             .HasMaxLength(100);
 
+        // BlockSequence as JSON column
+        var blockSequenceConverter = new ValueConverter<List<int>, string>(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+            v => string.IsNullOrEmpty(v)
+                ? new List<int> { 1, 2, 3 }
+                : JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions?)null) ?? new List<int> { 1, 2, 3 }
+        );
+
+        builder.Property<List<int>>("_blockSequence")
+            .HasColumnName("BlockSequence")
+            .HasColumnType("jsonb")
+            .HasConversion(blockSequenceConverter)
+            .HasDefaultValueSql("'[1,2,3]'::jsonb")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // HevySyncedRoutines as JSON column with explicit value converter
         // This avoids Npgsql 8.0+ dynamic JSON serialization requirement
         var dictionaryConverter = new ValueConverter<Dictionary<string, string>, string>(
@@ -73,6 +88,24 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         // Ignore domain events (not persisted)
         builder.Ignore(w => w.DomainEvents);
+
+        // AuditEntries as owned complex type (JSON column)
+        builder.Navigation(w => w.AuditEntries)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.OwnsMany(w => w.AuditEntries, audit =>
+        {
+            audit.ToJson();
+            audit.Property(a => a.OccurredAt);
+            audit.Property(a => a.Type).HasConversion<string>();
+            audit.Property(a => a.ExerciseId);
+            audit.Property(a => a.ExerciseName).HasMaxLength(200);
+            audit.Property(a => a.WeekNumber);
+            audit.Property(a => a.DayNumber);
+            audit.Property(a => a.OldValue);
+            audit.Property(a => a.NewValue);
+            audit.Property(a => a.Reason).HasMaxLength(500);
+        });
 
         // CompletedActivities as owned complex type (JSON column)
         // EF Core 9 handles nested collections in JSON automatically
@@ -118,6 +151,15 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                         w.Property(x => x.Unit).HasConversion<string>();
                     });
                 });
+            });
+
+            // ProgressionSnapshots for undo capability
+            activity.OwnsMany(a => a.ProgressionSnapshots, snap =>
+            {
+                snap.Property(s => s.ExerciseId);
+                snap.Property(s => s.ExerciseName).HasMaxLength(200);
+                snap.Property(s => s.ProgressionType).HasMaxLength(50);
+                snap.Property(s => s.ProgressionStateJson);
             });
         });
     }
