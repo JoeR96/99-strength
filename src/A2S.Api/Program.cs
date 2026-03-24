@@ -91,7 +91,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.WithOrigins(
+                  "https://99-strength.enjoeneer.dev",
+                  "https://enjoeneer.dev",
+                  "http://localhost:5173",
+                  "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -144,6 +148,9 @@ app.UseAutoProvisionUser();
 
 // Map controllers
 app.MapControllers();
+
+// Health check endpoint
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 var summaries = new[]
 {

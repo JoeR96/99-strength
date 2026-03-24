@@ -44,3 +44,5 @@ coverage/
 src/A2S.Web/.env.example
 .gitignore
 src/A2S.Web/.env.test.example
+
+.vercel
