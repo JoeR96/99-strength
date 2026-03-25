@@ -1223,7 +1223,6 @@ async function cleanupDuplicateRoutines(routineTitle: string): Promise<void> {
     // Sort by creation date (most recent first) and keep only the first one
     duplicates.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    const toKeep = duplicates[0];
     const toDelete = duplicates.slice(1);
 
     console.log(`Found ${duplicates.length} duplicates of "${routineTitle}", keeping most recent`);

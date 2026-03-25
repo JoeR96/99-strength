@@ -25,13 +25,13 @@ export interface RepsPerSetConfig {
 type SubstitutionType = "temporary" | "permanent" | null;
 
 // Equipment types that work well with A2S Linear/AMRAP progression
-const AMRAP_COMPATIBLE_EQUIPMENT = [
+const AMRAP_COMPATIBLE_EQUIPMENT: readonly EquipmentType[] = [
   EquipmentType.Barbell,
   EquipmentType.SmithMachine,
 ];
 
 // Equipment types that require RepsPerSet progression (no AMRAP)
-const REPS_PER_SET_EQUIPMENT = [
+const REPS_PER_SET_EQUIPMENT: readonly EquipmentType[] = [
   EquipmentType.Dumbbell,
   EquipmentType.Cable,
   EquipmentType.Machine,

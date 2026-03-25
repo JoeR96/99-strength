@@ -91,7 +91,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
 
         let value = 0;
         let unit = "kg";
-        let weightUnit = WeightUnit.Kilograms;
+        let weightUnit: WeightUnit = WeightUnit.Kilograms;
 
         const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
         const rpsProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;

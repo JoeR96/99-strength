@@ -13,6 +13,7 @@ import {
   type MinimalSetsProgressionDto,
 } from "@/types/workout";
 
+
 interface ExerciseSubstitutionConfigModalProps {
   exercise: ExerciseDto;
   isOpen: boolean;
@@ -62,7 +63,7 @@ export interface MinimalSetsConfig {
 type ProgressionType = "Linear" | "RepsPerSet" | "MinimalSets";
 
 // Equipment types that work well with A2S Linear/AMRAP progression
-const AMRAP_COMPATIBLE_EQUIPMENT = [
+const AMRAP_COMPATIBLE_EQUIPMENT: readonly EquipmentType[] = [
   EquipmentType.Barbell,
   EquipmentType.SmithMachine,
 ];

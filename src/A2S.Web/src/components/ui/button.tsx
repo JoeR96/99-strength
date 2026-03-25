@@ -40,6 +40,10 @@ const buttonVariants = cva(
         // Accent button - yellow
         accent:
           "bg-accent text-black border border-accent shadow-md hover:bg-accent/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
+
+        // Glow button - primary with glow effect
+        glow:
+          "bg-primary text-white border border-primary shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:bg-primary/90 active:translate-y-0.5 transition-all duration-150",
       },
       size: {
         default: "h-12 px-6 py-3 text-base rounded-md",

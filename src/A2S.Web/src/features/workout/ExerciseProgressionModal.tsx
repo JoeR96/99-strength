@@ -62,7 +62,7 @@ function getProgressionLabel(type: string): string {
  */
 function getLinearTmForWeek(
   week: WeeklyPerformanceDto,
-  currentTm: number | undefined
+  _currentTm: number | undefined
 ): number | null {
   if (week.trainingMaxAtWeek != null) return week.trainingMaxAtWeek;
   return null;

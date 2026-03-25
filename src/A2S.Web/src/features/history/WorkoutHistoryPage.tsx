@@ -417,9 +417,6 @@ function WorkoutActivityDetail({
   }, 0);
 
   const totalSets = activity.performances.reduce((sum, perf) => sum + perf.completedSets.length, 0);
-  const totalReps = activity.performances.reduce((sum, perf) => {
-    return sum + perf.completedSets.reduce((setSum, set) => setSum + set.actualReps, 0);
-  }, 0);
 
   return (
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">

@@ -6,7 +6,6 @@ import {
   type ExerciseDto,
   type LinearProgressionDto,
   type RepsPerSetProgressionDto,
-  type MinimalSetsProgressionDto,
   type ProgressionConfigRequest,
 } from "@/types/workout";
 
