@@ -413,7 +413,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setProgressionType(type)}
                         className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all ${
                           progressionType === type
-                            ? "bg-primary/10 border-primary text-primary"
+                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                             : "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
                         }`}
                       >
@@ -496,7 +496,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setIsPrimary(true)}
                         className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                           isPrimary
-                            ? "bg-primary/10 border-primary text-primary"
+                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                             : "border-border hover:border-primary/50 text-foreground"
                         }`}
                       >
@@ -507,7 +507,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setIsPrimary(false)}
                         className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                           !isPrimary
-                            ? "bg-primary/10 border-primary text-primary"
+                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                             : "border-border hover:border-primary/50 text-foreground"
                         }`}
                       >
@@ -516,20 +516,6 @@ export function ExerciseSubstitutionConfigModal({
                     </div>
                   </div>
 
-                  {/* Number of Sets */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">
-                      Number of Sets
-                    </label>
-                    <input
-                      type="number"
-                      value={baseSets}
-                      onChange={(e) => setBaseSets(Number(e.target.value))}
-                      className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                      min="1"
-                      max="10"
-                    />
-                  </div>
                 </div>
               )}
 

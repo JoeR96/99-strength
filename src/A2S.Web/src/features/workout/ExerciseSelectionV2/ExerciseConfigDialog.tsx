@@ -41,7 +41,6 @@ export function ExerciseConfigDialog({
   const [trainingMaxValue, setTrainingMaxValue] = useState<number>(100);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(WeightUnitEnum.Kilograms);
   const [isPrimary, setIsPrimary] = useState<boolean>(true);
-  const [baseSets, setBaseSets] = useState<number>(3);
 
   // RepsPerSet progression state
   const [repRangeMin, setRepRangeMin] = useState<number>(8);
@@ -70,7 +69,6 @@ export function ExerciseConfigDialog({
         setWeightUnit(exercise.trainingMax.unit);
       }
       if (exercise.isPrimary !== undefined) setIsPrimary(exercise.isPrimary);
-      if (exercise.baseSetsPerExercise) setBaseSets(exercise.baseSetsPerExercise);
 
       // RepsPerSet progression
       if (exercise.repRange) {
@@ -97,7 +95,6 @@ export function ExerciseConfigDialog({
         category: ExerciseCategory.MainLift,
         trainingMax: { value: trainingMaxValue, unit: weightUnit },
         isPrimary,
-        baseSetsPerExercise: baseSets,
         repRange: undefined,
         currentSets: undefined,
         targetSets: undefined,
@@ -208,7 +205,7 @@ export function ExerciseConfigDialog({
                     onClick={() => setProgressionType(type)}
                     className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all ${
                       progressionType === type
-                        ? "bg-primary/10 border-primary text-primary"
+                        ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                         : "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
                     }`}
                   >
@@ -268,7 +265,7 @@ export function ExerciseConfigDialog({
                       onClick={() => setIsPrimary(true)}
                       className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                         isPrimary
-                          ? "bg-primary/10 border-primary text-primary"
+                          ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                           : "border-border hover:border-primary/50 text-foreground"
                       }`}
                     >
@@ -279,7 +276,7 @@ export function ExerciseConfigDialog({
                       onClick={() => setIsPrimary(false)}
                       className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                         !isPrimary
-                          ? "bg-primary/10 border-primary text-primary"
+                          ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                           : "border-border hover:border-primary/50 text-foreground"
                       }`}
                     >
@@ -291,21 +288,6 @@ export function ExerciseConfigDialog({
                   </p>
                 </div>
 
-                {/* Number of Sets */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-foreground">Number of Sets</label>
-                  <input
-                    type="number"
-                    value={baseSets}
-                    onChange={(e) => setBaseSets(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                    min="1"
-                    max="10"
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Typical range: 3-5 sets per exercise
-                  </p>
-                </div>
               </div>
             )}
 
@@ -527,7 +509,7 @@ export function ExerciseConfigDialog({
                     onClick={() => setAssignedDay(day)}
                     className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all ${
                       assignedDay === day
-                        ? "bg-primary/10 border-primary text-primary"
+                        ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
                         : "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
                     }`}
                   >
