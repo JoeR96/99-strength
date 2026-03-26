@@ -411,7 +411,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setProgressionType(type)}
                         className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all ${
                           progressionType === type
-                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
+                            ? "bg-primary border-primary text-primary-foreground font-bold ring-2 ring-primary/50"
                             : "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
                         }`}
                       >
@@ -494,7 +494,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setIsPrimary(true)}
                         className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                           isPrimary
-                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
+                            ? "bg-primary border-primary text-primary-foreground font-bold ring-2 ring-primary/50"
                             : "border-border hover:border-primary/50 text-foreground"
                         }`}
                       >
@@ -505,7 +505,7 @@ export function ExerciseSubstitutionConfigModal({
                         onClick={() => setIsPrimary(false)}
                         className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
                           !isPrimary
-                            ? "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25"
+                            ? "bg-primary border-primary text-primary-foreground font-bold ring-2 ring-primary/50"
                             : "border-border hover:border-primary/50 text-foreground"
                         }`}
                       >

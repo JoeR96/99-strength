@@ -1,4 +1,4 @@
-import type { SelectedExercise, EquipmentType } from "@/types/workout";
+import type { SelectedExercise } from "@/types/workout";
 import { WeightUnit } from "@/types/workout";
 
 interface SelectedExerciseCardProps {
@@ -8,21 +8,6 @@ interface SelectedExerciseCardProps {
   isDragging?: boolean;
   showOrder?: boolean;
   showDragHandle?: boolean;
-}
-
-/**
- * Get equipment label from enum value
- */
-function getEquipmentLabel(equipment: EquipmentType): string {
-  const labels: Record<EquipmentType, string> = {
-    0: "Barbell",
-    1: "Dumbbell",
-    2: "Cable",
-    3: "Machine",
-    4: "Bodyweight",
-    5: "Smith Machine",
-  };
-  return labels[equipment] || "Unknown";
 }
 
 /**
@@ -117,11 +102,6 @@ export function SelectedExerciseCard({
 
       {/* Single compact row with all key info */}
       <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
-        {/* Equipment */}
-        <span className="font-medium">{getEquipmentLabel(exercise.template.equipment)}</span>
-
-        <span className="text-muted-foreground/50">•</span>
-
         {/* Progression-specific details */}
         {exercise.progressionType === 'Linear' && exercise.trainingMax ? (
           <>
