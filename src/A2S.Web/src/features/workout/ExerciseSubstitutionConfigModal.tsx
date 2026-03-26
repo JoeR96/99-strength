@@ -130,9 +130,7 @@ export function ExerciseSubstitutionConfigModal({
   const [isPrimary, setIsPrimary] = useState<boolean>(
     linearProg?.useAmrap ?? true
   );
-  const [baseSets, setBaseSets] = useState<number>(
-    linearProg?.baseSetsPerExercise ?? 3
-  );
+  const baseSets = linearProg?.baseSetsPerExercise ?? 3;
 
   // RepsPerSet progression state
   const [repRangeMin, setRepRangeMin] = useState<number>(

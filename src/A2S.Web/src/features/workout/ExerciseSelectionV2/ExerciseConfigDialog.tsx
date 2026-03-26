@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { SelectedExercise, DayNumber, ProgramVariant, WeightUnit } from "@/types/workout";
 import { A2SProgressionType as ProgressionTypeEnum, WeightUnit as WeightUnitEnum, ExerciseCategory } from "@/types/workout";
+import { UnilateralToggle } from "@/components/shared/UnilateralToggle";
 
 // Extended type to include MinimalSets
 type ProgressionType = 'Linear' | 'RepsPerSet' | 'MinimalSets';
@@ -43,6 +44,7 @@ export function ExerciseConfigDialog({
   const [isPrimary, setIsPrimary] = useState<boolean>(true);
 
   // RepsPerSet progression state
+  const [isUnilateral, setIsUnilateral] = useState<boolean>(false);
   const [repRangeMin, setRepRangeMin] = useState<number>(8);
   const [repRangeTarget, setRepRangeTarget] = useState<number>(10);
   const [repRangeMax, setRepRangeMax] = useState<number>(12);
@@ -76,6 +78,7 @@ export function ExerciseConfigDialog({
         setRepRangeTarget(exercise.repRange.target);
         setRepRangeMax(exercise.repRange.maximum);
       }
+      if (exercise.isUnilateral !== undefined) setIsUnilateral(exercise.isUnilateral);
       if (exercise.currentSets) setCurrentSets(exercise.currentSets);
       if (exercise.targetSets) setTargetSets(exercise.targetSets);
       if (exercise.startingWeight) setStartingWeight(exercise.startingWeight);
@@ -124,6 +127,7 @@ export function ExerciseConfigDialog({
         progressionType: progressionType as 'RepsPerSet',
         assignedDay,
         category: ExerciseCategory.Accessory,
+        isUnilateral,
         repRange: {
           minimum: repRangeMin,
           target: repRangeTarget,
@@ -400,6 +404,12 @@ export function ExerciseConfigDialog({
                     Progress from current sets to target sets before increasing weight
                   </p>
                 </div>
+
+                {/* Unilateral Toggle */}
+                <UnilateralToggle
+                  isUnilateral={isUnilateral}
+                  onChange={setIsUnilateral}
+                />
               </div>
             )}
 
