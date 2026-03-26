@@ -1,5 +1,3 @@
-import { Switch } from "@/components/ui/switch";
-
 interface UnilateralToggleProps {
   isUnilateral: boolean;
   onChange: (value: boolean) => void;
@@ -12,18 +10,39 @@ export function UnilateralToggle({
   disabled = false,
 }: UnilateralToggleProps) {
   return (
-    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-      <div>
-        <div className="font-medium text-sm">Unilateral Exercise</div>
-        <div className="text-xs text-muted-foreground">
-          Performed one side at a time (max 3 sets per side)
-        </div>
+    <div>
+      <label className="block text-sm font-medium mb-2 text-foreground">Exercise Type</label>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(false)}
+          className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
+            !isUnilateral
+              ? "bg-primary border-primary text-primary-foreground font-bold ring-2 ring-primary/50"
+              : "border-border hover:border-primary/50 text-foreground"
+          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          Bilateral
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(true)}
+          className={`px-3 py-2.5 text-sm font-medium rounded-xl border-2 transition-all ${
+            isUnilateral
+              ? "bg-primary border-primary text-primary-foreground font-bold ring-2 ring-primary/50"
+              : "border-border hover:border-primary/50 text-foreground"
+          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          Unilateral
+        </button>
       </div>
-      <Switch
-        checked={isUnilateral}
-        onCheckedChange={onChange}
-        disabled={disabled}
-      />
+      <p className="text-xs text-muted-foreground mt-2">
+        {isUnilateral
+          ? "Performed one side at a time (max 3 sets per side)"
+          : "Performed with both sides together (max 5 sets)"}
+      </p>
     </div>
   );
 }
