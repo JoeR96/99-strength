@@ -78,7 +78,7 @@ export function ExerciseConfigDialog({
         setRepRangeTarget(exercise.repRange.target);
         setRepRangeMax(exercise.repRange.maximum);
       }
-      if (exercise.isUnilateral !== undefined) setIsUnilateral(exercise.isUnilateral);
+      setIsUnilateral(exercise.isUnilateral ?? false);
       if (exercise.currentSets) setCurrentSets(exercise.currentSets);
       if (exercise.targetSets) setTargetSets(exercise.targetSets);
       if (exercise.startingWeight) setStartingWeight(exercise.startingWeight);
@@ -98,6 +98,7 @@ export function ExerciseConfigDialog({
         category: ExerciseCategory.MainLift,
         trainingMax: { value: trainingMaxValue, unit: weightUnit },
         isPrimary,
+        isUnilateral: undefined,
         repRange: undefined,
         currentSets: undefined,
         targetSets: undefined,
@@ -109,6 +110,7 @@ export function ExerciseConfigDialog({
         progressionType: 'RepsPerSet' as const,
         assignedDay,
         category: ExerciseCategory.Accessory,
+        isUnilateral: undefined,
         startingWeight: minimalSetsWeight,
         weightUnit,
         currentSets: minimalCurrentSets,
