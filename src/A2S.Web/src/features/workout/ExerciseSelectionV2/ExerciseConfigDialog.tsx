@@ -52,6 +52,15 @@ export function ExerciseConfigDialog({
   const [targetSets, setTargetSets] = useState<number>(5);
   const [startingWeight, setStartingWeight] = useState<number>(50);
 
+  const maxAllowedSets = isUnilateral ? 3 : 5;
+
+  const handleUnilateralChange = (value: boolean) => {
+    setIsUnilateral(value);
+    const newMax = value ? 3 : 5;
+    if (currentSets > newMax) setCurrentSets(newMax);
+    if (targetSets > newMax) setTargetSets(newMax);
+  };
+
   // MinimalSets progression state
   const [minimalSetsWeight, setMinimalSetsWeight] = useState<number>(0);
   const [targetTotalReps, setTargetTotalReps] = useState<number>(40);
@@ -375,19 +384,27 @@ export function ExerciseConfigDialog({
                   </p>
                 </div>
 
+                {/* Unilateral Toggle */}
+                <UnilateralToggle
+                  isUnilateral={isUnilateral}
+                  onChange={handleUnilateralChange}
+                />
+
                 {/* Set Progression */}
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-foreground">Set Progression</label>
+                  <label className="block text-sm font-medium mb-2 text-foreground">
+                    Set Progression <span className="text-xs text-muted-foreground font-normal">(max {maxAllowedSets} sets)</span>
+                  </label>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-xs text-muted-foreground">Current Sets</label>
                       <input
                         type="number"
                         value={currentSets}
-                        onChange={(e) => setCurrentSets(Number(e.target.value))}
+                        onChange={(e) => setCurrentSets(Math.min(Number(e.target.value), maxAllowedSets))}
                         className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
                         min="1"
-                        max="10"
+                        max={maxAllowedSets}
                       />
                     </div>
                     <div>
@@ -395,10 +412,10 @@ export function ExerciseConfigDialog({
                       <input
                         type="number"
                         value={targetSets}
-                        onChange={(e) => setTargetSets(Number(e.target.value))}
+                        onChange={(e) => setTargetSets(Math.min(Number(e.target.value), maxAllowedSets))}
                         className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
                         min="1"
-                        max="10"
+                        max={maxAllowedSets}
                       />
                     </div>
                   </div>
@@ -406,12 +423,6 @@ export function ExerciseConfigDialog({
                     Progress from current sets to target sets before increasing weight
                   </p>
                 </div>
-
-                {/* Unilateral Toggle */}
-                <UnilateralToggle
-                  isUnilateral={isUnilateral}
-                  onChange={setIsUnilateral}
-                />
               </div>
             )}
 
