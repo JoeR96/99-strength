@@ -126,18 +126,18 @@ public sealed class Exercise : Entity<ExerciseId>
         int orderInDay,
         string hevyExerciseTemplateId,
         RepRange repRange,
-        Weight startingWeight,
         int startingSets = 2,
         int targetSets = 4,
-        bool isUnilateral = false)
+        bool isUnilateral = false,
+        Weight? startingWeight = null)
     {
         var progression = RepsPerSetStrategy.Create(
             repRange,
-            startingWeight,
             equipment,
             startingSets,
             targetSets,
-            isUnilateral);
+            isUnilateral,
+            startingWeight);
 
         return new Exercise(
             new ExerciseId(Guid.NewGuid()),
@@ -260,6 +260,22 @@ public sealed class Exercise : Entity<ExerciseId>
             throw new InvalidOperationException(
                 "Cannot update starting weight for exercises using linear progression. " +
                 "Use UpdateTrainingMax instead.");
+        }
+    }
+
+    /// <summary>
+    /// Confirms the starting weight for a RepsPerSet exercise after the first session.
+    /// </summary>
+    public void ConfirmStartingWeight(Weight weight)
+    {
+        if (Progression is RepsPerSetStrategy repsStrategy)
+        {
+            repsStrategy.ConfirmStartingWeight(weight);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "Can only confirm starting weight for exercises using RepsPerSet progression.");
         }
     }
 
@@ -458,8 +474,8 @@ public sealed class Exercise : Entity<ExerciseId>
             }),
             RepsPerSetStrategy reps => System.Text.Json.JsonSerializer.Serialize(new
             {
-                CurrentWeight = reps.CurrentWeight.Value,
-                WeightUnit = (int)reps.CurrentWeight.Unit,
+                CurrentWeight = reps.CurrentWeight?.Value,
+                WeightUnit = reps.CurrentWeight != null ? (int?)reps.CurrentWeight.Unit : null,
                 CurrentSetCount = reps.CurrentSetCount,
                 TargetSets = reps.TargetSets,
                 RepRangeMinimum = reps.RepRange.Minimum,
@@ -509,8 +525,12 @@ public sealed class Exercise : Entity<ExerciseId>
                 case RepsPerSetStrategy reps:
                     if (snapshot.ProgressionType == "RepsPerSet")
                     {
+                        var weightProp = root.GetProperty("CurrentWeight");
+                        decimal? currentWeight = weightProp.ValueKind == System.Text.Json.JsonValueKind.Null
+                            ? null
+                            : weightProp.GetDecimal();
                         reps.RestoreState(
-                            root.GetProperty("CurrentWeight").GetDecimal(),
+                            currentWeight,
                             root.GetProperty("CurrentSetCount").GetInt32(),
                             root.GetProperty("IsUnilateral").GetBoolean());
                     }

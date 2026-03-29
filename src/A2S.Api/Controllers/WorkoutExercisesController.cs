@@ -203,6 +203,40 @@ public class WorkoutExercisesController : ControllerBase
     }
 
     /// <summary>
+    /// Confirms the starting weight for a RepsPerSet exercise after the first session.
+    /// </summary>
+    [HttpPost("{id:guid}/exercises/{exerciseId:guid}/confirm-weight")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmStartingWeight(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] ConfirmStartingWeightRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Confirming starting weight for exercise {ExerciseId} to {Weight}{Unit} in workout {WorkoutId}",
+            exerciseId, request.Weight, request.Unit, id);
+
+        var command = new Application.Commands.ConfirmStartingWeight.ConfirmStartingWeightCommand(
+            id,
+            exerciseId,
+            request.Weight,
+            request.Unit);
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Failed to confirm starting weight: {Error}", result.Error);
+            return BadRequest(new { error = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Retrofixes the Training Max history for a Linear progression exercise.
     /// </summary>
     [HttpPost("{id:guid}/exercises/{exerciseId:guid}/retrofix-tm")]

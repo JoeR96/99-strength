@@ -1,6 +1,7 @@
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
+using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.ValueObjects;
 using MediatR;
@@ -146,11 +147,13 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 if (update.WeightValue.HasValue)
                 {
                     var previousWeight = repsStrategy.CurrentWeight;
-                    previousValue = $"{previousWeight.Value} {previousWeight.Unit}";
+                    previousValue = previousWeight != null
+                        ? $"{previousWeight.Value} {previousWeight.Unit}"
+                        : "Pending";
 
                     var newWeight = Weight.Create(
                         update.WeightValue.Value,
-                        update.WeightUnit ?? previousWeight.Unit);
+                        update.WeightUnit ?? previousWeight?.Unit ?? WeightUnit.Kilograms);
 
                     workout.AdjustWeight(exerciseId, newWeight);
                     newValue = $"{newWeight.Value} {newWeight.Unit}";

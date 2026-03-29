@@ -50,8 +50,6 @@ export function ExerciseConfigDialog({
   const [repRangeMax, setRepRangeMax] = useState<number>(12);
   const [currentSets, setCurrentSets] = useState<number>(3);
   const [targetSets, setTargetSets] = useState<number>(5);
-  const [startingWeight, setStartingWeight] = useState<number>(50);
-
   // MinimalSets progression state
   const [minimalSetsWeight, setMinimalSetsWeight] = useState<number>(0);
   const [targetTotalReps, setTargetTotalReps] = useState<number>(40);
@@ -81,7 +79,6 @@ export function ExerciseConfigDialog({
       setIsUnilateral(exercise.isUnilateral ?? false);
       if (exercise.currentSets) setCurrentSets(exercise.currentSets);
       if (exercise.targetSets) setTargetSets(exercise.targetSets);
-      if (exercise.startingWeight) setStartingWeight(exercise.startingWeight);
       if (exercise.weightUnit !== undefined) setWeightUnit(exercise.weightUnit);
     }
   }, [exercise]);
@@ -137,7 +134,7 @@ export function ExerciseConfigDialog({
         },
         currentSets,
         targetSets,
-        startingWeight,
+        startingWeight: undefined,
         weightUnit,
         trainingMax: undefined,
         isPrimary: undefined,
@@ -349,29 +346,10 @@ export function ExerciseConfigDialog({
                   </p>
                 </div>
 
-                {/* Starting Weight */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-foreground">Starting Weight</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={startingWeight}
-                      onChange={(e) => setStartingWeight(Number(e.target.value))}
-                      className="flex-1 px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                      min="0"
-                      step="2.5"
-                    />
-                    <select
-                      value={weightUnit}
-                      onChange={(e) => setWeightUnit(Number(e.target.value) as WeightUnit)}
-                      className="px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                    >
-                      <option value={WeightUnitEnum.Kilograms}>kg</option>
-                      <option value={WeightUnitEnum.Pounds}>lbs</option>
-                    </select>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Choose a weight you can perform comfortably in the target rep range
+                {/* Starting Weight Info */}
+                <div className="p-3 bg-muted/50 rounded-xl border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Weight will be set after your first session. Just enter the weight you use during your workout and confirm it afterwards.
                   </p>
                 </div>
 
@@ -380,7 +358,7 @@ export function ExerciseConfigDialog({
                   <label className="block text-sm font-medium mb-2 text-foreground">Set Progression</label>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground">Current Sets</label>
+                      <label className="text-xs text-muted-foreground">Starting Sets</label>
                       <input
                         type="number"
                         value={currentSets}
@@ -403,7 +381,7 @@ export function ExerciseConfigDialog({
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Progress from current sets to target sets before increasing weight
+                    Progress from starting sets to target sets before increasing weight
                   </p>
                 </div>
 
@@ -481,7 +459,7 @@ export function ExerciseConfigDialog({
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">Current Sets</label>
+                      <label className="text-xs text-muted-foreground">Starting Sets</label>
                       <input
                         type="number"
                         value={minimalCurrentSets}

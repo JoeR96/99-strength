@@ -9,6 +9,7 @@ import { ExerciseCard } from "./ExerciseCard";
 import { CompletionSummary } from "./CompletionSummary";
 import { WeightDiscrepancyModal } from "./WeightDiscrepancyModal";
 import { MissingExercisesModal } from "./MissingExercisesModal";
+import { WeightConfirmationModal } from "./WeightConfirmationModal";
 import { PulledSubstitutionsModal } from "./PulledSubstitutionsModal";
 import { SessionRecoveryModal } from "./SessionRecoveryModal";
 import { WorkoutHeader } from "./WorkoutHeader";
@@ -167,6 +168,17 @@ export function WorkoutSession() {
             : 'Kilograms'}
           onApply={session.handleMissingExercise}
           onComplete={session.handleMissingExercisesComplete}
+        />
+      )}
+
+      {session.showWeightConfirmationModal && session.pendingWeightExercises.length > 0 && (
+        <WeightConfirmationModal
+          exercises={session.pendingWeightExercises}
+          onConfirm={session.handleConfirmWeights}
+          onSkip={() => {
+            session.setShowWeightConfirmationModal(false);
+            session.setShowCompletionSummary(true);
+          }}
         />
       )}
 

@@ -145,6 +145,7 @@ public sealed record RepsPerSetProgressionDto : ExerciseProgressionDto
     public decimal CurrentWeight { get; init; }
     public string WeightUnit { get; init; } = string.Empty;
     public bool IsUnilateral { get; init; }
+    public bool IsWeightPending { get; init; }
 }
 
 /// <summary>

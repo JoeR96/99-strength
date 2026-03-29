@@ -168,8 +168,8 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
             }
             else if (exercise.Progression is RepsPerSetStrategy repsPerSet)
             {
-                currentWeight = repsPerSet.CurrentWeight.Value;
-                weightUnit = repsPerSet.CurrentWeight.Unit.ToString();
+                currentWeight = repsPerSet.CurrentWeight?.Value ?? 0;
+                weightUnit = repsPerSet.CurrentWeight?.Unit.ToString() ?? "Kilograms";
                 currentSets = repsPerSet.CurrentSetCount;
                 targetSets = repsPerSet.TargetSets;
             }

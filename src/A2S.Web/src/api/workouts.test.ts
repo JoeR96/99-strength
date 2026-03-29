@@ -402,6 +402,30 @@ describe('workoutsApi', () => {
     });
   });
 
+  describe('confirmStartingWeight', () => {
+    it('should confirm starting weight for an exercise', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
+
+      await workoutsApi.confirmStartingWeight('workout-123', 'ex-1', 40, 1);
+
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/workouts/workout-123/exercises/ex-1/confirm-weight',
+        { weight: 40, unit: 1 }
+      );
+    });
+
+    it('should confirm weight in pounds', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
+
+      await workoutsApi.confirmStartingWeight('workout-123', 'ex-2', 25, 2);
+
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/workouts/workout-123/exercises/ex-2/confirm-weight',
+        { weight: 25, unit: 2 }
+      );
+    });
+  });
+
   describe('undoLastCompletion', () => {
     it('should undo last completion', async () => {
       const response = {

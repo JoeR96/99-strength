@@ -177,6 +177,7 @@ export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
   currentWeight: number;
   weightUnit: string; // Backend returns string "Kilograms" or "Pounds"
   isUnilateral: boolean; // True if exercise is performed one side at a time
+  isWeightPending: boolean; // True if starting weight has not yet been confirmed
 }
 
 export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {
@@ -327,6 +328,14 @@ export interface CompleteDayResult {
   weekProgressed: boolean;
   programComplete: boolean;
   isDeloadWeek: boolean;
+  exercisesPendingWeightConfirmation: PendingWeightExerciseDto[];
+}
+
+export interface PendingWeightExerciseDto {
+  exerciseId: string;
+  exerciseName: string;
+  suggestedWeight: number;
+  weightUnit: string;
 }
 
 export interface ProgressWeekResult {

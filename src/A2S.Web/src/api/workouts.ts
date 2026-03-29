@@ -195,6 +195,18 @@ export const workoutsApi = {
     );
   },
 
+  confirmStartingWeight: async (
+    workoutId: string,
+    exerciseId: string,
+    weight: number,
+    unit: 1 | 2
+  ): Promise<void> => {
+    await apiClient.post(
+      `/workouts/${workoutId}/exercises/${exerciseId}/confirm-weight`,
+      { weight, unit }
+    );
+  },
+
   /**
    * Undo the last completed day, rolling back progress
    */
@@ -298,4 +310,5 @@ export interface PlannedExerciseMetadataDto {
   isUnilateral?: boolean;
   targetTotalReps?: number;
   notes?: string;
+  isWeightPending?: boolean;
 }

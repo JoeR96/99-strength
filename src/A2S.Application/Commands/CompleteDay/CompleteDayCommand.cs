@@ -122,6 +122,23 @@ public sealed record CompleteDayResult
     /// Whether the new week is a deload week (if week progressed).
     /// </summary>
     public bool IsDeloadWeek { get; init; }
+
+    /// <summary>
+    /// Exercises that need their starting weight confirmed after this session.
+    /// These are RepsPerSet exercises where the weight hasn't been set yet.
+    /// </summary>
+    public IReadOnlyList<PendingWeightExerciseDto> ExercisesPendingWeightConfirmation { get; init; } = [];
+}
+
+/// <summary>
+/// Exercise that needs starting weight confirmation after first session.
+/// </summary>
+public sealed record PendingWeightExerciseDto
+{
+    public required Guid ExerciseId { get; init; }
+    public required string ExerciseName { get; init; }
+    public required decimal SuggestedWeight { get; init; }
+    public required string WeightUnit { get; init; }
 }
 
 /// <summary>

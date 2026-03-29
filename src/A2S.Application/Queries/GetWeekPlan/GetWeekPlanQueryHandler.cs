@@ -159,15 +159,19 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
         }
         else if (exercise.Progression is RepsPerSetStrategy reps)
         {
+            var notes = reps.IsWeightPending
+                ? "Weight pending - enter your working weight"
+                : reps.IsUnilateral
+                    ? $"Unilateral: {reps.CurrentSetCount} sets per side | Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}"
+                    : $"Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}";
             return metadata with
             {
                 RepRangeMinimum = reps.RepRange.Minimum,
                 RepRangeTarget = reps.RepRange.Target,
                 RepRangeMaximum = reps.RepRange.Maximum,
                 IsUnilateral = reps.IsUnilateral,
-                Notes = reps.IsUnilateral
-                    ? $"Unilateral: {reps.CurrentSetCount} sets per side | Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}"
-                    : $"Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}"
+                IsWeightPending = reps.IsWeightPending,
+                Notes = notes
             };
         }
         else if (exercise.Progression is MinimalSetsStrategy minimal)

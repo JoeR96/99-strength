@@ -107,4 +107,9 @@ public sealed record PlannedExerciseMetadataDto
     /// Notes for display (e.g., AMRAP target, deload info).
     /// </summary>
     public string? Notes { get; init; }
+
+    /// <summary>
+    /// Whether the starting weight has not yet been confirmed for this exercise.
+    /// </summary>
+    public bool IsWeightPending { get; init; }
 }

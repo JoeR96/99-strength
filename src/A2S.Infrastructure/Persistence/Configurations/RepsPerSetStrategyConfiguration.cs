@@ -13,6 +13,7 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
     public void Configure(EntityTypeBuilder<RepsPerSetStrategy> builder)
     {
         // RepsPerSetStrategy specific properties
+        // CurrentWeight is nullable - weight is deferred until after first session
         builder.OwnsOne(rps => rps.CurrentWeight, w =>
         {
             w.Property(wt => wt.Value)
@@ -23,6 +24,7 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
                 .HasColumnName("CurrentWeightUnit")
                 .HasConversion<string>();
         });
+        builder.Navigation(rps => rps.CurrentWeight).IsRequired(false);
 
         builder.OwnsOne(rps => rps.RepRange, rr =>
         {

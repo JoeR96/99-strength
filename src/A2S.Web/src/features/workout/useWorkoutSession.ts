@@ -22,6 +22,7 @@ import type {
   DetectedSubstitution,
   WeightDiscrepancy,
   MissingExercise,
+  PendingWeightExerciseDto,
   ProgressionConfigRequest,
   WeightUnit,
 } from "./workoutSessionTypes";
@@ -112,6 +113,8 @@ export function useWorkoutSession() {
   const [missingExercises, setMissingExercises] = useState<MissingExercise[]>([]);
   const [showMissingExercisesModal, setShowMissingExercisesModal] = useState(false);
   const [missingExercisesProcessed, setMissingExercisesProcessed] = useState(false);
+  const [showWeightConfirmationModal, setShowWeightConfirmationModal] = useState(false);
+  const [pendingWeightExercises, setPendingWeightExercises] = useState<PendingWeightExerciseDto[]>([]);
   const [weightDiscrepanciesProcessed, setWeightDiscrepanciesProcessed] = useState(false);
 
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
@@ -160,7 +163,7 @@ export function useWorkoutSession() {
           const prog = exercise.progression as RepsPerSetProgressionDto;
           targetSets = prog.currentSetCount;
           targetReps = prog.repRange.target;
-          targetWeight = prog.currentWeight;
+          targetWeight = prog.isWeightPending ? 0 : prog.currentWeight;
           weightUnit = prog.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg";
         } else if (isMinimalSets) {
           const prog = exercise.progression as MinimalSetsProgressionDto;
@@ -482,7 +485,12 @@ export function useWorkoutSession() {
       const result = await workoutsApi.completeDay(workout.id, dayNumber, { performances });
       workoutEndTime.current = new Date();
       setCompletionResult(result);
-      setShowCompletionSummary(true);
+      if (result.exercisesPendingWeightConfirmation?.length > 0) {
+        setPendingWeightExercises(result.exercisesPendingWeightConfirmation);
+        setShowWeightConfirmationModal(true);
+      } else {
+        setShowCompletionSummary(true);
+      }
       clearWorkoutProgress();
       await refetch();
     } catch (error) {
@@ -497,6 +505,23 @@ export function useWorkoutSession() {
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmWeights = async (confirmedWeights: { exerciseId: string; weight: number; unit: 1 | 2 }[]) => {
+    if (!workout) return;
+    try {
+      for (const cw of confirmedWeights) {
+        await workoutsApi.confirmStartingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
+      }
+      toast.success("Starting weights confirmed!");
+      setShowWeightConfirmationModal(false);
+      setPendingWeightExercises([]);
+      setShowCompletionSummary(true);
+      await refetch();
+    } catch (error) {
+      console.error("Failed to confirm starting weights:", error);
+      toast.error("Failed to confirm starting weights. Please try again.");
     }
   };
 
@@ -776,7 +801,7 @@ export function useWorkoutSession() {
   return {
     // State
     workout, isLoading, exerciseEntries, isSubmitting, completionResult, showCompletionSummary,
-    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal,
+    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises,
     substitutionModalOpen, exerciseToSubstitute, temporarySubstitutions, exerciseToEdit,
     weightDiscrepancies, showWeightDiscrepancyModal, missingExercises, showMissingExercisesModal,
     showRecoveryModal, savedProgressData,
@@ -788,11 +813,11 @@ export function useWorkoutSession() {
     handleTemporarySubstitute, handlePermanentSubstitute, handleToggleUnilateral,
     handleSaveExerciseConfig, handleChangeProgression, handleUndoCompletion,
     handleApplySubstitution, handleRemoveFromSubstitution, handleSubstitutionsComplete,
-    handleApplyWeightDiscrepancy, handleWeightDiscrepanciesComplete,
+    handleConfirmWeights, handleApplyWeightDiscrepancy, handleWeightDiscrepanciesComplete,
     handleMissingExercise, handleMissingExercisesComplete,
     handleResumeProgress, handleStartFresh,
     // Setters for modals
-    setShowUndoModal, setSubstitutionModalOpen, setExerciseToSubstitute, setExerciseToEdit,
+    setShowUndoModal, setSubstitutionModalOpen, setExerciseToSubstitute, setExerciseToEdit, setShowWeightConfirmationModal, setShowCompletionSummary,
     navigate, refetch,
   };
 }

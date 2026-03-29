@@ -113,9 +113,10 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 StartingSets = repsPerSet.StartingSets,
                 CurrentSetCount = repsPerSet.CurrentSetCount,
                 TargetSets = repsPerSet.TargetSets,
-                CurrentWeight = repsPerSet.CurrentWeight.Value,
-                WeightUnit = repsPerSet.CurrentWeight.Unit.ToString(),
-                IsUnilateral = repsPerSet.IsUnilateral
+                CurrentWeight = repsPerSet.CurrentWeight?.Value ?? 0,
+                WeightUnit = repsPerSet.CurrentWeight?.Unit.ToString() ?? "Kilograms",
+                IsUnilateral = repsPerSet.IsUnilateral,
+                IsWeightPending = repsPerSet.IsWeightPending
             };
         }
         else if (exercise.Progression is MinimalSetsStrategy minimalSets)

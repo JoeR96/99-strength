@@ -203,16 +203,14 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
         var isUnilateral = config.IsUnilateral ?? false;
 
         var startingSets = config.StartingSets ?? 2;
-        var currentSets = config.CurrentSets;
 
         var progression = RepsPerSetStrategy.Create(
             repRange,
-            startingWeight,
             defaultEquipment,
             startingSets: startingSets,
             targetSets: targetSets,
             isUnilateral: isUnilateral,
-            currentSets: currentSets);
+            startingWeight: startingWeight);
 
         return Result.Success<ExerciseProgression>(progression);
     }

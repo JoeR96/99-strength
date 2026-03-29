@@ -117,6 +117,26 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 });
             }
 
+            // Collect exercises needing weight confirmation (RepsPerSet with pending weight)
+            var pendingWeightExercises = new List<PendingWeightExerciseDto>();
+            foreach (var performanceRequest in request.Performances)
+            {
+                if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var ex)
+                    && ex.Progression is RepsPerSetStrategy rps
+                    && rps.IsWeightPending
+                    && performanceRequest.CompletedSets.Count > 0)
+                {
+                    var firstSet = performanceRequest.CompletedSets[0];
+                    pendingWeightExercises.Add(new PendingWeightExerciseDto
+                    {
+                        ExerciseId = ex.Id.Value,
+                        ExerciseName = ex.Name,
+                        SuggestedWeight = firstSet.Weight,
+                        WeightUnit = firstSet.WeightUnit.ToString()
+                    });
+                }
+            }
+
             // Capture the week/day before completing
             var weekBeforeComplete = workout.CurrentWeek;
 
@@ -143,7 +163,8 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 NewCurrentDay = workout.CurrentDay,
                 WeekProgressed = weekProgressed,
                 ProgramComplete = programComplete,
-                IsDeloadWeek = isDeloadWeek
+                IsDeloadWeek = isDeloadWeek,
+                ExercisesPendingWeightConfirmation = pendingWeightExercises
             });
         }
         catch (InvalidOperationException ex)
@@ -180,6 +201,11 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
 
         if (exercise.Progression is RepsPerSetStrategy repsStrategy)
         {
+            if (repsStrategy.IsWeightPending)
+            {
+                return "Weight pending confirmation";
+            }
+
             var repRange = repsStrategy.RepRange;
             if (performance.AllSetsHitMax(repRange))
             {

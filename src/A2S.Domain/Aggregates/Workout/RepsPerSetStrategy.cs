@@ -23,7 +23,13 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     public int CurrentSetCount { get; private set; }
     public int StartingSets { get; private set; }
     public int TargetSets { get; private set; }
-    public Weight CurrentWeight { get; private set; }
+    public Weight? CurrentWeight { get; private set; }
+
+    /// <summary>
+    /// Indicates whether the starting weight has not yet been confirmed.
+    /// Weight is deferred until after the first session.
+    /// </summary>
+    public bool IsWeightPending => CurrentWeight == null;
     public EquipmentType Equipment { get; private set; }
 
     /// <summary>
@@ -42,7 +48,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     private RepsPerSetStrategy()
     {
         RepRange = null!;
-        CurrentWeight = null!;
+        CurrentWeight = null;
     }
 
     private RepsPerSetStrategy(
@@ -50,7 +56,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         RepRange repRange,
         int startingSets,
         int targetSets,
-        Weight currentWeight,
+        Weight? currentWeight,
         EquipmentType equipment,
         bool isUnilateral)
         : base(id, "RepsPerSet")
@@ -71,14 +77,13 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
 
     public static RepsPerSetStrategy Create(
         RepRange repRange,
-        Weight startingWeight,
         EquipmentType equipment,
         int startingSets = 2,
         int targetSets = 4,
         bool isUnilateral = false,
-        int? currentSets = null)
+        Weight? startingWeight = null)
     {
-        var strategy = new RepsPerSetStrategy(
+        return new RepsPerSetStrategy(
             new ExerciseProgressionId(Guid.NewGuid()),
             repRange,
             startingSets,
@@ -86,28 +91,30 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
             startingWeight,
             equipment,
             isUnilateral);
+    }
 
-        if (currentSets.HasValue && currentSets.Value != startingSets)
-        {
-            CheckRule(currentSets.Value >= 1 && currentSets.Value <= 10,
-                "Current sets must be between 1 and 10");
-            strategy.CurrentSetCount = currentSets.Value;
-        }
-
-        return strategy;
+    /// <summary>
+    /// Confirms the starting weight after the first session.
+    /// Can only be called when weight is pending (null).
+    /// </summary>
+    public void ConfirmStartingWeight(Weight weight)
+    {
+        CheckRule(CurrentWeight == null, "Starting weight has already been confirmed");
+        CurrentWeight = weight;
     }
 
     /// <summary>
     /// Calculates planned sets for the current state.
     /// All sets use the same weight and target reps from RepRange.
+    /// When weight is pending, returns sets with zero weight.
     /// </summary>
     public override IEnumerable<PlannedSet> CalculatePlannedSets(int weekNumber, int blockNumber)
     {
+        var weight = CurrentWeight ?? Weight.Create(0, WeightUnit.Kilograms);
         var sets = new List<PlannedSet>();
         for (int i = 1; i <= CurrentSetCount; i++)
         {
-            // Use target reps from RepRange, never AMRAP for accessories
-            sets.Add(new PlannedSet(i, CurrentWeight, RepRange.Target, isAmrap: false));
+            sets.Add(new PlannedSet(i, weight, RepRange.Target, isAmrap: false));
         }
         return sets;
     }
@@ -118,6 +125,10 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </summary>
     public override void ApplyPerformanceResult(ExercisePerformance performance)
     {
+        // Skip progression when weight hasn't been confirmed yet (first session)
+        if (IsWeightPending)
+            return;
+
         var evaluation = EvaluatePerformance(performance);
 
         switch (evaluation)
@@ -146,7 +157,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         {
             ["Rep Range"] = RepRange.ToString(),
             ["Current Sets"] = $"{CurrentSetCount}/{effectiveMaxSets}",
-            ["Current Weight"] = CurrentWeight.ToString(),
+            ["Current Weight"] = CurrentWeight?.ToString() ?? "Pending",
             ["Equipment"] = Equipment.ToString()
         };
 
@@ -202,7 +213,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         else
         {
             // At max sets, increase weight and reset to starting sets
-            CurrentWeight = CurrentWeight.Add(GetWeightIncrement());
+            CurrentWeight = CurrentWeight!.Add(GetWeightIncrement());
             CurrentSetCount = StartingSets;
         }
     }
@@ -224,7 +235,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
             var decrement = GetWeightIncrement();
 
             // Only decrease if we won't go below zero
-            if (CurrentWeight.Value >= decrement.Value)
+            if (CurrentWeight!.Value >= decrement.Value)
             {
                 CurrentWeight = CurrentWeight.Subtract(decrement);
             }
@@ -245,23 +256,22 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </remarks>
     private Weight GetWeightIncrement()
     {
+        // CurrentWeight is guaranteed non-null here because ApplyPerformanceResult guards against it
+        var weight = CurrentWeight!;
+
         if (Equipment == EquipmentType.Bodyweight)
         {
-            // Bodyweight exercises don't add weight
-            return Weight.Create(0, CurrentWeight.Unit);
+            return Weight.Create(0, weight.Unit);
         }
 
         if (Equipment == EquipmentType.Dumbbell)
         {
-            // Dumbbell: 1kg for light weights, 2kg for heavier
-            var incrementValue = CurrentWeight.Value < 10 ? 1m : 2m;
-            return Weight.Create(incrementValue, CurrentWeight.Unit);
+            var incrementValue = weight.Value < 10 ? 1m : 2m;
+            return Weight.Create(incrementValue, weight.Unit);
         }
 
-        // Barbell, Cable, Machine: Standard 2.5kg increment
-        // (Or 5lbs if using pounds)
-        var standardIncrement = CurrentWeight.Unit == WeightUnit.Kilograms ? 2.5m : 5m;
-        return Weight.Create(standardIncrement, CurrentWeight.Unit);
+        var standardIncrement = weight.Unit == WeightUnit.Kilograms ? 2.5m : 5m;
+        return Weight.Create(standardIncrement, weight.Unit);
     }
 
     /// <summary>
@@ -270,8 +280,11 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </summary>
     public void UpdateWeight(Weight newWeight)
     {
-        CheckRule(newWeight.Unit == CurrentWeight.Unit,
-            "New weight must use the same unit as current weight");
+        if (CurrentWeight != null)
+        {
+            CheckRule(newWeight.Unit == CurrentWeight.Unit,
+                "New weight must use the same unit as current weight");
+        }
 
         CurrentWeight = newWeight;
     }
@@ -301,9 +314,11 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         }
     }
 
-    internal void RestoreState(decimal currentWeight, int currentSetCount, bool isUnilateral, WeightUnit? weightUnit = null)
+    internal void RestoreState(decimal? currentWeight, int currentSetCount, bool isUnilateral, WeightUnit? weightUnit = null)
     {
-        CurrentWeight = Weight.Create(currentWeight, weightUnit ?? CurrentWeight.Unit);
+        CurrentWeight = currentWeight.HasValue
+            ? Weight.Create(currentWeight.Value, weightUnit ?? CurrentWeight?.Unit ?? WeightUnit.Kilograms)
+            : null;
         CurrentSetCount = currentSetCount;
         IsUnilateral = isUnilateral;
     }

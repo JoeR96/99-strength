@@ -107,6 +107,12 @@ public sealed record UpdateWorkingWeightRequest
     public string? Reason { get; init; }
 }
 
+public sealed record ConfirmStartingWeightRequest
+{
+    public required decimal Weight { get; init; }
+    public required WeightUnit Unit { get; init; }
+}
+
 /// <summary>
 /// Request body for updating block sequence.
 /// </summary>

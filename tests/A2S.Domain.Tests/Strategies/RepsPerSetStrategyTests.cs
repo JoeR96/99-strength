@@ -29,11 +29,11 @@ public class RepsPerSetStrategyTests
         // Act
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
             targetSets: 5,
-            isUnilateral: false);
+            isUnilateral: false,
+            startingWeight: _startingWeight);
 
         // Assert
         strategy.Should().NotBeNull();
@@ -50,11 +50,11 @@ public class RepsPerSetStrategyTests
         // Act
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 2,
             targetSets: 4,
-            isUnilateral: true);
+            isUnilateral: true,
+            startingWeight: _startingWeight);
 
         // Assert
         strategy.MaxSets.Should().Be(3, "Unilateral exercises max at 3 sets per side");
@@ -67,11 +67,11 @@ public class RepsPerSetStrategyTests
         // Act
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 2,
             targetSets: 5,
-            isUnilateral: false);
+            isUnilateral: false,
+            startingWeight: _startingWeight);
 
         // Assert
         strategy.MaxSets.Should().Be(5, "Bilateral exercises max at 5 sets");
@@ -87,10 +87,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Act
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
@@ -108,10 +108,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 4,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Act - Compare week 1 vs week 15
         var week1Sets = strategy.CalculatePlannedSets(1, 1).ToList();
@@ -131,10 +131,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -158,10 +158,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 5, // Already at target
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = plannedSets.Select((s, i) => new CompletedSet(
@@ -183,11 +183,11 @@ public class RepsPerSetStrategyTests
         // Arrange - Unilateral with max 3 sets
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 3, // At max for unilateral
             targetSets: 5,   // Target is higher but capped at 3
-            isUnilateral: true);
+            isUnilateral: true,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = plannedSets.Select((s, i) => new CompletedSet(
@@ -212,10 +212,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -239,10 +239,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -273,10 +273,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 4,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -305,10 +305,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 1, // Already at minimum
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = new List<CompletedSet>
@@ -343,10 +343,10 @@ public class RepsPerSetStrategyTests
         var weight = Weight.Create(startingWeight, WeightUnit.Kilograms);
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            weight,
             equipment,
             startingSets: 5, // At target
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: weight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = plannedSets.Select((s, i) => new CompletedSet(
@@ -368,10 +368,10 @@ public class RepsPerSetStrategyTests
         var weight = Weight.Create(0m, WeightUnit.Kilograms);
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            weight,
             EquipmentType.Bodyweight,
             startingSets: 5,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: weight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = plannedSets.Select((s, i) => new CompletedSet(
@@ -397,10 +397,10 @@ public class RepsPerSetStrategyTests
         // Based on spreadsheet: 3 → 4 → 5 → weight increase → reset
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            Weight.Create(40m, WeightUnit.Kilograms),
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: Weight.Create(40m, WeightUnit.Kilograms));
 
         var progressionHistory = new List<(int Week, int Sets, decimal Weight)>
         {
@@ -441,10 +441,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            Weight.Create(30m, WeightUnit.Kilograms),
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: Weight.Create(30m, WeightUnit.Kilograms));
 
         // Define performance pattern: Success, Success, Maintained, Failed, repeat
         var performancePattern = new[] { 15, 15, 12, 6 }; // Max, Max, Target, Below min
@@ -476,8 +476,8 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
-            EquipmentType.Cable);
+            EquipmentType.Cable,
+            startingWeight: _startingWeight);
 
         var newWeight = Weight.Create(25m, WeightUnit.Kilograms);
 
@@ -494,8 +494,8 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
-            EquipmentType.Cable);
+            EquipmentType.Cable,
+            startingWeight: _startingWeight);
 
         var newWeight = Weight.Create(50m, WeightUnit.Pounds);
 
@@ -509,8 +509,8 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
-            EquipmentType.Cable);
+            EquipmentType.Cable,
+            startingWeight: _startingWeight);
 
         var newRepRange = RepRange.Create(10, 15, 20);
 
@@ -531,10 +531,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Act
         var summary = strategy.GetSummary();
@@ -553,11 +553,11 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 2,
             targetSets: 4,
-            isUnilateral: true);
+            isUnilateral: true,
+            startingWeight: _startingWeight);
 
         // Act
         var summary = strategy.GetSummary();
@@ -581,11 +581,11 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 4,
             targetSets: 5,
-            isUnilateral: false);
+            isUnilateral: false,
+            startingWeight: _startingWeight);
 
         strategy.CurrentSetCount.Should().Be(4, "Should start at 4 sets bilateral");
 
@@ -607,11 +607,11 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 3,
             targetSets: 5,
-            isUnilateral: true);
+            isUnilateral: true,
+            startingWeight: _startingWeight);
 
         strategy.CurrentSetCount.Should().Be(3, "Should start at 3 sets");
         strategy.MaxSets.Should().Be(3, "Unilateral max should be 3");
@@ -643,11 +643,11 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Dumbbell,
             startingSets: 3,
             targetSets: 5,
-            isUnilateral: true);
+            isUnilateral: true,
+            startingWeight: _startingWeight);
 
         strategy.CurrentSetCount.Should().Be(3, "Should start at 3 sets");
 
@@ -682,10 +682,10 @@ public class RepsPerSetStrategyTests
         // Arrange - StartingSets=3, TargetSets=5, so after weight increase, sets should reset to 3
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Progress from 3 to 4 sets (first success)
         var planned1 = strategy.CalculatePlannedSets(1, 1).ToList();
@@ -727,10 +727,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange, // Min=8, Target=12, Max=15
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -757,10 +757,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange, // Min=8, Target=12, Max=15
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
@@ -794,10 +794,10 @@ public class RepsPerSetStrategyTests
         // Arrange
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 4,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Act
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
@@ -821,10 +821,10 @@ public class RepsPerSetStrategyTests
         // Arrange - start at 3 sets, 20kg, target 5
         var strategy = RepsPerSetStrategy.Create(
             _standardRepRange,
-            _startingWeight,
             EquipmentType.Cable,
             startingSets: 3,
-            targetSets: 5);
+            targetSets: 5,
+            startingWeight: _startingWeight);
 
         // Week 1: 3 sets -> SUCCESS -> 4 sets
         var planned1 = strategy.CalculatePlannedSets(1, 1).ToList();

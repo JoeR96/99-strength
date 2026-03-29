@@ -432,11 +432,11 @@ public sealed class HevyIntegrationService : IHevyIntegrationService
             }
 
             var effectiveMaxSets = Math.Min(reps.TargetSets, reps.MaxSets);
-            var incrementDesc = reps.Equipment switch
+            var incrementDesc = reps.IsWeightPending ? "pending" : reps.Equipment switch
             {
-                EquipmentType.Dumbbell => reps.CurrentWeight.Value < 10 ? "+1kg" : "+2kg",
+                EquipmentType.Dumbbell => reps.CurrentWeight!.Value < 10 ? "+1kg" : "+2kg",
                 EquipmentType.Bodyweight => "bodyweight",
-                _ => reps.CurrentWeight.Unit == WeightUnit.Kilograms ? "+2.5kg" : "+5lbs"
+                _ => reps.CurrentWeight!.Unit == WeightUnit.Kilograms ? "+2.5kg" : "+5lbs"
             };
 
             var noteParts = new List<string>();

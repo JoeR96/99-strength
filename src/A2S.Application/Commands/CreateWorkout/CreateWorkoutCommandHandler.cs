@@ -139,11 +139,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             else // RepsPerSet
             {
                 // Create RepsPerSet progression exercise
-                var weight = Weight.Create(
-                    exerciseRequest.StartingWeight ?? 20m,
-                    exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
-                );
-
+                // Weight is deferred - will be confirmed after the first session
                 RepRange repRange = (exerciseRequest.RepRangeMinimum.HasValue
                     && exerciseRequest.RepRangeTarget.HasValue
                     && exerciseRequest.RepRangeMaximum.HasValue)
@@ -160,7 +156,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     orderInDay: exerciseRequest.OrderInDay,
                     hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
                     repRange: repRange,
-                    startingWeight: weight,
                     startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
                     targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
                     isUnilateral: exerciseRequest.IsUnilateral
