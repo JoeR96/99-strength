@@ -245,7 +245,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = "test-benchpress-5day",
+                ExternalTemplateId = "test-benchpress-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -256,7 +256,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Incline Bench Press (Barbell)",
-                HevyExerciseTemplateId = "test-inclinebench-5day",
+                ExternalTemplateId = "test-inclinebench-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -267,7 +267,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Triceps Extension (Cable)",
-                HevyExerciseTemplateId = "test-tricepext-5day",
+                ExternalTemplateId = "test-tricepext-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -278,7 +278,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Lateral Raise (Dumbbell)",
-                HevyExerciseTemplateId = "test-lateralraise-5day",
+                ExternalTemplateId = "test-lateralraise-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -291,7 +291,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Deadlift (Barbell)",
-                HevyExerciseTemplateId = "test-deadlift-5day",
+                ExternalTemplateId = "test-deadlift-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -302,7 +302,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Bent Over Row (Barbell)",
-                HevyExerciseTemplateId = "test-barbellrow-5day",
+                ExternalTemplateId = "test-barbellrow-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -313,7 +313,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = "test-latpulldown-5day",
+                ExternalTemplateId = "test-latpulldown-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -324,7 +324,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Barbell)",
-                HevyExerciseTemplateId = "test-bicepcurl-5day",
+                ExternalTemplateId = "test-bicepcurl-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -337,7 +337,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "test-squat-5day",
+                ExternalTemplateId = "test-squat-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -348,7 +348,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Romanian Deadlift (Barbell)",
-                HevyExerciseTemplateId = "test-rdl-5day",
+                ExternalTemplateId = "test-rdl-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -359,7 +359,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Leg Press (Machine)",
-                HevyExerciseTemplateId = "test-legpress-5day",
+                ExternalTemplateId = "test-legpress-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -370,7 +370,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Lying Leg Curl (Machine)",
-                HevyExerciseTemplateId = "test-legcurl-5day",
+                ExternalTemplateId = "test-legcurl-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -383,7 +383,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Overhead Press (Barbell)",
-                HevyExerciseTemplateId = "test-ohp-5day",
+                ExternalTemplateId = "test-ohp-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,
@@ -394,7 +394,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Face Pull",
-                HevyExerciseTemplateId = "test-facepull-5day",
+                ExternalTemplateId = "test-facepull-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,
@@ -405,7 +405,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Triceps Pushdown",
-                HevyExerciseTemplateId = "test-triceppushdown-5day",
+                ExternalTemplateId = "test-triceppushdown-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,
@@ -418,7 +418,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Front Squat",
-                HevyExerciseTemplateId = "test-frontsquat-5day",
+                ExternalTemplateId = "test-frontsquat-5day",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day5,
@@ -429,7 +429,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Bent Over Row (Dumbbell)",
-                HevyExerciseTemplateId = "test-dbrow-5day",
+                ExternalTemplateId = "test-dbrow-5day",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day5,
@@ -440,7 +440,7 @@ public class TraditionalFiveDaySplitIntegrationTests
             new()
             {
                 TemplateName = "Cable Crunch",
-                HevyExerciseTemplateId = "test-cablecrunch-5day",
+                ExternalTemplateId = "test-cablecrunch-5day",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day5,

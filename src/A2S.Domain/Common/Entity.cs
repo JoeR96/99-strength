@@ -56,6 +56,8 @@ public abstract class Entity<TId> : IEquatable<Entity<TId>>
     protected static void CheckRule(bool condition, string message)
     {
         if (!condition)
-            throw new ArgumentException(message);
+        {
+            throw new BusinessRuleViolationException(message);
+        }
     }
 }

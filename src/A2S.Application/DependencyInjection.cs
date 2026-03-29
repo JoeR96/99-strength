@@ -25,6 +25,7 @@ public static class DependencyInjection
 
             // Register pipeline behaviors
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(AuthorizedWorkoutBehavior<,>));
         });
 
         // Register all FluentValidation validators from this assembly

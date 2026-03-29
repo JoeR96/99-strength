@@ -45,6 +45,8 @@ public abstract class ValueObject : IEquatable<ValueObject>
     protected static void CheckRule(bool condition, string message)
     {
         if (!condition)
-            throw new ArgumentException(message);
+        {
+            throw new BusinessRuleViolationException(message);
+        }
     }
 }

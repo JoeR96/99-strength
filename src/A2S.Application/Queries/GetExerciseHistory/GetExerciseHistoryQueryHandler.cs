@@ -26,8 +26,8 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<AggregatedExerciseHistoryDto?>("User must be authenticated.");
             }
@@ -38,7 +38,7 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
             }
 
             // Get all workouts for the user
-            var workouts = await _workoutRepository.GetAllByUserAsync(userId, cancellationToken);
+            var workouts = await _workoutRepository.GetAllAsync(userId.Value, cancellationToken);
 
             if (workouts == null || !workouts.Any())
             {

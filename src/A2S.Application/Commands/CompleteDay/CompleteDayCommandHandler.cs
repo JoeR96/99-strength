@@ -32,8 +32,8 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<CompleteDayResult>("User must be authenticated.");
             }
@@ -49,7 +49,7 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
             }
 
             // Verify the workout belongs to the current user
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<CompleteDayResult>("You can only complete days in your own workouts.");
             }
@@ -117,13 +117,12 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 });
             }
 
-            // Collect exercises needing weight confirmation (RepsPerSet with pending weight)
+            // Collect exercises needing weight confirmation (pending weight)
             var pendingWeightExercises = new List<PendingWeightExerciseDto>();
             foreach (var performanceRequest in request.Performances)
             {
                 if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var ex)
-                    && ex.Progression is RepsPerSetStrategy rps
-                    && rps.IsWeightPending
+                    && ex.Progression.IsWeightPending
                     && performanceRequest.CompletedSets.Count > 0)
                 {
                     var firstSet = performanceRequest.CompletedSets[0];
@@ -132,7 +131,8 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                         ExerciseId = ex.Id.Value,
                         ExerciseName = ex.Name,
                         SuggestedWeight = firstSet.Weight,
-                        WeightUnit = firstSet.WeightUnit.ToString()
+                        WeightUnit = firstSet.WeightUnit.ToString(),
+                        ConfirmationType = ConfirmationType.StartingWeight
                     });
                 }
             }
@@ -142,6 +142,23 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
 
             // Complete the day - this applies progression rules and auto-progresses
             workout.CompleteDay(request.Day, performances);
+
+            // After progression, collect exercises needing working weight confirmation
+            // (Cable/Machine exercises that had weight increased during progression)
+            foreach (var ex in dayExercises.Values)
+            {
+                if (ex.Progression.PendingWeightConfirmation && ex.Progression.SuggestedWeight != null)
+                {
+                    pendingWeightExercises.Add(new PendingWeightExerciseDto
+                    {
+                        ExerciseId = ex.Id.Value,
+                        ExerciseName = ex.Name,
+                        SuggestedWeight = ex.Progression.SuggestedWeight.Value,
+                        WeightUnit = ex.Progression.SuggestedWeight.Unit.ToString(),
+                        ConfirmationType = ConfirmationType.WorkingWeight
+                    });
+                }
+            }
 
             // Check if week progressed or program completed
             var weekProgressed = workout.CurrentWeek > weekBeforeComplete;
@@ -180,64 +197,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
 
     private static string GetProgressionChangeDescription(Exercise exercise, ExercisePerformance performance)
     {
-        // This is a simplified description - the actual change is computed when ApplyProgression is called
-        // We can enhance this later to capture the actual before/after state
-
-        if (exercise.Progression is LinearProgressionStrategy)
-        {
-            var amrapDelta = performance.GetAmrapDelta();
-            return amrapDelta switch
-            {
-                >= 5 => "TM increased 3%",
-                4 => "TM increased 2%",
-                3 => "TM increased 1.5%",
-                2 => "TM increased 1%",
-                1 => "TM increased 0.5%",
-                0 => "No change",
-                -1 => "TM decreased 2%",
-                _ => "TM decreased 5%"
-            };
-        }
-
-        if (exercise.Progression is RepsPerSetStrategy repsStrategy)
-        {
-            if (repsStrategy.IsWeightPending)
-            {
-                return "Weight pending confirmation";
-            }
-
-            var repRange = repsStrategy.RepRange;
-            if (performance.AllSetsHitMax(repRange))
-            {
-                return repsStrategy.CurrentSetCount < Math.Min(repsStrategy.TargetSets, repsStrategy.MaxSets)
-                    ? "Added 1 set"
-                    : "Weight increased, sets reset";
-            }
-            if (performance.AnySetsBelowMin(repRange))
-            {
-                return repsStrategy.CurrentSetCount > 1
-                    ? "Removed 1 set"
-                    : "Weight decreased";
-            }
-            return "No change";
-        }
-
-        if (exercise.Progression is MinimalSetsStrategy minimalSetsStrategy)
-        {
-            var totalReps = performance.GetTotalRepsCompleted();
-            var setsUsed = performance.GetSetsUsed();
-
-            if (totalReps < minimalSetsStrategy.TargetTotalReps)
-            {
-                return "Added 1 set (did not hit target reps)";
-            }
-            if (setsUsed < minimalSetsStrategy.CurrentSetCount)
-            {
-                return "Reduced sets (completed in fewer sets)";
-            }
-            return "No change";
-        }
-
-        return "Progression applied";
+        return exercise.Progression.GetProgressionChangeDescription(performance);
     }
 }

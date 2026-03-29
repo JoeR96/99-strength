@@ -32,8 +32,8 @@ public sealed class UndoCompletionCommandHandler : IRequestHandler<UndoCompletio
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<UndoCompletionResult>("User must be authenticated.");
             }
@@ -48,7 +48,7 @@ public sealed class UndoCompletionCommandHandler : IRequestHandler<UndoCompletio
             }
 
             // Validate ownership
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<UndoCompletionResult>("You do not have permission to modify this workout.");
             }

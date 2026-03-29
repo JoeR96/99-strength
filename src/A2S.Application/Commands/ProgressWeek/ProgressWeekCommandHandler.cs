@@ -31,8 +31,8 @@ public sealed class ProgressWeekCommandHandler : IRequestHandler<ProgressWeekCom
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<ProgressWeekResult>("User must be authenticated.");
             }
@@ -48,7 +48,7 @@ public sealed class ProgressWeekCommandHandler : IRequestHandler<ProgressWeekCom
             }
 
             // Verify the workout belongs to the current user
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<ProgressWeekResult>("You can only progress your own workouts.");
             }

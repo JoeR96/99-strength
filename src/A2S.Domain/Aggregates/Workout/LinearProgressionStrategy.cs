@@ -1,4 +1,5 @@
 using A2S.Domain.Common;
+using A2S.Domain.Enums;
 using A2S.Domain.Events;
 using A2S.Domain.Services;
 using A2S.Domain.ValueObjects;
@@ -141,16 +142,76 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     /// Updates the Training Max to a new value.
     /// Used for manual TM adjustments by the user.
     /// </summary>
-    public void UpdateTrainingMax(TrainingMax newTrainingMax, string? reason = null)
+    public override TrainingMaxAdjusted? UpdateTrainingMaxValue(TrainingMax newTrainingMax, string? reason = null)
     {
         TrainingMax = newTrainingMax;
-
-        // Note: Domain events are raised by the Workout aggregate root, not by child entities
-        // The Exercise/Workout will handle raising the TrainingMaxAdjusted event
+        return new TrainingMaxAdjusted(
+            Id,
+            newTrainingMax,
+            TrainingMaxAdjustment.None,
+            amrapDelta: null,
+            reason ?? "Manual adjustment");
     }
+
+    public override Weight? GetCurrentWeight() => null;
+
+    public override TrainingMax? GetTrainingMax() => TrainingMax;
+
+    public override Weight GetWeightIncrement() => Weight.Create(0, WeightUnit.Kilograms);
+
+    public override bool SupportsUnilateral => false;
+
+    public override bool IsUnilateral => false;
+
+    public override bool IsWeightPending => false;
+
+    public override string GetProgressionChangeDescription(ExercisePerformance performance)
+    {
+        var amrapDelta = performance.GetAmrapDelta();
+        var adjustment = AmrapDeltaTable.GetAdjustment(amrapDelta);
+
+        if (adjustment.Type == AdjustmentType.None)
+        {
+            return "No change";
+        }
+
+        var percentDisplay = Math.Abs(adjustment.Amount * 100);
+        var direction = adjustment.Amount > 0 ? "increased" : "decreased";
+        return $"TM {direction} {percentDisplay:0.#}%";
+    }
+
+    internal override ProgressionSnapshot CaptureSnapshot(ExerciseId exerciseId, string exerciseName) =>
+        ProgressionSnapshot.FromState(exerciseId, exerciseName, CaptureState());
+
+    internal override void RestoreFromSnapshot(ProgressionSnapshot snapshot)
+    {
+        var state = snapshot.GetLinearState()
+            ?? throw new InvalidOperationException("Failed to deserialize Linear snapshot state");
+        RestoreFromState(state);
+    }
+
+    public override ProgressionData GetProgressionData() => new()
+    {
+        UseAmrap = UseAmrap,
+        BaseSetsPerExercise = BaseSetsPerExercise
+    };
 
     internal void RestoreState(TrainingMax trainingMax)
     {
         TrainingMax = trainingMax;
     }
+
+    internal LinearProgressionState CaptureState() => new(
+        TrainingMax.Value, (int)TrainingMax.Unit, UseAmrap, BaseSetsPerExercise);
+
+    internal void RestoreFromState(LinearProgressionState state)
+    {
+        TrainingMax = TrainingMax.Create(state.TrainingMaxValue, (WeightUnit)state.TrainingMaxUnit);
+    }
 }
+
+/// <summary>
+/// Typed memento holding Linear progression state for snapshot capture/restore.
+/// </summary>
+public sealed record LinearProgressionState(
+    decimal TrainingMaxValue, int TrainingMaxUnit, bool UseAmrap, int BaseSetsPerExercise);

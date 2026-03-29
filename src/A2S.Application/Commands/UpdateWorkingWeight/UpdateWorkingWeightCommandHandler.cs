@@ -32,8 +32,8 @@ public sealed class UpdateWorkingWeightCommandHandler : IRequestHandler<UpdateWo
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure("User must be authenticated.");
             }
@@ -47,29 +47,14 @@ public sealed class UpdateWorkingWeightCommandHandler : IRequestHandler<UpdateWo
                 return Result.Failure("Workout not found.");
             }
 
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure("You can only modify your own workouts.");
             }
 
             var exerciseId = new ExerciseId(request.ExerciseId);
-            var exercise = workout.GetExerciseById(exerciseId);
-
-            if (exercise == null)
-            {
-                return Result.Failure("Exercise not found in this workout.");
-            }
-
-            // Only allow for RepsPerSet and MinimalSets progressions
-            // Linear progression should NOT have this option (UI prevents it)
-            if (exercise.Progression is LinearProgressionStrategy)
-            {
-                return Result.Failure(
-                    "Cannot update working weight directly for linear progression exercises. Use skip progression instead.");
-            }
-
             var weight = Weight.Create(request.NewWeight, request.Unit);
-            exercise.UpdateWeight(weight);
+            workout.UpdateExerciseWorkingWeight(exerciseId, weight);
 
             _workoutRepository.Update(workout);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

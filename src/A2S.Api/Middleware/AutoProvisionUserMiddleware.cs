@@ -1,13 +1,13 @@
 using A2S.Domain.Entities;
 using A2S.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace A2S.Api.Middleware;
 
 /// <summary>
 /// Middleware that auto-provisions a User entity when a new authenticated user is detected.
-/// This ensures that every authenticated user (from Clerk/Identity) has a corresponding User record
-/// in our domain model.
+/// Handles race conditions from concurrent first requests for the same user.
 /// </summary>
 public class AutoProvisionUserMiddleware
 {
@@ -22,9 +22,8 @@ public class AutoProvisionUserMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository)
+    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
-        // Only process authenticated requests
         if (context.User.Identity?.IsAuthenticated != true)
         {
             await _next(context);
@@ -41,40 +40,40 @@ public class AutoProvisionUserMiddleware
             return;
         }
 
-        // Look up existing user
         var user = await userRepository.GetByEmailAsync(email);
 
         if (user is null)
         {
-            // Auto-provision new user
             var name = context.User.FindFirstValue(ClaimTypes.Name)
                 ?? context.User.FindFirstValue("name")
-                ?? email.Split('@')[0]; // Fallback to email prefix
+                ?? email.Split('@')[0];
 
             try
             {
                 user = User.Create(email, name);
                 await userRepository.AddAsync(user);
-                await userRepository.SaveChangesAsync();
+                await unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Auto-provisioned new user {UserId} with email {Email}", user.Id, email);
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                // Log but don't fail the request - another concurrent request may have created the user
-                _logger.LogWarning(ex, "Failed to auto-provision user with email {Email}", email);
+                _logger.LogWarning(ex, "Concurrent user creation detected for email {Email}, fetching existing user", email);
 
-                // Try to fetch the user that was created by another request
+                // Another request created this user concurrently — re-fetch
                 user = await userRepository.GetByEmailAsync(email);
+
+                if (user is null)
+                {
+                    _logger.LogError("Failed to provision or retrieve user for email {Email}", email);
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    return;
+                }
             }
         }
 
-        // Store user ID in HttpContext for downstream use
-        if (user is not null)
-        {
-            context.Items["UserId"] = user.Id;
-            context.Items["UserEmail"] = user.Email;
-        }
+        context.Items["UserId"] = user.Id.Value;
+        context.Items["UserEmail"] = user.Email;
 
         await _next(context);
     }

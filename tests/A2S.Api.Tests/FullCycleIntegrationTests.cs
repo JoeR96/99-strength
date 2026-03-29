@@ -172,7 +172,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Overhead Press (Smith Machine)",
-                HevyExerciseTemplateId = "test-ohp-full-cycle",
+                ExternalTemplateId = "test-ohp-full-cycle",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -184,7 +184,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = "test-lat-pulldown-full-cycle",
+                ExternalTemplateId = "test-lat-pulldown-full-cycle",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -198,7 +198,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Squat (Smith Machine)",
-                HevyExerciseTemplateId = "test-smith-squat-full-cycle",
+                ExternalTemplateId = "test-smith-squat-full-cycle",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -210,7 +210,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Lying Leg Curl (Machine)",
-                HevyExerciseTemplateId = "test-leg-curl-full-cycle",
+                ExternalTemplateId = "test-leg-curl-full-cycle",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -224,7 +224,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Cable)",
-                HevyExerciseTemplateId = "test-bicep-curl-full-cycle",
+                ExternalTemplateId = "test-bicep-curl-full-cycle",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -238,7 +238,7 @@ public class FullCycleIntegrationTests
             new()
             {
                 TemplateName = "Leg Extension (Machine)",
-                HevyExerciseTemplateId = "test-leg-ext-full-cycle",
+                ExternalTemplateId = "test-leg-ext-full-cycle",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,

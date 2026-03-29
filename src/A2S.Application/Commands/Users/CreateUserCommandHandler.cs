@@ -1,3 +1,4 @@
+using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Entities;
 using A2S.Domain.Repositories;
@@ -8,22 +9,26 @@ namespace A2S.Application.Commands.Users;
 /// <summary>
 /// Handler for CreateUserCommand.
 /// </summary>
-public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
+public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result<UserDto>>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateUserCommandHandler(IUserRepository userRepository)
+    public CreateUserCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
-        _userRepository = userRepository;
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
 
-    public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         // Check if email already exists
         var existingUser = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
         if (existingUser is not null)
         {
-            throw new InvalidOperationException($"A user with email '{request.Email}' already exists.");
+            return Result.Failure<UserDto>(
+                $"A user with email '{request.Email}' already exists.",
+                ErrorCode.Conflict);
         }
 
         // Create user via factory method
@@ -31,13 +36,13 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
 
         // Persist user
         await _userRepository.AddAsync(user, cancellationToken);
-        await _userRepository.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // Return DTO
-        return new UserDto(
-            user.Id,
+        return Result.Success(new UserDto(
+            user.Id.Value,
             user.Email,
             user.Name,
-            user.CreatedAt);
+            user.CreatedAt));
     }
 }

@@ -1,8 +1,9 @@
 using A2S.Application.Common;
 using A2S.Application.Interfaces;
-using A2S.Application.Services;
 using A2S.Domain.Common;
+using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
+using A2S.Domain.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -10,25 +11,25 @@ namespace A2S.Application.Commands.SyncRoutineToHevy;
 
 /// <summary>
 /// Handler for SyncRoutineToHevyCommand.
-/// Orchestrates the sync using the domain service.
+/// Maps domain entities to Hevy DTOs and delegates to the integration service.
 /// </summary>
 public sealed class SyncRoutineToHevyCommandHandler
     : IRequestHandler<SyncRoutineToHevyCommand, Result<SyncRoutineResult>>
 {
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IHevyIntegrationService _hevyService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IA2SProgramProvider _programProvider;
     private readonly ILogger<SyncRoutineToHevyCommandHandler> _logger;
 
     public SyncRoutineToHevyCommandHandler(
         IWorkoutRepository workoutRepository,
         IHevyIntegrationService hevyService,
-        IUnitOfWork unitOfWork,
+        IA2SProgramProvider programProvider,
         ILogger<SyncRoutineToHevyCommandHandler> logger)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _hevyService = hevyService ?? throw new ArgumentNullException(nameof(hevyService));
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _programProvider = programProvider ?? throw new ArgumentNullException(nameof(programProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -38,18 +39,12 @@ public sealed class SyncRoutineToHevyCommandHandler
     {
         try
         {
-            // Get workout
+            // AuthorizedWorkoutBehavior guarantees the workout exists and is owned by the current user
             var workout = await _workoutRepository.GetByIdAsync(
                 new WorkoutId(request.WorkoutId),
                 cancellationToken);
 
-            if (workout == null)
-            {
-                return Result.Failure<SyncRoutineResult>("Workout not found.");
-            }
-
-            // Validate week/day
-            if (request.WeekNumber < 1 || request.WeekNumber > workout.TotalWeeks)
+            if (request.WeekNumber < 1 || request.WeekNumber > workout!.TotalWeeks)
             {
                 return Result.Failure<SyncRoutineResult>(
                     $"Week number must be between 1 and {workout.TotalWeeks}.");
@@ -62,29 +57,42 @@ public sealed class SyncRoutineToHevyCommandHandler
                     $"Day number must be between 1 and {daysPerWeek}.");
             }
 
-            // Get or create folder if needed
-            if (string.IsNullOrEmpty(workout.HevyRoutineFolderId))
-            {
-                var folderId = await _hevyService.GetOrCreateRoutineFolderAsync(
-                    workout.Name,
-                    request.HevyApiKey,
-                    cancellationToken);
+            var weekParams = _programProvider.GetWeekParameters(request.WeekNumber);
 
-                if (!string.IsNullOrEmpty(folderId))
+            var dayExercises = workout.Exercises
+                .Where(e => (int)e.AssignedDay == request.DayNumber)
+                .OrderBy(e => e.OrderInDay)
+                .Select(e =>
                 {
-                    workout.SetHevyRoutineFolderId(folderId);
-                    _workoutRepository.Update(workout);
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                }
-            }
+                    var plannedSets = e.CalculatePlannedSets(request.WeekNumber, weekParams.BlockNumber).ToList();
+                    return new HevySyncExerciseInfo
+                    {
+                        ExternalTemplateId = e.ExternalTemplateId,
+                        ProgressionType = e.Progression.ProgressionType,
+                        Notes = BuildExerciseNotes(e, weekParams, plannedSets),
+                        PlannedSets = plannedSets.Select(s => new HevySyncSetInfo
+                        {
+                            WeightKg = s.Weight.ConvertTo(WeightUnit.Kilograms).Value,
+                            TargetReps = s.TargetReps,
+                            IsAmrap = s.IsAmrap
+                        }).ToList()
+                    };
+                })
+                .ToList();
 
-            // Sync routine using domain service
+            var syncRequest = new HevySyncRoutineRequest
+            {
+                WorkoutName = workout.Name,
+                WeekNumber = request.WeekNumber,
+                DayNumber = request.DayNumber,
+                BlockNumber = weekParams.BlockNumber,
+                IsDeload = weekParams.IsDeload,
+                IntensityPercentage = weekParams.IntensityPercentage,
+                Exercises = dayExercises
+            };
+
             var result = await _hevyService.SyncRoutineForDayAsync(
-                workout,
-                request.WeekNumber,
-                request.DayNumber,
-                request.HevyApiKey,
-                cancellationToken);
+                syncRequest, request.HevyApiKey, cancellationToken);
 
             if (!result.Success)
             {
@@ -92,16 +100,11 @@ public sealed class SyncRoutineToHevyCommandHandler
                 return Result.Success(new SyncRoutineResult
                 {
                     Success = false,
+                    RoutineId = null,
+                    RoutineTitle = null,
+                    AlreadyExists = false,
                     Message = result.ErrorMessage
                 });
-            }
-
-            // Save synced routine ID to workout
-            if (!string.IsNullOrEmpty(result.RoutineId))
-            {
-                workout.SetHevySyncedRoutine(request.WeekNumber, request.DayNumber, result.RoutineId);
-                _workoutRepository.Update(workout);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
             _logger.LogInformation(
@@ -121,8 +124,70 @@ public sealed class SyncRoutineToHevyCommandHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error syncing routine for workout {WorkoutId}", request.WorkoutId);
+            _logger.LogError(ex, "Failed to sync routine for workout {WorkoutId}", request.WorkoutId);
             return Result.Failure<SyncRoutineResult>($"Failed to sync routine: {ex.Message}");
         }
+    }
+
+    private static string BuildExerciseNotes(
+        Domain.Aggregates.Workout.Exercise exercise,
+        WeekParameters weekParams,
+        IReadOnlyList<Domain.ValueObjects.PlannedSet> plannedSets)
+    {
+        var data = exercise.Progression.GetProgressionData();
+        var trainingMax = exercise.Progression.GetTrainingMax();
+        var currentWeight = exercise.Progression.GetCurrentWeight();
+        var noteParts = new List<string>();
+
+        if (trainingMax != null)
+        {
+            // Linear progression
+            noteParts.Add($"TM: {trainingMax}");
+            if (weekParams.IsDeload)
+            {
+                noteParts.Add("DELOAD");
+            }
+            else
+            {
+                var blockPhase = weekParams.BlockNumber switch
+                {
+                    1 => BlockDescriptions.Volume,
+                    2 => BlockDescriptions.Intensity,
+                    3 => BlockDescriptions.Peaking,
+                    _ => ""
+                };
+                noteParts.Add($"Block {weekParams.BlockNumber} - {blockPhase}");
+            }
+            noteParts.Add($"{weekParams.IntensityPercentage:0}% × {weekParams.Sets} sets × {weekParams.TargetReps} reps");
+            if (data.UseAmrap == true)
+            {
+                noteParts.Add($"AMRAP last set (target: {plannedSets.LastOrDefault()?.TargetReps ?? 0}+)");
+            }
+        }
+        else if (data.RepRangeMinimum.HasValue && data.RepRangeMaximum.HasValue)
+        {
+            // RepsPerSet progression
+            var effectiveMaxSets = Math.Min(data.TargetSets ?? 3, data.CurrentSetCount ?? 3);
+            noteParts.Add($"Sets: {data.CurrentSetCount}/{data.TargetSets}");
+            noteParts.Add($"Rep range: {data.RepRangeMinimum}-{data.RepRangeMaximum} (hit {data.RepRangeMaximum} to progress)");
+            if (exercise.Progression.IsUnilateral)
+            {
+                noteParts.Add("Unilateral");
+            }
+        }
+        else if (data.TargetTotalReps.HasValue)
+        {
+            // MinimalSets progression
+            noteParts.Add($"Target: {data.TargetTotalReps} reps in {data.CurrentSetCount} sets (range: {data.MinimumSets}-{data.MaximumSets}) | Complete in fewer sets to progress");
+        }
+
+        return string.Join(" | ", noteParts);
+    }
+
+    private static class BlockDescriptions
+    {
+        public const string Volume = "Volume phase";
+        public const string Intensity = "Intensity phase";
+        public const string Peaking = "Peaking phase";
     }
 }

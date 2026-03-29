@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.ValueObjects;
 using FluentAssertions;
@@ -25,7 +26,7 @@ public class TrainingMaxTests
         Action act = () => TrainingMax.Create(0m, WeightUnit.Kilograms);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Training Max must be greater than zero*");
     }
 
@@ -36,7 +37,7 @@ public class TrainingMaxTests
         Action act = () => TrainingMax.Create(-50m, WeightUnit.Kilograms);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Training Max must be greater than zero*");
     }
 

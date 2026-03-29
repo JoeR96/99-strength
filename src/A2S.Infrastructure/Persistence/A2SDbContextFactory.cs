@@ -12,8 +12,12 @@ public class A2SDbContextFactory : IDesignTimeDbContextFactory<A2SDbContext>
     {
         var optionsBuilder = new DbContextOptionsBuilder<A2SDbContext>();
 
-        // Use a connection string for design-time only
-        optionsBuilder.UseNpgsql("Host=localhost;Database=a2s_dev;Username=postgres;Password=postgres");
+        var connectionString = Environment.GetEnvironmentVariable("A2S_CONNECTION_STRING")
+            ?? throw new InvalidOperationException(
+                "A2S_CONNECTION_STRING environment variable is not set. " +
+                "Set it before running EF Core migrations.");
+
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new A2SDbContext(optionsBuilder.Options);
     }

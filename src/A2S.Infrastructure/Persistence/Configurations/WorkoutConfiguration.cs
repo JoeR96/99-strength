@@ -29,6 +29,18 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .IsRequired()
             .HasMaxLength(200);
 
+        // PostgreSQL optimistic concurrency via xmin system column
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
+        builder.Property(w => w.UserId)
+            .HasConversion(
+                id => id.Value,
+                value => new UserId(value))
+            .IsRequired();
+
         builder.Property(w => w.Variant)
             .IsRequired()
             .HasConversion<string>();
@@ -50,9 +62,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         builder.Property(w => w.CompletedAt);
 
-        builder.Property(w => w.HevyRoutineFolderId)
-            .HasMaxLength(100);
-
         // BlockSequence as JSON column
         var blockSequenceConverter = new ValueConverter<List<int>, string>(
             v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -67,18 +76,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .HasConversion(blockSequenceConverter)
             .HasDefaultValueSql("'[1,2,3]'::jsonb")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
-
-        // HevySyncedRoutines as JSON column with explicit value converter
-        // This avoids Npgsql 8.0+ dynamic JSON serialization requirement
-        var dictionaryConverter = new ValueConverter<Dictionary<string, string>, string>(
-            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-            v => string.IsNullOrEmpty(v) ? new Dictionary<string, string>() : JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, string>()
-        );
-
-        builder.Property(w => w.HevySyncedRoutines)
-            .HasColumnType("jsonb")
-            .HasConversion(dictionaryConverter)
-            .HasDefaultValueSql("'{}'::jsonb");
 
         // Exercises relationship
         builder.HasMany(w => w.Exercises)
@@ -98,7 +95,11 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             audit.ToJson();
             audit.Property(a => a.OccurredAt);
             audit.Property(a => a.Type).HasConversion<string>();
-            audit.Property(a => a.ExerciseId);
+            audit.Property(a => a.ExerciseId)
+                .HasConversion(
+                    new ValueConverter<ExerciseId?, Guid?>(
+                        id => id.HasValue ? id.Value.Value : null,
+                        value => value.HasValue ? new ExerciseId(value.Value) : null));
             audit.Property(a => a.ExerciseName).HasMaxLength(200);
             audit.Property(a => a.WeekNumber);
             audit.Property(a => a.DayNumber);
@@ -156,7 +157,10 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             // ProgressionSnapshots for undo capability
             activity.OwnsMany(a => a.ProgressionSnapshots, snap =>
             {
-                snap.Property(s => s.ExerciseId);
+                snap.Property(s => s.ExerciseId)
+                    .HasConversion(
+                        id => id.Value,
+                        value => new ExerciseId(value));
                 snap.Property(s => s.ExerciseName).HasMaxLength(200);
                 snap.Property(s => s.ProgressionType).HasMaxLength(50);
                 snap.Property(s => s.ProgressionStateJson);
@@ -206,7 +210,10 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
             activity.OwnsMany(a => a.ProgressionSnapshots, snap =>
             {
-                snap.Property(s => s.ExerciseId);
+                snap.Property(s => s.ExerciseId)
+                    .HasConversion(
+                        id => id.Value,
+                        value => new ExerciseId(value));
                 snap.Property(s => s.ExerciseName).HasMaxLength(200);
                 snap.Property(s => s.ProgressionType).HasMaxLength(50);
                 snap.Property(s => s.ProgressionStateJson);

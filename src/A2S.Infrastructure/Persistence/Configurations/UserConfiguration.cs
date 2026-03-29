@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,6 +17,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.Id)
+            .HasConversion(
+                id => id.Value,
+                value => new UserId(value))
             .ValueGeneratedNever();
 
         builder.Property(u => u.Email)
@@ -32,5 +36,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Unique index on email for fast lookups and uniqueness constraint
         builder.HasIndex(u => u.Email)
             .IsUnique();
+
+        // Ignore domain events (not persisted)
+        builder.Ignore(u => u.DomainEvents);
     }
 }

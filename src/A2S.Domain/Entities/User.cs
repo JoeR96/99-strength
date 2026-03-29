@@ -1,12 +1,12 @@
 using System.Text.RegularExpressions;
+using A2S.Domain.Common;
 
 namespace A2S.Domain.Entities;
 
 /// <summary>
-/// Represents a user in the system.
-/// This is separate from ApplicationUser (Identity) to maintain clean domain boundaries.
+/// User aggregate root — owns user identity within the domain.
 /// </summary>
-public class User
+public class User : AggregateRoot<UserId>
 {
     private static readonly Regex EmailRegex = new(
         @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
@@ -15,15 +15,17 @@ public class User
     /// <summary>
     /// Private constructor to enforce factory pattern.
     /// </summary>
-    private User(Guid id, string email, string name, DateTime createdAt)
+    private User(UserId id, string email, string name, DateTime createdAt)
+        : base(id)
     {
-        Id = id;
         Email = email;
         Name = name;
         CreatedAt = createdAt;
     }
 
-    public Guid Id { get; private set; }
+    // EF Core constructor
+    private User() { Email = string.Empty; Name = string.Empty; }
+
     public string Email { get; private set; }
     public string Name { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -31,17 +33,13 @@ public class User
     /// <summary>
     /// Creates a new user with validation.
     /// </summary>
-    /// <param name="email">User's email address. Must be a valid email format.</param>
-    /// <param name="name">User's display name. Must not be null or empty.</param>
-    /// <returns>A new User instance.</returns>
-    /// <exception cref="ArgumentException">Thrown when email or name is invalid.</exception>
-    public static User Create(string email, string name)
+    public static User Create(string email, string name, UserId? id = null)
     {
         ValidateEmail(email);
         ValidateName(name);
 
         return new User(
-            id: Guid.NewGuid(),
+            id: id ?? new UserId(Guid.NewGuid()),
             email: email.Trim().ToLowerInvariant(),
             name: name.Trim(),
             createdAt: DateTime.UtcNow);
@@ -53,7 +51,7 @@ public class User
     /// </summary>
     internal static User Reconstitute(Guid id, string email, string name, DateTime createdAt)
     {
-        return new User(id, email, name, createdAt);
+        return new User(new UserId(id), email, name, createdAt);
     }
 
     private static void ValidateEmail(string email)

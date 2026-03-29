@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.ValueObjects;
 using FluentAssertions;
 using Xunit;
@@ -25,7 +26,7 @@ public class RepRangeTests
         Action act = () => RepRange.Create(0, 10, 12);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Minimum reps must be greater than zero*");
     }
 
@@ -36,7 +37,7 @@ public class RepRangeTests
         Action act = () => RepRange.Create(10, 8, 12);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Target must be greater than or equal to minimum*");
     }
 
@@ -47,7 +48,7 @@ public class RepRangeTests
         Action act = () => RepRange.Create(8, 12, 10);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Maximum must be greater than or equal to target*");
     }
 
@@ -58,7 +59,7 @@ public class RepRangeTests
         Action act = () => RepRange.Create(5, 10, 20);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Rep range span cannot exceed 10 reps*");
     }
 

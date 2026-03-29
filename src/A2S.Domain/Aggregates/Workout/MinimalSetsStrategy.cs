@@ -1,5 +1,6 @@
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
+using A2S.Domain.Events;
 using A2S.Domain.ValueObjects;
 
 namespace A2S.Domain.Aggregates.Workout;
@@ -237,7 +238,7 @@ public sealed class MinimalSetsStrategy : ExerciseProgression
     /// Manually updates the current weight.
     /// Weight changes are user-driven for MinimalSets exercises.
     /// </summary>
-    public void UpdateWeight(Weight newWeight)
+    public override void UpdateWeight(Weight newWeight)
     {
         CheckRule(newWeight.Unit == CurrentWeight.Unit,
             "New weight must use the same unit as current weight");
@@ -265,30 +266,81 @@ public sealed class MinimalSetsStrategy : ExerciseProgression
         CurrentSetCount = StartingSets;
     }
 
+    public override Weight? GetCurrentWeight() => CurrentWeight;
+
+    public override TrainingMax? GetTrainingMax() => null;
+
+    /// <summary>
+    /// Calculates weight increment based on equipment type.
+    /// Delegates to shared base class implementation.
+    /// </summary>
+    public override Weight GetWeightIncrement()
+    {
+        return GetStandardWeightIncrement(Equipment, CurrentWeight);
+    }
+
+    public override bool SupportsUnilateral => false;
+
+    public override bool IsUnilateral => false;
+
+    public override bool IsWeightPending => false;
+
+    public override string GetProgressionChangeDescription(ExercisePerformance performance)
+    {
+        var totalReps = performance.GetTotalRepsCompleted();
+        var setsUsed = performance.GetSetsUsed();
+
+        if (totalReps < TargetTotalReps)
+        {
+            return "Added 1 set (did not hit target reps)";
+        }
+
+        if (setsUsed < CurrentSetCount)
+        {
+            return "Reduced sets (completed in fewer sets)";
+        }
+
+        return "No change";
+    }
+
+    internal override ProgressionSnapshot CaptureSnapshot(ExerciseId exerciseId, string exerciseName) =>
+        ProgressionSnapshot.FromState(exerciseId, exerciseName, CaptureState());
+
+    internal override void RestoreFromSnapshot(ProgressionSnapshot snapshot)
+    {
+        var state = snapshot.GetMinimalSetsState()
+            ?? throw new InvalidOperationException("Failed to deserialize MinimalSets snapshot state");
+        RestoreFromState(state);
+    }
+
+    public override ProgressionData GetProgressionData() => new()
+    {
+        CurrentSetCount = CurrentSetCount,
+        TargetTotalReps = TargetTotalReps,
+        MinimumSets = MinimumSets,
+        MaximumSets = MaximumSets
+    };
+
     internal void RestoreState(decimal currentWeight, int currentSetCount, WeightUnit? weightUnit = null)
     {
         CurrentWeight = Weight.Create(currentWeight, weightUnit ?? CurrentWeight.Unit);
         CurrentSetCount = currentSetCount;
     }
+
+    internal MinimalSetsProgressionState CaptureState() => new(
+        CurrentWeight.Value, (int)CurrentWeight.Unit, CurrentSetCount,
+        TargetTotalReps, MinimumSets, MaximumSets);
+
+    internal void RestoreFromState(MinimalSetsProgressionState state)
+    {
+        RestoreState(state.CurrentWeight, state.CurrentSetCount,
+            (WeightUnit)state.WeightUnit);
+    }
 }
 
 /// <summary>
-/// Result of evaluating performance for MinimalSets progression.
+/// Typed memento holding MinimalSets progression state for snapshot capture/restore.
 /// </summary>
-public enum MinimalSetsEvaluation
-{
-    /// <summary>
-    /// Completed target reps in fewer sets than expected - progress.
-    /// </summary>
-    Success,
-
-    /// <summary>
-    /// Completed target reps in expected number of sets - no change.
-    /// </summary>
-    Maintained,
-
-    /// <summary>
-    /// Could not complete target reps - need more sets.
-    /// </summary>
-    Failed
-}
+public sealed record MinimalSetsProgressionState(
+    decimal CurrentWeight, int WeightUnit, int CurrentSetCount,
+    int TargetTotalReps, int MinimumSets, int MaximumSets);

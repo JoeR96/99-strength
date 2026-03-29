@@ -32,8 +32,8 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<WeekPlanDto>("User must be authenticated.");
             }
@@ -46,7 +46,7 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             }
             else
             {
-                workout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
+                workout = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
             }
 
             if (workout == null)
@@ -134,7 +134,7 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             Category = exercise.Category.ToString(),
             Equipment = exercise.Equipment.ToString(),
             OrderInDay = exercise.OrderInDay,
-            HevyExerciseTemplateId = exercise.HevyExerciseTemplateId,
+            ExternalTemplateId = exercise.ExternalTemplateId,
             ProgressionType = exercise.Progression.ProgressionType,
             PlannedSets = setDtos,
             Metadata = metadata
@@ -144,46 +144,44 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
     private static PlannedExerciseMetadataDto CreateMetadata(Exercise exercise, WeekParameters weekParams)
     {
         var metadata = new PlannedExerciseMetadataDto();
+        var progression = exercise.Progression;
+        var data = progression.GetProgressionData();
 
-        if (exercise.Progression is LinearProgressionStrategy linear)
+        // Common metadata
+        var tm = progression.GetTrainingMax();
+        var currentWeight = progression.GetCurrentWeight();
+
+        return progression.ProgressionType switch
         {
-            return metadata with
+            "Linear" => metadata with
             {
-                TrainingMaxValue = linear.TrainingMax.Value,
-                TrainingMaxUnit = linear.TrainingMax.Unit.ToString(),
+                TrainingMaxValue = tm?.Value,
+                TrainingMaxUnit = tm?.Unit.ToString(),
                 Notes = weekParams.IsDeload
-                    ? $"DELOAD WEEK | TM: {linear.TrainingMax}"
-                    : $"TM: {linear.TrainingMax} | Intensity: {weekParams.IntensityPercentage:0}%"
-                        + (linear.UseAmrap ? " | AMRAP on last set" : "")
-            };
-        }
-        else if (exercise.Progression is RepsPerSetStrategy reps)
-        {
-            var notes = reps.IsWeightPending
-                ? "Weight pending - enter your working weight"
-                : reps.IsUnilateral
-                    ? $"Unilateral: {reps.CurrentSetCount} sets per side | Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}"
-                    : $"Rep range: {reps.RepRange.Minimum}-{reps.RepRange.Maximum}";
-            return metadata with
+                    ? $"DELOAD WEEK | TM: {tm}"
+                    : $"TM: {tm} | Intensity: {weekParams.IntensityPercentage:0}%"
+                        + (data.UseAmrap == true ? " | AMRAP on last set" : "")
+            },
+            "RepsPerSet" => metadata with
             {
-                RepRangeMinimum = reps.RepRange.Minimum,
-                RepRangeTarget = reps.RepRange.Target,
-                RepRangeMaximum = reps.RepRange.Maximum,
-                IsUnilateral = reps.IsUnilateral,
-                IsWeightPending = reps.IsWeightPending,
-                Notes = notes
-            };
-        }
-        else if (exercise.Progression is MinimalSetsStrategy minimal)
-        {
-            return metadata with
+                RepRangeMinimum = data.RepRangeMinimum,
+                RepRangeTarget = data.RepRangeTarget,
+                RepRangeMaximum = data.RepRangeMaximum,
+                IsUnilateral = progression.IsUnilateral,
+                IsWeightPending = progression.IsWeightPending,
+                Notes = progression.IsWeightPending
+                    ? "Weight pending - enter your working weight"
+                    : progression.IsUnilateral
+                        ? $"Unilateral: {data.CurrentSetCount} sets per side | Rep range: {data.RepRangeMinimum}-{data.RepRangeMaximum}"
+                        : $"Rep range: {data.RepRangeMinimum}-{data.RepRangeMaximum}"
+            },
+            "MinimalSets" => metadata with
             {
-                TargetTotalReps = minimal.TargetTotalReps,
-                Notes = $"Target: {minimal.TargetTotalReps} total reps across {minimal.MinimumSets}-{minimal.MaximumSets} sets"
-            };
-        }
-
-        return metadata;
+                TargetTotalReps = data.TargetTotalReps,
+                Notes = $"Target: {data.TargetTotalReps} total reps across {data.MinimumSets}-{data.MaximumSets} sets"
+            },
+            _ => metadata
+        };
     }
 
     /// <summary>

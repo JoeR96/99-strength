@@ -1,29 +1,31 @@
 using A2S.Application.Common;
-using A2S.Application.DTOs;
-using MediatR;
+using A2S.Domain.Enums;
 
 namespace A2S.Application.Queries.GetExerciseLibrary;
 
 /// <summary>
-/// Query to get all available exercises from the library.
+/// Query to get exercises from the library with optional filters.
 /// </summary>
-public sealed record GetExerciseLibraryQuery : IRequest<Result<ExerciseLibraryDto>>
+public sealed record GetExerciseLibraryQuery : IQuery<Result<ExerciseLibraryDto>>
 {
     /// <summary>
-    /// Optional filter by category.
+    /// Optional filter by equipment type.
     /// </summary>
-    public string? Category { get; init; }
-}
+    public EquipmentType? EquipmentType { get; init; }
 
-/// <summary>
-/// Response containing all exercise templates from the library.
-/// Templates contain only exercise metadata - users configure
-/// category, progression, day, and order when adding to workout.
-/// </summary>
-public sealed record ExerciseLibraryDto
-{
     /// <summary>
-    /// All available exercise templates.
+    /// Optional filter by muscle group (e.g., "biceps", "chest").
     /// </summary>
-    public IReadOnlyList<ExerciseTemplateDto> Templates { get; init; } = Array.Empty<ExerciseTemplateDto>();
+    public string? MuscleGroup { get; init; }
+
+    /// <summary>
+    /// Optional search term to filter by exercise name.
+    /// </summary>
+    public string? SearchTerm { get; init; }
+
+    /// <summary>
+    /// Optional filter by category (deprecated - use MuscleGroup instead).
+    /// </summary>
+    [Obsolete("Use MuscleGroup instead")]
+    public string? Category { get; init; }
 }

@@ -1,11 +1,21 @@
 namespace A2S.Domain.Common;
 
 /// <summary>
+/// Non-generic interface for aggregate roots that raise domain events.
+/// Used by infrastructure to scan all aggregate types generically.
+/// </summary>
+public interface IHasDomainEvents
+{
+    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+    void ClearDomainEvents();
+}
+
+/// <summary>
 /// Base class for aggregate roots.
 /// Aggregate roots are entities that manage consistency boundaries and handle domain events.
 /// </summary>
 /// <typeparam name="TId">The type of the aggregate root's identifier</typeparam>
-public abstract class AggregateRoot<TId> : Entity<TId>
+public abstract class AggregateRoot<TId> : Entity<TId>, IHasDomainEvents
     where TId : notnull
 {
     private readonly List<IDomainEvent> _domainEvents = new();

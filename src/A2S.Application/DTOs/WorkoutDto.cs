@@ -43,19 +43,9 @@ public sealed record WorkoutDto
     public IReadOnlyList<ExerciseDto> Exercises { get; init; } = Array.Empty<ExerciseDto>();
 
     /// <summary>
-    /// Hevy routine folder ID for organizing routines.
-    /// </summary>
-    /// <summary>
     /// The block sequence defining block types and order (e.g., [1,2,3] or [1,1,2,3]).
     /// </summary>
     public IReadOnlyList<int> BlockSequence { get; init; } = new List<int> { 1, 2, 3 };
-
-    public string? HevyRoutineFolderId { get; init; }
-
-    /// <summary>
-    /// Synced Hevy routine IDs by week and day.
-    /// </summary>
-    public IReadOnlyDictionary<string, string>? HevySyncedRoutines { get; init; }
 }
 
 /// <summary>
@@ -97,7 +87,7 @@ public sealed record ExerciseDto
     /// <summary>
     /// Hevy exercise template ID for syncing.
     /// </summary>
-    public string HevyExerciseTemplateId { get; init; } = string.Empty;
+    public string ExternalTemplateId { get; init; } = string.Empty;
 
     public ExerciseProgressionDto Progression { get; init; } = null!;
 }

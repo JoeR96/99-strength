@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.Entities;
 using FluentAssertions;
 using Xunit;
@@ -18,7 +19,7 @@ public class UserTests
 
         // Assert
         user.Should().NotBeNull();
-        user.Id.Should().NotBeEmpty();
+        user.Id.Value.Should().NotBeEmpty();
         user.Email.Should().Be("test@example.com");
         user.Name.Should().Be("Test User");
         user.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
@@ -145,7 +146,7 @@ public class UserTests
         var user = User.Reconstitute(id, email, name, createdAt);
 
         // Assert
-        user.Id.Should().Be(id);
+        user.Id.Should().Be(new UserId(id));
         user.Email.Should().Be(email);
         user.Name.Should().Be(name);
         user.CreatedAt.Should().Be(createdAt);

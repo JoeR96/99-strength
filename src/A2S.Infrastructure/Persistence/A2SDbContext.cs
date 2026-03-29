@@ -1,17 +1,14 @@
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2S.Infrastructure.Persistence;
 
 /// <summary>
 /// Entity Framework Core database context for the A2S application.
-/// Inherits from IdentityDbContext to support ASP.NET Core Identity.
 /// </summary>
-public class A2SDbContext : IdentityDbContext<ApplicationUser>
+public class A2SDbContext : DbContext
 {
     private readonly IDomainEventDispatcher? _domainEventDispatcher;
 
@@ -31,6 +28,7 @@ public class A2SDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<ExerciseProgression> ExerciseProgressions => Set<ExerciseProgression>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<ExerciseDefinition> ExerciseDefinitions => Set<ExerciseDefinition>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,7 +46,7 @@ public class A2SDbContext : IdentityDbContext<ApplicationUser>
     {
         // Collect domain events before save
         var aggregatesWithEvents = ChangeTracker
-            .Entries<AggregateRoot<WorkoutId>>()
+            .Entries<IHasDomainEvents>()
             .Where(e => e.Entity.DomainEvents.Any())
             .Select(e => e.Entity)
             .ToList();

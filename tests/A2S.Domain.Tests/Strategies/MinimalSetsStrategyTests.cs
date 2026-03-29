@@ -17,7 +17,7 @@ namespace A2S.Domain.Tests.Strategies;
 /// </summary>
 public class MinimalSetsStrategyTests
 {
-    private readonly ExerciseId _testExerciseId = new(Guid.NewGuid());
+    private readonly ExerciseId _testExerciseId = new(Guid.Parse("eee55555-5555-5555-5555-555555555555"));
     private readonly Weight _assistedWeight = Weight.Create(32m, WeightUnit.Kilograms); // Assistance weight
 
     #region Creation Tests
@@ -64,8 +64,8 @@ public class MinimalSetsStrategyTests
     [InlineData(201)] // Above maximum (200)
     public void Create_InvalidTargetReps_ShouldThrowException(int targetReps)
     {
-        // Act & Assert - CheckRule throws ArgumentException
-        Assert.Throws<ArgumentException>(() =>
+        // Act & Assert - CheckRule throws BusinessRuleViolationException
+        Assert.Throws<BusinessRuleViolationException>(() =>
             MinimalSetsStrategy.Create(
                 _assistedWeight,
                 targetTotalReps: targetReps,
@@ -76,8 +76,8 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Create_MinimumSetsGreaterThanStarting_ShouldThrowException()
     {
-        // Act & Assert - CheckRule throws ArgumentException
-        Assert.Throws<ArgumentException>(() =>
+        // Act & Assert - CheckRule throws BusinessRuleViolationException
+        Assert.Throws<BusinessRuleViolationException>(() =>
             MinimalSetsStrategy.Create(
                 _assistedWeight,
                 targetTotalReps: 40,
@@ -476,8 +476,8 @@ public class MinimalSetsStrategyTests
 
         var newWeight = Weight.Create(60m, WeightUnit.Pounds);
 
-        // Act & Assert - CheckRule throws ArgumentException
-        Assert.Throws<ArgumentException>(() => strategy.UpdateWeight(newWeight));
+        // Act & Assert - CheckRule throws BusinessRuleViolationException
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateWeight(newWeight));
     }
 
     [Fact]
@@ -507,9 +507,9 @@ public class MinimalSetsStrategyTests
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act & Assert - CheckRule throws ArgumentException
-        Assert.Throws<ArgumentException>(() => strategy.UpdateTargetTotalReps(5)); // Below 10
-        Assert.Throws<ArgumentException>(() => strategy.UpdateTargetTotalReps(250)); // Above 200
+        // Act & Assert - CheckRule throws BusinessRuleViolationException
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateTargetTotalReps(5)); // Below 10
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateTargetTotalReps(250)); // Above 200
     }
 
     [Fact]

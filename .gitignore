@@ -39,6 +39,9 @@ logs/
 coverage/
 *.coverage
 
+# Test results
+TestResults/
+
 # Claude Code
 .claude/
 src/A2S.Web/.env.example

@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.Entities;
 using A2S.Tests.Shared;
 using FluentAssertions;
@@ -85,7 +86,7 @@ public class UserRepositoryTests : IAsyncLifetime
     public async Task GetByIdAsync_ShouldReturnNull_WhenUserDoesNotExist()
     {
         // Arrange
-        var nonExistentId = Guid.NewGuid();
+        var nonExistentId = new UserId(Guid.NewGuid());
 
         // Act
         var result = await _dbContext.AppUsers.FirstOrDefaultAsync(u => u.Id == nonExistentId);

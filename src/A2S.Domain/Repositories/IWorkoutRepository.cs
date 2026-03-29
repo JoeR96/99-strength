@@ -5,17 +5,10 @@ namespace A2S.Domain.Repositories;
 
 /// <summary>
 /// Repository interface for Workout aggregate root.
-/// Defines persistence operations following DDD repository pattern.
+/// Extends generic repository with workout-specific query methods.
 /// </summary>
-public interface IWorkoutRepository
+public interface IWorkoutRepository : IRepository<Workout, WorkoutId>
 {
-    /// <summary>
-    /// Gets a workout by its unique identifier.
-    /// </summary>
-    /// <param name="id">The workout identifier</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The workout if found, null otherwise</returns>
-    Task<Workout?> GetByIdAsync(WorkoutId id, CancellationToken ct = default);
 
     /// <summary>
     /// Gets the currently active workout for a specific user (status = Active).
@@ -24,48 +17,27 @@ public interface IWorkoutRepository
     /// <param name="userId">The ID of the user</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The active workout if found, null otherwise</returns>
-    Task<Workout?> GetActiveWorkoutAsync(string userId, CancellationToken ct = default);
+    Task<Workout?> GetActiveWorkoutAsync(UserId userId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all workouts ordered by most recent first.
     /// </summary>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>List of all workouts</returns>
-    Task<IReadOnlyList<Workout>> GetAllAsync(CancellationToken ct = default);
-
-    /// <summary>
-    /// Gets all workouts for a specific user ordered by most recent first.
-    /// </summary>
     /// <param name="userId">The ID of the user</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of all workouts for the user</returns>
-    Task<IReadOnlyList<Workout>> GetAllByUserAsync(string userId, CancellationToken ct = default);
+    Task<IReadOnlyList<Workout>> GetAllAsync(UserId userId, CancellationToken ct = default);
 
     /// <summary>
-    /// Gets workouts by status.
+    /// Gets workouts by status for a specific user.
     /// </summary>
+    /// <param name="userId">The ID of the user</param>
     /// <param name="status">The workout status to filter by</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>List of workouts with the specified status</returns>
-    Task<IReadOnlyList<Workout>> GetByStatusAsync(Enums.WorkoutStatus status, CancellationToken ct = default);
+    /// <returns>List of workouts with the specified status for the user</returns>
+    Task<IReadOnlyList<Workout>> GetByStatusAsync(UserId userId, Enums.WorkoutStatus status, CancellationToken ct = default);
 
     /// <summary>
-    /// Adds a new workout to the repository.
+    /// Gets all workouts for a user without loading the full exercise graph (summary only).
     /// </summary>
-    /// <param name="workout">The workout to add</param>
-    /// <param name="ct">Cancellation token</param>
-    Task AddAsync(Workout workout, CancellationToken ct = default);
-
-    /// <summary>
-    /// Updates an existing workout.
-    /// In EF Core, this is typically a no-op as change tracking handles updates.
-    /// </summary>
-    /// <param name="workout">The workout to update</param>
-    void Update(Workout workout);
-
-    /// <summary>
-    /// Removes a workout from the repository.
-    /// </summary>
-    /// <param name="workout">The workout to remove</param>
-    void Remove(Workout workout);
+    Task<IReadOnlyList<Workout>> GetAllByUserSummaryAsync(UserId userId, CancellationToken ct = default);
 }

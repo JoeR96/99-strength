@@ -54,5 +54,21 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
         builder.Property(rps => rps.IsUnilateral)
             .HasColumnName("IsUnilateral")
             .HasDefaultValue(false);
+
+        builder.Property(rps => rps.PendingWeightConfirmation)
+            .HasColumnName("PendingWeightConfirmation")
+            .HasDefaultValue(false);
+
+        builder.OwnsOne(rps => rps.SuggestedWeight, w =>
+        {
+            w.Property(wt => wt.Value)
+                .HasColumnName("SuggestedWeightValue")
+                .HasColumnType("decimal(6,2)");
+
+            w.Property(wt => wt.Unit)
+                .HasColumnName("SuggestedWeightUnit")
+                .HasConversion<string>();
+        });
+        builder.Navigation(rps => rps.SuggestedWeight).IsRequired(false);
     }
 }

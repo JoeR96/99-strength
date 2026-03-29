@@ -19,10 +19,10 @@ public sealed class Exercise : Entity<ExerciseId>
     public int OrderInDay { get; private set; }
 
     /// <summary>
-    /// The Hevy exercise template ID for syncing to Hevy.
+    /// The External exercise template ID for syncing to Hevy.
     /// This is the canonical identifier from Hevy's exercise library.
     /// </summary>
-    public string HevyExerciseTemplateId { get; private set; }
+    public string ExternalTemplateId { get; private set; }
 
     /// <summary>
     /// Polymorphic progression strategy (owned entity).
@@ -34,7 +34,7 @@ public sealed class Exercise : Entity<ExerciseId>
     private Exercise()
     {
         Name = string.Empty;
-        HevyExerciseTemplateId = string.Empty;
+        ExternalTemplateId = string.Empty;
         Progression = null!;
     }
 
@@ -45,12 +45,12 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
-        string hevyExerciseTemplateId,
+        string externalTemplateId,
         ExerciseProgression progression)
         : base(id)
     {
         CheckRule(!string.IsNullOrWhiteSpace(name), "Exercise name cannot be empty");
-        CheckRule(!string.IsNullOrWhiteSpace(hevyExerciseTemplateId), "Hevy exercise template ID cannot be empty");
+        CheckRule(!string.IsNullOrWhiteSpace(externalTemplateId), "External exercise template ID cannot be empty");
         CheckRule(orderInDay >= 1, "Order in day must be at least 1");
 
         Name = name;
@@ -58,7 +58,7 @@ public sealed class Exercise : Entity<ExerciseId>
         Equipment = equipment;
         AssignedDay = assignedDay;
         OrderInDay = orderInDay;
-        HevyExerciseTemplateId = hevyExerciseTemplateId;
+        ExternalTemplateId = externalTemplateId;
         Progression = progression;
     }
 
@@ -71,7 +71,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
-    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
+    /// <param name="externalTemplateId">External exercise template ID for syncing</param>
     /// <param name="trainingMax">Training max for calculating working weights</param>
     /// <param name="useAmrap">Whether to use AMRAP on final set</param>
     /// <param name="baseSetsPerExercise">Number of sets per session</param>
@@ -81,7 +81,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
-        string hevyExerciseTemplateId,
+        string externalTemplateId,
         TrainingMax trainingMax,
         bool useAmrap = true,
         int baseSetsPerExercise = 4)
@@ -98,7 +98,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
-            hevyExerciseTemplateId,
+            externalTemplateId,
             progression);
     }
 
@@ -112,7 +112,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
-    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
+    /// <param name="externalTemplateId">External exercise template ID for syncing</param>
     /// <param name="repRange">Target rep range for progression</param>
     /// <param name="startingWeight">Starting weight</param>
     /// <param name="startingSets">Starting number of sets</param>
@@ -124,7 +124,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
-        string hevyExerciseTemplateId,
+        string externalTemplateId,
         RepRange repRange,
         int startingSets = 2,
         int targetSets = 4,
@@ -146,7 +146,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
-            hevyExerciseTemplateId,
+            externalTemplateId,
             progression);
     }
 
@@ -160,7 +160,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="equipment">Equipment type used</param>
     /// <param name="assignedDay">Training day assigned to</param>
     /// <param name="orderInDay">Order within the day</param>
-    /// <param name="hevyExerciseTemplateId">Hevy exercise template ID for syncing</param>
+    /// <param name="externalTemplateId">External exercise template ID for syncing</param>
     /// <param name="startingWeight">Starting weight (or assistance weight)</param>
     /// <param name="targetTotalReps">Total reps to complete across all sets (e.g., 40)</param>
     /// <param name="startingSets">Initial number of sets</param>
@@ -172,7 +172,7 @@ public sealed class Exercise : Entity<ExerciseId>
         EquipmentType equipment,
         DayNumber assignedDay,
         int orderInDay,
-        string hevyExerciseTemplateId,
+        string externalTemplateId,
         Weight startingWeight,
         int targetTotalReps,
         int startingSets,
@@ -194,7 +194,7 @@ public sealed class Exercise : Entity<ExerciseId>
             equipment,
             assignedDay,
             orderInDay,
-            hevyExerciseTemplateId,
+            externalTemplateId,
             progression);
     }
 
@@ -209,8 +209,6 @@ public sealed class Exercise : Entity<ExerciseId>
 
     /// <summary>
     /// Applies performance results to update progression state.
-    /// For linear progression, adjusts Training Max.
-    /// For reps-per-set, adjusts sets or weight.
     /// Returns TrainingMaxAdjusted event if TM was adjusted, null otherwise.
     /// </summary>
     public TrainingMaxAdjusted? ApplyProgression(ExercisePerformance performance)
@@ -218,110 +216,61 @@ public sealed class Exercise : Entity<ExerciseId>
         CheckRule(performance.ExerciseId == Id,
             "Performance data must be for this exercise");
 
-        // Capture previous TM if applicable
-        TrainingMax? previousTm = null;
-        if (Progression is LinearProgressionStrategy linearStrategy)
-        {
-            previousTm = linearStrategy.TrainingMax;
-        }
+        var previousTm = Progression.GetTrainingMax();
 
         Progression.ApplyPerformanceResult(performance);
 
-        // Check if TM changed and create event
-        if (Progression is LinearProgressionStrategy linearStrategyAfter && previousTm != null)
+        var currentTm = Progression.GetTrainingMax();
+        if (previousTm != null && currentTm != null && !currentTm.Equals(previousTm))
         {
-            if (!linearStrategyAfter.TrainingMax.Equals(previousTm))
-            {
-                var delta = performance.GetAmrapDelta();
-                var adjustment = AmrapDeltaTable.GetAdjustment(delta);
-                return new TrainingMaxAdjusted(
-                    Progression.Id,
-                    linearStrategyAfter.TrainingMax,
-                    adjustment,
-                    delta);
-            }
+            var delta = performance.GetAmrapDelta();
+            var adjustment = AmrapDeltaTable.GetAdjustment(delta);
+            return new TrainingMaxAdjusted(Progression.Id, currentTm, adjustment, delta);
         }
 
         return null;
     }
 
     /// <summary>
-    /// Updates the starting weight for the exercise.
-    /// Only applicable for RepsPerSetStrategy.
+    /// Updates the starting weight. Delegates to progression strategy polymorphically.
     /// </summary>
     public void UpdateStartingWeight(Weight weight)
     {
-        if (Progression is RepsPerSetStrategy repsStrategy)
-        {
-            repsStrategy.UpdateWeight(weight);
-        }
-        else if (Progression is LinearProgressionStrategy)
-        {
-            throw new InvalidOperationException(
-                "Cannot update starting weight for exercises using linear progression. " +
-                "Use UpdateTrainingMax instead.");
-        }
+        Progression.UpdateWeight(weight);
     }
 
     /// <summary>
-    /// Confirms the starting weight for a RepsPerSet exercise after the first session.
+    /// Confirms the starting weight after the first session.
     /// </summary>
     public void ConfirmStartingWeight(Weight weight)
     {
-        if (Progression is RepsPerSetStrategy repsStrategy)
-        {
-            repsStrategy.ConfirmStartingWeight(weight);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                "Can only confirm starting weight for exercises using RepsPerSet progression.");
-        }
+        Progression.ConfirmStartingWeight(weight);
+    }
+
+    /// <summary>
+    /// Confirms the new working weight after Cable/Machine progression.
+    /// Clears the PendingWeightConfirmation flag and applies the user-confirmed weight.
+    /// </summary>
+    public void ConfirmWorkingWeight(Weight confirmedWeight)
+    {
+        Progression.ConfirmWorkingWeight(confirmedWeight);
     }
 
     /// <summary>
     /// Updates the Training Max for the exercise.
-    /// Only applicable for LinearProgressionStrategy.
     /// Returns event to be raised by aggregate root.
     /// </summary>
     public TrainingMaxAdjusted? UpdateTrainingMax(TrainingMax trainingMax, string? reason = null)
     {
-        if (Progression is LinearProgressionStrategy linearStrategy)
-        {
-            linearStrategy.UpdateTrainingMax(trainingMax, reason);
-
-            return new TrainingMaxAdjusted(
-                Progression.Id,
-                trainingMax,
-                TrainingMaxAdjustment.None,
-                amrapDelta: null,
-                reason ?? "Manual adjustment");
-        }
-        else if (Progression is RepsPerSetStrategy)
-        {
-            throw new InvalidOperationException(
-                "Cannot update Training Max for accessory exercises. " +
-                "Use UpdateStartingWeight instead.");
-        }
-
-        return null;
+        return Progression.UpdateTrainingMaxValue(trainingMax, reason);
     }
 
     /// <summary>
-    /// Updates the rep range for accessory exercises.
-    /// Only applicable for RepsPerSetStrategy.
+    /// Updates the rep range. Delegates to progression strategy polymorphically.
     /// </summary>
     public void UpdateRepRange(RepRange repRange)
     {
-        if (Progression is RepsPerSetStrategy repsStrategy)
-        {
-            repsStrategy.UpdateRepRange(repRange);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                "Rep range can only be updated for accessory exercises");
-        }
+        Progression.UpdateRepRange(repRange);
     }
 
     /// <summary>
@@ -337,21 +286,21 @@ public sealed class Exercise : Entity<ExerciseId>
 
     /// <summary>
     /// Substitutes this exercise with a different exercise.
-    /// Preserves all progression data, only changes the name and optionally the Hevy template ID.
+    /// Preserves all progression data, only changes the name and optionally the External template ID.
     /// </summary>
     /// <param name="newName">New exercise name</param>
-    /// <param name="newHevyExerciseTemplateId">Optional new Hevy template ID. If not provided, keeps the existing one.</param>
+    /// <param name="newExternalTemplateId">Optional new External template ID. If not provided, keeps the existing one.</param>
     /// <returns>The original name for audit purposes</returns>
-    public string Substitute(string newName, string? newHevyExerciseTemplateId = null)
+    public string Substitute(string newName, string? newExternalTemplateId = null)
     {
         CheckRule(!string.IsNullOrWhiteSpace(newName), "New exercise name cannot be empty");
 
         var originalName = Name;
         Name = newName;
 
-        if (!string.IsNullOrWhiteSpace(newHevyExerciseTemplateId))
+        if (!string.IsNullOrWhiteSpace(newExternalTemplateId))
         {
-            HevyExerciseTemplateId = newHevyExerciseTemplateId;
+            ExternalTemplateId = newExternalTemplateId;
         }
 
         return originalName;
@@ -378,76 +327,44 @@ public sealed class Exercise : Entity<ExerciseId>
 
     /// <summary>
     /// Gets the Training Max if this exercise uses linear progression.
-    /// Returns null for accessory exercises.
+    /// Returns null for non-linear progression exercises.
     /// </summary>
     public TrainingMax? GetTrainingMax()
     {
-        return Progression is LinearProgressionStrategy linearStrategy
-            ? linearStrategy.TrainingMax
-            : null;
+        return Progression.GetTrainingMax();
     }
 
     /// <summary>
-    /// Gets the current weight if this exercise uses reps-per-set or minimal-sets progression.
+    /// Gets the current weight for weight-based progression strategies.
     /// Returns null for linear progression exercises.
     /// </summary>
     public Weight? GetCurrentWeight()
     {
-        return Progression switch
-        {
-            RepsPerSetStrategy repsStrategy => repsStrategy.CurrentWeight,
-            MinimalSetsStrategy minimalSetsStrategy => minimalSetsStrategy.CurrentWeight,
-            _ => null
-        };
+        return Progression.GetCurrentWeight();
     }
 
     /// <summary>
-    /// Updates the starting weight for exercises using weight-based progression.
-    /// Applicable for RepsPerSetStrategy and MinimalSetsStrategy.
+    /// Updates the weight. Delegates to progression strategy polymorphically.
     /// </summary>
     public void UpdateWeight(Weight weight)
     {
-        if (Progression is RepsPerSetStrategy repsStrategy)
-        {
-            repsStrategy.UpdateWeight(weight);
-        }
-        else if (Progression is MinimalSetsStrategy minimalSetsStrategy)
-        {
-            minimalSetsStrategy.UpdateWeight(weight);
-        }
-        else if (Progression is LinearProgressionStrategy)
-        {
-            throw new InvalidOperationException(
-                "Cannot update weight for exercises using linear progression. " +
-                "Use UpdateTrainingMax instead.");
-        }
+        Progression.UpdateWeight(weight);
     }
 
     /// <summary>
-    /// Sets whether this exercise is unilateral (performed one side at a time).
-    /// Only applicable for RepsPerSetStrategy.
-    /// Unilateral exercises have sets performed once per side (so 3 sets = 6 total).
+    /// Sets whether this exercise is unilateral. Delegates to progression strategy.
     /// </summary>
     public void SetUnilateral(bool isUnilateral)
     {
-        if (Progression is RepsPerSetStrategy repsStrategy)
-        {
-            repsStrategy.SetUnilateral(isUnilateral);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                "Unilateral setting only applies to RepsPerSet progression exercises.");
-        }
+        Progression.SetUnilateral(isUnilateral);
     }
 
     /// <summary>
     /// Gets whether this exercise is unilateral.
-    /// Returns false for non-RepsPerSet exercises.
     /// </summary>
     public bool IsUnilateral()
     {
-        return Progression is RepsPerSetStrategy repsStrategy && repsStrategy.IsUnilateral;
+        return Progression.IsUnilateral;
     }
 
     /// <summary>
@@ -455,47 +372,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// </summary>
     public ProgressionSnapshot CaptureProgressionSnapshot()
     {
-        var progressionType = Progression switch
-        {
-            LinearProgressionStrategy => "Linear",
-            RepsPerSetStrategy => "RepsPerSet",
-            MinimalSetsStrategy => "MinimalSets",
-            _ => "Unknown"
-        };
-
-        var stateJson = Progression switch
-        {
-            LinearProgressionStrategy linear => System.Text.Json.JsonSerializer.Serialize(new
-            {
-                TrainingMaxValue = linear.TrainingMax.Value,
-                TrainingMaxUnit = (int)linear.TrainingMax.Unit,
-                UseAmrap = linear.UseAmrap,
-                BaseSetsPerExercise = linear.BaseSetsPerExercise
-            }),
-            RepsPerSetStrategy reps => System.Text.Json.JsonSerializer.Serialize(new
-            {
-                CurrentWeight = reps.CurrentWeight?.Value,
-                WeightUnit = reps.CurrentWeight != null ? (int?)reps.CurrentWeight.Unit : null,
-                CurrentSetCount = reps.CurrentSetCount,
-                TargetSets = reps.TargetSets,
-                RepRangeMinimum = reps.RepRange.Minimum,
-                RepRangeTarget = reps.RepRange.Target,
-                RepRangeMaximum = reps.RepRange.Maximum,
-                IsUnilateral = reps.IsUnilateral
-            }),
-            MinimalSetsStrategy minimal => System.Text.Json.JsonSerializer.Serialize(new
-            {
-                CurrentWeight = minimal.CurrentWeight.Value,
-                WeightUnit = (int)minimal.CurrentWeight.Unit,
-                CurrentSetCount = minimal.CurrentSetCount,
-                TargetTotalReps = minimal.TargetTotalReps,
-                MinimumSets = minimal.MinimumSets,
-                MaximumSets = minimal.MaximumSets
-            }),
-            _ => "{}"
-        };
-
-        return new ProgressionSnapshot(Id.Value, Name, progressionType, stateJson);
+        return Progression.CaptureSnapshot(Id, Name);
     }
 
     /// <summary>
@@ -503,52 +380,11 @@ public sealed class Exercise : Entity<ExerciseId>
     /// </summary>
     public void RestoreFromSnapshot(ProgressionSnapshot snapshot)
     {
-        if (snapshot.ExerciseId != Id.Value)
+        if (snapshot.ExerciseId != Id)
+        {
             throw new InvalidOperationException("Snapshot exercise ID does not match");
-
-        try
-        {
-            var json = System.Text.Json.JsonDocument.Parse(snapshot.ProgressionStateJson);
-            var root = json.RootElement;
-
-            switch (Progression)
-            {
-                case LinearProgressionStrategy linear:
-                    if (snapshot.ProgressionType == "Linear")
-                    {
-                        var tmValue = root.GetProperty("TrainingMaxValue").GetDecimal();
-                        var tmUnit = (WeightUnit)root.GetProperty("TrainingMaxUnit").GetInt32();
-                        linear.RestoreState(TrainingMax.Create(tmValue, tmUnit));
-                    }
-                    break;
-
-                case RepsPerSetStrategy reps:
-                    if (snapshot.ProgressionType == "RepsPerSet")
-                    {
-                        var weightProp = root.GetProperty("CurrentWeight");
-                        decimal? currentWeight = weightProp.ValueKind == System.Text.Json.JsonValueKind.Null
-                            ? null
-                            : weightProp.GetDecimal();
-                        reps.RestoreState(
-                            currentWeight,
-                            root.GetProperty("CurrentSetCount").GetInt32(),
-                            root.GetProperty("IsUnilateral").GetBoolean());
-                    }
-                    break;
-
-                case MinimalSetsStrategy minimal:
-                    if (snapshot.ProgressionType == "MinimalSets")
-                    {
-                        minimal.RestoreState(
-                            root.GetProperty("CurrentWeight").GetDecimal(),
-                            root.GetProperty("CurrentSetCount").GetInt32());
-                    }
-                    break;
-            }
         }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to restore progression from snapshot: {ex.Message}", ex);
-        }
+
+        Progression.RestoreFromSnapshot(snapshot);
     }
 }

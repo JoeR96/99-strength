@@ -3,10 +3,10 @@ using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
+using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.ValueObjects;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace A2S.Application.Queries.GetWorkoutHistory;
 
@@ -18,24 +18,21 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
 {
     private readonly IWorkoutRepository _workoutRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly ILogger<GetWorkoutHistoryQueryHandler> _logger;
 
     public GetWorkoutHistoryQueryHandler(
         IWorkoutRepository workoutRepository,
-        ICurrentUserService currentUserService,
-        ILogger<GetWorkoutHistoryQueryHandler> logger)
+        ICurrentUserService currentUserService)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
-        _logger = logger;
     }
 
     public async Task<Result<WorkoutHistoryDto?>> Handle(GetWorkoutHistoryQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<WorkoutHistoryDto?>("User must be authenticated.");
             }
@@ -48,39 +45,19 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
                     new WorkoutId(request.WorkoutId.Value),
                     cancellationToken);
 
-                if (workout != null && workout.UserId != userId)
+                if (workout != null && workout.UserId != userId.Value)
                 {
                     return Result.Failure<WorkoutHistoryDto?>("Workout not found.");
                 }
             }
             else
             {
-                workout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
+                workout = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
             }
 
             if (workout == null)
             {
                 return Result.Success<WorkoutHistoryDto?>(null);
-            }
-
-            // Debug: Log snapshot availability
-            foreach (var act in workout.CompletedActivities)
-            {
-                _logger.LogInformation(
-                    "Activity W{Week} D{Day}: {SnapshotCount} snapshots, {PerfCount} performances",
-                    act.WeekNumber, (int)act.Day,
-                    act.ProgressionSnapshots?.Count ?? -1,
-                    act.Performances?.Count ?? -1);
-                if (act.ProgressionSnapshots != null)
-                {
-                    foreach (var snap in act.ProgressionSnapshots)
-                    {
-                        _logger.LogInformation(
-                            "  Snapshot: ExId={ExId}, Type={Type}, JSON={Json}",
-                            snap.ExerciseId, snap.ProgressionType,
-                            snap.ProgressionStateJson?.Substring(0, Math.Min(100, snap.ProgressionStateJson?.Length ?? 0)));
-                    }
-                }
             }
 
             var dto = MapToHistoryDto(workout);
@@ -152,48 +129,24 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
             var weeklyHistory = BuildWeeklyHistory(exercise, domainActivities);
             var progressionChanges = BuildProgressionChanges(exercise, workout.AuditEntries);
 
-            decimal currentWeight = 0;
-            string weightUnit = "Kilograms";
-            int currentSets = 0;
-            int targetSets = 0;
-            decimal? trainingMax = null;
-
-            if (exercise.Progression is LinearProgressionStrategy linear)
-            {
-                currentWeight = linear.TrainingMax.Value;
-                weightUnit = linear.TrainingMax.Unit.ToString();
-                currentSets = linear.BaseSetsPerExercise;
-                targetSets = linear.BaseSetsPerExercise;
-                trainingMax = linear.TrainingMax.Value;
-            }
-            else if (exercise.Progression is RepsPerSetStrategy repsPerSet)
-            {
-                currentWeight = repsPerSet.CurrentWeight?.Value ?? 0;
-                weightUnit = repsPerSet.CurrentWeight?.Unit.ToString() ?? "Kilograms";
-                currentSets = repsPerSet.CurrentSetCount;
-                targetSets = repsPerSet.TargetSets;
-            }
-            else if (exercise.Progression is MinimalSetsStrategy minimalSets)
-            {
-                currentWeight = minimalSets.CurrentWeight.Value;
-                weightUnit = minimalSets.CurrentWeight.Unit.ToString();
-                currentSets = minimalSets.CurrentSetCount;
-                targetSets = minimalSets.MinimumSets;
-            }
+            var progression = exercise.Progression;
+            var tm = progression.GetTrainingMax();
+            var currentWeight = progression.GetCurrentWeight();
+            var data = progression.GetProgressionData();
 
             histories.Add(new ExerciseHistoryDto
             {
                 ExerciseId = exercise.Id.Value,
                 Name = exercise.Name,
-                ProgressionType = exercise.Progression.ProgressionType,
+                ProgressionType = progression.ProgressionType,
                 AssignedDay = (int)exercise.AssignedDay,
                 Category = exercise.Category.ToString(),
                 Equipment = exercise.Equipment.ToString(),
-                CurrentWeight = currentWeight,
-                WeightUnit = weightUnit,
-                CurrentSets = currentSets,
-                TargetSets = targetSets,
-                TrainingMax = trainingMax,
+                CurrentWeight = tm?.Value ?? currentWeight?.Value ?? 0,
+                WeightUnit = tm?.Unit.ToString() ?? currentWeight?.Unit.ToString() ?? "Kilograms",
+                CurrentSets = data.CurrentSetCount ?? data.BaseSetsPerExercise ?? 0,
+                TargetSets = data.TargetSets ?? data.BaseSetsPerExercise ?? data.MinimumSets ?? 0,
+                TrainingMax = tm?.Value,
                 WeeklyHistory = weeklyHistory,
                 ProgressionChanges = progressionChanges
             });
@@ -207,7 +160,7 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
         IReadOnlyCollection<ProgressionAuditEntry> auditEntries)
     {
         return auditEntries
-            .Where(a => a.ExerciseId == exercise.Id.Value
+            .Where(a => a.ExerciseId == exercise.Id
                      && a.Type == AuditEntryType.PermanentSubstitution
                      && a.OldValue != null && a.NewValue != null)
             .Select(a =>
@@ -279,7 +232,7 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
             int? setCountAtWeek = null;
 
             var snapshot = activity.ProgressionSnapshots
-                ?.FirstOrDefault(s => s.ExerciseId == exercise.Id.Value);
+                ?.FirstOrDefault(s => s.ExerciseId == exercise.Id);
 
             if (snapshot != null && !string.IsNullOrEmpty(snapshot.ProgressionStateJson))
             {

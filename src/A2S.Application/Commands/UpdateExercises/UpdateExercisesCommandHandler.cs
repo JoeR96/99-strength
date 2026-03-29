@@ -32,8 +32,8 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<UpdateExercisesResult>("User must be authenticated.");
             }
@@ -47,7 +47,7 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 return Result.Failure<UpdateExercisesResult>("Workout not found.");
             }
 
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<UpdateExercisesResult>("You can only modify your own workouts.");
             }
@@ -103,124 +103,73 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
 
         try
         {
-            // Determine what type of update to apply based on the progression type
-            if (exercise.Progression is LinearProgressionStrategy linearProgression)
+            var messages = new List<string>();
+            string? previousValue = null;
+            string? newValue = null;
+            var updated = false;
+
+            // Handle Training Max update (applicable for Linear)
+            if (update.TrainingMaxValue.HasValue)
             {
-                if (update.TrainingMaxValue.HasValue)
+                var existingTm = exercise.GetTrainingMax();
+                if (existingTm == null)
                 {
-                    var previousTm = linearProgression.TrainingMax;
-                    var previousValue = $"{previousTm.Value} {previousTm.Unit}";
-
-                    var newTm = TrainingMax.Create(
-                        update.TrainingMaxValue.Value,
-                        update.TrainingMaxUnit ?? previousTm.Unit);
-
-                    workout.AdjustTrainingMax(exerciseId, newTm, update.Reason);
-
                     return new ExerciseUpdateResult
                     {
                         ExerciseId = update.ExerciseId,
                         ExerciseName = exercise.Name,
-                        Success = true,
-                        Message = "Training Max updated successfully.",
-                        PreviousValue = previousValue,
-                        NewValue = $"{newTm.Value} {newTm.Unit}"
+                        Success = false,
+                        Message = "This exercise does not support Training Max updates."
                     };
                 }
 
-                return new ExerciseUpdateResult
-                {
-                    ExerciseId = update.ExerciseId,
-                    ExerciseName = exercise.Name,
-                    Success = false,
-                    Message = "No Training Max value provided for Linear progression exercise."
-                };
+                previousValue = $"{existingTm.Value} {existingTm.Unit}";
+                var newTm = TrainingMax.Create(
+                    update.TrainingMaxValue.Value,
+                    update.TrainingMaxUnit ?? existingTm.Unit);
+                workout.AdjustTrainingMax(exerciseId, newTm, update.Reason);
+                newValue = $"{newTm.Value} {newTm.Unit}";
+                messages.Add("Training Max updated");
+                updated = true;
             }
-            else if (exercise.Progression is RepsPerSetStrategy repsStrategy)
+
+            // Handle weight update (applicable for RepsPerSet and MinimalSets)
+            if (update.WeightValue.HasValue)
             {
-                var updated = false;
-                string? previousValue = null;
-                string? newValue = null;
-                var messages = new List<string>();
+                var currentWeight = exercise.GetCurrentWeight();
+                previousValue = currentWeight != null
+                    ? $"{currentWeight.Value} {currentWeight.Unit}"
+                    : "Pending";
 
-                // Handle weight update
-                if (update.WeightValue.HasValue)
-                {
-                    var previousWeight = repsStrategy.CurrentWeight;
-                    previousValue = previousWeight != null
-                        ? $"{previousWeight.Value} {previousWeight.Unit}"
-                        : "Pending";
+                var newWeight = Weight.Create(
+                    update.WeightValue.Value,
+                    update.WeightUnit ?? currentWeight?.Unit ?? WeightUnit.Kilograms);
 
-                    var newWeight = Weight.Create(
-                        update.WeightValue.Value,
-                        update.WeightUnit ?? previousWeight?.Unit ?? WeightUnit.Kilograms);
-
-                    workout.AdjustWeight(exerciseId, newWeight);
-                    newValue = $"{newWeight.Value} {newWeight.Unit}";
-                    messages.Add("Weight updated");
-                    updated = true;
-                }
-
-                // Handle unilateral toggle
-                if (update.IsUnilateral.HasValue)
-                {
-                    var previousUnilateral = repsStrategy.IsUnilateral;
-                    workout.SetExerciseUnilateral(exerciseId, update.IsUnilateral.Value);
-                    messages.Add($"Unilateral: {previousUnilateral} → {update.IsUnilateral.Value}");
-                    updated = true;
-                }
-
-                if (updated)
-                {
-                    return new ExerciseUpdateResult
-                    {
-                        ExerciseId = update.ExerciseId,
-                        ExerciseName = exercise.Name,
-                        Success = true,
-                        Message = string.Join(", ", messages),
-                        PreviousValue = previousValue,
-                        NewValue = newValue
-                    };
-                }
-
-                return new ExerciseUpdateResult
-                {
-                    ExerciseId = update.ExerciseId,
-                    ExerciseName = exercise.Name,
-                    Success = false,
-                    Message = "No weight or unilateral value provided for RepsPerSet progression exercise."
-                };
+                workout.AdjustWeight(exerciseId, newWeight);
+                newValue = $"{newWeight.Value} {newWeight.Unit}";
+                messages.Add("Weight updated");
+                updated = true;
             }
-            else if (exercise.Progression is MinimalSetsStrategy minimalSetsStrategy)
+
+            // Handle unilateral toggle (applicable for strategies that support it)
+            if (update.IsUnilateral.HasValue && exercise.Progression.SupportsUnilateral)
             {
-                if (update.WeightValue.HasValue)
-                {
-                    var previousWeight = minimalSetsStrategy.CurrentWeight;
-                    var previousValue = $"{previousWeight.Value} {previousWeight.Unit}";
+                var prevUnilateral = exercise.Progression.IsUnilateral;
+                workout.SetExerciseUnilateral(exerciseId, update.IsUnilateral.Value);
+                messages.Add($"Unilateral: {prevUnilateral} → {update.IsUnilateral.Value}");
+                updated = true;
+            }
 
-                    var newWeight = Weight.Create(
-                        update.WeightValue.Value,
-                        update.WeightUnit ?? previousWeight.Unit);
-
-                    workout.AdjustWeight(exerciseId, newWeight);
-
-                    return new ExerciseUpdateResult
-                    {
-                        ExerciseId = update.ExerciseId,
-                        ExerciseName = exercise.Name,
-                        Success = true,
-                        Message = "Weight updated successfully.",
-                        PreviousValue = previousValue,
-                        NewValue = $"{newWeight.Value} {newWeight.Unit}"
-                    };
-                }
-
+            if (updated)
+            {
                 return new ExerciseUpdateResult
                 {
                     ExerciseId = update.ExerciseId,
                     ExerciseName = exercise.Name,
-                    Success = false,
-                    Message = "No weight value provided for MinimalSets progression exercise."
+                    Success = true,
+                    Message = string.Join(", ", messages),
+                    PreviousValue = previousValue,
+                    NewValue = newValue
                 };
             }
 
@@ -229,7 +178,7 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 ExerciseId = update.ExerciseId,
                 ExerciseName = exercise.Name,
                 Success = false,
-                Message = "Unknown progression type."
+                Message = "No applicable update values provided for this exercise's progression type."
             };
         }
         catch (Exception ex)

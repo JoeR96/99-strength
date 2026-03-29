@@ -1,14 +1,13 @@
 using A2S.Domain.Entities;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2S.Tests.Shared;
 
 /// <summary>
-/// Simplified DbContext for testing that includes Identity tables and User entity.
+/// Simplified DbContext for testing that includes User entity.
 /// Excludes complex Workout aggregates that have EF Core configuration issues.
 /// </summary>
-public class TestDbContext : IdentityDbContext<ApplicationUser>
+public class TestDbContext : DbContext
 {
     public TestDbContext(DbContextOptions<TestDbContext> options)
         : base(options)

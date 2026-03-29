@@ -10,9 +10,11 @@ public sealed class ExercisePerformance : ValueObject
 {
     public ExerciseId ExerciseId { get; private init; }
 
-    // Use List<T> for EF Core JSON deserialization compatibility (arrays are fixed-size)
-    public List<CompletedSet> CompletedSets { get; private init; } = new();
-    public List<PlannedSet> PlannedSets { get; private init; } = new();
+    // Use List<T> internally for EF Core JSON deserialization compatibility
+    private readonly List<CompletedSet> _completedSets = new();
+    private readonly List<PlannedSet> _plannedSets = new();
+    public IReadOnlyList<CompletedSet> CompletedSets => _completedSets;
+    public IReadOnlyList<PlannedSet> PlannedSets => _plannedSets;
     public DateTime CompletedAt { get; private init; }
 
     /// <summary>
@@ -48,8 +50,8 @@ public sealed class ExercisePerformance : ValueObject
         // The progression logic will use whatever sets are provided.
 
         ExerciseId = exerciseId;
-        PlannedSets = plannedSetsList;
-        CompletedSets = completedSetsList;
+        _plannedSets = plannedSetsList;
+        _completedSets = completedSetsList;
         CompletedAt = completedAt ?? DateTime.UtcNow;
         SkipProgression = skipProgression;
     }

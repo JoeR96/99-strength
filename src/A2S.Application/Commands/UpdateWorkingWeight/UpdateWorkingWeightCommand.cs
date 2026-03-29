@@ -1,7 +1,5 @@
 using A2S.Application.Common;
 using A2S.Domain.Enums;
-using A2S.Domain.ValueObjects;
-using MediatR;
 
 namespace A2S.Application.Commands.UpdateWorkingWeight;
 
@@ -11,4 +9,4 @@ public sealed record UpdateWorkingWeightCommand(
     decimal NewWeight,
     WeightUnit Unit,
     string? Reason
-) : IRequest<Result>;
+) : ICommand<Result>;

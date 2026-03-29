@@ -29,7 +29,7 @@ namespace A2S.Domain.Tests.Strategies;
 /// </summary>
 public class LinearProgressionSpreadsheetValidationTests
 {
-    private readonly ExerciseId _exerciseId = new(Guid.NewGuid());
+    private readonly ExerciseId _exerciseId = new(Guid.Parse("eee77777-7777-7777-7777-777777777777"));
 
     #region Spreadsheet Reference Data
 

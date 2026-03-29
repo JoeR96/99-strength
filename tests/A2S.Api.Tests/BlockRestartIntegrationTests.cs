@@ -177,7 +177,7 @@ public class BlockRestartIntegrationTests
             new()
             {
                 TemplateName = "Overhead Press (Smith Machine)",
-                HevyExerciseTemplateId = "test-ohp-block-restart",
+                ExternalTemplateId = "test-ohp-block-restart",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -189,7 +189,7 @@ public class BlockRestartIntegrationTests
             new()
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = "test-lat-pulldown-block-restart",
+                ExternalTemplateId = "test-lat-pulldown-block-restart",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -203,7 +203,7 @@ public class BlockRestartIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Cable)",
-                HevyExerciseTemplateId = "test-bicep-curl-block-restart",
+                ExternalTemplateId = "test-bicep-curl-block-restart",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -217,7 +217,7 @@ public class BlockRestartIntegrationTests
             new()
             {
                 TemplateName = "Triceps Pushdown",
-                HevyExerciseTemplateId = "test-triceps-pushdown-block-restart",
+                ExternalTemplateId = "test-triceps-pushdown-block-restart",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -231,7 +231,7 @@ public class BlockRestartIntegrationTests
             new()
             {
                 TemplateName = "Leg Extension (Machine)",
-                HevyExerciseTemplateId = "test-leg-ext-block-restart",
+                ExternalTemplateId = "test-leg-ext-block-restart",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,

@@ -26,7 +26,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserDto
         }
 
         return new UserDto(
-            user.Id,
+            user.Id.Value,
             user.Email,
             user.Name,
             user.CreatedAt);

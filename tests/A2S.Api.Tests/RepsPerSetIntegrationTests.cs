@@ -176,7 +176,7 @@ public class RepsPerSetIntegrationTests
             exercises.Add(new CreateExerciseRequest
             {
                 TemplateName = "Bent Over Row (Barbell)",
-                HevyExerciseTemplateId = "test-bent-over-row-rps",
+                ExternalTemplateId = "test-bent-over-row-rps",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -194,7 +194,7 @@ public class RepsPerSetIntegrationTests
             exercises.Add(new CreateExerciseRequest
             {
                 TemplateName = "Single Arm Lat Pulldown",
-                HevyExerciseTemplateId = "test-lat-pulldown-rps",
+                ExternalTemplateId = "test-lat-pulldown-rps",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -211,7 +211,7 @@ public class RepsPerSetIntegrationTests
         exercises.Add(new CreateExerciseRequest
         {
             TemplateName = "Bicep Curl (Cable)",
-            HevyExerciseTemplateId = "test-bicep-curl-rps",
+            ExternalTemplateId = "test-bicep-curl-rps",
             Category = ExerciseCategory.Accessory,
             ProgressionType = "RepsPerSet",
             AssignedDay = DayNumber.Day2,
@@ -224,7 +224,7 @@ public class RepsPerSetIntegrationTests
         exercises.Add(new CreateExerciseRequest
         {
             TemplateName = "Triceps Pushdown",
-            HevyExerciseTemplateId = "test-triceps-pushdown-rps",
+            ExternalTemplateId = "test-triceps-pushdown-rps",
             Category = ExerciseCategory.Accessory,
             ProgressionType = "RepsPerSet",
             AssignedDay = DayNumber.Day3,
@@ -237,7 +237,7 @@ public class RepsPerSetIntegrationTests
         exercises.Add(new CreateExerciseRequest
         {
             TemplateName = "Leg Extension (Machine)",
-            HevyExerciseTemplateId = "test-leg-ext-rps",
+            ExternalTemplateId = "test-leg-ext-rps",
             Category = ExerciseCategory.Accessory,
             ProgressionType = "RepsPerSet",
             AssignedDay = DayNumber.Day4,

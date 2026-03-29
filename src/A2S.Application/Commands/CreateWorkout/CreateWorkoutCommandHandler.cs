@@ -18,15 +18,18 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IExerciseLibraryProvider _exerciseLibrary;
 
     public CreateWorkoutCommandHandler(
         IWorkoutRepository workoutRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IExerciseLibraryProvider exerciseLibrary)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _exerciseLibrary = exerciseLibrary ?? throw new ArgumentNullException(nameof(exerciseLibrary));
     }
 
     public async Task<Result<Guid>> Handle(CreateWorkoutCommand request, CancellationToken cancellationToken)
@@ -34,27 +37,26 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
         try
         {
             // Ensure user is authenticated
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<Guid>("User must be authenticated to create a workout.");
             }
 
             // Check if there's already an active workout for this user
-            var existingWorkout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
+            var existingWorkout = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
             if (existingWorkout != null)
             {
                 return Result.Failure<Guid>("An active workout already exists. Complete or pause it before creating a new one.");
             }
 
-            // Create exercises - use configured exercises if provided, otherwise use defaults
-            var exercises = request.Exercises != null && request.Exercises.Count > 0
+        var exercises = request.Exercises != null && request.Exercises.Count > 0
                 ? CreateConfiguredExercises(request.Exercises)
                 : CreateExercisesForVariant(request.Variant);
 
             // Create the workout
             var workout = Workout.Create(
-                userId,
+                userId.Value,
                 request.Name,
                 request.Variant,
                 exercises,
@@ -78,14 +80,14 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     /// <summary>
     /// Creates exercises from user-configured exercise requests.
     /// </summary>
-    private static List<Exercise> CreateConfiguredExercises(IReadOnlyList<CreateExerciseRequest> exerciseRequests)
+    private List<Exercise> CreateConfiguredExercises(IReadOnlyList<CreateExerciseRequest> exerciseRequests)
     {
         var exercises = new List<Exercise>();
 
         foreach (var exerciseRequest in exerciseRequests)
         {
             // Find the template from the library
-            var template = ExerciseLibrary.GetByName(exerciseRequest.TemplateName);
+            var template = _exerciseLibrary.GetByName(exerciseRequest.TemplateName);
             if (template == null)
             {
                 // Skip exercises that don't exist in the library
@@ -110,7 +112,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
-                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
+                    externalTemplateId: exerciseRequest.ExternalTemplateId,
                     trainingMax: trainingMax,
                     useAmrap: exerciseRequest.UseAmrap ?? true, // Default to true for all Linear exercises
                     baseSetsPerExercise: template.DefaultSets ?? 4
@@ -130,7 +132,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
-                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
+                    externalTemplateId: exerciseRequest.ExternalTemplateId,
                     startingWeight: weight,
                     targetTotalReps: exerciseRequest.TargetTotalReps ?? 40,
                     startingSets: exerciseRequest.StartingSets ?? 3
@@ -154,7 +156,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     equipment: template.Equipment,
                     assignedDay: exerciseRequest.AssignedDay,
                     orderInDay: exerciseRequest.OrderInDay,
-                    hevyExerciseTemplateId: exerciseRequest.HevyExerciseTemplateId,
+                    externalTemplateId: exerciseRequest.ExternalTemplateId,
                     repRange: repRange,
                     startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
                     targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
@@ -172,7 +174,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     /// Creates default exercises based on the program variant.
     /// Creates a basic program with the 4 main lifts using Linear progression.
     /// </summary>
-    private static List<Exercise> CreateExercisesForVariant(ProgramVariant variant)
+    private List<Exercise> CreateExercisesForVariant(ProgramVariant variant)
     {
         List<Exercise> exercises = new List<Exercise>();
 
@@ -183,7 +185,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
         const string OverheadPressHevyId = "7B8D84E8";
 
         // Create default main 4 lifts with Linear progression
-        ExerciseLibrary.ExerciseTemplate? squat = ExerciseLibrary.GetByName("Squat (Barbell)");
+        var squat = _exerciseLibrary.GetByName("Squat (Barbell)");
         if (squat != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -192,14 +194,14 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: squat.Equipment,
                 assignedDay: DayNumber.Day1,
                 orderInDay: 1,
-                hevyExerciseTemplateId: SquatHevyId,
+                externalTemplateId: SquatHevyId,
                 trainingMax: TrainingMax.Create(100m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: squat.DefaultSets ?? 4
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? bench = ExerciseLibrary.GetByName("Bench Press (Barbell)");
+        var bench = _exerciseLibrary.GetByName("Bench Press (Barbell)");
         if (bench != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -208,14 +210,14 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: bench.Equipment,
                 assignedDay: DayNumber.Day2,
                 orderInDay: 1,
-                hevyExerciseTemplateId: BenchPressHevyId,
+                externalTemplateId: BenchPressHevyId,
                 trainingMax: TrainingMax.Create(80m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: bench.DefaultSets ?? 4
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? deadlift = ExerciseLibrary.GetByName("Deadlift (Barbell)");
+        var deadlift = _exerciseLibrary.GetByName("Deadlift (Barbell)");
         if (deadlift != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -224,14 +226,14 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: deadlift.Equipment,
                 assignedDay: DayNumber.Day3,
                 orderInDay: 1,
-                hevyExerciseTemplateId: DeadliftHevyId,
+                externalTemplateId: DeadliftHevyId,
                 trainingMax: TrainingMax.Create(120m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: deadlift.DefaultSets ?? 4
             ));
         }
 
-        ExerciseLibrary.ExerciseTemplate? ohp = ExerciseLibrary.GetByName("Overhead Press (Barbell)");
+        var ohp = _exerciseLibrary.GetByName("Overhead Press (Barbell)");
         if (ohp != null)
         {
             exercises.Add(Exercise.CreateWithLinearProgression(
@@ -240,7 +242,7 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 equipment: ohp.Equipment,
                 assignedDay: DayNumber.Day4,
                 orderInDay: 1,
-                hevyExerciseTemplateId: OverheadPressHevyId,
+                externalTemplateId: OverheadPressHevyId,
                 trainingMax: TrainingMax.Create(60m, WeightUnit.Kilograms),
                 useAmrap: true,
                 baseSetsPerExercise: ohp.DefaultSets ?? 4

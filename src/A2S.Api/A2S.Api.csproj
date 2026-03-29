@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\A2S.Application\A2S.Application.csproj" />
     <ProjectReference Include="..\A2S.Infrastructure\A2S.Infrastructure.csproj" />
+    <ProjectReference Include="..\A2S.Integration.Hevy\A2S.Integration.Hevy.csproj" />
   </ItemGroup>
 
 </Project>

@@ -542,7 +542,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "test-squat-1",
+                ExternalTemplateId = "test-squat-1",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -553,7 +553,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = "test-benchpress-1",
+                ExternalTemplateId = "test-benchpress-1",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -564,7 +564,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bent Over Row (Barbell)",
-                HevyExerciseTemplateId = "test-barbellrow-1",
+                ExternalTemplateId = "test-barbellrow-1",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -575,7 +575,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Barbell)",
-                HevyExerciseTemplateId = "test-bicepcurl-1",
+                ExternalTemplateId = "test-bicepcurl-1",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -676,7 +676,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "test-squat-2",
+                ExternalTemplateId = "test-squat-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -687,7 +687,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = "test-benchpress-2",
+                ExternalTemplateId = "test-benchpress-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -698,7 +698,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Deadlift (Barbell)",
-                HevyExerciseTemplateId = "test-deadlift-2",
+                ExternalTemplateId = "test-deadlift-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -709,7 +709,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Overhead Press (Barbell)",
-                HevyExerciseTemplateId = "test-ohp-2",
+                ExternalTemplateId = "test-ohp-2",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,
@@ -760,7 +760,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "test-squat-3",
+                ExternalTemplateId = "test-squat-3",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -771,7 +771,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "NonExistentExercise", // Invalid template
-                HevyExerciseTemplateId = "test-nonexistent-3",
+                ExternalTemplateId = "test-nonexistent-3",
                 Category = ExerciseCategory.Auxiliary,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -782,7 +782,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = "test-benchpress-3",
+                ExternalTemplateId = "test-benchpress-3",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -904,7 +904,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "D04AC939",
+                ExternalTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -983,7 +983,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Barbell)",
-                HevyExerciseTemplateId = "ADA8623C",
+                ExternalTemplateId = "ADA8623C",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -1053,7 +1053,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "D04AC939",
+                ExternalTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -1064,7 +1064,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = "79D0BB3A",
+                ExternalTemplateId = "79D0BB3A",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -1134,7 +1134,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "D04AC939",
+                ExternalTemplateId = "D04AC939",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -1254,7 +1254,7 @@ public class WorkoutsIntegrationTests
             new()
             {
                 TemplateName = "Overhead Press (Barbell)",
-                HevyExerciseTemplateId = "7B8D84E8",
+                ExternalTemplateId = "7B8D84E8",
                 Category = ExerciseCategory.Auxiliary, // Auxiliary, not MainLift
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,

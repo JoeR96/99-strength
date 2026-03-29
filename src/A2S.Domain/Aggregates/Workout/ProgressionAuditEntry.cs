@@ -1,4 +1,5 @@
 using A2S.Domain.Common;
+using A2S.Domain.Enums;
 
 namespace A2S.Domain.Aggregates.Workout;
 
@@ -9,7 +10,7 @@ public sealed class ProgressionAuditEntry : ValueObject
 {
     public DateTime OccurredAt { get; private init; }
     public AuditEntryType Type { get; private init; }
-    public Guid ExerciseId { get; private init; }
+    public ExerciseId? ExerciseId { get; private init; }
     public string ExerciseName { get; private init; } = string.Empty;
     public int WeekNumber { get; private init; }
     public int DayNumber { get; private init; }
@@ -22,7 +23,7 @@ public sealed class ProgressionAuditEntry : ValueObject
 
     private ProgressionAuditEntry(
         AuditEntryType type,
-        Guid exerciseId,
+        ExerciseId? exerciseId,
         string exerciseName,
         int weekNumber,
         int dayNumber,
@@ -42,21 +43,21 @@ public sealed class ProgressionAuditEntry : ValueObject
     }
 
     public static ProgressionAuditEntry TemporarySubstitution(
-        Guid exerciseId, string exerciseName, int weekNumber, int dayNumber, string? reason = null)
+        ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string? reason = null)
         => new(AuditEntryType.TemporarySubstitution, exerciseId, exerciseName, weekNumber, dayNumber, null, null, reason ?? "Temporary substitution - progression skipped");
 
     public static ProgressionAuditEntry PermanentSubstitution(
-        Guid exerciseId, string originalName, string newName, int weekNumber, int dayNumber,
+        ExerciseId exerciseId, string originalName, string newName, int weekNumber, int dayNumber,
         string? oldProgressionJson, string? newProgressionJson, string? reason = null)
         => new(AuditEntryType.PermanentSubstitution, exerciseId, originalName, weekNumber, dayNumber,
             oldProgressionJson, newProgressionJson, reason ?? $"Permanently replaced with {newName}");
 
     public static ProgressionAuditEntry ProgressionSkipped(
-        Guid exerciseId, string exerciseName, int weekNumber, int dayNumber, string reason)
+        ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string reason)
         => new(AuditEntryType.ProgressionSkipped, exerciseId, exerciseName, weekNumber, dayNumber, null, null, reason);
 
     public static ProgressionAuditEntry UndoCompletion(int weekNumber, int dayNumber, string? reason = null)
-        => new(AuditEntryType.UndoCompletion, Guid.Empty, "N/A", weekNumber, dayNumber, null, null, reason ?? "User initiated undo");
+        => new(AuditEntryType.UndoCompletion, null, "N/A", weekNumber, dayNumber, null, null, reason ?? "User initiated undo");
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {
@@ -66,13 +67,4 @@ public sealed class ProgressionAuditEntry : ValueObject
         yield return WeekNumber;
         yield return DayNumber;
     }
-}
-
-public enum AuditEntryType
-{
-    TemporarySubstitution,
-    PermanentSubstitution,
-    ProgressionSkipped,
-    UndoCompletion,
-    ManualAdjustment
 }

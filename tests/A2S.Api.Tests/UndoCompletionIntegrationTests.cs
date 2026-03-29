@@ -486,7 +486,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = $"squat-undo-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"squat-undo-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -521,7 +521,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = $"squat-fourday-{Guid.NewGuid()}",
+                ExternalTemplateId = $"squat-fourday-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -532,7 +532,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = $"bench-fourday-{Guid.NewGuid()}",
+                ExternalTemplateId = $"bench-fourday-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -543,7 +543,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Deadlift (Barbell)",
-                HevyExerciseTemplateId = $"deadlift-fourday-{Guid.NewGuid()}",
+                ExternalTemplateId = $"deadlift-fourday-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -554,7 +554,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Overhead Press (Barbell)",
-                HevyExerciseTemplateId = $"ohp-fourday-{Guid.NewGuid()}",
+                ExternalTemplateId = $"ohp-fourday-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,
@@ -589,7 +589,7 @@ public class UndoCompletionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = $"lat-pulldown-undo-{Guid.NewGuid()}",
+                ExternalTemplateId = $"lat-pulldown-undo-{Guid.NewGuid()}",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,

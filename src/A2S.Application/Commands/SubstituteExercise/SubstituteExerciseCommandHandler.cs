@@ -34,8 +34,8 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<SubstituteExerciseResult>("User must be authenticated.");
             }
@@ -49,7 +49,7 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
                 return Result.Failure<SubstituteExerciseResult>("Workout not found.");
             }
 
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<SubstituteExerciseResult>("You can only modify your own workouts.");
             }
@@ -74,7 +74,7 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
             var originalName = workout.SubstituteExercise(
                 exerciseId,
                 request.NewExerciseName,
-                request.NewHevyExerciseTemplateId);
+                request.NewExternalTemplateId);
 
             var progressionTypeChanged = false;
             string? newProgressionType = null;
@@ -109,7 +109,7 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
 
             // Record audit entry for permanent substitution
             var auditEntry = ProgressionAuditEntry.PermanentSubstitution(
-                exerciseId.Value,
+                exerciseId,
                 originalName,
                 request.NewExerciseName,
                 workout.CurrentWeek,

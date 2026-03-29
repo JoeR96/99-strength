@@ -27,13 +27,13 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<WorkoutDto?>("User must be authenticated to retrieve workout.");
             }
 
-            var workout = await _workoutRepository.GetActiveWorkoutAsync(userId, cancellationToken);
+            var workout = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
 
             if (workout == null)
             {
@@ -68,9 +68,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CompletedAt = workout.CompletedAt,
                 ExerciseCount = workout.Exercises.Count,
                 Exercises = exerciseDtos,
-                BlockSequence = workout.BlockSequence.ToList(),
-                HevyRoutineFolderId = workout.HevyRoutineFolderId,
-                HevySyncedRoutines = workout.HevySyncedRoutines
+                BlockSequence = workout.BlockSequence.ToList()
             };
 
             return Result.Success<WorkoutDto?>(dto);
@@ -83,62 +81,52 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
 
     private static ExerciseDto MapExerciseToDto(Exercise exercise)
     {
-        ExerciseProgressionDto progressionDto;
+        var progression = exercise.Progression;
+        var data = progression.GetProgressionData();
+        var trainingMax = progression.GetTrainingMax();
 
-        if (exercise.Progression is LinearProgressionStrategy linear)
+        ExerciseProgressionDto progressionDto = progression.ProgressionType switch
         {
-            progressionDto = new LinearProgressionDto
+            "Linear" => new LinearProgressionDto
             {
                 Type = "Linear",
                 TrainingMax = new TrainingMaxDto
                 {
-                    Value = linear.TrainingMax.Value,
-                    Unit = (int)linear.TrainingMax.Unit // 0 = Kilograms, 1 = Pounds
+                    Value = trainingMax!.Value,
+                    Unit = (int)trainingMax.Unit
                 },
-                UseAmrap = linear.UseAmrap,
-                BaseSetsPerExercise = linear.BaseSetsPerExercise
-            };
-        }
-        else if (exercise.Progression is RepsPerSetStrategy repsPerSet)
-        {
-            progressionDto = new RepsPerSetProgressionDto
+                UseAmrap = data.UseAmrap ?? true,
+                BaseSetsPerExercise = data.BaseSetsPerExercise ?? 4
+            },
+            "RepsPerSet" => new RepsPerSetProgressionDto
             {
                 Type = "RepsPerSet",
                 RepRange = new RepRangeDto
                 {
-                    Minimum = repsPerSet.RepRange.Minimum,
-                    Target = repsPerSet.RepRange.Target,
-                    Maximum = repsPerSet.RepRange.Maximum
+                    Minimum = data.RepRangeMinimum ?? 0,
+                    Target = data.RepRangeTarget ?? 0,
+                    Maximum = data.RepRangeMaximum ?? 0
                 },
-                StartingSets = repsPerSet.StartingSets,
-                CurrentSetCount = repsPerSet.CurrentSetCount,
-                TargetSets = repsPerSet.TargetSets,
-                CurrentWeight = repsPerSet.CurrentWeight?.Value ?? 0,
-                WeightUnit = repsPerSet.CurrentWeight?.Unit.ToString() ?? "Kilograms",
-                IsUnilateral = repsPerSet.IsUnilateral,
-                IsWeightPending = repsPerSet.IsWeightPending
-            };
-        }
-        else if (exercise.Progression is MinimalSetsStrategy minimalSets)
-        {
-            progressionDto = new MinimalSetsProgressionDto
+                StartingSets = data.StartingSets ?? 2,
+                CurrentSetCount = data.CurrentSetCount ?? 2,
+                TargetSets = data.TargetSets ?? 4,
+                CurrentWeight = progression.GetCurrentWeight()?.Value ?? 0,
+                WeightUnit = progression.GetCurrentWeight()?.Unit.ToString() ?? "Kilograms",
+                IsUnilateral = progression.IsUnilateral,
+                IsWeightPending = progression.IsWeightPending
+            },
+            "MinimalSets" => new MinimalSetsProgressionDto
             {
                 Type = "MinimalSets",
-                CurrentWeight = minimalSets.CurrentWeight.Value,
-                WeightUnit = minimalSets.CurrentWeight.Unit.ToString(),
-                TargetTotalReps = minimalSets.TargetTotalReps,
-                CurrentSetCount = minimalSets.CurrentSetCount,
-                MinimumSets = minimalSets.MinimumSets,
-                MaximumSets = minimalSets.MaximumSets
-            };
-        }
-        else
-        {
-            progressionDto = new ExerciseProgressionDto
-            {
-                Type = exercise.Progression.ProgressionType
-            };
-        }
+                CurrentWeight = progression.GetCurrentWeight()!.Value,
+                WeightUnit = progression.GetCurrentWeight()!.Unit.ToString(),
+                TargetTotalReps = data.TargetTotalReps ?? 0,
+                CurrentSetCount = data.CurrentSetCount ?? 0,
+                MinimumSets = data.MinimumSets ?? 2,
+                MaximumSets = data.MaximumSets ?? 10
+            },
+            _ => new ExerciseProgressionDto { Type = progression.ProgressionType }
+        };
 
         return new ExerciseDto
         {
@@ -148,7 +136,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             Equipment = exercise.Equipment,
             AssignedDay = exercise.AssignedDay,
             OrderInDay = exercise.OrderInDay,
-            HevyExerciseTemplateId = exercise.HevyExerciseTemplateId,
+            ExternalTemplateId = exercise.ExternalTemplateId,
             Progression = progressionDto
         };
     }

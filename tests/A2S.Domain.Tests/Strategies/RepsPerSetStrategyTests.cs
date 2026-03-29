@@ -17,7 +17,7 @@ namespace A2S.Domain.Tests.Strategies;
 /// </summary>
 public class RepsPerSetStrategyTests
 {
-    private readonly ExerciseId _testExerciseId = new(Guid.NewGuid());
+    private readonly ExerciseId _testExerciseId = new(Guid.Parse("eee33333-3333-3333-3333-333333333333"));
     private readonly Weight _startingWeight = Weight.Create(20m, WeightUnit.Kilograms);
     private readonly RepRange _standardRepRange = RepRange.Create(8, 12, 15);
 
@@ -499,8 +499,8 @@ public class RepsPerSetStrategyTests
 
         var newWeight = Weight.Create(50m, WeightUnit.Pounds);
 
-        // Act & Assert - CheckRule throws ArgumentException
-        Assert.Throws<ArgumentException>(() => strategy.UpdateWeight(newWeight));
+        // Act & Assert - CheckRule throws BusinessRuleViolationException
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateWeight(newWeight));
     }
 
     [Fact]

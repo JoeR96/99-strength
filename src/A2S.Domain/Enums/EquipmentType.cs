@@ -29,5 +29,15 @@ public enum EquipmentType
     /// <summary>
     /// Bodyweight exercises (no weight increments).
     /// </summary>
-    Bodyweight = 5
+    Bodyweight = 5,
+
+    /// <summary>
+    /// Smith machine exercises (increment: 2.5kg, same as barbell).
+    /// </summary>
+    SmithMachine = 6,
+
+    /// <summary>
+    /// Plate-loaded machine exercises (increment: 2.5kg, same as barbell).
+    /// </summary>
+    PlateLoadedMachine = 7
 }

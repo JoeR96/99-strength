@@ -84,7 +84,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = $"back-squat-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"back-squat-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -96,7 +96,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = $"bench-press-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"bench-press-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -108,7 +108,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = $"lat-pulldown-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"lat-pulldown-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -123,7 +123,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Deadlift (Barbell)",
-                HevyExerciseTemplateId = $"deadlift-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"deadlift-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -135,7 +135,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Overhead Press (Barbell)",
-                HevyExerciseTemplateId = $"ohp-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"ohp-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -147,7 +147,7 @@ public class SubstitutionBlockContinuityTests
             new CreateExerciseRequest
             {
                 TemplateName = "Bent Over Row (Barbell)",
-                HevyExerciseTemplateId = $"row-block-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"row-block-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,

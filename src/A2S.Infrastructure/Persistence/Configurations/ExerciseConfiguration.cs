@@ -42,7 +42,8 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.OrderInDay)
             .IsRequired();
 
-        builder.Property(e => e.HevyExerciseTemplateId)
+        builder.Property(e => e.ExternalTemplateId)
+            .HasColumnName("HevyExerciseTemplateId")
             .IsRequired()
             .HasMaxLength(100);
 

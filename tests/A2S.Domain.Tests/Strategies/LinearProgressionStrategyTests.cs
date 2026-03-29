@@ -21,7 +21,7 @@ namespace A2S.Domain.Tests.Strategies;
 public class LinearProgressionStrategyTests
 {
     private readonly TrainingMax _testTm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-    private readonly ExerciseId _testExerciseId = new(Guid.NewGuid());
+    private readonly ExerciseId _testExerciseId = new(Guid.Parse("eee22222-2222-2222-2222-222222222222"));
 
     #region Block 1: Weeks 1-7
 
@@ -442,8 +442,8 @@ public class LinearProgressionStrategyTests
     {
         var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
 
-        Assert.Throws<ArgumentException>(() => strategy.CalculatePlannedSets(0, 1));
-        Assert.Throws<ArgumentException>(() => strategy.CalculatePlannedSets(22, 1));
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.CalculatePlannedSets(0, 1));
+        Assert.Throws<BusinessRuleViolationException>(() => strategy.CalculatePlannedSets(22, 1));
     }
 
     [Fact]
@@ -463,7 +463,7 @@ public class LinearProgressionStrategyTests
         var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
         var newTm = TrainingMax.Create(110m, WeightUnit.Kilograms);
 
-        strategy.UpdateTrainingMax(newTm, "Manual adjustment");
+        strategy.UpdateTrainingMaxValue(newTm, "Manual adjustment");
 
         strategy.TrainingMax.Value.Should().Be(110m);
     }

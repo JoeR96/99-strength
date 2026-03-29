@@ -29,8 +29,8 @@ public sealed class UpdateBlockSequenceCommandHandler
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<UpdateBlockSequenceResult>("User must be authenticated.");
             }
@@ -44,7 +44,7 @@ public sealed class UpdateBlockSequenceCommandHandler
                 return Result.Failure<UpdateBlockSequenceResult>("Workout not found.");
             }
 
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<UpdateBlockSequenceResult>("You can only modify your own workouts.");
             }

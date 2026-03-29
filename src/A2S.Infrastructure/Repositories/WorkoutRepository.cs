@@ -11,26 +11,23 @@ namespace A2S.Infrastructure.Repositories;
 /// Repository implementation for Workout aggregate root.
 /// Handles all persistence operations for workouts.
 /// </summary>
-public class WorkoutRepository : IWorkoutRepository
+public class WorkoutRepository : Repository<Workout, WorkoutId>, IWorkoutRepository
 {
-    private readonly A2SDbContext _context;
-
-    public WorkoutRepository(A2SDbContext context)
+    public WorkoutRepository(A2SDbContext context) : base(context)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<Workout?> GetByIdAsync(WorkoutId id, CancellationToken ct = default)
+    public override async Task<Workout?> GetByIdAsync(WorkoutId id, CancellationToken ct = default)
     {
-        return await _context.Workouts
+        return await Context.Workouts
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
             .FirstOrDefaultAsync(w => w.Id == id, ct);
     }
 
-    public async Task<Workout?> GetActiveWorkoutAsync(string userId, CancellationToken ct = default)
+    public async Task<Workout?> GetActiveWorkoutAsync(UserId userId, CancellationToken ct = default)
     {
-        return await _context.Workouts
+        return await Context.Workouts
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
             .Where(w => w.UserId == userId && w.Status == WorkoutStatus.Active)
@@ -38,18 +35,9 @@ public class WorkoutRepository : IWorkoutRepository
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<IReadOnlyList<Workout>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<Workout>> GetAllAsync(UserId userId, CancellationToken ct = default)
     {
-        return await _context.Workouts
-            .Include(w => w.Exercises)
-                .ThenInclude(e => e.Progression)
-            .OrderByDescending(w => w.CreatedAt)
-            .ToListAsync(ct);
-    }
-
-    public async Task<IReadOnlyList<Workout>> GetAllByUserAsync(string userId, CancellationToken ct = default)
-    {
-        return await _context.Workouts
+        return await Context.Workouts
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
             .Where(w => w.UserId == userId)
@@ -57,28 +45,22 @@ public class WorkoutRepository : IWorkoutRepository
             .ToListAsync(ct);
     }
 
-    public async Task<IReadOnlyList<Workout>> GetByStatusAsync(WorkoutStatus status, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Workout>> GetByStatusAsync(UserId userId, WorkoutStatus status, CancellationToken ct = default)
     {
-        return await _context.Workouts
+        return await Context.Workouts
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
-            .Where(w => w.Status == status)
+            .Where(w => w.UserId == userId && w.Status == status)
             .OrderByDescending(w => w.CreatedAt)
             .ToListAsync(ct);
     }
 
-    public async Task AddAsync(Workout workout, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Workout>> GetAllByUserSummaryAsync(UserId userId, CancellationToken ct = default)
     {
-        await _context.Workouts.AddAsync(workout, ct);
-    }
-
-    public void Update(Workout workout)
-    {
-        _context.Workouts.Update(workout);
-    }
-
-    public void Remove(Workout workout)
-    {
-        _context.Workouts.Remove(workout);
+        return await Context.Workouts
+            .Include(w => w.Exercises)
+            .Where(w => w.UserId == userId)
+            .OrderByDescending(w => w.CreatedAt)
+            .ToListAsync(ct);
     }
 }

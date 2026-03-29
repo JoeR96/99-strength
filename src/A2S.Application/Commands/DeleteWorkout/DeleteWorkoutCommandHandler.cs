@@ -30,8 +30,8 @@ public sealed class DeleteWorkoutCommandHandler : IRequestHandler<DeleteWorkoutC
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<bool>("User must be authenticated.");
             }
@@ -46,7 +46,7 @@ public sealed class DeleteWorkoutCommandHandler : IRequestHandler<DeleteWorkoutC
             }
 
             // Verify the workout belongs to the current user
-            if (workout.UserId != userId)
+            if (workout.UserId != userId.Value)
             {
                 return Result.Failure<bool>("You can only delete your own workouts.");
             }

@@ -29,13 +29,13 @@ public sealed class GetAllWorkoutsQueryHandler : IRequestHandler<GetAllWorkoutsQ
     {
         try
         {
-            var userId = _currentUserService.UserId;
-            if (string.IsNullOrEmpty(userId))
+            var userId = _currentUserService.GetUserId();
+            if (userId == null)
             {
                 return Result.Failure<IReadOnlyList<WorkoutSummaryDto>>("User must be authenticated.");
             }
 
-            var workouts = await _workoutRepository.GetAllByUserAsync(userId, cancellationToken);
+            var workouts = await _workoutRepository.GetAllByUserSummaryAsync(userId.Value, cancellationToken);
 
             var summaries = workouts.Select(w => new WorkoutSummaryDto
             {

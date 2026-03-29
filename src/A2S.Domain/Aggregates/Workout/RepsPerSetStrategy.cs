@@ -1,5 +1,6 @@
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
+using A2S.Domain.Events;
 using A2S.Domain.ValueObjects;
 
 namespace A2S.Domain.Aggregates.Workout;
@@ -29,14 +30,27 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// Indicates whether the starting weight has not yet been confirmed.
     /// Weight is deferred until after the first session.
     /// </summary>
-    public bool IsWeightPending => CurrentWeight == null;
+    public override bool IsWeightPending => CurrentWeight == null;
     public EquipmentType Equipment { get; private set; }
 
     /// <summary>
     /// Indicates if this is a unilateral exercise (performed one side at a time).
     /// Unilateral exercises have a lower max set target (3 per side = 6 total).
     /// </summary>
-    public bool IsUnilateral { get; private set; }
+    private bool _isUnilateral;
+    public override bool IsUnilateral => _isUnilateral;
+
+    /// <summary>
+    /// Whether this exercise has a pending weight confirmation after Cable/Machine progression.
+    /// </summary>
+    private bool _pendingWeightConfirmation;
+    public override bool PendingWeightConfirmation => _pendingWeightConfirmation;
+
+    /// <summary>
+    /// The system-calculated suggested weight when PendingWeightConfirmation is true.
+    /// </summary>
+    private Weight? _suggestedWeight;
+    public override Weight? SuggestedWeight => _suggestedWeight;
 
     /// <summary>
     /// Gets the maximum set count before weight increases.
@@ -72,7 +86,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         TargetSets = targetSets;
         CurrentWeight = currentWeight;
         Equipment = equipment;
-        IsUnilateral = isUnilateral;
+        _isUnilateral = isUnilateral;
     }
 
     public static RepsPerSetStrategy Create(
@@ -97,7 +111,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// Confirms the starting weight after the first session.
     /// Can only be called when weight is pending (null).
     /// </summary>
-    public void ConfirmStartingWeight(Weight weight)
+    public override void ConfirmStartingWeight(Weight weight)
     {
         CheckRule(CurrentWeight == null, "Starting weight has already been confirmed");
         CurrentWeight = weight;
@@ -213,8 +227,17 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         else
         {
             // At max sets, increase weight and reset to starting sets
-            CurrentWeight = CurrentWeight!.Add(GetWeightIncrement());
+            var newWeight = CurrentWeight!.Add(GetWeightIncrement());
+            CurrentWeight = newWeight;
             CurrentSetCount = StartingSets;
+
+            // Cable/Machine exercises require user confirmation of new working weight
+            // because weight stack increments vary between gyms
+            if (Equipment is EquipmentType.Cable or EquipmentType.Machine)
+            {
+                _pendingWeightConfirmation = true;
+                _suggestedWeight = newWeight;
+            }
         }
     }
 
@@ -246,39 +269,19 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
 
     /// <summary>
     /// Calculates weight increment based on equipment type.
-    /// Reference: business-rules.md lines 212-227.
+    /// Delegates to shared base class implementation.
     /// </summary>
-    /// <remarks>
-    /// Equipment-Based Weight Increments:
-    /// - Dumbbell: 1kg if weight &lt; 10kg, else 2kg
-    /// - Barbell/Smith Machine/Cable/Machine: 2.5kg
-    /// - Bodyweight: 0kg (progression via sets/reps only)
-    /// </remarks>
-    private Weight GetWeightIncrement()
+    public override Weight GetWeightIncrement()
     {
-        // CurrentWeight is guaranteed non-null here because ApplyPerformanceResult guards against it
-        var weight = CurrentWeight!;
-
-        if (Equipment == EquipmentType.Bodyweight)
-        {
-            return Weight.Create(0, weight.Unit);
-        }
-
-        if (Equipment == EquipmentType.Dumbbell)
-        {
-            var incrementValue = weight.Value < 10 ? 1m : 2m;
-            return Weight.Create(incrementValue, weight.Unit);
-        }
-
-        var standardIncrement = weight.Unit == WeightUnit.Kilograms ? 2.5m : 5m;
-        return Weight.Create(standardIncrement, weight.Unit);
+        var weight = CurrentWeight ?? Weight.Create(0, WeightUnit.Kilograms);
+        return GetStandardWeightIncrement(Equipment, weight);
     }
 
     /// <summary>
     /// Manually updates the current weight.
     /// Used for adjustments or corrections by the user.
     /// </summary>
-    public void UpdateWeight(Weight newWeight)
+    public override void UpdateWeight(Weight newWeight)
     {
         if (CurrentWeight != null)
         {
@@ -293,7 +296,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// Manually updates the rep range.
     /// Used when user wants to change the target rep range for an accessory.
     /// </summary>
-    public void UpdateRepRange(RepRange newRepRange)
+    public override void UpdateRepRange(RepRange newRepRange)
     {
         RepRange = newRepRange;
     }
@@ -303,9 +306,9 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// Unilateral exercises have a lower max set target (3 per side).
     /// When switching to unilateral, set count is capped at 3 if currently higher.
     /// </summary>
-    public void SetUnilateral(bool isUnilateral)
+    public override void SetUnilateral(bool isUnilateral)
     {
-        IsUnilateral = isUnilateral;
+        _isUnilateral = isUnilateral;
 
         // If switching to unilateral and current sets exceed the new max, cap it
         if (isUnilateral && CurrentSetCount > MaxSets)
@@ -314,33 +317,121 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         }
     }
 
+    /// <summary>
+    /// Confirms the new working weight after Cable/Machine progression.
+    /// Clears the PendingWeightConfirmation flag and applies the user-confirmed weight.
+    /// </summary>
+    public override void ConfirmWorkingWeight(Weight confirmedWeight)
+    {
+        CheckRule(_pendingWeightConfirmation,
+            "No pending weight confirmation for this exercise");
+
+        if (CurrentWeight != null)
+        {
+            CheckRule(confirmedWeight.Unit == CurrentWeight.Unit,
+                "Confirmed weight must use the same unit as current weight");
+        }
+
+        CurrentWeight = confirmedWeight;
+        _pendingWeightConfirmation = false;
+        _suggestedWeight = null;
+    }
+
+    public override Weight? GetCurrentWeight() => CurrentWeight;
+
+    public override TrainingMax? GetTrainingMax() => null;
+
+    public override bool SupportsUnilateral => true;
+
+    public override string GetProgressionChangeDescription(ExercisePerformance performance)
+    {
+        if (IsWeightPending)
+        {
+            return "Weight pending confirmation";
+        }
+
+        if (performance.AllSetsHitMax(RepRange))
+        {
+            return CurrentSetCount < Math.Min(TargetSets, MaxSets)
+                ? "Added 1 set"
+                : "Weight increased, sets reset";
+        }
+
+        if (performance.AnySetsBelowMin(RepRange))
+        {
+            return CurrentSetCount > 1
+                ? "Removed 1 set"
+                : "Weight decreased";
+        }
+
+        return "No change";
+    }
+
+    internal override ProgressionSnapshot CaptureSnapshot(ExerciseId exerciseId, string exerciseName) =>
+        ProgressionSnapshot.FromState(exerciseId, exerciseName, CaptureState());
+
+    internal override void RestoreFromSnapshot(ProgressionSnapshot snapshot)
+    {
+        var state = snapshot.GetRepsPerSetState()
+            ?? throw new InvalidOperationException("Failed to deserialize RepsPerSet snapshot state");
+        RestoreFromState(state);
+    }
+
+    public override ProgressionData GetProgressionData() => new()
+    {
+        RepRangeMinimum = RepRange.Minimum,
+        RepRangeTarget = RepRange.Target,
+        RepRangeMaximum = RepRange.Maximum,
+        StartingSets = StartingSets,
+        CurrentSetCount = CurrentSetCount,
+        TargetSets = TargetSets
+    };
+
     internal void RestoreState(decimal? currentWeight, int currentSetCount, bool isUnilateral, WeightUnit? weightUnit = null)
     {
         CurrentWeight = currentWeight.HasValue
             ? Weight.Create(currentWeight.Value, weightUnit ?? CurrentWeight?.Unit ?? WeightUnit.Kilograms)
             : null;
         CurrentSetCount = currentSetCount;
-        IsUnilateral = isUnilateral;
+        _isUnilateral = isUnilateral;
+    }
+
+    internal RepsPerSetProgressionState CaptureState() => new(
+        CurrentWeight?.Value, CurrentWeight != null ? (int?)CurrentWeight.Unit : null,
+        CurrentSetCount, TargetSets,
+        RepRange.Minimum, RepRange.Target, RepRange.Maximum,
+        IsUnilateral,
+        _pendingWeightConfirmation,
+        _suggestedWeight?.Value, _suggestedWeight != null ? (int?)_suggestedWeight.Unit : null);
+
+    internal void RestoreFromState(RepsPerSetProgressionState state)
+    {
+        RestoreState(state.CurrentWeight, state.CurrentSetCount, state.IsUnilateral,
+            state.WeightUnit.HasValue ? (WeightUnit)state.WeightUnit.Value : null);
+        _pendingWeightConfirmation = state.PendingWeightConfirmation;
+        if (state.SuggestedWeight.HasValue)
+        {
+            if (!state.SuggestedWeightUnit.HasValue)
+            {
+                throw new InvalidOperationException(
+                    "SuggestedWeightUnit must be specified when SuggestedWeight has a value.");
+            }
+
+            _suggestedWeight = Weight.Create(state.SuggestedWeight.Value,
+                (WeightUnit)state.SuggestedWeightUnit.Value);
+        }
+        else
+        {
+            _suggestedWeight = null;
+        }
     }
 }
 
 /// <summary>
-/// Result of evaluating performance against rep range criteria.
+/// Typed memento holding RepsPerSet progression state for snapshot capture/restore.
 /// </summary>
-public enum PerformanceEvaluation
-{
-    /// <summary>
-    /// All sets hit maximum reps - progress to next level.
-    /// </summary>
-    Success,
-
-    /// <summary>
-    /// All sets hit at least minimum reps - maintain current level.
-    /// </summary>
-    Maintained,
-
-    /// <summary>
-    /// Any set fell below minimum reps - regress to previous level.
-    /// </summary>
-    Failed
-}
+public sealed record RepsPerSetProgressionState(
+    decimal? CurrentWeight, int? WeightUnit, int CurrentSetCount, int TargetSets,
+    int RepRangeMinimum, int RepRangeTarget, int RepRangeMaximum, bool IsUnilateral,
+    bool PendingWeightConfirmation = false,
+    decimal? SuggestedWeight = null, int? SuggestedWeightUnit = null);

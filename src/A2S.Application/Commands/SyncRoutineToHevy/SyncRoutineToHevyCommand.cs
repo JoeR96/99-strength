@@ -1,26 +1,19 @@
 using A2S.Application.Common;
-using MediatR;
 
 namespace A2S.Application.Commands.SyncRoutineToHevy;
 
 /// <summary>
 /// Command to sync a workout day's routine to Hevy.
 /// Uses the domain's calculated planned sets.
+/// Implements IWorkoutCommand so AuthorizedWorkoutBehavior validates access.
 /// </summary>
 public sealed record SyncRoutineToHevyCommand(
     Guid WorkoutId,
     int WeekNumber,
     int DayNumber,
-    string HevyApiKey) : IRequest<Result<SyncRoutineResult>>;
-
-/// <summary>
-/// Result of syncing a routine to Hevy.
-/// </summary>
-public sealed record SyncRoutineResult
+    string HevyApiKey) : IWorkoutCommand<Result<SyncRoutineResult>>, IFailureFactory<Result<SyncRoutineResult>>
 {
-    public bool Success { get; init; }
-    public string? RoutineId { get; init; }
-    public string? RoutineTitle { get; init; }
-    public string? Message { get; init; }
-    public bool AlreadyExists { get; init; }
+    public static Result<SyncRoutineResult> CreateFailure(string error, ErrorCode code) =>
+        Result.Failure<SyncRoutineResult>(error, code);
 }
+

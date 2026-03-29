@@ -10,12 +10,14 @@ namespace A2S.Application.Tests.Commands;
 public class CreateUserCommandHandlerTests
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
-        _handler = new CreateUserCommandHandler(_userRepository);
+        _unitOfWork = Substitute.For<IUnitOfWork>();
+        _handler = new CreateUserCommandHandler(_userRepository, _unitOfWork);
     }
 
     [Fact]
@@ -30,17 +32,17 @@ public class CreateUserCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Email.Should().Be("test@example.com");
-        result.Name.Should().Be("Test User");
-        result.Id.Should().NotBeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Email.Should().Be("test@example.com");
+        result.Value.Name.Should().Be("Test User");
+        result.Value.Id.Should().NotBeEmpty();
 
         await _userRepository.Received(1).AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        await _userRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_WithDuplicateEmail_ShouldThrowInvalidOperationException()
+    public async Task Handle_WithDuplicateEmail_ShouldReturnFailure()
     {
         // Arrange
         var existingUser = User.Create("existing@example.com", "Existing User");
@@ -50,11 +52,11 @@ public class CreateUserCommandHandlerTests
             .Returns(existingUser);
 
         // Act
-        var act = async () => await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*already exists*");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("already exists");
 
         await _userRepository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }

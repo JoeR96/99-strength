@@ -1,3 +1,4 @@
+using A2S.Domain.Common;
 using A2S.Domain.Entities;
 using A2S.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ public class TestUserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
-    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.AppUsers
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
@@ -39,8 +40,8 @@ public class TestUserRepository : IUserRepository
         _dbContext.AppUsers.Update(user);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    public void Remove(User user)
     {
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        _dbContext.AppUsers.Remove(user);
     }
 }

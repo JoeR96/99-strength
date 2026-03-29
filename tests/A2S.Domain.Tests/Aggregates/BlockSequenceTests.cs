@@ -21,12 +21,12 @@ public class BlockSequenceTests
             EquipmentType.Barbell,
             DayNumber.Day1,
             orderInDay: 1,
-            hevyExerciseTemplateId: "TEST123",
+            externalTemplateId: "TEST123",
             TrainingMax.Create(100m, WeightUnit.Kilograms),
             useAmrap: true);
 
         var workout = Workout.Create(
-            "user-123",
+            new UserId(Guid.NewGuid()),
             "Test Workout",
             ProgramVariant.FourDay,
             new[] { exercise },
@@ -173,7 +173,7 @@ public class BlockSequenceTests
         // But we can't go to 0 blocks:
         var act = () => workout.UpdateBlockSequence(new List<int>());
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Block sequence cannot be empty*");
     }
 
@@ -215,10 +215,10 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var act = () => Workout.Create("user", "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int>());
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Block sequence cannot be empty*");
     }
 
@@ -230,10 +230,10 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var act = () => Workout.Create("user", "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int> { 1, 4, 3 }); // 4 is invalid
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Each block type must be 1, 2, or 3*");
     }
 
@@ -247,10 +247,10 @@ public class BlockSequenceTests
 
         var sequence = Enumerable.Repeat(1, 11).ToList(); // 11 blocks > max 10
 
-        var act = () => Workout.Create("user", "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, sequence);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Block sequence cannot exceed 10 blocks*");
     }
 
@@ -262,7 +262,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var workout = Workout.Create("user", "Test", ProgramVariant.FourDay,
+        var workout = Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int> { 1, 1, 2, 3 });
 
         workout.TotalWeeks.Should().Be(28);
@@ -277,7 +277,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var workout = Workout.Create("user", "Test", ProgramVariant.FourDay,
+        var workout = Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
             new[] { exercise });
 
         workout.TotalWeeks.Should().Be(21);
@@ -295,7 +295,7 @@ public class BlockSequenceTests
 
         var act = () => workout.GetTemplateWeek(22);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Program week 22 must be between 1 and 21*");
     }
 
@@ -306,7 +306,7 @@ public class BlockSequenceTests
 
         var act = () => workout.GetTemplateWeek(0);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*Program week 0 must be between 1 and 21*");
     }
 

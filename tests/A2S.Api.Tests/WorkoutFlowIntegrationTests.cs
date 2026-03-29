@@ -1129,7 +1129,7 @@ public class WorkoutFlowIntegrationTests
                 request = new CreateExerciseRequest
                 {
                     TemplateName = config.Name,
-                    HevyExerciseTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
+                    ExternalTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
                     Category = GetCategoryFromProgressionType(config.ProgressionType),
                     ProgressionType = config.ProgressionType.ToString(),
                     AssignedDay = config.Day,
@@ -1145,7 +1145,7 @@ public class WorkoutFlowIntegrationTests
                 request = new CreateExerciseRequest
                 {
                     TemplateName = config.Name,
-                    HevyExerciseTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
+                    ExternalTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
                     Category = GetCategoryFromProgressionType(config.ProgressionType),
                     ProgressionType = config.ProgressionType.ToString(),
                     AssignedDay = config.Day,
@@ -1162,7 +1162,7 @@ public class WorkoutFlowIntegrationTests
                 request = new CreateExerciseRequest
                 {
                     TemplateName = config.Name,
-                    HevyExerciseTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
+                    ExternalTemplateId = $"test-{config.Name.Replace(" ", "-").ToLowerInvariant()}-flow",
                     Category = GetCategoryFromProgressionType(config.ProgressionType),
                     ProgressionType = config.ProgressionType.ToString(),
                     AssignedDay = config.Day,

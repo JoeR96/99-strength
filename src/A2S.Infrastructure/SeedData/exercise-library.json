@@ -1,0 +1,4897 @@
+[
+  {
+    "name": "21s Bicep Curl",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "4 Step Double Curl Thing",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Ab Scissors",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Ab Wheel",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Aerobics",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Air Bike",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Arnold Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Around The World",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Assisted Pistol Squats",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Ass to Grass squats with SSB",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Back Extension (Hyperextension)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lower_back"
+  },
+  {
+    "name": "Back Extension (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lower_back"
+  },
+  {
+    "name": "Back Extension (Weighted Hyperextension)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lower_back"
+  },
+  {
+    "name": "Ball Slams",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Band Pullaparts",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Battle Ropes",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Behind the Back Bicep Wrist Curl (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: forearms"
+  },
+  {
+    "name": "Behind the Back Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Belt Squat (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Bench Dip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Bench Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Bench Press (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Bench Press - Close Grip (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Bench Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Bench Press (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Bench Press - Wide Grip (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Bent Over Row (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Bent Over Row (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Bent Over Row (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Bicep Curl (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Bicep Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Bicep Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Bicep Curl (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Bicep Curl (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Bicycle Crunch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Bicycle Crunch Raised Legs",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Bird Dog",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Boxing",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Box Jump",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Box Squat (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Bulgarian Split Squat",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Burpee",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Burpee Over the Bar",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Butterfly (Pec Deck)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Cable Core Palloff Press",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Cable Crunch",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Cable Fly Crossovers",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Cable Pull Through",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Cable Twist (Down to up)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Cable Twist (Up to down)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Calf Extension (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Calf Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Chest Dip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Dip (Assisted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Dip (Weighted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Fly (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Fly (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Fly (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Fly (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Press (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Chest Supported Incline Row (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Chest Supported Reverse Fly (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Chest Supported Y Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Chin Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Chin Up (Assisted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Chin Up (Weighted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Clamshell",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Clap Push Ups",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Clean",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Clean and Jerk",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Clean and Press",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Clean Pull",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Climbing",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Concentration Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Cross Body Hammer Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Crucifix Tricep Pulldown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Crunch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Crunch (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Crunch (Weighted)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Curtsy Lunge (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Cycling",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Dead Bug",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Dead Hang",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Deadlift (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Deadlift (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Deadlift (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Deadlift High Pull",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Deadlift (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Deadlift (Trap bar)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Decline Bench Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Decline Bench Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Decline Bench Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Decline Bench Press (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Decline Chest Fly (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Decline Crunch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Decline Crunch (Weighted)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Decline Push Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Diamond Push Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Downward Dog",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Drag Curl",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Dragon Flag",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Dragonfly",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Dumbbell Row",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Dumbbell Snatch",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Dumbbell Squeeze Press",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Dumbbell Step Up",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Elbow to Knee",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Elliptical Trainer",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "EZ Bar Biceps Curl",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Face Pull",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Farmers Walk",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Feet Up Bench Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Fire Hydrants",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Floor Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Floor Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Floor Triceps Dip",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Flutter Kicks",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Forearm Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Frog Jumps",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Frog Pumps (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Front Lever Hold",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Front Lever Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Front Raise (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Front Raise (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Front Raise (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Front Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Front Raise (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Front Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Front squat paused",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Full Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Glute Bridge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Glute Ham Raise",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Glute Kickback (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Glute Kickback on Floor",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Goblet Squat",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Good Morning (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Gorilla Row (Kettlebell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Hack Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Hack Squat (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Hammer Curl (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Hammer Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Hammer Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Handstand Hold",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Handstand Push Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Hang Clean",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Hanging Knee Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Hanging Leg Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Hang Snatch",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Heel Taps",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Hex Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "High Knees",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "High Knee Skips",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "HIIT",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Hiking",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Hip Abduction (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abductors"
+  },
+  {
+    "name": "Hip Adduction (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: adductors"
+  },
+  {
+    "name": "Hip Thrust",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Hip Thrust (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Hip Thrust (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Hip Thrust (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Hollow Rock",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Incline Bench Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline Bench Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline bench press (paused)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline Bench Press (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline Chest Fly (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline Chest Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Incline Push Ups",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Inverted Row",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Iso-Lateral Chest Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Iso-Lateral High Row (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Iso-Lateral Low Row",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Iso-Lateral Row (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Jackknife Sit Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Jack Knife (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "JM Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Jumping Jack",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Jumping Lunge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Jump Rope",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Jump Shrug",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Jump Squat",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Kettlebell Around the World",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Kettlebell Clean",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Kettlebell Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Kettlebell Goblet Squat",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Kettlebell Halo",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Kettlebell High Pull",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Kettlebell Shoulder Press",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Kettlebell Snatch",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Kettlebell Swing",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Kettlebell Turkish Get Up",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Kipping Pull Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Kneeling Pulldown (band)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Kneeling Push Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Knee Raise Parallel Bars",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Landmine 180",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Landmine Row",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Landmine Squat and Press",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Lateral Band Walks",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Lateral Box Jump",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lateral Leg Raises",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Lateral Lunge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lateral Raise (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Lateral Raise (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Lateral Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Lateral Raise (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Lateral Squat",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lat Pulldown (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Lat Pulldown (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Lat Pulldown - Close Grip (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Lat Pulldown (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Lat Pulldown Neutral Grip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Leg Extension (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Leg Press Horizontal (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Leg Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Leg Raise Parallel Bars",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Low Cable Fly Crossovers",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Low Row (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "L-Sit Hold",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Lunge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lunge (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lunge (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Lying Knee Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Lying Leg Curl (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Lying Leg Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Lying Neck Curls",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: neck"
+  },
+  {
+    "name": "Lying Neck Curls (Weighted)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: neck"
+  },
+  {
+    "name": "Lying Neck Extension",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: neck"
+  },
+  {
+    "name": "Lying Neck Extension (Weighted)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: neck"
+  },
+  {
+    "name": "Meadows Rows (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Mountain Climber",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Muscle Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Negative Pull Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Nordic Hamstrings Curls",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Oblique Crunch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "One Arm Push Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Overhead Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Overhead Dumbbell Lunge",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Overhead Plate Raise",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Overhead Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Overhead Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Overhead Press (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Overhead Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Overhead Triceps Extension (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Partial Glute Bridge (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "pause bench",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Paused Smith Squat",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Pause Squat (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Pendlay Row (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Pendulum Squat (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Pike Pushup",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Pilates",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Pinwheel Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Pistol Squat",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Plank",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Plank Pushup",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Plate Curl",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Plate Front Raise",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Plate Press",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Plate Squeeze (Svend Press)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Power Clean",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Power Snatch",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Preacher Curl (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Preacher Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Preacher Curl (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Press Under",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Pullover (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pullover (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pull Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pull Up (Assisted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pull Up (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pull Up (Weighted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Pulse Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abductors"
+  },
+  {
+    "name": "Push Press",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Push Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Push Up - Close Grip",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Push Up (Weighted)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Rack Pull",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Rear Delt Reverse Fly (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Rear Delt Reverse Fly (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Rear Delt Reverse Fly (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Rear Kick (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Renegade Row (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Reverse Crunch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Reverse Curl (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Reverse Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Reverse Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Reverse Fly Single Arm (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Reverse Grip Concentration Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Reverse Grip Lat Pulldown (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Reverse Hyperextension",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Reverse Lunge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Reverse Lunge (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Reverse Lunge (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Reverse Plank",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Ring Dips",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Ring Pull Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Ring Push Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Romanian Deadlift (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Romanian Deadlift (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Rope Cable Curl",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Rope Rear Felt Fly",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Rope Straight Arm Pulldown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Rowing Machine",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Running",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Russian Twist (Bodyweight)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Russian Twist (Weighted)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Safety Bar Squat",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Safety Squat Bar Squat - Paused",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Scapular Pull Ups",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Seated Cable Row - Bar Grip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Seated Cable Row - Bar Wide Grip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Seated Cable Row - V Grip (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Seated Calf Raise",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Seated Chest Flys (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Seated Dip Machine",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Seated Incline Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Seated Lateral Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Seated Leg Curl (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Seated Overhead Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Seated Overhead Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Seated Palms Up Wrist Curl",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: forearms"
+  },
+  {
+    "name": "Seated Row (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Seated Shoulder Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Seated Triceps Press",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Seated Wrist Extension (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: forearms"
+  },
+  {
+    "name": "Shoulder Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Shoulder Press (Machine Plates)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Shoulder Taps",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Shrug (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: traps"
+  },
+  {
+    "name": "Shrug (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: traps"
+  },
+  {
+    "name": "Shrug (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: traps"
+  },
+  {
+    "name": "Shrug (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: traps"
+  },
+  {
+    "name": "Shrug (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: traps"
+  },
+  {
+    "name": "Side Bend",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Side Bend (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Side Plank",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Single Arm Cable Crossover",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: chest"
+  },
+  {
+    "name": "Single Arm Cable Row",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Single Arm Curl (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Single Arm Landmine Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Single Arm Lateral Raise (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Single Arm Lat Pulldown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Single Arm Lat Pulldown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Single Arm Tricep Extension (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Single Arm Triceps Pushdown (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Single Leg Extensions",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Single Leg Glute Bridge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Single Leg Hip Thrust",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Single Leg Hip Thrust (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Single Leg Press (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Single Leg Romanian Deadlift (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Single Leg Romanian Deadlift (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Single Leg Smith Lunge",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Single Leg Standing Calf Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Single Leg Standing Calf Raise (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Single Leg Standing Calf Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Single Leg Standing Calf Raise (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Sissy Squat (Weighted)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sit Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Sit Up (Weighted)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Skating",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Skiing",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Skullcrusher (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Skullcrusher (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Sled Push",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Snatch",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Snowboarding",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Spider Curl (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Spider Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Spiderman",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Spinning",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Split Jerk",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Split Squat (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sprints",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Squat (Band)",
+    "equipment": "Cable",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat (Bodyweight)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat Row",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Squat (Smith Machine)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Squat (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Stair Machine (Floors)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Stair Machine (Steps)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Standing Cable Glute Kickbacks",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Standing Calf Raise",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Standing Calf Raise (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Standing Calf Raise (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Standing Calf Raise (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Standing Calf Raise (Smith)",
+    "equipment": "SmithMachine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: calves"
+  },
+  {
+    "name": "Standing Leg Curls",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Standing Military Press (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Step Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sternum Pull up (Gironda)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Straight Arm Lat Pulldown (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Straight Leg Deadlift",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: hamstrings"
+  },
+  {
+    "name": "Stretching",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: other"
+  },
+  {
+    "name": "Sumo Deadlift",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: glutes"
+  },
+  {
+    "name": "Sumo Squat",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sumo Squat (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sumo Squat (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Sumo Squat (Kettlebell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Superman",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lower_back"
+  },
+  {
+    "name": "Swimming",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "T Bar Row",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: upper_back"
+  },
+  {
+    "name": "Tempo Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Thruster (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Thruster (Kettlebell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Toes to Bar",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Toe Touch",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Torso Rotation",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Treadmill",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Triceps Dip",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Dip (Assisted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Dip (Weighted)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Extension (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Extension (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Extension (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Extension (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Extension (Suspension)",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Kickback (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Kickback (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Pressdown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Pushdown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Triceps Rope Pushdown",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Upright Row (Barbell)",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Upright Row (Cable)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Upright Row (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: shoulders"
+  },
+  {
+    "name": "Vertical Traction (Machine)",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "V Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
+    "name": "Waiter Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  },
+  {
+    "name": "Walking",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: cardio"
+  },
+  {
+    "name": "Walking Lunge",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Walking Lunge (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Wall Ball",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Wall Sit",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Warm Up",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Wide-Elbow Triceps Press (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: triceps"
+  },
+  {
+    "name": "Wide Pull Up",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: lats"
+  },
+  {
+    "name": "Wrist Roller",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: forearms"
+  },
+  {
+    "name": "Yoga",
+    "equipment": "Bodyweight",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: full_body"
+  },
+  {
+    "name": "Zercher Squat",
+    "equipment": "Barbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: quadriceps"
+  },
+  {
+    "name": "Zottman Curl (Dumbbell)",
+    "equipment": "Dumbbell",
+    "defaultRepRange": {
+      "minimum": 8,
+      "target": 10,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: biceps"
+  }
+]

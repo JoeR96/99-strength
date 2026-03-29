@@ -2,11 +2,10 @@ using A2S.Api.Middleware;
 using A2S.Api.Services;
 using A2S.Application;
 using A2S.Application.Common;
-using A2S.Domain.Entities;
 using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
+using A2S.Integration.Hevy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -26,6 +25,7 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHevyIntegration(builder.Configuration);
 
 // Add HttpContextAccessor and CurrentUserService
 builder.Services.AddHttpContextAccessor();
@@ -55,13 +55,12 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-// Configure Identity (required for IdentityDbContext schema — Clerk is the sole auth provider)
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-.AddEntityFrameworkStores<A2SDbContext>()
-.AddDefaultTokenProviders();
-
 // Configure Clerk JWT Authentication
-var clerkDomain = builder.Configuration["Clerk:Domain"] ?? "https://cosmic-treefrog-30.clerk.accounts.dev";
+var clerkDomain = builder.Configuration["Clerk:Domain"]
+    ?? throw new InvalidOperationException("Clerk:Domain configuration is required. Set 'Clerk:Domain' in appsettings or environment variables.");
+
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:Origins configuration is required. Set 'Cors:Origins' in appsettings or environment variables.");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -74,14 +73,14 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = false, // Clerk doesn't use audience validation by default
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = clerkDomain,
         NameClaimType = "name",
         RoleClaimType = "role"
     };
-    options.RequireHttpsMetadata = false; // Allow HTTP in development
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 });
 
 builder.Services.AddAuthorization();
@@ -91,11 +90,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                  "https://99-strength.enjoeneer.dev",
-                  "https://enjoeneer.dev",
-                  "http://localhost:5173",
-                  "http://localhost:3000")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -133,6 +128,9 @@ app.UseHttpsRedirection();
 // Enable CORS
 app.UseCors("AllowFrontend");
 
+// Global exception handler — must be early in the pipeline
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
 // Add correlation ID middleware
 app.UseMiddleware<CorrelationIdMiddleware>();
 
@@ -152,31 +150,7 @@ app.MapControllers();
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
 
 // Make Program class accessible for WebApplicationFactory in tests
 public partial class Program { }

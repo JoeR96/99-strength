@@ -565,7 +565,7 @@ public class SubstitutionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = "back-squat-test",
+                ExternalTemplateId = "back-squat-test",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day1,
@@ -576,7 +576,7 @@ public class SubstitutionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = "lat-pulldown-test",
+                ExternalTemplateId = "lat-pulldown-test",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -613,7 +613,7 @@ public class SubstitutionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Lat Pulldown (Cable)",
-                HevyExerciseTemplateId = "lat-pulldown-rps-test",
+                ExternalTemplateId = "lat-pulldown-rps-test",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -627,7 +627,7 @@ public class SubstitutionIntegrationTests
             new CreateExerciseRequest
             {
                 TemplateName = "Seated Cable Row - V Grip (Cable)",
-                HevyExerciseTemplateId = "cable-row-test",
+                ExternalTemplateId = "cable-row-test",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,

@@ -1,6 +1,9 @@
+using A2S.Api.Contracts.Requests;
+using A2S.Api.Contracts.Responses;
+using A2S.Api.Extensions;
 using A2S.Application.Commands.Users;
 using A2S.Application.Queries.Users;
-using FluentValidation;
+using A2S.Domain.Common;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace A2S.Api.Controllers;
 
 /// <summary>
-/// API controller for user management operations.
+/// User management operations.
 /// </summary>
 [ApiController]
 [Route("api/v1/users")]
@@ -25,47 +28,42 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Creates a new user.
     /// </summary>
-    /// <param name="command">The create user command.</param>
-    /// <returns>The created user.</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<UserResponse>> Create([FromBody] CreateUserRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
         var command = new CreateUserCommand(request.Email, request.Name);
+        var result = await _mediator.Send(command);
 
-        try
+        if (result.IsFailure)
         {
-            var result = await _mediator.Send(command);
-            var response = new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, response);
+            return result.ToProblemResult();
         }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { errors = ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+
+        var response = new UserResponse(result.Value.Id, result.Value.Email, result.Value.Name, result.Value.CreatedAt);
+        return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, response);
     }
 
     /// <summary>
     /// Gets a user by ID.
     /// </summary>
-    /// <param name="id">The user ID.</param>
-    /// <returns>The user if found.</returns>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponse>> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var query = new GetUserByIdQuery(id);
+        var query = new GetUserByIdQuery(new UserId(id));
         var result = await _mediator.Send(query);
 
         if (result is null)
         {
-            return NotFound();
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Detail = "User not found"
+            });
         }
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
@@ -74,36 +72,34 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Gets the current authenticated user's profile.
     /// </summary>
-    /// <returns>The current user if found.</returns>
     [HttpGet("me")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponse>> GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
-        // Get user ID from HttpContext.Items (set by AutoProvisionUserMiddleware)
         if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not Guid userId)
         {
-            return NotFound(new { error = "User not found" });
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Detail = "User not found"
+            });
         }
 
-        var query = new GetUserByIdQuery(userId);
+        var query = new GetUserByIdQuery(new UserId(userId));
         var result = await _mediator.Send(query);
 
         if (result is null)
         {
-            return NotFound(new { error = "User not found" });
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Detail = "User not found"
+            });
         }
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
     }
 }
-
-/// <summary>
-/// Request model for creating a user.
-/// </summary>
-public record CreateUserRequest(string Email, string Name);
-
-/// <summary>
-/// Response model for user data.
-/// </summary>
-public record UserResponse(Guid Id, string Email, string Name, DateTime CreatedAt);

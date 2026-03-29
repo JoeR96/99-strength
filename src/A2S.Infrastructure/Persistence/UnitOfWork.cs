@@ -12,15 +12,10 @@ public class UnitOfWork : IUnitOfWork
     private readonly A2SDbContext _context;
     private IDbContextTransaction? _currentTransaction;
 
-    public UnitOfWork(
-        A2SDbContext context,
-        IWorkoutRepository workoutRepository)
+    public UnitOfWork(A2SDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        Workouts = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
     }
-
-    public IWorkoutRepository Workouts { get; }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
     {

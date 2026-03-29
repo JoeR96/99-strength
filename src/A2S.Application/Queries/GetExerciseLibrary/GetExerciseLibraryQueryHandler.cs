@@ -1,51 +1,66 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
-using A2S.Application.Services;
+using A2S.Domain.Repositories;
 using MediatR;
 
 namespace A2S.Application.Queries.GetExerciseLibrary;
 
 /// <summary>
 /// Handler for GetExerciseLibraryQuery.
-/// Returns the predefined exercise library.
+/// Returns exercise definitions from the database.
 /// </summary>
 public sealed class GetExerciseLibraryQueryHandler : IRequestHandler<GetExerciseLibraryQuery, Result<ExerciseLibraryDto>>
 {
-    public Task<Result<ExerciseLibraryDto>> Handle(GetExerciseLibraryQuery request, CancellationToken cancellationToken)
+    private readonly IExerciseDefinitionRepository _exerciseDefinitionRepository;
+
+    public GetExerciseLibraryQueryHandler(IExerciseDefinitionRepository exerciseDefinitionRepository)
+    {
+        _exerciseDefinitionRepository = exerciseDefinitionRepository;
+    }
+
+    public async Task<Result<ExerciseLibraryDto>> Handle(GetExerciseLibraryQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var templates = ExerciseLibrary.AllTemplates.Select(MapToDto).ToList();
+            var hasFilters = request.EquipmentType.HasValue
+                || !string.IsNullOrWhiteSpace(request.MuscleGroup)
+                || !string.IsNullOrWhiteSpace(request.SearchTerm)
+                || !string.IsNullOrWhiteSpace(request.Category);
+
+            var definitions = hasFilters
+                ? await _exerciseDefinitionRepository.SearchAsync(
+                    request.EquipmentType,
+                    request.MuscleGroup ?? request.Category,
+                    request.SearchTerm,
+                    cancellationToken)
+                : await _exerciseDefinitionRepository.GetAllAsync(cancellationToken);
+
+            var templates = definitions.Select(d => new ExerciseTemplateDto
+            {
+                Name = d.Name,
+                Equipment = d.EquipmentType,
+                DefaultRepRange = d.DefaultRepRangeMin.HasValue && d.DefaultRepRangeTarget.HasValue && d.DefaultRepRangeMax.HasValue
+                    ? new RepRangeDto
+                    {
+                        Minimum = d.DefaultRepRangeMin.Value,
+                        Target = d.DefaultRepRangeTarget.Value,
+                        Maximum = d.DefaultRepRangeMax.Value
+                    }
+                    : null,
+                DefaultSets = d.DefaultSets,
+                Description = d.Description
+            }).ToList();
 
             var result = new ExerciseLibraryDto
             {
                 Templates = templates
             };
 
-            return Task.FromResult(Result.Success(result));
+            return Result.Success(result);
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result.Failure<ExerciseLibraryDto>($"Failed to retrieve exercise library: {ex.Message}"));
+            return Result.Failure<ExerciseLibraryDto>($"Failed to retrieve exercise library: {ex.Message}");
         }
-    }
-
-    private static ExerciseTemplateDto MapToDto(ExerciseLibrary.ExerciseTemplate template)
-    {
-        return new ExerciseTemplateDto
-        {
-            Name = template.Name,
-            Equipment = template.Equipment,
-            DefaultRepRange = template.DefaultRepRange != null
-                ? new RepRangeDto
-                {
-                    Minimum = template.DefaultRepRange.Minimum,
-                    Target = template.DefaultRepRange.Target,
-                    Maximum = template.DefaultRepRange.Maximum
-                }
-                : null,
-            DefaultSets = template.DefaultSets,
-            Description = template.Description
-        };
     }
 }

@@ -397,7 +397,7 @@ public class UnilateralProgressionTests
             new CreateExerciseRequest
             {
                 TemplateName = "Lat Pulldown (Cable)",  // Must match ExerciseLibrary name exactly
-                HevyExerciseTemplateId = $"lat-pulldown-unilateral-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"lat-pulldown-unilateral-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -440,7 +440,7 @@ public class UnilateralProgressionTests
             new CreateExerciseRequest
             {
                 TemplateName = "Bent Over Row (Dumbbell)",
-                HevyExerciseTemplateId = $"db-row-unilateral-test-{Guid.NewGuid()}",
+                ExternalTemplateId = $"db-row-unilateral-test-{Guid.NewGuid()}",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day1,
@@ -455,7 +455,7 @@ public class UnilateralProgressionTests
             new CreateExerciseRequest
             {
                 TemplateName = "Squat (Barbell)",
-                HevyExerciseTemplateId = $"squat-filler-{Guid.NewGuid()}",
+                ExternalTemplateId = $"squat-filler-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day2,
@@ -467,7 +467,7 @@ public class UnilateralProgressionTests
             new CreateExerciseRequest
             {
                 TemplateName = "Bench Press (Barbell)",
-                HevyExerciseTemplateId = $"bench-filler-{Guid.NewGuid()}",
+                ExternalTemplateId = $"bench-filler-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day3,
@@ -479,7 +479,7 @@ public class UnilateralProgressionTests
             new CreateExerciseRequest
             {
                 TemplateName = "Deadlift (Barbell)",
-                HevyExerciseTemplateId = $"deadlift-filler-{Guid.NewGuid()}",
+                ExternalTemplateId = $"deadlift-filler-{Guid.NewGuid()}",
                 Category = ExerciseCategory.MainLift,
                 ProgressionType = "Linear",
                 AssignedDay = DayNumber.Day4,

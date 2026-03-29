@@ -124,7 +124,7 @@ public class MinimalSetsIntegrationTests
             new()
             {
                 TemplateName = "Triceps Dip (Assisted)",
-                HevyExerciseTemplateId = "test-dips-minimal",
+                ExternalTemplateId = "test-dips-minimal",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "MinimalSets",
                 AssignedDay = DayNumber.Day1,
@@ -138,7 +138,7 @@ public class MinimalSetsIntegrationTests
             new()
             {
                 TemplateName = "Bicep Curl (Cable)",
-                HevyExerciseTemplateId = "test-bicep-curl-minimal",
+                ExternalTemplateId = "test-bicep-curl-minimal",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day2,
@@ -151,7 +151,7 @@ public class MinimalSetsIntegrationTests
             new()
             {
                 TemplateName = "Triceps Pushdown",
-                HevyExerciseTemplateId = "test-triceps-pushdown-minimal",
+                ExternalTemplateId = "test-triceps-pushdown-minimal",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day3,
@@ -164,7 +164,7 @@ public class MinimalSetsIntegrationTests
             new()
             {
                 TemplateName = "Leg Extension (Machine)",
-                HevyExerciseTemplateId = "test-leg-ext-minimal",
+                ExternalTemplateId = "test-leg-ext-minimal",
                 Category = ExerciseCategory.Accessory,
                 ProgressionType = "RepsPerSet",
                 AssignedDay = DayNumber.Day4,

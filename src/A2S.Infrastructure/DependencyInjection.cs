@@ -1,10 +1,10 @@
-using A2S.Application.Interfaces;
+using A2S.Application.Services;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
-using A2S.Infrastructure.ExternalServices;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.Repositories;
+using A2S.Infrastructure.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,18 +59,17 @@ public static class DependencyInjection
         // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWorkoutRepository, WorkoutRepository>();
+        services.AddScoped<IExerciseDefinitionRepository, ExerciseDefinitionRepository>();
 
         // Register Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Register Domain Services
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
+        services.AddSingleton<IExerciseLibraryProvider, ExerciseLibraryProvider>();
 
         // Register Domain Event Dispatcher
         services.AddScoped<IDomainEventDispatcher, MediatRDomainEventDispatcher>();
-
-        // Register External Services
-        services.AddScoped<IHevyIntegrationService, HevyIntegrationService>();
 
         return services;
     }

@@ -13,9 +13,11 @@ public sealed class WorkoutActivity : ValueObject
     public int WeekNumber { get; private init; }
     public int BlockNumber { get; private init; }
 
-    // Use List<T> for EF Core JSON deserialization compatibility (arrays are fixed-size)
-    public List<ExercisePerformance> Performances { get; private init; } = new();
-    public List<ProgressionSnapshot> ProgressionSnapshots { get; private init; } = new();
+    // Use List<T> internally for EF Core JSON deserialization compatibility
+    private readonly List<ExercisePerformance> _performances = new();
+    private readonly List<ProgressionSnapshot> _progressionSnapshots = new();
+    public IReadOnlyList<ExercisePerformance> Performances => _performances;
+    public IReadOnlyList<ProgressionSnapshot> ProgressionSnapshots => _progressionSnapshots;
     public DateTime CompletedAt { get; private init; }
 
     // EF Core constructor for JSON deserialization
@@ -40,8 +42,8 @@ public sealed class WorkoutActivity : ValueObject
         Day = day;
         WeekNumber = weekNumber;
         BlockNumber = blockNumber;
-        Performances = performancesList;
-        ProgressionSnapshots = progressionSnapshots?.ToList() ?? new List<ProgressionSnapshot>();
+        _performances = performancesList;
+        _progressionSnapshots = progressionSnapshots?.ToList() ?? new List<ProgressionSnapshot>();
         CompletedAt = completedAt ?? DateTime.UtcNow;
     }
 
@@ -51,6 +53,17 @@ public sealed class WorkoutActivity : ValueObject
     public bool IsDeloadWeek()
     {
         return WeekNumber % 7 == 0; // Weeks 7, 14, 21
+    }
+
+    /// <summary>
+    /// Creates a new WorkoutActivity with a replaced progression snapshot at the given index.
+    /// Used by retrofix operations to correct historical snapshot data.
+    /// </summary>
+    public WorkoutActivity WithReplacedSnapshot(int index, ProgressionSnapshot replacement)
+    {
+        var newSnapshots = _progressionSnapshots.ToList();
+        newSnapshots[index] = replacement;
+        return new WorkoutActivity(Day, WeekNumber, BlockNumber, _performances, newSnapshots, CompletedAt);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

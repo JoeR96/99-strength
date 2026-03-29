@@ -17,38 +17,6 @@ public sealed record CompleteDayRequest
 }
 
 /// <summary>
-/// Request body for setting Hevy folder ID.
-/// </summary>
-public sealed record SetHevyFolderIdRequest
-{
-    /// <summary>
-    /// The Hevy routine folder ID.
-    /// </summary>
-    public required string FolderId { get; init; }
-}
-
-/// <summary>
-/// Request body for setting a Hevy synced routine.
-/// </summary>
-public sealed record SetHevySyncedRoutineRequest
-{
-    /// <summary>
-    /// The week number (1-21).
-    /// </summary>
-    public required int WeekNumber { get; init; }
-
-    /// <summary>
-    /// The day number (1-6).
-    /// </summary>
-    public required int DayNumber { get; init; }
-
-    /// <summary>
-    /// The Hevy routine ID.
-    /// </summary>
-    public required string RoutineId { get; init; }
-}
-
-/// <summary>
 /// Request body for updating exercises.
 /// </summary>
 public sealed record UpdateExercisesRequest
@@ -72,7 +40,7 @@ public sealed record SubstituteExerciseRequest
     /// <summary>
     /// Optional new Hevy exercise template ID.
     /// </summary>
-    public string? NewHevyExerciseTemplateId { get; init; }
+    public string? NewExternalTemplateId { get; init; }
 
     /// <summary>
     /// Optional reason for the substitution.
@@ -114,11 +82,30 @@ public sealed record ConfirmStartingWeightRequest
 }
 
 /// <summary>
+/// Request body for confirming a new working weight after Cable/Machine progression.
+/// </summary>
+public sealed record ConfirmWorkingWeightRequest
+{
+    public required decimal Weight { get; init; }
+    public required WeightUnit Unit { get; init; }
+}
+
+/// <summary>
 /// Request body for updating block sequence.
 /// </summary>
 public sealed record UpdateBlockSequenceRequest
 {
     public required List<int> BlockSequence { get; init; }
+}
+
+/// <summary>
+/// Request body for syncing a routine to Hevy.
+/// </summary>
+public sealed record SyncRoutineRequest
+{
+    public Guid WorkoutId { get; init; }
+    public int WeekNumber { get; init; }
+    public int DayNumber { get; init; }
 }
 
 /// <summary>

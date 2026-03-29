@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using A2S.Api.Controllers;
+using A2S.Api.Contracts.Requests;
+using A2S.Api.Contracts.Responses;
 using A2S.Tests.Shared;
 using FluentAssertions;
 
