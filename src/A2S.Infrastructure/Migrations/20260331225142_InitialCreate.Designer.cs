@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace A2S.Infrastructure.Migrations
 {
     [DbContext(typeof(A2SDbContext))]
-    [Migration("20260331222223_InitialCreate")]
+    [Migration("20260331225142_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -126,8 +126,10 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("TotalWeeks")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Variant")
                         .IsRequired()
@@ -207,8 +209,9 @@ namespace A2S.Infrastructure.Migrations
 
             modelBuilder.Entity("A2S.Domain.Entities.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Id")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

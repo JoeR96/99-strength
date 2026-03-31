@@ -48,10 +48,10 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Gets a user by ID.
     /// </summary>
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(string id)
     {
         var query = new GetUserByIdQuery(new UserId(id));
         var result = await _mediator.Send(query);
@@ -77,7 +77,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUser()
     {
-        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not Guid userId)
+        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
         {
             return NotFound(new ProblemDetails
             {

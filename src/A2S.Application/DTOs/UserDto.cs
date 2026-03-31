@@ -4,7 +4,7 @@ namespace A2S.Application.DTOs;
 /// Data transfer object for User entity.
 /// </summary>
 public sealed record UserDto(
-    Guid Id,
+    string Id,
     string Email,
     string Name,
     DateTime CreatedAt);

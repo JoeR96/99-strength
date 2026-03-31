@@ -18,7 +18,7 @@ public readonly record struct ExerciseProgressionId(Guid Value);
 /// <summary>
 /// Strongly-typed ID for User aggregate root.
 /// </summary>
-public readonly record struct UserId(Guid Value);
+public readonly record struct UserId(string Value);
 
 /// <summary>
 /// Strongly-typed ID for ExerciseDefinition entity (reference data).

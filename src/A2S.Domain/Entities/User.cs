@@ -39,7 +39,7 @@ public class User : AggregateRoot<UserId>
         ValidateName(name);
 
         return new User(
-            id: id ?? new UserId(Guid.NewGuid()),
+            id: id ?? new UserId(Guid.NewGuid().ToString()),
             email: email.Trim().ToLowerInvariant(),
             name: name.Trim(),
             createdAt: DateTime.UtcNow);
@@ -49,7 +49,7 @@ public class User : AggregateRoot<UserId>
     /// Reconstitutes a user from persistence.
     /// Used by EF Core and for testing.
     /// </summary>
-    internal static User Reconstitute(Guid id, string email, string name, DateTime createdAt)
+    internal static User Reconstitute(string id, string email, string name, DateTime createdAt)
     {
         return new User(new UserId(id), email, name, createdAt);
     }

@@ -20,6 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasConversion(
                 id => id.Value,
                 value => new UserId(value))
+            .HasMaxLength(256)
             .ValueGeneratedNever();
 
         builder.Property(u => u.Email)

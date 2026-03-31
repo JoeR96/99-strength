@@ -30,27 +30,31 @@ public class AutoProvisionUserMiddleware
             return;
         }
 
-        var email = context.User.FindFirstValue(ClaimTypes.Email)
-            ?? context.User.FindFirstValue("email");
+        var sub = context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? context.User.FindFirstValue("sub");
 
-        if (string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(sub))
         {
-            _logger.LogWarning("Authenticated user has no email claim");
+            _logger.LogWarning("Authenticated user has no sub claim");
             await _next(context);
             return;
         }
 
-        var user = await userRepository.GetByEmailAsync(email);
+        var email = context.User.FindFirstValue(ClaimTypes.Email)
+            ?? context.User.FindFirstValue("email");
+
+        var user = await userRepository.GetByIdAsync(new A2S.Domain.Common.UserId(sub));
 
         if (user is null)
         {
             var name = context.User.FindFirstValue(ClaimTypes.Name)
                 ?? context.User.FindFirstValue("name")
-                ?? email.Split('@')[0];
+                ?? email?.Split('@')[0]
+                ?? "User";
 
             try
             {
-                user = User.Create(email, name);
+                user = User.Create(email ?? $"{sub}@clerk.local", name, new A2S.Domain.Common.UserId(sub));
                 await userRepository.AddAsync(user);
                 await unitOfWork.SaveChangesAsync();
 
@@ -58,14 +62,13 @@ public class AutoProvisionUserMiddleware
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogWarning(ex, "Concurrent user creation detected for email {Email}, fetching existing user", email);
+                _logger.LogWarning(ex, "Concurrent user creation detected for sub {Sub}, fetching existing user", sub);
 
-                // Another request created this user concurrently — re-fetch
-                user = await userRepository.GetByEmailAsync(email);
+                user = await userRepository.GetByIdAsync(new A2S.Domain.Common.UserId(sub));
 
                 if (user is null)
                 {
-                    _logger.LogError("Failed to provision or retrieve user for email {Email}", email);
+                    _logger.LogError("Failed to provision or retrieve user for sub {Sub}", sub);
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     return;
                 }

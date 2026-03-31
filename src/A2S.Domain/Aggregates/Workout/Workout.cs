@@ -73,7 +73,7 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         IEnumerable<Exercise> exercises)
         : base(id)
     {
-        CheckRule(userId.Value != Guid.Empty, "User ID cannot be empty");
+        CheckRule(!string.IsNullOrWhiteSpace(userId.Value), "User ID cannot be empty");
         CheckRule(!string.IsNullOrWhiteSpace(name), "Workout name cannot be empty");
         ValidateBlockSequence(blockSequence);
 

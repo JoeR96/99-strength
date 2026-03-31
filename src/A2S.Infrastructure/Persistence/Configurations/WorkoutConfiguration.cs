@@ -39,6 +39,7 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .HasConversion(
                 id => id.Value,
                 value => new UserId(value))
+            .HasMaxLength(256)
             .IsRequired();
 
         builder.Property(w => w.Variant)
