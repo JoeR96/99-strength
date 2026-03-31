@@ -7,6 +7,7 @@ COPY src/A2S.Api/A2S.Api.csproj src/A2S.Api/
 COPY src/A2S.Application/A2S.Application.csproj src/A2S.Application/
 COPY src/A2S.Domain/A2S.Domain.csproj src/A2S.Domain/
 COPY src/A2S.Infrastructure/A2S.Infrastructure.csproj src/A2S.Infrastructure/
+COPY src/A2S.Integration.Hevy/A2S.Integration.Hevy.csproj src/A2S.Integration.Hevy/
 RUN dotnet restore src/A2S.Api/A2S.Api.csproj
 
 # Copy source and publish

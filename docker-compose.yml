@@ -8,6 +8,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Database__ConnectionString: "Host=db;Port=5432;Database=ninety_nine_strength;Username=app;Password=${POSTGRES_PASSWORD}"
+      Cors__Origins__0: "http://localhost:5173"
+      Clerk__Domain: "https://cosmic-treefrog-30.clerk.accounts.dev"
     depends_on:
       db:
         condition: service_healthy

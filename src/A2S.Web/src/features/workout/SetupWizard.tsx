@@ -100,7 +100,7 @@ export function SetupWizard() {
       // Map selected exercises to API request format
       const exercises: CreateExerciseRequest[] = selectedExercises.map((ex) => ({
         templateName: ex.template.name,
-        hevyExerciseTemplateId: ex.hevyExerciseTemplateId,
+        externalTemplateId: ex.hevyExerciseTemplateId ?? "",
         category: ex.category ?? ExerciseCategory.MainLift,
         progressionType: ex.progressionType,
         assignedDay: ex.assignedDay as DayNumber,

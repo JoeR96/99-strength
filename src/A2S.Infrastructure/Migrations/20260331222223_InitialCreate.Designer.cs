@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace A2S.Infrastructure.Migrations
 {
     [DbContext(typeof(A2SDbContext))]
-    [Migration("20260208192032_AddBlockSequenceToWorkout")]
-    partial class AddBlockSequenceToWorkout
+    [Migration("20260331222223_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,10 +42,11 @@ namespace A2S.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("HevyExerciseTemplateId")
+                    b.Property<string>("ExternalTemplateId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("HevyExerciseTemplateId");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -110,16 +111,6 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("CurrentWeek")
                         .HasColumnType("integer");
 
-                    b.Property<string>("HevyRoutineFolderId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("HevySyncedRoutines")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValueSql("'{}'::jsonb");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -135,9 +126,8 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("TotalWeeks")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Variant")
                         .IsRequired()
@@ -150,79 +140,69 @@ namespace A2S.Infrastructure.Migrations
                         .HasColumnName("BlockSequence")
                         .HasDefaultValueSql("'[1,2,3]'::jsonb");
 
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.ToTable("Workouts", (string)null);
                 });
 
-            modelBuilder.Entity("A2S.Domain.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("A2S.Domain.Entities.ExerciseDefinition", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("AccessFailedCount")
+                    b.Property<int?>("DefaultRepRangeMax")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("text");
+                    b.Property<int?>("DefaultRepRangeMin")
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int?>("DefaultRepRangeTarget")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<int?>("DefaultSets")
+                        .HasColumnType("integer");
 
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                    b.Property<string>("EquipmentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<bool>("IsCompound")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<string>("MuscleGroup")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                    b.HasIndex("EquipmentType");
 
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                    b.HasIndex("MuscleGroup");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ExerciseDefinitions", (string)null);
                 });
 
             modelBuilder.Entity("A2S.Domain.Entities.User", b =>
@@ -249,138 +229,6 @@ namespace A2S.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
-
-                    b.ToTable("AspNetRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("LoginProvider", "ProviderKey");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserLogins", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Workout.LinearProgressionStrategy", b =>
@@ -449,6 +297,12 @@ namespace A2S.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("IsUnilateral");
 
+                    b.Property<bool>("PendingWeightConfirmation")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("PendingWeightConfirmation");
+
                     b.Property<int>("StartingSets")
                         .HasColumnType("integer")
                         .HasColumnName("StartingSets");
@@ -492,7 +346,7 @@ namespace A2S.Infrastructure.Migrations
                             b1.Property<int>("DayNumber")
                                 .HasColumnType("integer");
 
-                            b1.Property<Guid>("ExerciseId")
+                            b1.Property<Guid?>("ExerciseId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("ExerciseName")
@@ -528,6 +382,242 @@ namespace A2S.Infrastructure.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("WorkoutId");
+                        });
+
+                    b.OwnsMany("A2S.Domain.ValueObjects.WorkoutActivity", "ArchivedActivities", b1 =>
+                        {
+                            b1.Property<Guid>("WorkoutId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("BlockNumber")
+                                .HasColumnType("integer");
+
+                            b1.Property<DateTime>("CompletedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("Day")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("WeekNumber")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("WorkoutId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Workouts");
+
+                            b1.ToJson("ArchivedActivities");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WorkoutId");
+
+                            b1.OwnsMany("A2S.Domain.ValueObjects.ExercisePerformance", "Performances", b2 =>
+                                {
+                                    b2.Property<Guid>("WorkoutActivityWorkoutId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WorkoutActivity__synthesizedOrdinal")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<DateTime>("CompletedAt")
+                                        .HasColumnType("timestamp with time zone");
+
+                                    b2.Property<Guid>("ExerciseId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<bool>("SkipProgression")
+                                        .HasColumnType("boolean");
+
+                                    b2.HasKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                    b2.ToTable("Workouts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal");
+
+                                    b2.OwnsMany("A2S.Domain.ValueObjects.CompletedSet", "CompletedSets", b3 =>
+                                        {
+                                            b3.Property<Guid>("ExercisePerformanceWorkoutActivityWorkoutId")
+                                                .HasColumnType("uuid");
+
+                                            b3.Property<int>("ExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ExercisePerformance__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("__synthesizedOrdinal")
+                                                .ValueGeneratedOnAdd()
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ActualReps")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("SetNumber")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<bool>("WasAmrap")
+                                                .HasColumnType("boolean");
+
+                                            b3.HasKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                            b3.ToTable("Workouts");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal");
+
+                                            b3.OwnsOne("A2S.Domain.ValueObjects.Weight", "Weight", b4 =>
+                                                {
+                                                    b4.Property<Guid>("CompletedSetExercisePerformanceWorkoutActivityWorkoutId")
+                                                        .HasColumnType("uuid");
+
+                                                    b4.Property<int>("CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                        .HasColumnType("integer")
+                                                        .HasColumnName("CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrd~");
+
+                                                    b4.Property<int>("CompletedSetExercisePerformance__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<int>("CompletedSet__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<string>("Unit")
+                                                        .IsRequired()
+                                                        .HasColumnType("text");
+
+                                                    b4.Property<decimal>("Value")
+                                                        .HasColumnType("numeric");
+
+                                                    b4.HasKey("CompletedSetExercisePerformanceWorkoutActivityWorkoutId", "CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "CompletedSetExercisePerformance__synthesizedOrdinal", "CompletedSet__synthesizedOrdinal");
+
+                                                    b4.ToTable("Workouts");
+
+                                                    b4.WithOwner()
+                                                        .HasForeignKey("CompletedSetExercisePerformanceWorkoutActivityWorkoutId", "CompletedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "CompletedSetExercisePerformance__synthesizedOrdinal", "CompletedSet__synthesizedOrdinal");
+                                                });
+
+                                            b3.Navigation("Weight")
+                                                .IsRequired();
+                                        });
+
+                                    b2.OwnsMany("A2S.Domain.ValueObjects.PlannedSet", "PlannedSets", b3 =>
+                                        {
+                                            b3.Property<Guid>("ExercisePerformanceWorkoutActivityWorkoutId")
+                                                .HasColumnType("uuid");
+
+                                            b3.Property<int>("ExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("ExercisePerformance__synthesizedOrdinal")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("__synthesizedOrdinal")
+                                                .ValueGeneratedOnAdd()
+                                                .HasColumnType("integer");
+
+                                            b3.Property<bool>("IsAmrap")
+                                                .HasColumnType("boolean");
+
+                                            b3.Property<int>("SetNumber")
+                                                .HasColumnType("integer");
+
+                                            b3.Property<int>("TargetReps")
+                                                .HasColumnType("integer");
+
+                                            b3.HasKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                            b3.ToTable("Workouts");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("ExercisePerformanceWorkoutActivityWorkoutId", "ExercisePerformanceWorkoutActivity__synthesizedOrdinal", "ExercisePerformance__synthesizedOrdinal");
+
+                                            b3.OwnsOne("A2S.Domain.ValueObjects.Weight", "Weight", b4 =>
+                                                {
+                                                    b4.Property<Guid>("PlannedSetExercisePerformanceWorkoutActivityWorkoutId")
+                                                        .HasColumnType("uuid");
+
+                                                    b4.Property<int>("PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal")
+                                                        .HasColumnType("integer")
+                                                        .HasColumnName("PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdin~");
+
+                                                    b4.Property<int>("PlannedSetExercisePerformance__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<int>("PlannedSet__synthesizedOrdinal")
+                                                        .HasColumnType("integer");
+
+                                                    b4.Property<string>("Unit")
+                                                        .IsRequired()
+                                                        .HasColumnType("text");
+
+                                                    b4.Property<decimal>("Value")
+                                                        .HasColumnType("numeric");
+
+                                                    b4.HasKey("PlannedSetExercisePerformanceWorkoutActivityWorkoutId", "PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "PlannedSetExercisePerformance__synthesizedOrdinal", "PlannedSet__synthesizedOrdinal");
+
+                                                    b4.ToTable("Workouts");
+
+                                                    b4.WithOwner()
+                                                        .HasForeignKey("PlannedSetExercisePerformanceWorkoutActivityWorkoutId", "PlannedSetExercisePerformanceWorkoutActivity__synthesizedOrdinal", "PlannedSetExercisePerformance__synthesizedOrdinal", "PlannedSet__synthesizedOrdinal");
+                                                });
+
+                                            b3.Navigation("Weight")
+                                                .IsRequired();
+                                        });
+
+                                    b2.Navigation("CompletedSets");
+
+                                    b2.Navigation("PlannedSets");
+                                });
+
+                            b1.OwnsMany("A2S.Domain.ValueObjects.ProgressionSnapshot", "ProgressionSnapshots", b2 =>
+                                {
+                                    b2.Property<Guid>("WorkoutActivityWorkoutId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("WorkoutActivity__synthesizedOrdinal")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("__synthesizedOrdinal")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<Guid>("ExerciseId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<string>("ExerciseName")
+                                        .IsRequired()
+                                        .HasMaxLength(200)
+                                        .HasColumnType("character varying(200)");
+
+                                    b2.Property<string>("ProgressionStateJson")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("ProgressionType")
+                                        .IsRequired()
+                                        .HasMaxLength(50)
+                                        .HasColumnType("character varying(50)");
+
+                                    b2.HasKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal", "__synthesizedOrdinal");
+
+                                    b2.ToTable("Workouts");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("WorkoutActivityWorkoutId", "WorkoutActivity__synthesizedOrdinal");
+                                });
+
+                            b1.Navigation("Performances");
+
+                            b1.Navigation("ProgressionSnapshots");
                         });
 
                     b.OwnsMany("A2S.Domain.ValueObjects.WorkoutActivity", "CompletedActivities", b1 =>
@@ -766,60 +856,11 @@ namespace A2S.Infrastructure.Migrations
                             b1.Navigation("ProgressionSnapshots");
                         });
 
+                    b.Navigation("ArchivedActivities");
+
                     b.Navigation("AuditEntries");
 
                     b.Navigation("CompletedActivities");
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-                {
-                    b.HasOne("A2S.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.HasOne("A2S.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("A2S.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-                {
-                    b.HasOne("A2S.Domain.Entities.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Workout.LinearProgressionStrategy", b =>
@@ -902,6 +943,28 @@ namespace A2S.Infrastructure.Migrations
                                 .HasForeignKey("RepsPerSetStrategyId");
                         });
 
+                    b.OwnsOne("A2S.Domain.ValueObjects.Weight", "SuggestedWeight", b1 =>
+                        {
+                            b1.Property<Guid>("RepsPerSetStrategyId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Unit")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("SuggestedWeightUnit");
+
+                            b1.Property<decimal>("Value")
+                                .HasColumnType("decimal(6,2)")
+                                .HasColumnName("SuggestedWeightValue");
+
+                            b1.HasKey("RepsPerSetStrategyId");
+
+                            b1.ToTable("ExerciseProgressions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("RepsPerSetStrategyId");
+                        });
+
                     b.OwnsOne("A2S.Domain.ValueObjects.RepRange", "RepRange", b1 =>
                         {
                             b1.Property<Guid>("RepsPerSetStrategyId")
@@ -927,11 +990,12 @@ namespace A2S.Infrastructure.Migrations
                                 .HasForeignKey("RepsPerSetStrategyId");
                         });
 
-                    b.Navigation("CurrentWeight")
-                        .IsRequired();
+                    b.Navigation("CurrentWeight");
 
                     b.Navigation("RepRange")
                         .IsRequired();
+
+                    b.Navigation("SuggestedWeight");
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Workout.Exercise", b =>

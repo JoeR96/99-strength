@@ -219,7 +219,7 @@ export interface PulledSetData {
 // Request DTOs
 export interface CreateExerciseRequest {
   templateName: string;
-  hevyExerciseTemplateId?: string; // Optional - defaults to empty string if not provided
+  externalTemplateId?: string;
   category: ExerciseCategory;
   progressionType: "Linear" | "RepsPerSet" | "MinimalSets";
   assignedDay: DayNumber;

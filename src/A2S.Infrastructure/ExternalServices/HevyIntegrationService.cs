@@ -180,6 +180,10 @@ public sealed class HevyIntegrationService : IHevyIntegrationService
         }
     }
 
+    public Task<HevyRoutineSyncResult> SyncRoutineForDayAsync(HevySyncRoutineRequest request, string apiKey, CancellationToken ct = default) => throw new NotImplementedException();
+
+    public Task<HevyWorkoutSyncResult> SyncCompletedWorkoutAsync(HevySyncWorkoutRequest request, string apiKey, CancellationToken ct = default) => throw new NotImplementedException();
+
     public async Task<string?> GetOrCreateRoutineFolderAsync(
         string programName,
         string apiKey,
@@ -271,6 +275,8 @@ public sealed class HevyIntegrationService : IHevyIntegrationService
             return false;
         }
     }
+
+    public Task<HevyPulledWorkoutData?> PullWorkoutDataAsync(HevyPullRequest request, string apiKey, CancellationToken ct = default) => throw new NotImplementedException();
 
     public async Task<HevyPulledWorkoutData?> PullWorkoutDataAsync(
         Workout workout,
