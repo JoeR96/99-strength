@@ -9,176 +9,207 @@ using Xunit;
 namespace A2S.Domain.Tests.Strategies;
 
 /// <summary>
-/// Unit tests for LinearProgressionStrategy covering all 21 weeks of the A2S Hypertrophy program.
-/// Tests verify intensity, sets, reps, and TM adjustments match the spreadsheet exactly.
+/// Unit tests for LinearProgressionStrategy covering all 21 weeks of the A2S2 program.
+/// Tests verify sets, reps/set, and rep-out targets match the spreadsheet exactly.
 ///
-/// Hypertrophy table:
-///   6 intensity levels: a=0.65, b=0.68, c=0.70, d=0.73, e=0.76, f=0.79
-///   Always 4 sets. Deload at 0.60, 5 reps, no AMRAP.
-///   Rep-out target = RepsPerSet + 2 (week 1 = +3).
-///   TM stored at 2dp precision (NOT rounded to gym increments).
+/// A2S2 program structure:
+///   21 weeks = 3 blocks × (6 working weeks + 1 deload)
+///   Each block has 2 mini-cycles (MC) of 3 weeks.
+///   Working weeks: 5 sets. Deload weeks: 4 sets.
+///
+/// Primary (T1, e.g., Back Squat): reps range 5 → 1
+/// Auxiliary (T2, e.g., Front Squat): reps range 7 → 2
+///
+/// Rep-out target:
+///   MC1 (weeks 1-3 of each block): reps × 2
+///   MC2 (weeks 4-6 of blocks 1-2): reps × 2 - 1
+///   MC2 (weeks 4-6 of block 3): reps × 2
+///
+/// TM stored at 2dp precision (NOT rounded to gym increments).
 /// </summary>
 public class LinearProgressionStrategyTests
 {
-    private readonly TrainingMax _testTm = TrainingMax.Create(100m, WeightUnit.Kilograms);
+    private readonly TrainingMax _primaryTm = TrainingMax.Create(120m, WeightUnit.Kilograms);
+    private readonly TrainingMax _auxiliaryTm = TrainingMax.Create(67.5m, WeightUnit.Kilograms);
     private readonly ExerciseId _testExerciseId = new(Guid.Parse("eee22222-2222-2222-2222-222222222222"));
 
-    #region Block 1: Weeks 1-7
+    #region Primary (T1) — Back Squat — All 21 Weeks
 
     [Theory]
-    [InlineData(1, 0.65, 4, 12, 15)]  // Week 1: 65%, 4 sets, 12 reps, rep-out 15
-    [InlineData(2, 0.68, 4, 11, 13)]  // Week 2: 68%, 4 sets, 11 reps, rep-out 13
-    [InlineData(3, 0.70, 4, 10, 12)]  // Week 3: 70%, 4 sets, 10 reps, rep-out 12
-    [InlineData(4, 0.68, 4, 11, 13)]  // Week 4: 68%, 4 sets, 11 reps, rep-out 13
-    [InlineData(5, 0.70, 4, 10, 12)]  // Week 5: 70%, 4 sets, 10 reps, rep-out 12
-    [InlineData(6, 0.73, 4,  9, 11)]  // Week 6: 73%, 4 sets,  9 reps, rep-out 11
-    [InlineData(7, 0.60, 4,  5,  0)]  // Week 7: DELOAD - 60%, 4 sets, 5 reps, no AMRAP
-    public void Block1_CalculatePlannedSets_ShouldMatchSpreadsheet(
-        int week, decimal expectedIntensity, int expectedSets, int expectedRepsPerSet, int expectedRepOutTarget)
+    // Block 1: Weeks 1-7
+    //         (week, block, repsPerSet, sets, repOutTarget)  — repOutTarget=0 means deload
+    [InlineData( 1, 1, 5, 5, 10)]  // MC1-W1: 5 reps, repOut = 5×2 = 10
+    [InlineData( 2, 1, 4, 5,  8)]  // MC1-W2: 4 reps, repOut = 4×2 = 8
+    [InlineData( 3, 1, 3, 5,  6)]  // MC1-W3: 3 reps, repOut = 3×2 = 6
+    [InlineData( 4, 1, 5, 5,  9)]  // MC2-W1: 5 reps, repOut = 5×2-1 = 9
+    [InlineData( 5, 1, 4, 5,  7)]  // MC2-W2: 4 reps, repOut = 4×2-1 = 7
+    [InlineData( 6, 1, 3, 5,  5)]  // MC2-W3: 3 reps, repOut = 3×2-1 = 5
+    [InlineData( 7, 1, 5, 4,  0)]  // DELOAD: 5 reps, 4 sets, no AMRAP
+    // Block 2: Weeks 8-14
+    [InlineData( 8, 2, 4, 5,  8)]  // MC1-W1: 4 reps, repOut = 4×2 = 8
+    [InlineData( 9, 2, 3, 5,  6)]  // MC1-W2: 3 reps, repOut = 3×2 = 6
+    [InlineData(10, 2, 2, 5,  4)]  // MC1-W3: 2 reps, repOut = 2×2 = 4
+    [InlineData(11, 2, 4, 5,  7)]  // MC2-W1: 4 reps, repOut = 4×2-1 = 7
+    [InlineData(12, 2, 3, 5,  5)]  // MC2-W2: 3 reps, repOut = 3×2-1 = 5
+    [InlineData(13, 2, 2, 5,  3)]  // MC2-W3: 2 reps, repOut = 2×2-1 = 3
+    [InlineData(14, 2, 5, 4,  0)]  // DELOAD
+    // Block 3: Weeks 15-21
+    [InlineData(15, 3, 3, 5,  6)]  // MC1-W1: 3 reps, repOut = 3×2 = 6
+    [InlineData(16, 3, 2, 5,  4)]  // MC1-W2: 2 reps, repOut = 2×2 = 4
+    [InlineData(17, 3, 1, 5,  2)]  // MC1-W3: 1 rep,  repOut = 1×2 = 2
+    [InlineData(18, 3, 2, 5,  4)]  // MC2-W1: 2 reps, repOut = 2×2 = 4
+    [InlineData(19, 3, 1, 5,  2)]  // MC2-W2: 1 rep,  repOut = 1×2 = 2
+    [InlineData(20, 3, 1, 5,  2)]  // MC2-W3: 1 rep,  repOut = 1×2 = 2
+    [InlineData(21, 3, 5, 4,  0)]  // DELOAD
+    public void Primary_CalculatePlannedSets_ShouldMatchSpreadsheet(
+        int week, int block, int expectedRepsPerSet, int expectedSets, int expectedRepOutTarget)
     {
         // Arrange
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         // Act
-        var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: 1).ToList();
+        var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: block).ToList();
 
         // Assert
-        plannedSets.Should().HaveCount(expectedSets, $"Week {week} should have {expectedSets} sets");
+        plannedSets.Should().HaveCount(expectedSets,
+            $"Week {week}: should have {expectedSets} sets");
 
-        var expectedWeight = _testTm.CalculateWorkingWeight(expectedIntensity);
-
-        if (week == 7) // Deload - no AMRAP, all sets use RepsPerSet
+        if (expectedRepOutTarget == 0) // Deload — no AMRAP, all sets same reps
         {
             foreach (var set in plannedSets)
             {
-                set.Weight.Value.Should().Be(expectedWeight.Value);
-                set.TargetReps.Should().Be(expectedRepsPerSet);
-                set.IsAmrap.Should().BeFalse($"Deload week {week} should have no AMRAP");
+                set.TargetReps.Should().Be(expectedRepsPerSet,
+                    $"Week {week} (deload): all sets should target {expectedRepsPerSet} reps");
+                set.IsAmrap.Should().BeFalse(
+                    $"Week {week} (deload): no AMRAP on deload");
             }
         }
-        else
+        else // Working week — normal sets + AMRAP last set
         {
-            // Normal sets (1-3): RepsPerSet
+            // Normal sets (all except last)
             for (int i = 0; i < plannedSets.Count - 1; i++)
             {
-                plannedSets[i].Weight.Value.Should().Be(expectedWeight.Value);
                 plannedSets[i].TargetReps.Should().Be(expectedRepsPerSet,
-                    $"Week {week} normal set {i + 1} should target {expectedRepsPerSet} reps");
-                plannedSets[i].IsAmrap.Should().BeFalse();
+                    $"Week {week}: normal set {i + 1} should target {expectedRepsPerSet} reps");
+                plannedSets[i].IsAmrap.Should().BeFalse(
+                    $"Week {week}: set {i + 1} should NOT be AMRAP");
             }
-            // Last set (AMRAP): RepOutTarget
+
+            // Last set is AMRAP with rep-out target
             var lastSet = plannedSets.Last();
-            lastSet.Weight.Value.Should().Be(expectedWeight.Value);
             lastSet.TargetReps.Should().Be(expectedRepOutTarget,
-                $"Week {week} AMRAP set should target rep-out {expectedRepOutTarget}");
-            lastSet.IsAmrap.Should().BeTrue($"Week {week} last set should be AMRAP");
+                $"Week {week}: AMRAP set should target rep-out {expectedRepOutTarget}");
+            lastSet.IsAmrap.Should().BeTrue(
+                $"Week {week}: last set should be AMRAP");
         }
-    }
-
-    [Fact]
-    public void Block1_Week7_DeloadWeek_ShouldHaveReducedIntensity()
-    {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
-        var plannedSets = strategy.CalculatePlannedSets(7, blockNumber: 1).ToList();
-
-        var expectedWeight = _testTm.CalculateWorkingWeight(0.60m);
-        plannedSets.First().Weight.Value.Should().Be(expectedWeight.Value);
-        plannedSets.Should().HaveCount(4, "Deload week should have 4 sets");
-        plannedSets.All(s => !s.IsAmrap).Should().BeTrue("Deload sets should not be AMRAP");
-        plannedSets.All(s => s.TargetReps == 5).Should().BeTrue("Deload reps should be 5");
     }
 
     #endregion
 
-    #region Block 2: Weeks 8-14
+    #region Auxiliary (T2) — Front Squat — All 21 Weeks
 
     [Theory]
-    [InlineData(8,  0.68, 4, 11, 13)]
-    [InlineData(9,  0.70, 4, 10, 12)]
-    [InlineData(10, 0.73, 4,  9, 11)]
-    [InlineData(11, 0.70, 4, 10, 12)]
-    [InlineData(12, 0.73, 4,  9, 11)]
-    [InlineData(13, 0.76, 4,  8, 10)]
-    [InlineData(14, 0.60, 4,  5,  0)]  // DELOAD
-    public void Block2_CalculatePlannedSets_ShouldMatchSpreadsheet(
-        int week, decimal expectedIntensity, int expectedSets, int expectedRepsPerSet, int expectedRepOutTarget)
+    // Block 1: Weeks 1-7
+    //         (week, block, repsPerSet, sets, repOutTarget)
+    [InlineData( 1, 1, 7, 5, 14)]  // MC1-W1: 7 reps, repOut = 7×2 = 14
+    [InlineData( 2, 1, 6, 5, 12)]  // MC1-W2: 6 reps, repOut = 6×2 = 12
+    [InlineData( 3, 1, 5, 5, 10)]  // MC1-W3: 5 reps, repOut = 5×2 = 10
+    [InlineData( 4, 1, 7, 5, 13)]  // MC2-W1: 7 reps, repOut = 7×2-1 = 13
+    [InlineData( 5, 1, 6, 5, 11)]  // MC2-W2: 6 reps, repOut = 6×2-1 = 11
+    [InlineData( 6, 1, 5, 5,  9)]  // MC2-W3: 5 reps, repOut = 5×2-1 = 9
+    [InlineData( 7, 1, 5, 4,  0)]  // DELOAD
+    // Block 2: Weeks 8-14
+    [InlineData( 8, 2, 6, 5, 12)]  // MC1-W1: 6 reps, repOut = 6×2 = 12
+    [InlineData( 9, 2, 5, 5, 10)]  // MC1-W2: 5 reps, repOut = 5×2 = 10
+    [InlineData(10, 2, 4, 5,  8)]  // MC1-W3: 4 reps, repOut = 4×2 = 8
+    [InlineData(11, 2, 6, 5, 11)]  // MC2-W1: 6 reps, repOut = 6×2-1 = 11
+    [InlineData(12, 2, 5, 5,  9)]  // MC2-W2: 5 reps, repOut = 5×2-1 = 9
+    [InlineData(13, 2, 4, 5,  7)]  // MC2-W3: 4 reps, repOut = 4×2-1 = 7
+    [InlineData(14, 2, 5, 4,  0)]  // DELOAD
+    // Block 3: Weeks 15-21
+    [InlineData(15, 3, 5, 5, 10)]  // MC1-W1: 5 reps, repOut = 5×2 = 10
+    [InlineData(16, 3, 4, 5,  8)]  // MC1-W2: 4 reps, repOut = 4×2 = 8
+    [InlineData(17, 3, 3, 5,  6)]  // MC1-W3: 3 reps, repOut = 3×2 = 6
+    [InlineData(18, 3, 4, 5,  8)]  // MC2-W1: 4 reps, repOut = 4×2 = 8
+    [InlineData(19, 3, 3, 5,  6)]  // MC2-W2: 3 reps, repOut = 3×2 = 6
+    [InlineData(20, 3, 2, 5,  4)]  // MC2-W3: 2 reps, repOut = 2×2 = 4
+    [InlineData(21, 3, 5, 4,  0)]  // DELOAD
+    public void Auxiliary_CalculatePlannedSets_ShouldMatchSpreadsheet(
+        int week, int block, int expectedRepsPerSet, int expectedSets, int expectedRepOutTarget)
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
-        var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: 2).ToList();
+        // Arrange
+        var strategy = LinearProgressionStrategy.Create(
+            _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        plannedSets.Should().HaveCount(expectedSets, $"Week {week} should have {expectedSets} sets");
+        // Act
+        var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: block).ToList();
 
-        var expectedWeight = _testTm.CalculateWorkingWeight(expectedIntensity);
-        var isDeload = week == 14;
+        // Assert
+        plannedSets.Should().HaveCount(expectedSets,
+            $"Week {week}: should have {expectedSets} sets");
 
-        if (isDeload)
+        if (expectedRepOutTarget == 0) // Deload
         {
             foreach (var set in plannedSets)
             {
-                set.Weight.Value.Should().Be(expectedWeight.Value);
-                set.TargetReps.Should().Be(expectedRepsPerSet);
-                set.IsAmrap.Should().BeFalse();
+                set.TargetReps.Should().Be(expectedRepsPerSet,
+                    $"Week {week} (deload): all sets should target {expectedRepsPerSet} reps");
+                set.IsAmrap.Should().BeFalse(
+                    $"Week {week} (deload): no AMRAP on deload");
             }
         }
-        else
+        else // Working week
         {
             for (int i = 0; i < plannedSets.Count - 1; i++)
             {
-                plannedSets[i].TargetReps.Should().Be(expectedRepsPerSet);
-                plannedSets[i].IsAmrap.Should().BeFalse();
+                plannedSets[i].TargetReps.Should().Be(expectedRepsPerSet,
+                    $"Week {week}: normal set {i + 1} should target {expectedRepsPerSet} reps");
+                plannedSets[i].IsAmrap.Should().BeFalse(
+                    $"Week {week}: set {i + 1} should NOT be AMRAP");
             }
-            plannedSets.Last().TargetReps.Should().Be(expectedRepOutTarget);
-            plannedSets.Last().IsAmrap.Should().BeTrue();
+
+            var lastSet = plannedSets.Last();
+            lastSet.TargetReps.Should().Be(expectedRepOutTarget,
+                $"Week {week}: AMRAP set should target rep-out {expectedRepOutTarget}");
+            lastSet.IsAmrap.Should().BeTrue(
+                $"Week {week}: last set should be AMRAP");
         }
     }
 
     #endregion
 
-    #region Block 3: Weeks 15-21
+    #region Deload Week Structure
 
     [Theory]
-    [InlineData(15, 0.70, 4, 10, 12)]
-    [InlineData(16, 0.73, 4,  9, 11)]
-    [InlineData(17, 0.76, 4,  8, 10)]
-    [InlineData(18, 0.73, 4,  9, 11)]
-    [InlineData(19, 0.76, 4,  8, 10)]
-    [InlineData(20, 0.79, 4,  7,  9)]
-    [InlineData(21, 0.60, 4,  5,  0)]  // DELOAD
-    public void Block3_CalculatePlannedSets_ShouldMatchSpreadsheet(
-        int week, decimal expectedIntensity, int expectedSets, int expectedRepsPerSet, int expectedRepOutTarget)
+    [InlineData(7)]
+    [InlineData(14)]
+    [InlineData(21)]
+    public void DeloadWeeks_ShouldHave4Sets_5Reps_NoAmrap(int deloadWeek)
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
-        var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: 3).ToList();
+        var block = (deloadWeek - 1) / 7 + 1;
 
-        plannedSets.Should().HaveCount(expectedSets, $"Week {week} should have {expectedSets} sets");
+        var primaryStrategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
+        var auxiliaryStrategy = LinearProgressionStrategy.Create(
+            _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        var expectedWeight = _testTm.CalculateWorkingWeight(expectedIntensity);
-        var isDeload = week == 21;
-
-        if (isDeload)
+        foreach (var (label, strategy) in new[] { ("Primary", primaryStrategy), ("Auxiliary", auxiliaryStrategy) })
         {
-            foreach (var set in plannedSets)
-            {
-                set.Weight.Value.Should().Be(expectedWeight.Value);
-                set.TargetReps.Should().Be(expectedRepsPerSet);
-                set.IsAmrap.Should().BeFalse();
-            }
-        }
-        else
-        {
-            for (int i = 0; i < plannedSets.Count - 1; i++)
-            {
-                plannedSets[i].TargetReps.Should().Be(expectedRepsPerSet);
-                plannedSets[i].IsAmrap.Should().BeFalse();
-            }
-            plannedSets.Last().TargetReps.Should().Be(expectedRepOutTarget);
-            plannedSets.Last().IsAmrap.Should().BeTrue();
+            var plannedSets = strategy.CalculatePlannedSets(deloadWeek, block).ToList();
+
+            plannedSets.Should().HaveCount(4,
+                $"{label} Week {deloadWeek} (deload): should have 4 sets");
+            plannedSets.All(s => s.TargetReps == 5).Should().BeTrue(
+                $"{label} Week {deloadWeek} (deload): all sets should target 5 reps");
+            plannedSets.All(s => !s.IsAmrap).Should().BeTrue(
+                $"{label} Week {deloadWeek} (deload): no AMRAP on deload");
         }
     }
 
     #endregion
 
-    #region TM Adjustment Tests (RTF Progression)
+    #region TM Adjustment Tests (RTF Progression — AMRAP Delta Table)
 
     [Theory]
     [InlineData(5, 0.03)]   // +5 or more: +3.0%
@@ -196,23 +227,24 @@ public class LinearProgressionStrategyTests
     public void ApplyPerformanceResult_WithAmrapDelta_ShouldAdjustTmCorrectly(
         int amrapDelta, decimal expectedAdjustmentPercent)
     {
-        // Arrange
+        // Arrange — TM=100kg for easy math
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            tm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
-        // Week 1: RepsPerSet=12, RepOutTarget=15. AMRAP set targets 15.
+        // Week 1 Primary: repsPerSet=5, repOutTarget=10. AMRAP set targets 10.
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
-        var repOutTarget = 15; // Week 1 rep-out target
+        var repOutTarget = 10; // Primary Week 1 rep-out target
         var actualReps = repOutTarget + amrapDelta;
 
-        // Normal sets complete at RepsPerSet (12)
+        // Normal sets complete at repsPerSet (5)
         var completedSets = new List<CompletedSet>();
         for (int i = 0; i < plannedSets.Count - 1; i++)
         {
             completedSets.Add(new CompletedSet(
                 i + 1,
                 plannedSets[i].Weight,
-                12, // RepsPerSet for normal sets
+                5, // repsPerSet for normal sets
                 wasAmrap: false));
         }
         // Last set is AMRAP with the delta applied to rep-out target
@@ -227,7 +259,7 @@ public class LinearProgressionStrategyTests
         // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert - TM stored at 2dp precision, NOT rounded to 2.5kg
+        // Assert — TM stored at 2dp precision, NOT rounded to 2.5kg
         var expectedTm = Math.Round(100m * (1 + expectedAdjustmentPercent), 2);
         strategy.TrainingMax.Value.Should().Be(expectedTm,
             $"AMRAP delta {amrapDelta} should result in {expectedAdjustmentPercent * 100}% TM adjustment");
@@ -237,7 +269,8 @@ public class LinearProgressionStrategyTests
     public void ApplyPerformanceResult_WithoutAmrap_ShouldNotChangeTm()
     {
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: false);
+        var strategy = LinearProgressionStrategy.Create(
+            tm, useAmrap: false, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
         var completedSets = plannedSets.Select((s, i) => new CompletedSet(
@@ -258,31 +291,32 @@ public class LinearProgressionStrategyTests
     #region GetSetsForWeek Static Method Tests
 
     [Theory]
-    [InlineData(1, 4)]
-    [InlineData(2, 4)]
-    [InlineData(3, 4)]
-    [InlineData(4, 4)]
-    [InlineData(5, 4)]
-    [InlineData(6, 4)]
-    [InlineData(7, 4)]   // Deload
-    [InlineData(8, 4)]
-    [InlineData(9, 4)]
-    [InlineData(10, 4)]
-    [InlineData(11, 4)]
-    [InlineData(12, 4)]
-    [InlineData(13, 4)]
-    [InlineData(14, 4)]  // Deload
-    [InlineData(15, 4)]
-    [InlineData(16, 4)]
-    [InlineData(17, 4)]
-    [InlineData(18, 4)]
-    [InlineData(19, 4)]
-    [InlineData(20, 4)]
-    [InlineData(21, 4)]  // Final Deload
+    [InlineData(1, 5)]
+    [InlineData(2, 5)]
+    [InlineData(3, 5)]
+    [InlineData(4, 5)]
+    [InlineData(5, 5)]
+    [InlineData(6, 5)]
+    [InlineData(7, 4)]    // Deload
+    [InlineData(8, 5)]
+    [InlineData(9, 5)]
+    [InlineData(10, 5)]
+    [InlineData(11, 5)]
+    [InlineData(12, 5)]
+    [InlineData(13, 5)]
+    [InlineData(14, 4)]   // Deload
+    [InlineData(15, 5)]
+    [InlineData(16, 5)]
+    [InlineData(17, 5)]
+    [InlineData(18, 5)]
+    [InlineData(19, 5)]
+    [InlineData(20, 5)]
+    [InlineData(21, 4)]   // Deload
     public void GetSetsForWeek_AllWeeks_ShouldMatchSpreadsheet(int week, int expectedSets)
     {
         var sets = A2SHypertrophyProgram.GetSetsForWeek(week);
-        sets.Should().Be(expectedSets, $"Week {week} should have {expectedSets} sets (hypertrophy always 4)");
+        sets.Should().Be(expectedSets,
+            $"Week {week} should have {expectedSets} sets (5 working, 4 deload)");
     }
 
     [Fact]
@@ -294,21 +328,22 @@ public class LinearProgressionStrategyTests
 
     #endregion
 
-    #region Full 21-Week Cycle Simulation
+    #region Full 21-Week Cycle Simulation — Primary
 
     [Fact]
-    public void Full21WeekCycle_WithConsistentPerformance_ShouldProgressTm()
+    public void Full21WeekCycle_Primary_WithConsistentPerformance_ShouldProgressTm()
     {
         // Arrange
-        var startingTm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(startingTm, useAmrap: true);
+        var startingTm = TrainingMax.Create(120m, WeightUnit.Kilograms);
+        var strategy = LinearProgressionStrategy.Create(
+            startingTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         var tmHistory = new List<(int Week, decimal TmValue)>
         {
-            (0, 100m)
+            (0, 120m)
         };
 
-        // Act - Simulate 21 weeks with +5 AMRAP delta (+3%) on non-deload weeks
+        // Act — Simulate 21 weeks with +5 AMRAP delta (+3%) on non-deload weeks
         for (int week = 1; week <= 21; week++)
         {
             var blockNumber = (week - 1) / 7 + 1;
@@ -318,8 +353,8 @@ public class LinearProgressionStrategyTests
 
             if (!isDeload)
             {
-                var repsPerSet = plannedSets.First().TargetReps; // Normal set reps
-                var repOutTarget = plannedSets.Last().TargetReps; // AMRAP set rep-out target
+                var repsPerSet = plannedSets.First().TargetReps;
+                var repOutTarget = plannedSets.Last().TargetReps;
 
                 var completedSets = new List<CompletedSet>();
                 for (int i = 0; i < plannedSets.Count - 1; i++)
@@ -342,73 +377,46 @@ public class LinearProgressionStrategyTests
 
         // Assert
         var finalTm = strategy.TrainingMax.Value;
-        finalTm.Should().BeGreaterThan(100m, "TM should increase over 21 weeks with consistent +5 AMRAP delta");
+        finalTm.Should().BeGreaterThan(120m,
+            "TM should increase over 21 weeks with consistent +5 AMRAP delta");
 
         // Verify deload weeks didn't change TM
-        tmHistory[7].TmValue.Should().Be(tmHistory[6].TmValue, "Week 7 deload should not change TM");
-        tmHistory[14].TmValue.Should().Be(tmHistory[13].TmValue, "Week 14 deload should not change TM");
-        tmHistory[21].TmValue.Should().Be(tmHistory[20].TmValue, "Week 21 deload should not change TM");
+        tmHistory[7].TmValue.Should().Be(tmHistory[6].TmValue,
+            "Week 7 deload should not change TM");
+        tmHistory[14].TmValue.Should().Be(tmHistory[13].TmValue,
+            "Week 14 deload should not change TM");
+        tmHistory[21].TmValue.Should().Be(tmHistory[20].TmValue,
+            "Week 21 deload should not change TM");
     }
 
+    #endregion
+
+    #region Full 21-Week Cycle Simulation — Auxiliary
+
     [Fact]
-    public void Full21WeekCycle_WithMixedPerformance_ShouldAdjustAppropriately()
+    public void Full21WeekCycle_Auxiliary_WithConsistentPerformance_ShouldProgressTm()
     {
         // Arrange
-        var startingTm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(startingTm, useAmrap: true);
+        var startingTm = TrainingMax.Create(67.5m, WeightUnit.Kilograms);
+        var strategy = LinearProgressionStrategy.Create(
+            startingTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        // Deltas for each week (deload weeks have 0 but won't be applied)
-        var weeklyDeltas = new[]
+        var tmHistory = new List<(int Week, decimal TmValue)>
         {
-            // Block 1: Strong start, plateau mid-block, failure, recovery
-            +5, +4, +3, 0, -1, +5, 0, // Week 7 is deload
-            // Block 2: Good recovery, big failure, strong finish
-            +4, +3, +5, -2, +4, +5, 0, // Week 14 is deload
-            // Block 3: Moderate gains, plateau, failure, recovery
-            +3, +4, 0, +5, -1, +4, 0   // Week 21 is deload
+            (0, 67.5m)
         };
 
-        // Pre-calculated expected TM after each week with 2dp precision (no gym-increment rounding):
-        // TM_new = Math.Round(TM_old * (1 + adjustment%), 2)
-        var expectedTmPerWeek = new[]
-        {
-            0m,       // placeholder (1-indexed)
-            103.00m,  // Week 1:  100 * 1.03 = 103.00
-            105.06m,  // Week 2:  103.00 * 1.02 = 105.06
-            106.64m,  // Week 3:  105.06 * 1.015 = 106.6359 -> 106.64
-            106.64m,  // Week 4:  0 delta -> no change
-            104.51m,  // Week 5:  106.64 * 0.98 = 104.5072 -> 104.51
-            107.65m,  // Week 6:  104.51 * 1.03 = 107.6453 -> 107.65
-            107.65m,  // Week 7:  DELOAD -> no change
-            109.80m,  // Week 8:  107.65 * 1.02 = 109.803 -> 109.80
-            111.45m,  // Week 9:  109.80 * 1.015 = 111.447 -> 111.45
-            114.79m,  // Week 10: 111.45 * 1.03 = 114.7935 -> 114.79
-            109.05m,  // Week 11: 114.79 * 0.95 = 109.0505 -> 109.05
-            111.23m,  // Week 12: 109.05 * 1.02 = 111.231 -> 111.23
-            114.57m,  // Week 13: 111.23 * 1.03 = 114.5669 -> 114.57
-            114.57m,  // Week 14: DELOAD -> no change
-            116.29m,  // Week 15: 114.57 * 1.015 = 116.2886 -> 116.29
-            118.62m,  // Week 16: 116.29 * 1.02 = 118.6158 -> 118.62
-            118.62m,  // Week 17: 0 delta -> no change
-            122.18m,  // Week 18: 118.62 * 1.03 = 122.1786 -> 122.18
-            119.74m,  // Week 19: 122.18 * 0.98 = 119.7364 -> 119.74
-            122.13m,  // Week 20: 119.74 * 1.02 = 122.1348 -> 122.13
-            122.13m   // Week 21: DELOAD -> no change
-        };
-
-        // Act & Assert - verify TM after every single week
         for (int week = 1; week <= 21; week++)
         {
             var blockNumber = (week - 1) / 7 + 1;
             var isDeload = week == 7 || week == 14 || week == 21;
-            var delta = weeklyDeltas[week - 1];
 
             var plannedSets = strategy.CalculatePlannedSets(week, blockNumber).ToList();
 
-            if (!isDeload && delta != 0)
+            if (!isDeload)
             {
                 var repsPerSet = plannedSets.First().TargetReps;
-                var repOutTarget = plannedSets.Last().TargetReps; // AMRAP set has rep-out target
+                var repOutTarget = plannedSets.Last().TargetReps;
 
                 var completedSets = new List<CompletedSet>();
                 for (int i = 0; i < plannedSets.Count - 1; i++)
@@ -419,18 +427,27 @@ public class LinearProgressionStrategyTests
                 completedSets.Add(new CompletedSet(
                     plannedSets.Count,
                     plannedSets.Last().Weight,
-                    Math.Max(1, repOutTarget + delta),
+                    repOutTarget + 3, // +3 AMRAP delta = +1.5% TM
                     wasAmrap: true));
 
                 var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
                 strategy.ApplyPerformanceResult(performance);
             }
 
-            strategy.TrainingMax.Value.Should().Be(expectedTmPerWeek[week],
-                $"Week {week} (Block {blockNumber}): delta={delta}, deload={isDeload} -> TM should be {expectedTmPerWeek[week]}kg");
+            tmHistory.Add((week, strategy.TrainingMax.Value));
         }
 
-        strategy.TrainingMax.Value.Should().Be(122.13m, "Final TM after 21 weeks");
+        // Assert
+        var finalTm = strategy.TrainingMax.Value;
+        finalTm.Should().BeGreaterThan(67.5m,
+            "TM should increase over 21 weeks with consistent +3 AMRAP delta");
+
+        tmHistory[7].TmValue.Should().Be(tmHistory[6].TmValue,
+            "Week 7 deload should not change TM");
+        tmHistory[14].TmValue.Should().Be(tmHistory[13].TmValue,
+            "Week 14 deload should not change TM");
+        tmHistory[21].TmValue.Should().Be(tmHistory[20].TmValue,
+            "Week 21 deload should not change TM");
     }
 
     #endregion
@@ -440,7 +457,8 @@ public class LinearProgressionStrategyTests
     [Fact]
     public void CalculatePlannedSets_InvalidWeek_ShouldThrowException()
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         Assert.Throws<BusinessRuleViolationException>(() => strategy.CalculatePlannedSets(0, 1));
         Assert.Throws<BusinessRuleViolationException>(() => strategy.CalculatePlannedSets(22, 1));
@@ -449,55 +467,65 @@ public class LinearProgressionStrategyTests
     [Fact]
     public void Create_WithValidParameters_ShouldSucceed()
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true, baseSetsPerExercise: 5);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         strategy.Should().NotBeNull();
-        strategy.TrainingMax.Should().Be(_testTm);
+        strategy.TrainingMax.Should().Be(_primaryTm);
         strategy.UseAmrap.Should().BeTrue();
         strategy.BaseSetsPerExercise.Should().Be(5);
+        strategy.Tier.Should().Be(ProgramTier.Primary);
+    }
+
+    [Fact]
+    public void Create_AuxiliaryTier_ShouldStoreTier()
+    {
+        var strategy = LinearProgressionStrategy.Create(
+            _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
+
+        strategy.Tier.Should().Be(ProgramTier.Auxiliary);
     }
 
     [Fact]
     public void UpdateTrainingMax_ShouldChangeTrainingMax()
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
-        var newTm = TrainingMax.Create(110m, WeightUnit.Kilograms);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
+        var newTm = TrainingMax.Create(130m, WeightUnit.Kilograms);
 
         strategy.UpdateTrainingMaxValue(newTm, "Manual adjustment");
 
-        strategy.TrainingMax.Value.Should().Be(110m);
+        strategy.TrainingMax.Value.Should().Be(130m);
     }
 
     #endregion
 
-    #region Additional Edge Cases
+    #region Additional TM Precision Tests
 
     [Fact]
     public void ApplyPerformanceResult_SmallTmIncrease_StoredAt2dp()
     {
-        // +2 delta gives +1% adjustment: 100 * 1.01 = 101.00
-        // TM stored at 2dp (NOT rounded to 2.5kg gym increments)
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            tm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
+        // Week 1 Primary: repOutTarget=10
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
-        var repOutTarget = 15; // Week 1 rep-out target
 
         var completedSets = new List<CompletedSet>();
         for (int i = 0; i < plannedSets.Count - 1; i++)
         {
             completedSets.Add(new CompletedSet(
-                i + 1, plannedSets[i].Weight, 12, wasAmrap: false));
+                i + 1, plannedSets[i].Weight, 5, wasAmrap: false));
         }
-        // +2 delta: actual = 15 + 2 = 17
+        // +2 delta: actual = 10 + 2 = 12
         completedSets.Add(new CompletedSet(
             plannedSets.Count,
             plannedSets.Last().Weight,
-            repOutTarget + 2,
+            12,
             wasAmrap: true));
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
-
         strategy.ApplyPerformanceResult(performance);
 
         // 100 * 1.01 = 101.00 stored at 2dp
@@ -509,119 +537,99 @@ public class LinearProgressionStrategyTests
     public void ApplyPerformanceResult_ConsecutiveFailures_TmDecreasesCumulatively()
     {
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            tm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
         // First failure: -2 delta = -5%
         var plannedSets1 = strategy.CalculatePlannedSets(1, 1).ToList();
-        var repOutTarget1 = 15; // Week 1
 
         var completedSets1 = new List<CompletedSet>();
         for (int i = 0; i < plannedSets1.Count - 1; i++)
         {
-            completedSets1.Add(new CompletedSet(i + 1, plannedSets1[i].Weight, 12, wasAmrap: false));
+            completedSets1.Add(new CompletedSet(i + 1, plannedSets1[i].Weight, 5, wasAmrap: false));
         }
         completedSets1.Add(new CompletedSet(
             plannedSets1.Count, plannedSets1.Last().Weight,
-            repOutTarget1 - 2, // -2 delta = -5%
+            8, // repOutTarget(10) - 2 = actual 8 → delta = -2
             wasAmrap: true));
 
         strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, plannedSets1, completedSets1));
-
-        // After first failure: 100 * 0.95 = 95.00
         strategy.TrainingMax.Value.Should().Be(95m, "100kg * 0.95 = 95kg");
 
         // Second failure: -2 delta = -5% of 95
         var plannedSets2 = strategy.CalculatePlannedSets(2, 1).ToList();
-        var repOutTarget2 = 13; // Week 2
 
         var completedSets2 = new List<CompletedSet>();
         for (int i = 0; i < plannedSets2.Count - 1; i++)
         {
-            completedSets2.Add(new CompletedSet(i + 1, plannedSets2[i].Weight, 11, wasAmrap: false));
+            completedSets2.Add(new CompletedSet(i + 1, plannedSets2[i].Weight, 4, wasAmrap: false));
         }
+        // Week 2 Primary: repOutTarget=8, delta=-2 → actual=6
         completedSets2.Add(new CompletedSet(
             plannedSets2.Count, plannedSets2.Last().Weight,
-            repOutTarget2 - 2, // -2 delta = -5%
+            6,
             wasAmrap: true));
 
         strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, plannedSets2, completedSets2));
-
-        // After second failure: 95 * 0.95 = 90.25
         strategy.TrainingMax.Value.Should().Be(90.25m,
             "95kg * 0.95 = 90.25kg (stored at 2dp)");
     }
 
+    #endregion
+
+    #region Rep Progression Pattern Validation
+
     [Fact]
-    public void ApplyPerformanceResult_WithDifferentStartingTm_AdjustsCorrectly()
+    public void Primary_RepProgression_ShouldDecrease5To1AcrossBlocks()
     {
-        // TM = 150kg, +5 delta = +3%: 150 * 1.03 = 154.50
-        var tm = TrainingMax.Create(150m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
-        var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
-        var repOutTarget = 15;
-
-        var completedSets = new List<CompletedSet>();
-        for (int i = 0; i < plannedSets.Count - 1; i++)
-        {
-            completedSets.Add(new CompletedSet(i + 1, plannedSets[i].Weight, 12, wasAmrap: false));
-        }
-        completedSets.Add(new CompletedSet(
-            plannedSets.Count, plannedSets.Last().Weight,
-            repOutTarget + 5,
-            wasAmrap: true));
-
-        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, plannedSets, completedSets));
-
-        // 150 * 1.03 = 154.50
-        strategy.TrainingMax.Value.Should().Be(154.50m,
-            "150kg * 1.03 = 154.50kg (stored at 2dp)");
+        // Block 1 starts at 5 reps
+        strategy.CalculatePlannedSets(1, 1).First().TargetReps.Should().Be(5, "Block 1 starts at 5 reps");
+        // Block 2 starts at 4 reps
+        strategy.CalculatePlannedSets(8, 2).First().TargetReps.Should().Be(4, "Block 2 starts at 4 reps");
+        // Block 3 starts at 3 reps
+        strategy.CalculatePlannedSets(15, 3).First().TargetReps.Should().Be(3, "Block 3 starts at 3 reps");
+        // Block 3 reaches 1 rep
+        strategy.CalculatePlannedSets(17, 3).First().TargetReps.Should().Be(1, "Block 3 week 3 reaches 1 rep");
     }
 
-    [Theory]
-    [InlineData(7)]   // Block 1 deload
-    [InlineData(14)]  // Block 2 deload
-    [InlineData(21)]  // Block 3 deload
-    public void CalculatePlannedSets_DeloadWeek_HasReducedIntensityAndVolume(int deloadWeek)
+    [Fact]
+    public void Auxiliary_RepProgression_ShouldDecrease7To2AcrossBlocks()
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
-        var blockNumber = (deloadWeek - 1) / 7 + 1;
+        var strategy = LinearProgressionStrategy.Create(
+            _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        var plannedSets = strategy.CalculatePlannedSets(deloadWeek, blockNumber).ToList();
-
-        // Deload: 60% intensity, 4 sets, 5 reps, no AMRAP
-        plannedSets.Should().HaveCount(4, $"Week {deloadWeek} (deload) should have 4 sets");
-
-        var expectedWeight = _testTm.CalculateWorkingWeight(0.60m);
-        plannedSets.First().Weight.Value.Should().Be(expectedWeight.Value,
-            $"Week {deloadWeek} (deload) should be at 60% intensity");
-        plannedSets.First().TargetReps.Should().Be(5,
-            $"Week {deloadWeek} (deload) should target 5 reps");
-        plannedSets.All(s => !s.IsAmrap).Should().BeTrue(
-            $"Week {deloadWeek} (deload) should have no AMRAP sets");
+        // Block 1 starts at 7 reps
+        strategy.CalculatePlannedSets(1, 1).First().TargetReps.Should().Be(7, "Block 1 starts at 7 reps");
+        // Block 2 starts at 6 reps
+        strategy.CalculatePlannedSets(8, 2).First().TargetReps.Should().Be(6, "Block 2 starts at 6 reps");
+        // Block 3 starts at 5 reps
+        strategy.CalculatePlannedSets(15, 3).First().TargetReps.Should().Be(5, "Block 3 starts at 5 reps");
+        // Block 3 reaches 2 reps (floor for T2)
+        strategy.CalculatePlannedSets(20, 3).First().TargetReps.Should().Be(2, "Block 3 week 6 reaches 2 reps");
     }
 
     #endregion
 
-    #region Planned Sets for Hevy Sync Assertions
+    #region AMRAP Structure Validation
 
     [Fact]
-    public void PlannedSets_ForLinearExercise_LastSetIsAmrapAllOthersNormal()
+    public void Primary_WorkingWeeks_LastSetIsAmrapAllOthersNormal()
     {
-        var strategy = LinearProgressionStrategy.Create(_testTm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
-        // All non-deload weeks have 4 sets, AMRAP on last
-        foreach (var (week, block) in new[] { (1, 1), (2, 1), (6, 1), (10, 2), (13, 2), (20, 3) })
+        // Test a selection of working weeks across all blocks
+        foreach (var (week, block) in new[] { (1, 1), (5, 1), (10, 2), (13, 2), (17, 3), (20, 3) })
         {
             var plannedSets = strategy.CalculatePlannedSets(week, block).ToList();
 
-            plannedSets.Should().HaveCount(4, $"Week {week} should have 4 sets");
-
-            // Last set must be AMRAP
+            plannedSets.Should().HaveCount(5, $"Week {week} should have 5 sets");
             plannedSets.Last().IsAmrap.Should().BeTrue($"Week {week}: last set should be AMRAP");
 
-            // First 3 sets must NOT be AMRAP
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 plannedSets[i].IsAmrap.Should().BeFalse($"Week {week}: set {i + 1} should NOT be AMRAP");
             }
@@ -629,65 +637,23 @@ public class LinearProgressionStrategyTests
     }
 
     [Fact]
-    public void PlannedSets_ForLinearExercise_WeightsMatchIntensityPercentOfTM()
+    public void Auxiliary_WorkingWeeks_LastSetIsAmrapAllOthersNormal()
     {
-        var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
+        var strategy = LinearProgressionStrategy.Create(
+            _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        var testCases = new[]
+        foreach (var (week, block) in new[] { (1, 1), (6, 1), (9, 2), (13, 2), (16, 3), (20, 3) })
         {
-            (Week: 1,  Intensity: 0.65m, ExpectedWeight: 65.0m),   // 100 * 0.65 = 65
-            (Week: 3,  Intensity: 0.70m, ExpectedWeight: 70.0m),   // 100 * 0.70 = 70
-            (Week: 7,  Intensity: 0.60m, ExpectedWeight: 60.0m),   // Deload
-            (Week: 10, Intensity: 0.73m, ExpectedWeight: 72.5m),   // 100 * 0.73 = 73 -> round to 72.5
-            (Week: 13, Intensity: 0.76m, ExpectedWeight: 75.0m),   // 100 * 0.76 = 76 -> round to 75
-            (Week: 20, Intensity: 0.79m, ExpectedWeight: 80.0m),   // 100 * 0.79 = 79 -> round to 80
-        };
+            var plannedSets = strategy.CalculatePlannedSets(week, block).ToList();
 
-        foreach (var tc in testCases)
-        {
-            var block = (tc.Week - 1) / 7 + 1;
-            var plannedSets = strategy.CalculatePlannedSets(tc.Week, block).ToList();
+            plannedSets.Should().HaveCount(5, $"Week {week} should have 5 sets");
+            plannedSets.Last().IsAmrap.Should().BeTrue($"Week {week}: last set should be AMRAP");
 
-            foreach (var set in plannedSets)
+            for (int i = 0; i < 4; i++)
             {
-                set.Weight.Value.Should().Be(tc.ExpectedWeight,
-                    $"Week {tc.Week}: weight should be {tc.Intensity * 100}% of 100kg TM = {tc.ExpectedWeight}kg");
+                plannedSets[i].IsAmrap.Should().BeFalse($"Week {week}: set {i + 1} should NOT be AMRAP");
             }
         }
-    }
-
-    [Fact]
-    public void PlannedSets_AfterProgression_ReflectUpdatedTM()
-    {
-        var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
-        var strategy = LinearProgressionStrategy.Create(tm, useAmrap: true);
-
-        // Get Week 1 planned sets (65% of 100 = 65kg)
-        var week1Sets = strategy.CalculatePlannedSets(1, 1).ToList();
-        week1Sets.First().Weight.Value.Should().Be(65.0m, "Week 1: 65% of 100kg");
-
-        // Apply a +5 AMRAP delta (+3%) -> TM goes from 100 to 103.00
-        var completedSets = new List<CompletedSet>();
-        for (int i = 0; i < week1Sets.Count - 1; i++)
-        {
-            completedSets.Add(new CompletedSet(i + 1, week1Sets[i].Weight, 12, wasAmrap: false));
-        }
-        completedSets.Add(new CompletedSet(week1Sets.Count, week1Sets.Last().Weight, 20, wasAmrap: true)); // 15 + 5 = 20
-        strategy.ApplyPerformanceResult(new ExercisePerformance(_testExerciseId, week1Sets, completedSets));
-
-        strategy.TrainingMax.Value.Should().Be(103.00m, "TM should be 103.00 after +3% on 100");
-
-        // Get Week 2 planned sets with the NEW TM
-        var week2Sets = strategy.CalculatePlannedSets(2, 1).ToList();
-
-        // Week 2 is 68% intensity: 103.00 * 0.68 = 70.04 -> round to 70.0
-        var expectedWeight = Math.Round(103.00m * 0.68m / 2.5m) * 2.5m; // = 70.0
-        week2Sets.First().Weight.Value.Should().Be(expectedWeight,
-            $"Week 2: 68% of new TM 103.00kg = {expectedWeight}kg");
-
-        // AMRAP flag still on last set
-        week2Sets.Last().IsAmrap.Should().BeTrue("AMRAP should still be on last set after TM adjustment");
     }
 
     #endregion

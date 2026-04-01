@@ -7,6 +7,7 @@ import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy, getOrCreateRo
 import { workoutsApi } from "@/api/workouts";
 import toast from "react-hot-toast";
 import { WeightUnit, type WorkoutDto, type ExerciseDto, type ExerciseTemplate, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { getWeekParameters, getTemplateWeek, roundToGymIncrement } from "@/utils/weekParameters";
 import { EditExercisesModal } from "./EditExercisesModal";
 import { ExerciseSubstitutionConfigModal, type ProgressionConfig, type LinearConfig, type RepsPerSetConfig, type MinimalSetsConfig } from "./ExerciseSubstitutionConfigModal";
 import { useSubstituteExercise, useUpdateExercises, useUndoCompletion } from "@/hooks/useWorkouts";
@@ -431,6 +432,7 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
             onPullWorkout={() => handlePullWorkout(day)}
             onSubstituteExercise={handleOpenSubstitution}
             onToggleUnilateral={handleToggleUnilateral}
+            blockSequence={workout.blockSequence ?? [1, 2, 3]}
           />
         ))}
       </div>
@@ -486,6 +488,7 @@ interface DayCardProps {
   onPullWorkout: () => void;
   onSubstituteExercise: (exercise: ExerciseDto) => void;
   onToggleUnilateral: (exercise: ExerciseDto) => void;
+  blockSequence: number[];
 }
 
 // Helper to format sync timestamp
@@ -510,7 +513,7 @@ function formatSyncTime(date: Date): string {
   });
 }
 
-function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, onToggleUnilateral }: DayCardProps) {
+function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, onToggleUnilateral, blockSequence }: DayCardProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   // Use Week/Day format instead of weekday names
@@ -611,6 +614,8 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
               <ExerciseDetailCard
                 key={exercise.id}
                 exercise={exercise}
+                weekNumber={weekNumber}
+                blockSequence={blockSequence}
                 onSubstitute={() => onSubstituteExercise(exercise)}
                 onToggleUnilateral={() => onToggleUnilateral(exercise)}
               />
@@ -716,13 +721,16 @@ function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hev
   );
 }
 
-function ExerciseDetailCard({ exercise, onSubstitute, onToggleUnilateral }: { exercise: ExerciseDto; onSubstitute: () => void; onToggleUnilateral: () => void }) {
+function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubstitute, onToggleUnilateral }: { exercise: ExerciseDto; weekNumber: number; blockSequence: number[]; onSubstitute: () => void; onToggleUnilateral: () => void }) {
   const isLinear = exercise.progression.type === "Linear";
   const isRepsPerSet = exercise.progression.type === "RepsPerSet";
   const isMinimalSets = exercise.progression.type === "MinimalSets";
   const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
   const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
   const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
+
+  const templateWeek = getTemplateWeek(weekNumber, blockSequence);
+  const weekParams = getWeekParameters(templateWeek);
 
   return (
     <div className="border-l-2 border-primary/30 pl-3 py-1 group">
@@ -739,27 +747,39 @@ function ExerciseDetailCard({ exercise, onSubstitute, onToggleUnilateral }: { ex
         </button>
       </div>
 
-      {linearProg && (
-        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-          <div className="flex justify-between">
-            <span>TM:</span>
-            <span className="font-medium text-foreground">
-              {linearProg.trainingMax.value} {linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Sets:</span>
-            <span className="font-medium text-foreground">
-              {linearProg.baseSetsPerExercise}{linearProg.useAmrap ? " + AMRAP" : ""}
-            </span>
-          </div>
-          {linearProg.useAmrap && (
-            <div className="text-primary text-[10px] font-medium">
-              AMRAP on last set
+      {linearProg && (() => {
+        const unitLabel = linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs";
+        const unitKey = linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" as const : "lbs" as const;
+        const workingWeight = roundToGymIncrement(linearProg.trainingMax.value * weekParams.intensity, unitKey);
+        return (
+          <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+            <div className="flex justify-between">
+              <span>Weight:</span>
+              <span className="font-medium text-foreground">
+                {workingWeight} {unitLabel}
+              </span>
             </div>
-          )}
-        </div>
-      )}
+            <div className="flex justify-between">
+              <span>Sets × Reps:</span>
+              <span className="font-medium text-foreground">
+                {weekParams.sets} × {weekParams.targetReps}
+              </span>
+            </div>
+            {linearProg.useAmrap && !weekParams.isDeload && (
+              <div className="flex justify-between">
+                <span>AMRAP Target:</span>
+                <span className="font-medium text-primary">
+                  {weekParams.repOutTarget}+
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between text-[10px]">
+              <span>TM:</span>
+              <span>{linearProg.trainingMax.value} {unitLabel} @ {Math.round(weekParams.intensity * 100)}%</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {repsPerSetProg && (
         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">

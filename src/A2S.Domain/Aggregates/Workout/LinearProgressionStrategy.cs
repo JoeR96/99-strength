@@ -20,6 +20,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     public TrainingMax TrainingMax { get; private set; }
     public bool UseAmrap { get; private set; }
     public int BaseSetsPerExercise { get; private set; }
+    public ProgramTier Tier { get; private set; }
 
     // EF Core constructor
     private LinearProgressionStrategy()
@@ -31,7 +32,8 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
         ExerciseProgressionId id,
         TrainingMax trainingMax,
         bool useAmrap,
-        int baseSetsPerExercise)
+        int baseSetsPerExercise,
+        ProgramTier tier)
         : base(id, "Linear")
     {
         CheckRule(baseSetsPerExercise >= 3 && baseSetsPerExercise <= 8,
@@ -40,18 +42,21 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
         TrainingMax = trainingMax;
         UseAmrap = useAmrap;
         BaseSetsPerExercise = baseSetsPerExercise;
+        Tier = tier;
     }
 
     public static LinearProgressionStrategy Create(
         TrainingMax trainingMax,
         bool useAmrap = true,
-        int baseSetsPerExercise = 4)
+        int baseSetsPerExercise = 4,
+        ProgramTier tier = ProgramTier.Primary)
     {
         return new LinearProgressionStrategy(
             new ExerciseProgressionId(Guid.NewGuid()),
             trainingMax,
             useAmrap,
-            baseSetsPerExercise);
+            baseSetsPerExercise,
+            tier);
     }
 
     /// <summary>
@@ -65,7 +70,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
         CheckRule(weekNumber >= 1 && weekNumber <= 21, "Week number must be between 1 and 21");
         CheckRule(blockNumber >= 1 && blockNumber <= 3, "Block number must be between 1 and 3");
 
-        var weekData = A2SHypertrophyProgram.GetWeekData(weekNumber);
+        var weekData = A2SHypertrophyProgram.GetWeekData(weekNumber, Tier);
         var workingWeight = TrainingMax.CalculateWorkingWeight(weekData.Intensity);
         var setsForWeek = weekData.Sets;
 

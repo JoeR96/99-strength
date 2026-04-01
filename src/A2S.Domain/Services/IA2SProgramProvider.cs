@@ -95,7 +95,7 @@ public sealed class A2SProgramProvider : IA2SProgramProvider
 
         for (int week = 1; week <= TotalWeeks; week++)
         {
-            var data = A2SHypertrophyProgram.GetWeekData(week);
+            var data = A2SHypertrophyProgram.GetWeekData(week, Enums.ProgramTier.Primary);
             var blockNumber = ((week - 1) / WeeksPerBlock) + 1;
 
             _weekParameters[week] = new WeekParameters

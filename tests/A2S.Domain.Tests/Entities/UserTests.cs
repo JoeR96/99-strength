@@ -137,7 +137,7 @@ public class UserTests
     public void Reconstitute_ShouldCreateUserWithGivenValues()
     {
         // Arrange
-        var id = Guid.NewGuid();
+        var id = Guid.NewGuid().ToString();
         var email = "test@example.com";
         var name = "Test User";
         var createdAt = new DateTime(2024, 1, 1, 12, 0, 0, DateTimeKind.Utc);

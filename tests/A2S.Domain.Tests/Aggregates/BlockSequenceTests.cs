@@ -26,7 +26,7 @@ public class BlockSequenceTests
             useAmrap: true);
 
         var workout = Workout.Create(
-            new UserId(Guid.NewGuid()),
+            new UserId(Guid.NewGuid().ToString()),
             "Test Workout",
             ProgramVariant.FourDay,
             new[] { exercise },
@@ -215,7 +215,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid().ToString()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int>());
 
         act.Should().Throw<BusinessRuleViolationException>()
@@ -230,7 +230,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid().ToString()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int> { 1, 4, 3 }); // 4 is invalid
 
         act.Should().Throw<BusinessRuleViolationException>()
@@ -247,7 +247,7 @@ public class BlockSequenceTests
 
         var sequence = Enumerable.Repeat(1, 11).ToList(); // 11 blocks > max 10
 
-        var act = () => Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
+        var act = () => Workout.Create(new UserId(Guid.NewGuid().ToString()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, sequence);
 
         act.Should().Throw<BusinessRuleViolationException>()
@@ -262,7 +262,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var workout = Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
+        var workout = Workout.Create(new UserId(Guid.NewGuid().ToString()), "Test", ProgramVariant.FourDay,
             new[] { exercise }, new List<int> { 1, 1, 2, 3 });
 
         workout.TotalWeeks.Should().Be(28);
@@ -277,7 +277,7 @@ public class BlockSequenceTests
             DayNumber.Day1, 1, "TEST",
             TrainingMax.Create(100m, WeightUnit.Kilograms));
 
-        var workout = Workout.Create(new UserId(Guid.NewGuid()), "Test", ProgramVariant.FourDay,
+        var workout = Workout.Create(new UserId(Guid.NewGuid().ToString()), "Test", ProgramVariant.FourDay,
             new[] { exercise });
 
         workout.TotalWeeks.Should().Be(21);

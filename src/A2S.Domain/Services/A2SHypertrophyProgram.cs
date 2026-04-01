@@ -1,110 +1,102 @@
+using A2S.Domain.Enums;
+
 namespace A2S.Domain.Services;
 
 /// <summary>
-/// Single source of truth for the A2S2 Hypertrophy 21-week program table.
-/// Static class so it can be referenced by EF Core entities (which cannot use DI)
-/// and by DI-based services alike.
+/// Single source of truth for the A2S2 21-week program table.
+/// Supports Primary (T1) and Auxiliary (T2) tiers with different rep ranges.
 /// </summary>
 /// <remarks>
-/// Source: A2S2 Hypertrophy spreadsheet (validated against A2S2_Validation_Data.md)
+/// Program structure:
+///   21 weeks = 3 blocks × (6 working weeks + 1 deload)
+///   Each block has 2 mini-cycles (MC) of 3 weeks, ascending intensity.
 ///
-/// Hypertrophy uses 6 intensity levels: a=0.65, b=0.68, c=0.70, d=0.73, e=0.76, f=0.79
-/// mapped to rep levels: 12, 11, 10, 9, 8, 7.
-/// Rep-out target = RepsPerSet + 2 (except week 1 which is +3).
-/// Always 4 sets. Deload at 60% intensity, 5 reps, no AMRAP.
+/// Primary (T1): reps 5→1 across blocks (floor=1)
+/// Auxiliary (T2): reps 7→2 across blocks (floor=2)
 ///
-/// Block structure (3-week mini-cycles, overlapping):
-///   Block 1: MC1(a,b,c) MC2(b,c,d) Deload
-///   Block 2: MC1(b,c,d) MC2(c,d,e) Deload
-///   Block 3: MC1(c,d,e) MC2(d,e,f) Deload
+/// Rep formula:
+///   MC1 and MC2 (blocks 1-2): max(floor, base - block - position)
+///   MC2 (block 3): max(floor, base - block - position - 1)
+///   where base=7 for T1, base=9 for T2; position=1-3 within mini-cycle
+///
+/// Rep-out target:
+///   MC1: reps × 2
+///   MC2 (blocks 1-2): reps × 2 - 1
+///   MC2 (block 3): reps × 2
+///
+/// Sets: 5 working, 4 deload.
+/// Deload: 5 reps, no AMRAP.
 /// </remarks>
 public static class A2SHypertrophyProgram
 {
     public const int TotalWeeks = 21;
     public const int WeeksPerBlock = 7;
+    public const int WorkingSets = 5;
+    public const int DeloadSets = 4;
+    public const int DeloadReps = 5;
+    public const decimal DeloadIntensity = 0.58m;
 
     /// <summary>
     /// Parameters for a single week in the program table.
     /// </summary>
     public readonly record struct WeekData(decimal Intensity, int Sets, int RepsPerSet, int? RepOutTarget);
 
-    private static readonly WeekData[] ProgramTable =
-    [
-        // Week 0 placeholder (1-indexed access)
-        new(0.00m, 0, 0, null),
-
-        // BLOCK 1: Weeks 1-7
-        new(0.65m, 4, 12, 15),   // Week 1
-        new(0.68m, 4, 11, 13),   // Week 2
-        new(0.70m, 4, 10, 12),   // Week 3
-        new(0.68m, 4, 11, 13),   // Week 4
-        new(0.70m, 4, 10, 12),   // Week 5
-        new(0.73m, 4,  9, 11),   // Week 6
-        new(0.60m, 4,  5, null), // Week 7 - DELOAD (no AMRAP)
-
-        // BLOCK 2: Weeks 8-14
-        new(0.68m, 4, 11, 13),   // Week 8
-        new(0.70m, 4, 10, 12),   // Week 9
-        new(0.73m, 4,  9, 11),   // Week 10
-        new(0.70m, 4, 10, 12),   // Week 11
-        new(0.73m, 4,  9, 11),   // Week 12
-        new(0.76m, 4,  8, 10),   // Week 13
-        new(0.60m, 4,  5, null), // Week 14 - DELOAD
-
-        // BLOCK 3: Weeks 15-21
-        new(0.70m, 4, 10, 12),   // Week 15
-        new(0.73m, 4,  9, 11),   // Week 16
-        new(0.76m, 4,  8, 10),   // Week 17
-        new(0.73m, 4,  9, 11),   // Week 18
-        new(0.76m, 4,  8, 10),   // Week 19
-        new(0.79m, 4,  7,  9),   // Week 20
-        new(0.60m, 4,  5, null), // Week 21 - DELOAD (final week)
-    ];
-
     /// <summary>
-    /// Gets the week data for a specific week number (1-21).
+    /// Gets the week data for a specific week number (1-21) and program tier.
     /// </summary>
-    public static WeekData GetWeekData(int weekNumber)
+    public static WeekData GetWeekData(int weekNumber, ProgramTier tier = ProgramTier.Primary)
     {
         ValidateWeekNumber(weekNumber);
-        return ProgramTable[weekNumber];
+
+        if (IsDeloadWeek(weekNumber))
+        {
+            return new WeekData(DeloadIntensity, DeloadSets, DeloadReps, null);
+        }
+
+        var block = (weekNumber - 1) / WeeksPerBlock + 1;
+        var weekInBlock = (weekNumber - 1) % WeeksPerBlock + 1; // 1-7
+        var isMC2 = weekInBlock > 3;
+        var position = isMC2 ? weekInBlock - 3 : weekInBlock; // 1-3
+
+        var reps = CalculateReps(block, position, isMC2, tier);
+        var repOutTarget = CalculateRepOutTarget(reps, block, isMC2);
+        var intensity = GetIntensityForReps(reps, tier);
+
+        return new WeekData(intensity, WorkingSets, reps, repOutTarget);
     }
 
     /// <summary>
-    /// Gets the number of sets for a given week (always 4 in hypertrophy).
+    /// Gets the number of sets for a given week (5 working, 4 deload).
     /// </summary>
     public static int GetSetsForWeek(int weekNumber)
     {
         ValidateWeekNumber(weekNumber);
-        return ProgramTable[weekNumber].Sets;
+        return IsDeloadWeek(weekNumber) ? DeloadSets : WorkingSets;
     }
 
     /// <summary>
     /// Gets the rep-out target (AMRAP baseline) for a given week.
     /// Returns null for deload weeks.
     /// </summary>
-    public static int? GetRepOutTarget(int weekNumber)
+    public static int? GetRepOutTarget(int weekNumber, ProgramTier tier = ProgramTier.Primary)
     {
-        ValidateWeekNumber(weekNumber);
-        return ProgramTable[weekNumber].RepOutTarget;
+        return GetWeekData(weekNumber, tier).RepOutTarget;
     }
 
     /// <summary>
     /// Gets the reps per set (for normal sets) for a given week.
     /// </summary>
-    public static int GetRepsPerSet(int weekNumber)
+    public static int GetRepsPerSet(int weekNumber, ProgramTier tier = ProgramTier.Primary)
     {
-        ValidateWeekNumber(weekNumber);
-        return ProgramTable[weekNumber].RepsPerSet;
+        return GetWeekData(weekNumber, tier).RepsPerSet;
     }
 
     /// <summary>
     /// Gets the intensity percentage for a given week.
     /// </summary>
-    public static decimal GetIntensity(int weekNumber)
+    public static decimal GetIntensity(int weekNumber, ProgramTier tier = ProgramTier.Primary)
     {
-        ValidateWeekNumber(weekNumber);
-        return ProgramTable[weekNumber].Intensity;
+        return GetWeekData(weekNumber, tier).Intensity;
     }
 
     /// <summary>
@@ -112,6 +104,55 @@ public static class A2SHypertrophyProgram
     /// </summary>
     public static bool IsDeloadWeek(int weekNumber)
         => weekNumber == 7 || weekNumber == 14 || weekNumber == 21;
+
+    /// <summary>
+    /// Calculate reps for a working week based on block, position, mini-cycle, and tier.
+    /// T1 (Primary): max(1, 7 - block - position), with -1 adjustment for B3 MC2
+    /// T2 (Auxiliary): max(2, 9 - block - position), with -1 adjustment for B3 MC2
+    /// </summary>
+    private static int CalculateReps(int block, int position, bool isMC2, ProgramTier tier)
+    {
+        var (baseValue, floor) = tier == ProgramTier.Primary ? (7, 1) : (9, 2);
+        var mc2Offset = isMC2 && block == 3 ? 1 : 0;
+        return Math.Max(floor, baseValue - block - position - mc2Offset);
+    }
+
+    /// <summary>
+    /// Calculate rep-out target (AMRAP baseline) from reps.
+    /// MC1: reps × 2
+    /// MC2 blocks 1-2: reps × 2 - 1
+    /// MC2 block 3: reps × 2
+    /// </summary>
+    private static int CalculateRepOutTarget(int reps, int block, bool isMC2)
+    {
+        if (!isMC2 || block == 3)
+        {
+            return reps * 2;
+        }
+
+        return reps * 2 - 1;
+    }
+
+    /// <summary>
+    /// Approximate intensity percentage based on rep count and tier.
+    /// These are placeholders — exact values will be refined against the spreadsheet.
+    /// </summary>
+    private static decimal GetIntensityForReps(int reps, ProgramTier tier)
+    {
+        // Simple rep-based intensity lookup.
+        // These produce reasonable working weights but are not exact spreadsheet values.
+        return reps switch
+        {
+            >= 7 => 0.70m,
+            6 => 0.75m,
+            5 => 0.79m,
+            4 => 0.84m,
+            3 => 0.87m,
+            2 => 0.92m,
+            1 => 0.96m,
+            _ => 0.70m
+        };
+    }
 
     private static void ValidateWeekNumber(int weekNumber)
     {

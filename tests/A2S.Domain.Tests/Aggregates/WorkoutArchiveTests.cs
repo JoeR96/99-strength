@@ -42,7 +42,7 @@ public class WorkoutArchiveTests
 
         // Use a single block [1] = 7 weeks, FourDay variant = 4 days/week
         var workout = Workout.Create(
-            new UserId(Guid.NewGuid()),
+            new UserId(Guid.NewGuid().ToString()),
             "Test Workout",
             ProgramVariant.FourDay,
             exercises,
@@ -149,7 +149,7 @@ public class WorkoutArchiveTests
         };
 
         var workout = Workout.Create(
-            new UserId(Guid.NewGuid()),
+            new UserId(Guid.NewGuid().ToString()),
             "Test Workout",
             ProgramVariant.FourDay,
             exercises,

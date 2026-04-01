@@ -14,7 +14,7 @@ namespace A2S.Domain.Tests.Aggregates;
 /// </summary>
 public class Phase2RefactorTests
 {
-    private static readonly UserId TestUserId = new(Guid.Parse("eee11111-1111-1111-1111-111111111111"));
+    private static readonly UserId TestUserId = new("eee11111-1111-1111-1111-111111111111");
 
 
     [Fact]
@@ -46,7 +46,7 @@ public class Phase2RefactorTests
     [Fact]
     public void User_ExtendsAggregateRoot()
     {
-        var user = Domain.Entities.User.Reconstitute(Guid.NewGuid(), "ext-id", "Test User", DateTime.UtcNow);
+        var user = Domain.Entities.User.Reconstitute(Guid.NewGuid().ToString(), "ext-id", "Test User", DateTime.UtcNow);
 
         user.Id.Should().BeOfType<UserId>();
         user.Should().BeAssignableTo<AggregateRoot<UserId>>();
@@ -391,7 +391,7 @@ public class Phase2RefactorTests
     [Fact]
     public void User_Create_WithExplicitId_UsesProvidedId()
     {
-        var userId = new UserId(Guid.Parse("aaa11111-1111-1111-1111-111111111111"));
+        var userId = new UserId("aaa11111-1111-1111-1111-111111111111");
         var user = Domain.Entities.User.Create("test@example.com", "Test", userId);
 
         user.Id.Should().Be(userId);
@@ -402,7 +402,7 @@ public class Phase2RefactorTests
     {
         var user = Domain.Entities.User.Create("test@example.com", "Test");
 
-        user.Id.Value.Should().NotBe(Guid.Empty);
+        user.Id.Value.Should().NotBeNullOrEmpty();
     }
 
 
