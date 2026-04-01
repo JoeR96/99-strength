@@ -106,7 +106,7 @@ public class ConfirmStartingWeightCommandHandlerTests
             Exercise.CreateWithRepsPerSetProgression(
                 "Lat Pulldown", ExerciseCategory.Accessory, EquipmentType.Cable,
                 DayNumber.Day1, 1, "LAT001",
-                RepRange.Create(8, 10, 12), 3, 4, false,
+                RepRange.Create(8, 12), 3, 4, false,
                 Weight.Create(50m, WeightUnit.Kilograms))
         };
         return Workout.Create(userId, "Test", ProgramVariant.FiveDay, exercises);

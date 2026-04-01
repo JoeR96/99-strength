@@ -55,7 +55,7 @@ public class RetrofixLinearTmCommandHandlerTests
             Exercise.CreateWithRepsPerSetProgression(
                 "Cable Row", ExerciseCategory.Accessory, EquipmentType.Cable,
                 DayNumber.Day1, 1, "CABLE001",
-                RepRange.Create(8, 10, 12), 3, 4, false,
+                RepRange.Create(8, 12), 3, 4, false,
                 Weight.Create(50m, WeightUnit.Kilograms))
         };
         var workout = Workout.Create(new UserId(TestUserId), "Test", ProgramVariant.FiveDay, exercises);

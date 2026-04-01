@@ -15,7 +15,6 @@ interface ExerciseSubstitutionModalProps {
 
 // Configuration for exercises that need RepsPerSet progression
 export interface RepsPerSetConfig {
-  targetReps: number;
   minReps: number;
   maxReps: number;
   sets: number;
@@ -63,7 +62,7 @@ export function ExerciseSubstitutionModal({
 
   // RepsPerSet configuration state
   const [repsConfig, setRepsConfig] = useState<RepsPerSetConfig>({
-    targetReps: 10,
+
     minReps: 8,
     maxReps: 12,
     sets: 3,
@@ -130,7 +129,7 @@ export function ExerciseSubstitutionModal({
     setSelectedExercise(null);
     setSubstitutionType(null);
     setRepsConfig({
-      targetReps: 10,
+  
       minReps: 8,
       maxReps: 12,
       sets: 3,
@@ -257,17 +256,6 @@ export function ExerciseSubstitutionModal({
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Target Reps</label>
-                    <Input
-                      type="number"
-                      value={repsConfig.targetReps}
-                      onChange={(e) => setRepsConfig(prev => ({ ...prev, targetReps: parseInt(e.target.value) || 10 }))}
-                      className="mt-1 h-8 bg-white dark:bg-zinc-800"
-                      min={1}
-                      max={30}
-                    />
-                  </div>
-                  <div>
                     <label className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Min Reps</label>
                     <Input
                       type="number"
@@ -275,7 +263,7 @@ export function ExerciseSubstitutionModal({
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, minReps: parseInt(e.target.value) || 8 }))}
                       className="mt-1 h-8 bg-white dark:bg-zinc-800"
                       min={1}
-                      max={repsConfig.targetReps}
+                      max={repsConfig.maxReps}
                     />
                   </div>
                   <div>
@@ -285,7 +273,7 @@ export function ExerciseSubstitutionModal({
                       value={repsConfig.maxReps}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, maxReps: parseInt(e.target.value) || 12 }))}
                       className="mt-1 h-8 bg-white dark:bg-zinc-800"
-                      min={repsConfig.targetReps}
+                      min={repsConfig.minReps}
                       max={50}
                     />
                   </div>
@@ -318,7 +306,7 @@ export function ExerciseSubstitutionModal({
               Replacing with: <span className="text-primary">{selectedExercise.name}</span>
               {requiresProgressionChange && (
                 <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
-                  (Reps Per Set: {repsConfig.sets} × {repsConfig.minReps}-{repsConfig.targetReps}-{repsConfig.maxReps} @ {repsConfig.startingWeight}{originalLinearProg?.trainingMax.unit === 1 ? 'kg' : 'lbs'})
+                  (Reps Per Set: {repsConfig.sets} × {repsConfig.minReps}-{repsConfig.maxReps} @ {repsConfig.startingWeight}{originalLinearProg?.trainingMax.unit === 1 ? 'kg' : 'lbs'})
                 </span>
               )}
             </p>

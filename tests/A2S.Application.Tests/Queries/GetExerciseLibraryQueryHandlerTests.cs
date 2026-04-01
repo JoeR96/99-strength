@@ -71,7 +71,7 @@ public class GetExerciseLibraryQueryHandlerTests
     {
         var definition = new ExerciseDefinition(
             new ExerciseDefinitionId(Guid.NewGuid()), "Bench Press", EquipmentType.Barbell,
-            "Chest", true, "Flat barbell bench press", 5, 8, 10, 4);
+            "Chest", true, "Flat barbell bench press", 5, 10, 4);
         _repository.GetAllAsync(Arg.Any<CancellationToken>())
             .Returns(new List<ExerciseDefinition> { definition });
 
@@ -83,7 +83,6 @@ public class GetExerciseLibraryQueryHandlerTests
         template.Equipment.Should().Be(EquipmentType.Barbell);
         template.DefaultRepRange.Should().NotBeNull();
         template.DefaultRepRange!.Minimum.Should().Be(5);
-        template.DefaultRepRange.Target.Should().Be(8);
         template.DefaultRepRange.Maximum.Should().Be(10);
         template.DefaultSets.Should().Be(4);
     }

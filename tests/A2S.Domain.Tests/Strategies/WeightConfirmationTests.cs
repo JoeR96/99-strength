@@ -16,7 +16,7 @@ public class WeightConfirmationTests
 {
     private readonly ExerciseId _exerciseId = new(Guid.Parse("eee66666-6666-6666-6666-666666666666"));
     private readonly Weight _startingWeight = Weight.Create(20m, WeightUnit.Kilograms);
-    private readonly RepRange _repRange = RepRange.Create(8, 12, 15);
+    private readonly RepRange _repRange = RepRange.Create(8, 15);
 
 
     [Fact]
@@ -274,7 +274,6 @@ public class WeightConfirmationTests
             isCompound: true,
             description: "Hevy: chest",
             defaultRepRangeMin: 8,
-            defaultRepRangeTarget: 10,
             defaultRepRangeMax: 12,
             defaultSets: 3);
 
@@ -283,7 +282,6 @@ public class WeightConfirmationTests
         definition.MuscleGroup.Should().Be("chest");
         definition.IsCompound.Should().BeTrue();
         definition.DefaultRepRangeMin.Should().Be(8);
-        definition.DefaultRepRangeTarget.Should().Be(10);
         definition.DefaultRepRangeMax.Should().Be(12);
         definition.DefaultSets.Should().Be(3);
     }

@@ -541,15 +541,15 @@ export function useWorkoutSession() {
         if (repsConfig) {
           const newSets: SetEntry[] = [];
           for (let i = 1; i <= repsConfig.sets; i++) {
-            newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.targetReps, isAmrap: false, completed: false });
+            newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.maxReps, isAmrap: false, completed: false });
           }
-          return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.targetReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
+          return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.maxReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
         }
         return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name } };
       })
     );
     const message = repsConfig
-      ? `Substituted "${originalExercise.name}" with "${substituteTemplate.name}" (Reps Per Set: ${repsConfig.sets}×${repsConfig.targetReps})`
+      ? `Substituted "${originalExercise.name}" with "${substituteTemplate.name}" (Reps Per Set: ${repsConfig.sets}×${repsConfig.minReps}-${repsConfig.maxReps})`
       : `Substituted "${originalExercise.name}" with "${substituteTemplate.name}" for this session`;
     toast.success(message);
   };
@@ -572,9 +572,9 @@ export function useWorkoutSession() {
           if (repsConfig) {
             const newSets: SetEntry[] = [];
             for (let i = 1; i <= repsConfig.sets; i++) {
-              newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.targetReps, isAmrap: false, completed: false });
+              newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.maxReps, isAmrap: false, completed: false });
             }
-            return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.targetReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
+            return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.maxReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
           }
           return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name } };
         })

@@ -43,7 +43,7 @@ public static class PerformanceRequestBuilders
                     SetNumber = i,
                     Weight = rps.CurrentWeight,
                     WeightUnit = weightUnit,
-                    ActualReps = rps.RepRange.Target,
+                    ActualReps = rps.RepRange.Maximum,
                     WasAmrap = false
                 });
             }

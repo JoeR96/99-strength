@@ -1311,7 +1311,7 @@ public class WorkoutFlowIntegrationTests
                     SetNumber = i,
                     Weight = rps.CurrentWeight,
                     WeightUnit = weightUnit,
-                    ActualReps = rps.RepRange.Target, // Hit target but not max -> maintained
+                    ActualReps = rps.RepRange.Maximum, // Hit target but not max -> maintained
                     WasAmrap = false
                 });
             }

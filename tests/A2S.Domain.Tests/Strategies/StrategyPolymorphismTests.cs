@@ -16,7 +16,7 @@ public class StrategyPolymorphismTests
     private readonly ExerciseId _exerciseId = new(Guid.Parse("eee44444-4444-4444-4444-444444444444"));
     private readonly TrainingMax _tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
     private readonly Weight _weight = Weight.Create(20m, WeightUnit.Kilograms);
-    private readonly RepRange _repRange = RepRange.Create(8, 12, 15);
+    private readonly RepRange _repRange = RepRange.Create(8, 15);
 
 
     [Fact]
@@ -315,7 +315,6 @@ public class StrategyPolymorphismTests
         var data = strategy.GetProgressionData();
 
         data.RepRangeMinimum.Should().Be(8);
-        data.RepRangeTarget.Should().Be(12);
         data.RepRangeMaximum.Should().Be(15);
         data.StartingSets.Should().Be(2);
         data.CurrentSetCount.Should().Be(2);

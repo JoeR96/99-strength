@@ -270,7 +270,7 @@ export function WorkoutDashboard() {
                               <div className="flex justify-between text-muted-foreground">
                                 <span>Rep Range:</span>
                                 <span className="font-medium text-foreground">
-                                  {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.target ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
+                                  {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
                                 </span>
                               </div>
                               <div className="flex justify-between text-muted-foreground">

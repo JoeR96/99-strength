@@ -263,7 +263,6 @@ public class SubstitutionIntegrationTests
             {
                 Type = "RepsPerSet",
                 RepRangeMinimum = 8,
-                RepRangeTarget = 10,
                 RepRangeMaximum = 12,
                 TargetSets = 4,
                 StartingWeight = 100m,
@@ -296,7 +295,7 @@ public class SubstitutionIntegrationTests
         newProgression.Should().NotBeNull();
         newProgression!.RepRange.Should().NotBeNull();
         newProgression.RepRange.Minimum.Should().Be(8);
-        newProgression.RepRange.Target.Should().Be(10);
+        newProgression.RepRange.Maximum.Should().Be(10);
         newProgression.RepRange.Maximum.Should().Be(12);
     }
 
@@ -509,7 +508,7 @@ public class SubstitutionIntegrationTests
             NewProgressionConfig = new
             {
                 Type = "RepsPerSet"
-                // Missing required fields: RepRangeMinimum, RepRangeTarget, RepRangeMaximum, StartingWeight
+                // Missing required fields: RepRangeMinimum, RepRangeMaximum, StartingWeight
             }
         };
 

@@ -19,7 +19,7 @@ public class RepsPerSetStrategyTests
 {
     private readonly ExerciseId _testExerciseId = new(Guid.Parse("eee33333-3333-3333-3333-333333333333"));
     private readonly Weight _startingWeight = Weight.Create(20m, WeightUnit.Kilograms);
-    private readonly RepRange _standardRepRange = RepRange.Create(8, 12, 15);
+    private readonly RepRange _standardRepRange = RepRange.Create(8, 15);
 
     #region Creation Tests
 
@@ -97,7 +97,7 @@ public class RepsPerSetStrategyTests
 
         // Assert
         plannedSets.Should().HaveCount(3);
-        plannedSets.All(s => s.TargetReps == 12).Should().BeTrue("All sets should target rep range target");
+        plannedSets.All(s => s.TargetReps == 15).Should().BeTrue("All sets should target rep range maximum");
         plannedSets.All(s => s.Weight.Value == 20m).Should().BeTrue("All sets should use current weight");
         plannedSets.All(s => !s.IsAmrap).Should().BeTrue("RepsPerSet exercises should never have AMRAP");
     }
@@ -512,7 +512,7 @@ public class RepsPerSetStrategyTests
             EquipmentType.Cable,
             startingWeight: _startingWeight);
 
-        var newRepRange = RepRange.Create(10, 15, 20);
+        var newRepRange = RepRange.Create(10, 20);
 
         // Act
         strategy.UpdateRepRange(newRepRange);
@@ -808,7 +808,7 @@ public class RepsPerSetStrategyTests
         {
             set.IsAmrap.Should().BeFalse("RepsPerSet sets should always be 'normal' type in Hevy (never AMRAP)");
             set.Weight.Value.Should().Be(20m, "All sets should use CurrentWeight");
-            set.TargetReps.Should().Be(12, "All sets should use RepRange.Target reps");
+            set.TargetReps.Should().Be(15, "All sets should use RepRange.Maximum reps");
         }
     }
 
@@ -839,7 +839,7 @@ public class RepsPerSetStrategyTests
         // Assert - should now have 4 sets at same weight
         planned2.Should().HaveCount(4, "After success, Hevy should receive 4 sets");
         planned2.All(s => s.Weight.Value == 20m).Should().BeTrue("Weight should still be 20kg");
-        planned2.All(s => s.TargetReps == 12).Should().BeTrue("Target reps should be RepRange.Target (12)");
+        planned2.All(s => s.TargetReps == 15).Should().BeTrue("Target reps should be RepRange.Maximum (15)");
         planned2.All(s => !s.IsAmrap).Should().BeTrue("All sets should be normal (no AMRAP)");
 
         // Progress to 5 sets, then weight increase + reset

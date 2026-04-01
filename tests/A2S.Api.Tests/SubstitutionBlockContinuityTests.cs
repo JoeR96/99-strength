@@ -452,7 +452,6 @@ public class SubstitutionBlockContinuityTests
             {
                 Type = "RepsPerSet",
                 RepRangeMinimum = 8,
-                RepRangeTarget = 10,
                 RepRangeMaximum = 12,
                 TargetSets = 5,
                 StartingWeight = 100m,
@@ -482,7 +481,7 @@ public class SubstitutionBlockContinuityTests
         rpsProgression.Should().NotBeNull();
         rpsProgression!.CurrentWeight.Should().Be(100m);
         rpsProgression.RepRange.Minimum.Should().Be(8);
-        rpsProgression.RepRange.Target.Should().Be(10);
+        rpsProgression.RepRange.Maximum.Should().Be(10);
         rpsProgression.RepRange.Maximum.Should().Be(12);
     }
 

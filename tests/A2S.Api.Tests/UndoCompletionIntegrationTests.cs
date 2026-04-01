@@ -700,7 +700,7 @@ public class UndoCompletionIntegrationTests
                     SetNumber = i,
                     Weight = rps.CurrentWeight,
                     WeightUnit = weightUnit,
-                    ActualReps = rps.RepRange.Target, // Target reps (neutral)
+                    ActualReps = rps.RepRange.Maximum, // Target reps (neutral)
                     WasAmrap = false
                 });
             }

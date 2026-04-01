@@ -118,7 +118,7 @@ public class Phase2RefactorTests
     {
         var exercise = Exercise.CreateWithRepsPerSetProgression(
             "Lat Pulldown", ExerciseCategory.Accessory, EquipmentType.Cable,
-            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 10, 12));
+            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 12));
         var workout = Workout.Create(TestUserId, "Test", ProgramVariant.FourDay, new[] { exercise });
         workout.Start();
 
@@ -135,7 +135,7 @@ public class Phase2RefactorTests
     {
         var exercise = Exercise.CreateWithRepsPerSetProgression(
             "Lat Pulldown", ExerciseCategory.Accessory, EquipmentType.Cable,
-            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 10, 12),
+            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 12),
             startingWeight: Weight.Create(40m, WeightUnit.Kilograms));
         var workout = Workout.Create(TestUserId, "Test", ProgramVariant.FourDay, new[] { exercise });
         workout.Start();
@@ -296,7 +296,7 @@ public class Phase2RefactorTests
     {
         var exercise = Exercise.CreateWithRepsPerSetProgression(
             "Lat Pulldown", ExerciseCategory.Accessory, EquipmentType.Cable,
-            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 10, 12),
+            DayNumber.Day1, 1, "LP1", RepRange.Create(8, 12),
             startingWeight: Weight.Create(50m, WeightUnit.Kilograms));
 
         var snapshot = exercise.CaptureProgressionSnapshot();
@@ -369,7 +369,7 @@ public class Phase2RefactorTests
     {
         var exercise = Exercise.CreateWithRepsPerSetProgression(
             "Curl", ExerciseCategory.Accessory, EquipmentType.Dumbbell,
-            DayNumber.Day1, 1, "C1", RepRange.Create(8, 10, 12),
+            DayNumber.Day1, 1, "C1", RepRange.Create(8, 12),
             startingWeight: Weight.Create(10m, WeightUnit.Kilograms));
         var workout = Workout.Create(TestUserId, "Test", ProgramVariant.FourDay, new[] { exercise });
 
