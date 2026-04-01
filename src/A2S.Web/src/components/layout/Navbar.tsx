@@ -74,7 +74,7 @@ export function Navbar() {
                   ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]'
                   : 'text-white font-[Orbitron,sans-serif]'
               }`}>
-                99 Strength
+                Strength
               </h1>
             </Link>
 
