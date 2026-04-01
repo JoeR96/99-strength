@@ -442,21 +442,21 @@ export function SetupWizard() {
                                     <div className="font-semibold text-foreground">
                                       {ex.template.name}
                                     </div>
-                                    <div className="text-xs text-muted-foreground mt-0.5">
-                                      {ex.progressionType === 'Linear' ? 'A2S Linear' : 'A2S Reps Per Set'}
-                                    </div>
-                                    {ex.progressionType === 'Linear' && ex.trainingMax && (
-                                      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
-                                        <span>TM: {ex.trainingMax.value}{ex.trainingMax.unit === WeightUnit.Kilograms ? 'kg' : 'lbs'}</span>
+                                    {ex.progressionType === 'Linear' ? (
+                                      <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
+                                        <span className="font-medium text-primary">A2S Linear</span>
+                                        <span>TM: {ex.trainingMax ? `${ex.trainingMax.value}${ex.trainingMax.unit === WeightUnit.Kilograms ? 'kg' : 'lbs'}` : 'Not set'}</span>
                                         <span>{ex.isPrimary ? 'Primary' : 'Auxiliary'}</span>
-                                        <span>{ex.baseSetsPerExercise} sets</span>
+                                        <span>{ex.baseSetsPerExercise ?? 4} sets</span>
                                       </div>
-                                    )}
-                                    {ex.progressionType === 'RepsPerSet' && ex.repRange && (
-                                      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
-                                        <span>Reps: {ex.repRange.minimum}-{ex.repRange.maximum}</span>
-                                        <span>Sets: {ex.currentSets} → {ex.targetSets}</span>
-                                        <span>Start: {ex.startingWeight}{ex.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}</span>
+                                    ) : (
+                                      <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
+                                        <span className="font-medium text-primary">Reps Per Set</span>
+                                        <span>Reps: {ex.repRange ? `${ex.repRange.minimum}-${ex.repRange.maximum}` : `${ex.template.defaultRepRange?.minimum ?? 8}-${ex.template.defaultRepRange?.maximum ?? 12}`}</span>
+                                        <span>Sets: {ex.currentSets ?? 3} → {ex.targetSets ?? 5}</span>
+                                        {ex.startingWeight != null && (
+                                          <span>Weight: {ex.startingWeight}{ex.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}</span>
+                                        )}
                                       </div>
                                     )}
                                   </div>
