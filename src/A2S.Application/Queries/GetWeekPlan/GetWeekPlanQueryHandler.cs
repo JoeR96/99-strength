@@ -165,7 +165,6 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             "RepsPerSet" => metadata with
             {
                 RepRangeMinimum = data.RepRangeMinimum,
-                RepRangeTarget = data.RepRangeTarget,
                 RepRangeMaximum = data.RepRangeMaximum,
                 IsUnilateral = progression.IsUnilateral,
                 IsWeightPending = progression.IsWeightPending,

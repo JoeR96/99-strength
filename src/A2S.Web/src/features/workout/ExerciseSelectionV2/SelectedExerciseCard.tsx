@@ -119,7 +119,7 @@ export function SelectedExerciseCard({
               {exercise.startingWeight}{exercise.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
             </span>
             <span className="text-muted-foreground/50">•</span>
-            <span>{exercise.repRange.minimum}-{exercise.repRange.target}-{exercise.repRange.maximum} reps</span>
+            <span>{exercise.repRange.minimum}-{exercise.repRange.maximum} reps</span>
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.currentSets}→{exercise.targetSets} sets</span>
           </>

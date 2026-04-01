@@ -31,9 +31,6 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
             rr.Property(r => r.Minimum)
                 .HasColumnName("RepRangeMinimum");
 
-            rr.Property(r => r.Target)
-                .HasColumnName("RepRangeTarget");
-
             rr.Property(r => r.Maximum)
                 .HasColumnName("RepRangeMaximum");
         });

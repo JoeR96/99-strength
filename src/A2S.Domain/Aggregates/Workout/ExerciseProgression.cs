@@ -293,7 +293,6 @@ public sealed record ProgressionData
 
     // RepsPerSet
     public int? RepRangeMinimum { get; init; }
-    public int? RepRangeTarget { get; init; }
     public int? RepRangeMaximum { get; init; }
     public int? StartingSets { get; init; }
     public int? CurrentSetCount { get; init; }

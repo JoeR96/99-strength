@@ -454,7 +454,7 @@ export function SetupWizard() {
                                     )}
                                     {ex.progressionType === 'RepsPerSet' && ex.repRange && (
                                       <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
-                                        <span>Reps: {ex.repRange.minimum}-{ex.repRange.target}-{ex.repRange.maximum}</span>
+                                        <span>Reps: {ex.repRange.minimum}-{ex.repRange.maximum}</span>
                                         <span>Sets: {ex.currentSets} → {ex.targetSets}</span>
                                         <span>Start: {ex.startingWeight}{ex.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}</span>
                                       </div>

@@ -798,12 +798,6 @@ function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubstitute,
           <div className="flex justify-between">
             <span>Reps:</span>
             <span className="font-medium text-foreground">
-              {repsPerSetProg.repRange?.target ?? 0}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Range:</span>
-            <span className="font-medium text-foreground">
               {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
             </span>
           </div>

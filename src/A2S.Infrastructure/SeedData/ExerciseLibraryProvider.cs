@@ -30,7 +30,7 @@ public sealed class ExerciseLibraryProvider : IExerciseLibraryProvider
         return entries.Select(e => new ExerciseTemplate(
             Name: e.Name,
             Equipment: Enum.Parse<EquipmentType>(e.Equipment),
-            DefaultRepRange: e.DefaultRepRange is { } rr ? RepRange.Create(rr.Minimum, rr.Target, rr.Maximum) : null,
+            DefaultRepRange: e.DefaultRepRange is { } rr ? RepRange.Create(rr.Minimum, rr.Maximum) : null,
             DefaultSets: e.DefaultSets,
             Description: e.Description ?? ""
         )).ToArray();
@@ -48,5 +48,5 @@ public sealed class ExerciseLibraryProvider : IExerciseLibraryProvider
         int? DefaultSets,
         string? Description);
 
-    private sealed record RepRangeEntry(int Minimum, int Target, int Maximum);
+    private sealed record RepRangeEntry(int Minimum, int Maximum);
 }

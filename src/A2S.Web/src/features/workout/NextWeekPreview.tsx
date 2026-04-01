@@ -382,7 +382,7 @@ function NextWeekExercisePreview({ exercise, weekParams }: NextWeekExercisePrevi
 
       {repsPerSetProg && (
         <div className="text-xs text-muted-foreground">
-          {repsPerSetProg.currentWeight} {repsPerSetProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"} × {repsPerSetProg.currentSetCount} × {repsPerSetProg.repRange?.target ?? 0}
+          {repsPerSetProg.currentWeight} {repsPerSetProg.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg"} × {repsPerSetProg.currentSetCount} × {repsPerSetProg.repRange?.minimum ?? 0}-{repsPerSetProg.repRange?.maximum ?? 0}
         </div>
       )}
 

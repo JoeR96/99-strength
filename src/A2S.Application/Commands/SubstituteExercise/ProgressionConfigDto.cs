@@ -20,7 +20,6 @@ public sealed record ProgressionConfigDto
 
     // RepsPerSet progression options
     public int? RepRangeMinimum { get; init; }
-    public int? RepRangeTarget { get; init; }
     public int? RepRangeMaximum { get; init; }
     public int? TargetSets { get; init; }
     public int? StartingSets { get; init; }

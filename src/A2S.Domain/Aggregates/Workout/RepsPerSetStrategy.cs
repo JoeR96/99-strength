@@ -128,7 +128,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         var sets = new List<PlannedSet>();
         for (int i = 1; i <= CurrentSetCount; i++)
         {
-            sets.Add(new PlannedSet(i, weight, RepRange.Target, isAmrap: false));
+            sets.Add(new PlannedSet(i, weight, RepRange.Maximum, isAmrap: false));
         }
         return sets;
     }
@@ -380,7 +380,6 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     public override ProgressionData GetProgressionData() => new()
     {
         RepRangeMinimum = RepRange.Minimum,
-        RepRangeTarget = RepRange.Target,
         RepRangeMaximum = RepRange.Maximum,
         StartingSets = StartingSets,
         CurrentSetCount = CurrentSetCount,
@@ -399,7 +398,7 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     internal RepsPerSetProgressionState CaptureState() => new(
         CurrentWeight?.Value, CurrentWeight != null ? (int?)CurrentWeight.Unit : null,
         CurrentSetCount, TargetSets,
-        RepRange.Minimum, RepRange.Target, RepRange.Maximum,
+        RepRange.Minimum, RepRange.Maximum,
         IsUnilateral,
         _pendingWeightConfirmation,
         _suggestedWeight?.Value, _suggestedWeight != null ? (int?)_suggestedWeight.Unit : null);
@@ -432,6 +431,6 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
 /// </summary>
 public sealed record RepsPerSetProgressionState(
     decimal? CurrentWeight, int? WeightUnit, int CurrentSetCount, int TargetSets,
-    int RepRangeMinimum, int RepRangeTarget, int RepRangeMaximum, bool IsUnilateral,
+    int RepRangeMinimum, int RepRangeMaximum, bool IsUnilateral,
     bool PendingWeightConfirmation = false,
     decimal? SuggestedWeight = null, int? SuggestedWeightUnit = null);

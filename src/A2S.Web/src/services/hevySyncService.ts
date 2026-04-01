@@ -246,14 +246,14 @@ function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: number,
       sets.push({
         type: 'normal',
         weight_kg: roundWeight(weightKg),
-        reps: prog.repRange.target, // Use target reps
+        reps: prog.repRange.maximum,
         // Note: rep_range is omitted entirely - Hevy API rejects null values
       });
     }
 
     // Note with rep range info
     const unilateralNote = prog.isUnilateral ? ` | Unilateral: ${prog.currentSetCount} sets per side` : '';
-    notes = `Rep range: ${prog.repRange.minimum}-${prog.repRange.maximum} | Target: ${prog.repRange.target} reps${unilateralNote}`;
+    notes = `Rep range: ${prog.repRange.minimum}-${prog.repRange.maximum}${unilateralNote}`;
 
   } else if (exercise.progression.type === 'MinimalSets') {
     const prog = exercise.progression as MinimalSetsProgressionDto;

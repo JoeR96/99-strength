@@ -52,7 +52,6 @@ public sealed record PlannedExerciseMetadataDto
     public decimal? TrainingMaxValue { get; init; }
     public string? TrainingMaxUnit { get; init; }
     public int? RepRangeMinimum { get; init; }
-    public int? RepRangeTarget { get; init; }
     public int? RepRangeMaximum { get; init; }
     public bool IsUnilateral { get; init; }
     public int? TargetTotalReps { get; init; }

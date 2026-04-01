@@ -71,7 +71,7 @@ export function getPrescribedSetsAndReps(
     const reps = prog as RepsPerSetProgressionDto;
     return {
       sets: reps.currentSetCount,
-      reps: reps.repRange.target,
+      reps: reps.repRange.maximum,
     };
   } else if (prog.type === 'MinimalSets') {
     const minimal = prog as MinimalSetsProgressionDto;

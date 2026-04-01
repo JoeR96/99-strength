@@ -22,8 +22,7 @@ public sealed record ExerciseTemplateDto
 public sealed record RepRangeDto
 {
     public int Minimum { get; init; }
-    public int Target { get; init; }
     public int Maximum { get; init; }
 
-    public override string ToString() => $"{Minimum}-{Target}-{Maximum}";
+    public override string ToString() => $"{Minimum}-{Maximum}";
 }

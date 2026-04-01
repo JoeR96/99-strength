@@ -40,10 +40,8 @@ interface ExerciseEditState {
   hasChanged: boolean;
   // RepsPerSet rep range
   repRangeMin: number;
-  repRangeTarget: number;
   repRangeMax: number;
   originalRepRangeMin: number;
-  originalRepRangeTarget: number;
   originalRepRangeMax: number;
   isUnilateral: boolean;
   originalIsUnilateral: boolean;
@@ -58,7 +56,6 @@ interface ExerciseEditState {
   // Swap fields: when Linear wants to become RPS
   swapWeight: number;
   swapRepMin: number;
-  swapRepTarget: number;
   swapRepMax: number;
   swapTargetSets: number;
   swapIsUnilateral: boolean;
@@ -122,10 +119,8 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           hasChanged: false,
           // Rep range
           repRangeMin: rpsProg?.repRange?.minimum ?? 8,
-          repRangeTarget: rpsProg?.repRange?.target ?? 10,
           repRangeMax: rpsProg?.repRange?.maximum ?? 12,
           originalRepRangeMin: rpsProg?.repRange?.minimum ?? 8,
-          originalRepRangeTarget: rpsProg?.repRange?.target ?? 10,
           originalRepRangeMax: rpsProg?.repRange?.maximum ?? 12,
           isUnilateral: rpsProg?.isUnilateral ?? false,
           originalIsUnilateral: rpsProg?.isUnilateral ?? false,
@@ -140,7 +135,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           // Swap to RPS defaults (from Linear: ~60% TM)
           swapWeight: linearProg ? Math.round((linearProg.trainingMax.value * 0.6) / 2.5) * 2.5 : value,
           swapRepMin: 8,
-          swapRepTarget: 10,
           swapRepMax: 12,
           swapTargetSets: 5,
           swapIsUnilateral: false,
@@ -166,7 +160,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
         updated.hasChanged =
           updated.newValue !== updated.originalValue ||
           updated.repRangeMin !== updated.originalRepRangeMin ||
-          updated.repRangeTarget !== updated.originalRepRangeTarget ||
           updated.repRangeMax !== updated.originalRepRangeMax ||
           updated.isUnilateral !== updated.originalIsUnilateral ||
           updated.startingSets !== updated.originalStartingSets ||
@@ -210,7 +203,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
         (s) =>
           s.progressionType === "RepsPerSet" &&
           (s.repRangeMin !== s.originalRepRangeMin ||
-            s.repRangeTarget !== s.originalRepRangeTarget ||
             s.repRangeMax !== s.originalRepRangeMax ||
             s.startingSets !== s.originalStartingSets ||
             s.currentSets !== s.originalCurrentSets ||
@@ -230,7 +222,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
             startingWeight: state.swapWeight,
             weightUnit: state.weightUnit,
             repRangeMinimum: state.swapRepMin,
-            repRangeTarget: state.swapRepTarget,
             repRangeMaximum: state.swapRepMax,
             targetSets: state.swapTargetSets,
             isUnilateral: state.swapIsUnilateral,
@@ -264,7 +255,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           startingWeight: state.newValue,
           weightUnit: state.weightUnit,
           repRangeMinimum: state.repRangeMin,
-          repRangeTarget: state.repRangeTarget,
           repRangeMaximum: state.repRangeMax,
           targetSets: state.targetSets,
           startingSets: state.startingSets,
@@ -502,7 +492,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                       <>
                         <div>
                           <Label className="text-sm font-medium mb-1 block">Rep Range</Label>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 gap-2">
                             <div>
                               <label className="text-xs text-muted-foreground">Min</label>
                               <Input
@@ -511,20 +501,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                                 onChange={(e) =>
                                   updateState(state.exerciseId, {
                                     repRangeMin: Number(e.target.value),
-                                  })
-                                }
-                                min={1}
-                                max={30}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Target</label>
-                              <Input
-                                type="number"
-                                value={state.repRangeTarget}
-                                onChange={(e) =>
-                                  updateState(state.exerciseId, {
-                                    repRangeTarget: Number(e.target.value),
                                   })
                                 }
                                 min={1}
@@ -576,7 +552,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
 
                         <div>
                           <Label className="text-sm font-medium mb-1 block">Sets</Label>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 gap-2">
                             <div>
                               <label className="text-xs text-muted-foreground">Starting</label>
                               <Input
@@ -657,7 +633,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                         </div>
                         <div>
                           <Label className="text-sm">Rep Range</Label>
-                          <div className="grid grid-cols-3 gap-2 mt-1">
+                          <div className="grid grid-cols-2 gap-2 mt-1">
                             <div>
                               <label className="text-xs text-muted-foreground">Min</label>
                               <Input
@@ -665,16 +641,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                                 value={state.swapRepMin}
                                 onChange={(e) =>
                                   updateState(state.exerciseId, { swapRepMin: Number(e.target.value) })
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Target</label>
-                              <Input
-                                type="number"
-                                value={state.swapRepTarget}
-                                onChange={(e) =>
-                                  updateState(state.exerciseId, { swapRepTarget: Number(e.target.value) })
                                 }
                               />
                             </div>

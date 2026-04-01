@@ -44,7 +44,6 @@ export interface RepsPerSetConfig {
   startingWeight: number;
   weightUnit: WeightUnit;
   repRangeMin: number;
-  repRangeTarget: number;
   repRangeMax: number;
   currentSets: number;
   targetSets: number;
@@ -135,9 +134,6 @@ export function ExerciseSubstitutionConfigModal({
   // RepsPerSet progression state
   const [repRangeMin, setRepRangeMin] = useState<number>(
     repsPerSetProg?.repRange?.minimum ?? 8
-  );
-  const [repRangeTarget, setRepRangeTarget] = useState<number>(
-    repsPerSetProg?.repRange?.target ?? 10
   );
   const [repRangeMax, setRepRangeMax] = useState<number>(
     repsPerSetProg?.repRange?.maximum ?? 12
@@ -272,7 +268,6 @@ export function ExerciseSubstitutionConfigModal({
         startingWeight,
         weightUnit,
         repRangeMin,
-        repRangeTarget,
         repRangeMax,
         currentSets,
         targetSets,
@@ -542,28 +537,13 @@ export function ExerciseSubstitutionConfigModal({
                     <label className="block text-sm font-medium mb-2 text-foreground">
                       Rep Range
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs text-muted-foreground">Min</label>
                         <input
                           type="number"
                           value={repRangeMin}
                           onChange={(e) => setRepRangeMin(Number(e.target.value))}
-                          className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                          min="1"
-                          max="30"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">
-                          Target
-                        </label>
-                        <input
-                          type="number"
-                          value={repRangeTarget}
-                          onChange={(e) =>
-                            setRepRangeTarget(Number(e.target.value))
-                          }
                           className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
                           min="1"
                           max="30"

@@ -39,11 +39,10 @@ public sealed class GetExerciseLibraryQueryHandler : IRequestHandler<GetExercise
             {
                 Name = d.Name,
                 Equipment = d.EquipmentType,
-                DefaultRepRange = d.DefaultRepRangeMin.HasValue && d.DefaultRepRangeTarget.HasValue && d.DefaultRepRangeMax.HasValue
+                DefaultRepRange = d.DefaultRepRangeMin.HasValue && d.DefaultRepRangeMax.HasValue
                     ? new RepRangeDto
                     {
                         Minimum = d.DefaultRepRangeMin.Value,
-                        Target = d.DefaultRepRangeTarget.Value,
                         Maximum = d.DefaultRepRangeMax.Value
                     }
                     : null,

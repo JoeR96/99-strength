@@ -15,7 +15,6 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
     public bool IsCompound { get; private set; }
     public string Description { get; private set; }
     public int? DefaultRepRangeMin { get; private set; }
-    public int? DefaultRepRangeTarget { get; private set; }
     public int? DefaultRepRangeMax { get; private set; }
     public int? DefaultSets { get; private set; }
 
@@ -35,7 +34,6 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
         bool isCompound,
         string description,
         int? defaultRepRangeMin = null,
-        int? defaultRepRangeTarget = null,
         int? defaultRepRangeMax = null,
         int? defaultSets = null)
         : base(id)
@@ -48,7 +46,6 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
         IsCompound = isCompound;
         Description = description;
         DefaultRepRangeMin = defaultRepRangeMin;
-        DefaultRepRangeTarget = defaultRepRangeTarget;
         DefaultRepRangeMax = defaultRepRangeMax;
         DefaultSets = defaultSets;
     }

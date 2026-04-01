@@ -42,7 +42,6 @@ public sealed record CreateExerciseRequest
     public int? TargetSets { get; init; }
     public bool IsUnilateral { get; init; }
     public int? RepRangeMinimum { get; init; }
-    public int? RepRangeTarget { get; init; }
     public int? RepRangeMaximum { get; init; }
 
     // For MinimalSets progression

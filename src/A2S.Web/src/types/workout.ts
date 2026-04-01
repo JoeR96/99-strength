@@ -59,7 +59,6 @@ export type WorkoutStatus = typeof WorkoutStatus[keyof typeof WorkoutStatus];
 
 export interface RepRange {
   minimum: number;
-  target: number;
   maximum: number;
 }
 
@@ -234,7 +233,7 @@ export interface CreateExerciseRequest {
   targetSets?: number;
   isUnilateral?: boolean;
   repRangeMinimum?: number;
-  repRangeTarget?: number;
+
   repRangeMaximum?: number;
   // For MinimalSets progression
   targetTotalReps?: number;
@@ -403,7 +402,7 @@ export interface ProgressionConfigRequest {
   baseSetsPerExercise?: number;
   // RepsPerSet progression options
   repRangeMinimum?: number;
-  repRangeTarget?: number;
+
   repRangeMaximum?: number;
   targetSets?: number;
   startingSets?: number;

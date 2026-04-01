@@ -46,7 +46,6 @@ export function ExerciseConfigDialog({
   // RepsPerSet progression state
   const [isUnilateral, setIsUnilateral] = useState<boolean>(false);
   const [repRangeMin, setRepRangeMin] = useState<number>(8);
-  const [repRangeTarget, setRepRangeTarget] = useState<number>(10);
   const [repRangeMax, setRepRangeMax] = useState<number>(12);
   const [currentSets, setCurrentSets] = useState<number>(3);
   const [targetSets, setTargetSets] = useState<number>(5);
@@ -73,7 +72,6 @@ export function ExerciseConfigDialog({
       // RepsPerSet progression
       if (exercise.repRange) {
         setRepRangeMin(exercise.repRange.minimum);
-        setRepRangeTarget(exercise.repRange.target);
         setRepRangeMax(exercise.repRange.maximum);
       }
       setIsUnilateral(exercise.isUnilateral ?? false);
@@ -114,7 +112,6 @@ export function ExerciseConfigDialog({
         targetSets: maxSets,
         repRange: {
           minimum: Math.floor(targetTotalReps / maxSets),
-          target: Math.floor(targetTotalReps / minimalCurrentSets),
           maximum: Math.ceil(targetTotalReps / minSets),
         },
         trainingMax: undefined,
@@ -129,7 +126,6 @@ export function ExerciseConfigDialog({
         isUnilateral,
         repRange: {
           minimum: repRangeMin,
-          target: repRangeTarget,
           maximum: repRangeMax,
         },
         currentSets,
@@ -306,24 +302,13 @@ export function ExerciseConfigDialog({
                 {/* Rep Range */}
                 <div>
                   <label className="block text-sm font-medium mb-2 text-foreground">Rep Range</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-xs text-muted-foreground">Min</label>
                       <input
                         type="number"
                         value={repRangeMin}
                         onChange={(e) => setRepRangeMin(Number(e.target.value))}
-                        className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                        min="1"
-                        max="30"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Target</label>
-                      <input
-                        type="number"
-                        value={repRangeTarget}
-                        onChange={(e) => setRepRangeTarget(Number(e.target.value))}
                         className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
                         min="1"
                         max="30"

@@ -104,7 +104,6 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 RepRange = new RepRangeDto
                 {
                     Minimum = data.RepRangeMinimum ?? 0,
-                    Target = data.RepRangeTarget ?? 0,
                     Maximum = data.RepRangeMaximum ?? 0
                 },
                 StartingSets = data.StartingSets ?? 2,

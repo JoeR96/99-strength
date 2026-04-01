@@ -162,7 +162,7 @@ export function useWorkoutSession() {
         } else if (isRepsPerSet) {
           const prog = exercise.progression as RepsPerSetProgressionDto;
           targetSets = prog.currentSetCount;
-          targetReps = prog.repRange.target;
+          targetReps = prog.repRange.maximum;
           targetWeight = prog.isWeightPending ? 0 : prog.currentWeight;
           weightUnit = prog.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg";
         } else if (isMinimalSets) {
@@ -562,8 +562,8 @@ export function useWorkoutSession() {
         request: {
           exerciseId: originalExercise.id,
           newExerciseName: substituteTemplate.name,
-          reason: repsConfig ? `User substitution - switched to RepsPerSet (${repsConfig.sets}×${repsConfig.minReps}-${repsConfig.targetReps}-${repsConfig.maxReps})` : "User substitution",
-          newProgressionConfig: repsConfig ? { type: "RepsPerSet", repRangeMinimum: repsConfig.minReps, repRangeTarget: repsConfig.targetReps, repRangeMaximum: repsConfig.maxReps, startingWeight: repsConfig.startingWeight, weightUnit: 1, targetSets: repsConfig.sets } : undefined,
+          reason: repsConfig ? `User substitution - switched to RepsPerSet (${repsConfig.sets}×${repsConfig.minReps}-${repsConfig.maxReps})` : "User substitution",
+          newProgressionConfig: repsConfig ? { type: "RepsPerSet", repRangeMinimum: repsConfig.minReps, repRangeMaximum: repsConfig.maxReps, startingWeight: repsConfig.startingWeight, weightUnit: 1, targetSets: repsConfig.sets } : undefined,
         },
       });
       setExerciseEntries((prev) =>
@@ -769,7 +769,7 @@ export function useWorkoutSession() {
               newSets = Array.from({ length: newTargetSets }, (_, i) => ({ setNumber: i + 1, weight: newTargetWeight, reps: newTargetReps, isAmrap: newIsAmrap && i === newTargetSets - 1, completed: false }));
             } else if (isRepsPerSet && rpsProgression) {
               newTargetSets = rpsProgression.currentSetCount;
-              newTargetReps = rpsProgression.repRange.target;
+              newTargetReps = rpsProgression.repRange.maximum;
               newTargetWeight = rpsProgression.currentWeight;
               newIsAmrap = false;
               newSets = Array.from({ length: newTargetSets }, (_, i) => ({ setNumber: i + 1, weight: newTargetWeight, reps: newTargetReps, isAmrap: false, completed: false }));

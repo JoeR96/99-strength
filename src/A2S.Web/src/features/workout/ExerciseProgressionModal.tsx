@@ -461,7 +461,7 @@ function CurrentStateSummary({ exercise }: { exercise: ExerciseDto }) {
         <div>
           <span className="text-muted-foreground">Range: </span>
           <span className="font-medium">
-            {rp.repRange?.minimum}-{rp.repRange?.target}-{rp.repRange?.maximum}
+            {rp.repRange?.minimum}-{rp.repRange?.maximum}
           </span>
         </div>
         {rp.isUnilateral && (

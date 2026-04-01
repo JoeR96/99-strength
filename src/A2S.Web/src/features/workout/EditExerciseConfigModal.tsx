@@ -73,9 +73,6 @@ export function EditExerciseConfigModal({
   const [repRangeMax, setRepRangeMax] = useState<number>(
     repsPerSetProg?.repRange?.maximum ?? 12
   );
-  const [repRangeTarget, setRepRangeTarget] = useState<number>(
-    repsPerSetProg?.repRange?.target ?? 10
-  );
   const [targetSets, setTargetSets] = useState<number>(
     repsPerSetProg?.targetSets ?? 5
   );
@@ -93,7 +90,6 @@ export function EditExerciseConfigModal({
       setWeightValue(Math.round((linearProg.trainingMax.value * 0.6) / 2.5) * 2.5);
       setRpsWeightUnit(linearProg.trainingMax.unit);
       setRepRangeMin(8);
-      setRepRangeTarget(10);
       setRepRangeMax(12);
       setTargetSets(5);
       setIsUnilateral(false);
@@ -101,7 +97,6 @@ export function EditExerciseConfigModal({
     if (repsPerSetProg) {
       setWeightValue(repsPerSetProg.currentWeight);
       setRepRangeMin(repsPerSetProg.repRange?.minimum ?? 8);
-      setRepRangeTarget(repsPerSetProg.repRange?.target ?? 10);
       setRepRangeMax(repsPerSetProg.repRange?.maximum ?? 12);
       setTargetSets(repsPerSetProg.targetSets ?? 5);
       setIsUnilateral(repsPerSetProg.isUnilateral ?? false);
@@ -133,7 +128,7 @@ export function EditExerciseConfigModal({
             startingWeight: weightValue,
             weightUnit: rpsWeightUnit,
             repRangeMinimum: repRangeMin,
-            repRangeTarget: repRangeTarget,
+
             repRangeMaximum: repRangeMax,
             targetSets: targetSets,
             isUnilateral: isUnilateral,
@@ -151,8 +146,7 @@ export function EditExerciseConfigModal({
         await onChangeProgression(exercise.id, config);
       } else if (isRepsPerSet && repsPerSetProg && (
         repRangeMin !== (repsPerSetProg.repRange?.minimum ?? 8) ||
-        repRangeMax !== (repsPerSetProg.repRange?.maximum ?? 12) ||
-        repRangeTarget !== (repsPerSetProg.repRange?.target ?? 10)
+        repRangeMax !== (repsPerSetProg.repRange?.maximum ?? 12)
       )) {
         // Rep range changed — use substitute API to recreate the progression
         const config: ProgressionConfigRequest = {
@@ -289,23 +283,13 @@ export function EditExerciseConfigModal({
                 <label className="block text-sm font-medium mb-1">
                   Rep Range
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
                       value={repRangeMin}
                       onChange={(e) => setRepRangeMin(Number(e.target.value))}
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Target</label>
-                    <Input
-                      type="number"
-                      value={repRangeTarget}
-                      onChange={(e) => setRepRangeTarget(Number(e.target.value))}
                       min="1"
                       max="30"
                     />
@@ -400,23 +384,13 @@ export function EditExerciseConfigModal({
                 <label className="block text-sm font-medium mb-1">
                   Rep Range
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
                       value={repRangeMin}
                       onChange={(e) => setRepRangeMin(Number(e.target.value))}
-                      min="1"
-                      max="30"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Target</label>
-                    <Input
-                      type="number"
-                      value={repRangeTarget}
-                      onChange={(e) => setRepRangeTarget(Number(e.target.value))}
                       min="1"
                       max="30"
                     />

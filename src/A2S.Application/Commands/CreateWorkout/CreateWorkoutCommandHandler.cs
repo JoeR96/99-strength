@@ -143,10 +143,8 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 // Create RepsPerSet progression exercise
                 // Weight is deferred - will be confirmed after the first session
                 RepRange repRange = (exerciseRequest.RepRangeMinimum.HasValue
-                    && exerciseRequest.RepRangeTarget.HasValue
                     && exerciseRequest.RepRangeMaximum.HasValue)
                     ? RepRange.Create(exerciseRequest.RepRangeMinimum.Value,
-                                      exerciseRequest.RepRangeTarget.Value,
                                       exerciseRequest.RepRangeMaximum.Value)
                     : template.DefaultRepRange ?? RepRange.Common.Medium;
 

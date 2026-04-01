@@ -43,7 +43,6 @@ public class ExerciseDefinitionConfiguration : IEntityTypeConfiguration<Exercise
             .HasMaxLength(500);
 
         builder.Property(e => e.DefaultRepRangeMin);
-        builder.Property(e => e.DefaultRepRangeTarget);
         builder.Property(e => e.DefaultRepRangeMax);
         builder.Property(e => e.DefaultSets);
 

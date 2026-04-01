@@ -181,10 +181,10 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
         EquipmentType defaultEquipment)
     {
         // Validate required fields
-        if (!config.RepRangeMinimum.HasValue || !config.RepRangeTarget.HasValue || !config.RepRangeMaximum.HasValue)
+        if (!config.RepRangeMinimum.HasValue || !config.RepRangeMaximum.HasValue)
         {
             return Result.Failure<ExerciseProgression>(
-                "RepsPerSet progression requires RepRangeMinimum, RepRangeTarget, and RepRangeMaximum.");
+                "RepsPerSet progression requires RepRangeMinimum and RepRangeMaximum.");
         }
 
         if (!config.StartingWeight.HasValue)
@@ -194,7 +194,6 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
 
         var repRange = RepRange.Create(
             config.RepRangeMinimum.Value,
-            config.RepRangeTarget.Value,
             config.RepRangeMaximum.Value);
 
         var weightUnit = config.WeightUnit ?? WeightUnit.Kilograms;
