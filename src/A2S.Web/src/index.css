@@ -10,55 +10,55 @@
   /* RETRO ARCADE THEME - Clean White with Neon Accents */
 
   /* Arcade Neon Colors - for accents only */
-  --color-neon-cyan: 180 100% 50%;
-  --color-neon-magenta: 300 100% 60%;
-  --color-neon-yellow: 50 100% 50%;
-  --color-neon-green: 120 100% 45%;
-  --color-neon-orange: 30 100% 55%;
-  --color-neon-pink: 330 100% 65%;
-  --color-neon-purple: 270 100% 60%;
-  --color-neon-blue: 210 100% 55%;
+  --color-neon-cyan: hsl(180 100% 50%);
+  --color-neon-magenta: hsl(300 100% 60%);
+  --color-neon-yellow: hsl(50 100% 50%);
+  --color-neon-green: hsl(120 100% 45%);
+  --color-neon-orange: hsl(30 100% 55%);
+  --color-neon-pink: hsl(330 100% 65%);
+  --color-neon-purple: hsl(270 100% 60%);
+  --color-neon-blue: hsl(210 100% 55%);
 
   /* Dark arcade backgrounds */
-  --color-arcade-black: 240 10% 4%;
-  --color-arcade-dark: 240 10% 8%;
-  --color-arcade-panel: 240 10% 12%;
-  --color-arcade-surface: 240 10% 16%;
+  --color-arcade-black: hsl(240 10% 4%);
+  --color-arcade-dark: hsl(240 10% 8%);
+  --color-arcade-panel: hsl(240 10% 12%);
+  --color-arcade-surface: hsl(240 10% 16%);
 
   /* Default theme colors - Clean readable with white text */
-  --color-background: 240 10% 4%;
-  --color-foreground: 0 0% 95%; /* White text */
+  --color-background: hsl(240 10% 4%);
+  --color-foreground: hsl(0 0% 95%); /* White text */
 
-  --color-card: 240 10% 10%;
-  --color-card-foreground: 0 0% 95%; /* White text */
+  --color-card: hsl(240 10% 10%);
+  --color-card-foreground: hsl(0 0% 95%); /* White text */
 
-  --color-popover: 240 10% 10%;
-  --color-popover-foreground: 0 0% 95%;
+  --color-popover: hsl(240 10% 10%);
+  --color-popover-foreground: hsl(0 0% 95%);
 
-  --color-primary: 300 100% 60%; /* Neon Magenta for buttons/accents */
-  --color-primary-foreground: 0 0% 100%;
+  --color-primary: hsl(300 100% 60%); /* Neon Magenta for buttons/accents */
+  --color-primary-foreground: hsl(0 0% 100%);
 
-  --color-secondary: 240 10% 20%;
-  --color-secondary-foreground: 0 0% 95%;
+  --color-secondary: hsl(240 10% 20%);
+  --color-secondary-foreground: hsl(0 0% 95%);
 
-  --color-muted: 240 10% 16%;
-  --color-muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
+  --color-muted: hsl(240 10% 16%);
+  --color-muted-foreground: hsl(0 0% 65%); /* Lighter gray for muted text */
 
-  --color-accent: 50 100% 50%; /* Neon Yellow for highlights */
-  --color-accent-foreground: 240 10% 4%;
+  --color-accent: hsl(50 100% 50%); /* Neon Yellow for highlights */
+  --color-accent-foreground: hsl(240 10% 4%);
 
-  --color-destructive: 0 100% 55%;
-  --color-destructive-foreground: 0 0% 100%;
+  --color-destructive: hsl(0 100% 55%);
+  --color-destructive-foreground: hsl(0 0% 100%);
 
-  --color-success: 120 100% 45%;
-  --color-success-foreground: 240 10% 4%;
+  --color-success: hsl(120 100% 45%);
+  --color-success-foreground: hsl(240 10% 4%);
 
-  --color-warning: 50 100% 50%;
-  --color-warning-foreground: 240 10% 4%;
+  --color-warning: hsl(50 100% 50%);
+  --color-warning-foreground: hsl(240 10% 4%);
 
-  --color-border: 0 0% 25%;
-  --color-input: 0 0% 20%;
-  --color-ring: 300 100% 60%;
+  --color-border: hsl(0 0% 25%);
+  --color-input: hsl(0 0% 20%);
+  --color-ring: hsl(300 100% 60%);
 
   /* Arcade radius - sharp/pixel feel */
   --radius-sm: 0.25rem;
@@ -95,39 +95,39 @@
 @layer base {
   :root {
     /* Light mode - Dark background with white text */
-    --color-background: 240 10% 6%;
-    --color-foreground: 0 0% 95%;
+    --color-background: hsl(240 10% 6%);
+    --color-foreground: hsl(0 0% 95%);
 
-    --color-card: 240 10% 10%;
-    --color-card-foreground: 0 0% 95%;
+    --color-card: hsl(240 10% 10%);
+    --color-card-foreground: hsl(0 0% 95%);
 
-    --color-popover: 240 10% 10%;
-    --color-popover-foreground: 0 0% 95%;
+    --color-popover: hsl(240 10% 10%);
+    --color-popover-foreground: hsl(0 0% 95%);
 
-    --color-primary: 300 100% 60%; /* Magenta */
-    --color-primary-foreground: 0 0% 100%;
+    --color-primary: hsl(300 100% 60%); /* Magenta */
+    --color-primary-foreground: hsl(0 0% 100%);
 
-    --color-secondary: 240 10% 18%;
-    --color-secondary-foreground: 0 0% 95%;
+    --color-secondary: hsl(240 10% 18%);
+    --color-secondary-foreground: hsl(0 0% 95%);
 
-    --color-muted: 240 10% 14%;
-    --color-muted-foreground: 0 0% 60%;
+    --color-muted: hsl(240 10% 14%);
+    --color-muted-foreground: hsl(0 0% 60%);
 
-    --color-accent: 50 100% 50%; /* Yellow */
-    --color-accent-foreground: 240 10% 4%;
+    --color-accent: hsl(50 100% 50%); /* Yellow */
+    --color-accent-foreground: hsl(240 10% 4%);
 
-    --color-destructive: 0 100% 55%;
-    --color-destructive-foreground: 0 0% 100%;
+    --color-destructive: hsl(0 100% 55%);
+    --color-destructive-foreground: hsl(0 0% 100%);
 
-    --color-success: 120 100% 45%;
-    --color-success-foreground: 0 0% 100%;
+    --color-success: hsl(120 100% 45%);
+    --color-success-foreground: hsl(0 0% 100%);
 
-    --color-warning: 50 100% 50%;
-    --color-warning-foreground: 240 10% 4%;
+    --color-warning: hsl(50 100% 50%);
+    --color-warning-foreground: hsl(240 10% 4%);
 
-    --color-border: 0 0% 22%;
-    --color-input: 0 0% 18%;
-    --color-ring: 300 100% 60%;
+    --color-border: hsl(0 0% 22%);
+    --color-input: hsl(0 0% 18%);
+    --color-ring: hsl(300 100% 60%);
 
     /* Subtle shadows */
     --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
@@ -136,47 +136,47 @@
     --shadow-xl: 0 20px 25px hsl(0 0% 0% / 0.5);
     --shadow-lift: 0 10px 20px hsl(0 0% 0% / 0.4);
 
-    background-color: hsl(var(--color-background));
-    color: hsl(var(--color-foreground));
+    background-color: var(--color-background);
+    color: var(--color-foreground);
   }
 
   .dark {
     /* OSRS THEME - Old School RuneScape Website Style */
     /* Classic tan parchment backgrounds with gold/brown accents */
 
-    --color-background: 30 25% 12%; /* Dark brown like OSRS dark areas */
-    --color-foreground: 43 30% 85%; /* Light tan/parchment text */
+    --color-background: hsl(30 25% 12%); /* Dark brown like OSRS dark areas */
+    --color-foreground: hsl(43 30% 85%); /* Light tan/parchment text */
 
-    --color-card: 30 30% 18%; /* Brown card background */
-    --color-card-foreground: 43 40% 90%; /* Cream text */
+    --color-card: hsl(30 30% 18%); /* Brown card background */
+    --color-card-foreground: hsl(43 40% 90%); /* Cream text */
 
-    --color-popover: 30 35% 15%; /* Darker brown popover */
-    --color-popover-foreground: 43 40% 90%;
+    --color-popover: hsl(30 35% 15%); /* Darker brown popover */
+    --color-popover-foreground: hsl(43 40% 90%);
 
-    --color-primary: 45 100% 45%; /* OSRS Gold */
-    --color-primary-foreground: 30 40% 10%; /* Dark brown text on gold */
+    --color-primary: hsl(45 100% 45%); /* OSRS Gold */
+    --color-primary-foreground: hsl(30 40% 10%); /* Dark brown text on gold */
 
-    --color-secondary: 30 25% 25%; /* Medium brown */
-    --color-secondary-foreground: 43 40% 90%;
+    --color-secondary: hsl(30 25% 25%); /* Medium brown */
+    --color-secondary-foreground: hsl(43 40% 90%);
 
-    --color-muted: 30 20% 20%; /* Muted brown */
-    --color-muted-foreground: 40 20% 60%; /* Tan muted text */
+    --color-muted: hsl(30 20% 20%); /* Muted brown */
+    --color-muted-foreground: hsl(40 20% 60%); /* Tan muted text */
 
-    --color-accent: 25 80% 50%; /* OSRS Orange/Bronze */
-    --color-accent-foreground: 0 0% 100%;
+    --color-accent: hsl(25 80% 50%); /* OSRS Orange/Bronze */
+    --color-accent-foreground: hsl(0 0% 100%);
 
-    --color-destructive: 0 70% 45%; /* RuneScape red (like HP bar) */
-    --color-destructive-foreground: 0 0% 100%;
+    --color-destructive: hsl(0 70% 45%); /* RuneScape red (like HP bar) */
+    --color-destructive-foreground: hsl(0 0% 100%);
 
-    --color-success: 120 60% 35%; /* RuneScape green (like prayer) */
-    --color-success-foreground: 0 0% 100%;
+    --color-success: hsl(120 60% 35%); /* RuneScape green (like prayer) */
+    --color-success-foreground: hsl(0 0% 100%);
 
-    --color-warning: 45 100% 45%; /* Gold warning */
-    --color-warning-foreground: 30 40% 10%;
+    --color-warning: hsl(45 100% 45%); /* Gold warning */
+    --color-warning-foreground: hsl(30 40% 10%);
 
-    --color-border: 30 40% 30%; /* Brown border */
-    --color-input: 30 30% 22%; /* Input brown */
-    --color-ring: 45 100% 50%; /* Gold ring */
+    --color-border: hsl(30 40% 30%); /* Brown border */
+    --color-input: hsl(30 30% 22%); /* Input brown */
+    --color-ring: hsl(45 100% 50%); /* Gold ring */
 
     /* OSRS Font override */
     --font-osrs: 'RuneScape UF', 'Times New Roman', serif;
@@ -193,7 +193,7 @@
   }
 
   * {
-    border-color: hsl(var(--color-border));
+    border-color: var(--color-border);
   }
 
   body {
@@ -271,8 +271,8 @@
 
   /* Clean selection */
   ::selection {
-    background: hsl(var(--color-primary));
-    color: hsl(var(--color-primary-foreground));
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
   }
 
   /* Scrollbar styling */
@@ -282,7 +282,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--color-background));
+    background: var(--color-background);
   }
 
   ::-webkit-scrollbar-thumb {
@@ -338,15 +338,15 @@
 
   /* Neon border glow - subtle */
   .neon-border {
-    border: 1px solid hsl(var(--color-primary));
-    box-shadow: 0 0 10px hsl(var(--color-primary) / 0.3);
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
 
   /* Arcade button press effect */
   .arcade-btn {
     position: relative;
-    border: 2px solid hsl(var(--color-primary));
-    background: hsl(var(--color-primary));
+    border: 2px solid var(--color-primary);
+    background: var(--color-primary);
     color: hsl(0 0% 100%);
     font-family: var(--font-display);
     font-weight: 600;
@@ -359,7 +359,7 @@
   .arcade-btn:hover {
     box-shadow:
       0 4px 0 hsl(300 100% 40%),
-      0 0 15px hsl(var(--color-primary) / 0.5);
+      0 0 15px color-mix(in srgb, var(--color-primary) 50%, transparent);
   }
 
   .arcade-btn:active {
@@ -389,7 +389,7 @@
 
   /* Focus ring */
   .focus-ring {
-    outline: 2px solid hsl(var(--color-ring));
+    outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
 
@@ -503,8 +503,8 @@
 
   /* Arcade card style */
   .arcade-card {
-    background: hsl(var(--color-card));
-    border: 1px solid hsl(var(--color-border));
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
     transition: all var(--duration-normal) var(--ease-arcade);
   }
 
@@ -514,7 +514,7 @@
 
   /* Progress bar arcade style */
   .arcade-progress {
-    background: hsl(var(--color-muted));
+    background: var(--color-muted);
     border-radius: 4px;
     overflow: hidden;
   }
