@@ -44,7 +44,7 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onComplete(); }}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-4 border-b bg-blue-100 dark:bg-blue-900/50">
+        <DialogHeader className="p-4 border-b bg-blue-100 dark:bg-blue-900">
           <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

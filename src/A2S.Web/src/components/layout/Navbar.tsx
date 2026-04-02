@@ -51,7 +51,7 @@ export function Navbar() {
     <nav className={`sticky top-0 z-50 border-b ${
       mode === 'dark'
         ? 'bg-gradient-to-b from-[hsl(30,30%,18%)] to-[hsl(30,28%,14%)] border-[hsl(30,40%,30%)]'
-        : 'bg-card/95 backdrop-blur border-border'
+        : 'bg-card backdrop-blur border-border'
     }`}>
       <div className="container-apple">
         <div className="flex h-16 justify-between items-center">
@@ -192,7 +192,7 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-40 lg:hidden" aria-modal="true" role="dialog">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+            <div className="absolute inset-0 bg-black/80" aria-hidden="true" />
 
             {/* Menu panel */}
             <div

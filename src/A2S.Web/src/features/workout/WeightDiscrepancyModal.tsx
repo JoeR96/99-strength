@@ -49,7 +49,7 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onComplete(); }}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-4 border-b bg-orange-100 dark:bg-orange-900/50">
+        <DialogHeader className="p-4 border-b bg-orange-100 dark:bg-orange-900">
           <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

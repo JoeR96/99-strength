@@ -32,7 +32,7 @@ export function SessionRecoveryModal({ savedAt, completedSets, onResume, onStart
       <DialogContent className="max-w-md p-0">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -43,7 +43,7 @@ export function SessionRecoveryModal({ savedAt, completedSets, onResume, onStart
             </div>
           </div>
 
-          <div className="p-4 bg-muted/50 rounded-lg mb-6">
+          <div className="p-4 bg-muted rounded-lg mb-6">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Completed sets</span>
               <span className="font-semibold">{completedSets}</span>
