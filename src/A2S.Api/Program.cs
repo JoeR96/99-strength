@@ -4,13 +4,13 @@ using A2S.Application;
 using A2S.Application.Common;
 using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
+using A2S.Infrastructure.SeedData;
 using A2S.Integration.Hevy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
-// Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
@@ -19,25 +19,20 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Use Serilog for logging
 builder.Host.UseSerilog();
 
-// Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHevyIntegration(builder.Configuration);
 
-// Add HttpContextAccessor and CurrentUserService
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// Add HttpClient for Hevy API proxy
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("HevyApi");
 
-// Add controllers
 builder.Services.AddControllers();
 
-// Configure API Versioning
 var apiVersioning = builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
@@ -55,7 +50,6 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-// Configure Clerk JWT Authentication
 var clerkDomain = builder.Configuration["Clerk:Domain"]
     ?? throw new InvalidOperationException("Clerk:Domain configuration is required. Set 'Clerk:Domain' in appsettings or environment variables.");
 
@@ -85,7 +79,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -106,14 +99,15 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-// Apply pending migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
-     dbContext.Database.Migrate();
+    await dbContext.Database.MigrateAsync();
+
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await ExerciseDefinitionSeeder.SeedAsync(dbContext, logger);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -125,29 +119,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Enable CORS
 app.UseCors("AllowFrontend");
 
 // Global exception handler — must be early in the pipeline
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-// Add correlation ID middleware
 app.UseMiddleware<CorrelationIdMiddleware>();
 
-// Add Serilog request logging
 app.UseSerilogRequestLogging();
 
-// Add Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Auto-provision user on first authenticated request
 app.UseAutoProvisionUser();
 
-// Map controllers
 app.MapControllers();
 
-// Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 app.Run();

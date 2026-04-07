@@ -18,7 +18,7 @@ public class UpdateWorkingWeightCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly UpdateWorkingWeightCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa33333-3333-3333-3333-333333333333"));
+    private static readonly UserId TestUserId = new("aaa33333-3333-3333-3333-333333333333");
 
     public UpdateWorkingWeightCommandHandlerTests()
     {
@@ -61,7 +61,7 @@ public class UpdateWorkingWeightCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

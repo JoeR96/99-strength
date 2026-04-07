@@ -104,7 +104,7 @@ class HevyApiService {
    */
   async getWorkouts(page: number = 1, pageSize: number = 10): Promise<HevyWorkoutsResponse> {
     return this.request<HevyWorkoutsResponse>(
-      `/workouts?page=${page}&pageSize=${pageSize}`
+      `/workouts?page=${page}&page_size=${pageSize}`
     );
   }
 
@@ -164,7 +164,7 @@ class HevyApiService {
     // Clamp pageSize to max allowed by Hevy API
     const clampedPageSize = Math.min(pageSize, 10);
     return this.request<HevyRoutinesResponse>(
-      `/routines?page=${page}&pageSize=${clampedPageSize}`
+      `/routines?page=${page}&page_size=${clampedPageSize}`
     );
   }
 
@@ -245,7 +245,7 @@ class HevyApiService {
     pageSize: number = 100
   ): Promise<HevyExerciseTemplatesResponse> {
     return this.request<HevyExerciseTemplatesResponse>(
-      `/exercise_templates?page=${page}&pageSize=${pageSize}`
+      `/exercise_templates?page=${page}&page_size=${pageSize}`
     );
   }
 
@@ -306,7 +306,7 @@ class HevyApiService {
     // Clamp pageSize to max allowed by Hevy API
     const clampedPageSize = Math.min(pageSize, 10);
     return this.request<HevyRoutineFoldersResponse>(
-      `/routine_folders?page=${page}&pageSize=${clampedPageSize}`
+      `/routine_folders?page=${page}&page_size=${clampedPageSize}`
     );
   }
 
@@ -326,7 +326,6 @@ class HevyApiService {
   async createRoutineFolder(
     folder: HevyCreateRoutineFolderRequest
   ): Promise<HevyRoutineFolder> {
-    console.log('Creating routine folder with payload:', JSON.stringify(folder));
     const response = await this.request<{ routine_folder: HevyRoutineFolder } | HevyRoutineFolder>(
       '/routine_folders',
       {
@@ -334,7 +333,6 @@ class HevyApiService {
         body: folder,
       }
     );
-    console.log('Create routine folder response:', JSON.stringify(response));
     // Handle both wrapped and unwrapped response formats
     if ('routine_folder' in response) {
       return response.routine_folder;
@@ -349,21 +347,17 @@ class HevyApiService {
    */
   async validateApiKey(): Promise<boolean> {
     if (!this.apiKey) {
-      console.log('Hevy validation: No API key set');
       return false;
     }
 
     try {
-      console.log('Hevy validation: Calling backend proxy...');
       const response = await apiClient.get(`${HEVY_PROXY_BASE_URL}/validate`, {
         headers: {
           'X-Hevy-Api-Key': this.apiKey,
         },
       });
-      console.log('Hevy validation response:', response.data);
       return response.data?.valid === true;
     } catch (error: unknown) {
-      console.error('Hevy validation error:', error);
       // Re-throw to let the caller handle it
       throw error;
     }

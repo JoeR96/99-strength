@@ -22,18 +22,13 @@ public sealed class GetExerciseLibraryQueryHandler : IRequestHandler<GetExercise
     {
         try
         {
-            var hasFilters = request.EquipmentType.HasValue
-                || !string.IsNullOrWhiteSpace(request.MuscleGroup)
-                || !string.IsNullOrWhiteSpace(request.SearchTerm)
-                || !string.IsNullOrWhiteSpace(request.Category);
-
-            var definitions = hasFilters
-                ? await _exerciseDefinitionRepository.SearchAsync(
-                    request.EquipmentType,
-                    request.MuscleGroup ?? request.Category,
-                    request.SearchTerm,
-                    cancellationToken)
-                : await _exerciseDefinitionRepository.GetAllAsync(cancellationToken);
+            var (definitions, totalCount) = await _exerciseDefinitionRepository.SearchPagedAsync(
+                request.EquipmentType,
+                request.MuscleGroup ?? request.Category,
+                request.SearchTerm,
+                request.Page,
+                request.PageSize,
+                cancellationToken);
 
             var templates = definitions.Select(d => new ExerciseTemplateDto
             {
@@ -52,7 +47,10 @@ public sealed class GetExerciseLibraryQueryHandler : IRequestHandler<GetExercise
 
             var result = new ExerciseLibraryDto
             {
-                Templates = templates
+                Templates = templates,
+                TotalCount = totalCount,
+                Page = request.Page,
+                PageSize = request.PageSize
             };
 
             return Result.Success(result);

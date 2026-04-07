@@ -25,7 +25,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Create_WithValidParameters_ShouldSucceed()
     {
-        // Act
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -34,7 +33,6 @@ public class MinimalSetsStrategyTests
             minimumSets: 2,
             maximumSets: 8);
 
-        // Assert
         strategy.Should().NotBeNull();
         strategy.CurrentWeight.Value.Should().Be(32m);
         strategy.TargetTotalReps.Should().Be(40);
@@ -47,14 +45,12 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Create_WithDefaultBounds_ShouldUseDefaultValues()
     {
-        // Act
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 4,
             equipment: EquipmentType.Machine);
 
-        // Assert
         strategy.MinimumSets.Should().Be(2);
         strategy.MaximumSets.Should().Be(10);
     }
@@ -64,7 +60,6 @@ public class MinimalSetsStrategyTests
     [InlineData(201)] // Above maximum (200)
     public void Create_InvalidTargetReps_ShouldThrowException(int targetReps)
     {
-        // Act & Assert - CheckRule throws BusinessRuleViolationException
         Assert.Throws<BusinessRuleViolationException>(() =>
             MinimalSetsStrategy.Create(
                 _assistedWeight,
@@ -76,7 +71,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Create_MinimumSetsGreaterThanStarting_ShouldThrowException()
     {
-        // Act & Assert - CheckRule throws BusinessRuleViolationException
         Assert.Throws<BusinessRuleViolationException>(() =>
             MinimalSetsStrategy.Create(
                 _assistedWeight,
@@ -94,17 +88,14 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void CalculatePlannedSets_ShouldDistributeRepsEvenly()
     {
-        // Arrange - 40 reps / 3 sets = 13, 13, 14
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
-        // Assert
         plannedSets.Should().HaveCount(3);
 
         // Total should equal 40
@@ -120,17 +111,14 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void CalculatePlannedSets_EvenDistribution_ShouldBeEqual()
     {
-        // Arrange - 40 reps / 4 sets = 10 each
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 4,
             equipment: EquipmentType.Machine);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
-        // Assert
         plannedSets.Should().HaveCount(4);
         plannedSets.All(s => s.TargetReps == 10).Should().BeTrue();
     }
@@ -138,17 +126,14 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void CalculatePlannedSets_ShouldNeverBeAmrap()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(1, 1).ToList();
 
-        // Assert
         plannedSets.All(s => !s.IsAmrap).Should().BeTrue("MinimalSets should never have AMRAP");
     }
 
@@ -159,7 +144,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void ApplyPerformanceResult_CompletedInFewerSets_ShouldReduceSetCount()
     {
-        // Arrange - Start with 4 sets
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -181,17 +165,14 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(3, "Should reduce sets when completed in fewer");
     }
 
     [Fact]
     public void ApplyPerformanceResult_AtMinimumSets_ShouldNotReduceFurther()
     {
-        // Arrange - Already at minimum (2 sets)
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -210,10 +191,8 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(2, "Cannot go below minimum sets");
     }
 
@@ -224,7 +203,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void ApplyPerformanceResult_CompletedInExactSets_ShouldMaintain()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -239,17 +217,14 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(4, "Sets should not change when hitting target exactly");
     }
 
     [Fact]
     public void ApplyPerformanceResult_ExceededRepsInSameSets_ShouldMaintain()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -264,10 +239,8 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert - Still used all 4 sets, so maintained (not success)
         strategy.CurrentSetCount.Should().Be(4);
     }
 
@@ -278,7 +251,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void ApplyPerformanceResult_DidNotCompleteTargetReps_ShouldAddSet()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -299,17 +271,14 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(4, "Should add a set when target not met");
     }
 
     [Fact]
     public void ApplyPerformanceResult_AtMaximumSets_ShouldNotAddMore()
     {
-        // Arrange - Already at maximum (8 sets)
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -326,10 +295,8 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(8, "Cannot exceed maximum sets");
     }
 
@@ -340,7 +307,7 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Full21WeekCycle_AssistedDips_ShouldProgressCorrectly()
     {
-        // Arrange - Assisted Dips from spreadsheet: -32kg, 3 sets, 40 reps
+        // Assisted Dips from spreadsheet: -32kg, 3 sets, 40 reps
         var strategy = MinimalSetsStrategy.Create(
             Weight.Create(32m, WeightUnit.Kilograms),
             targetTotalReps: 40,
@@ -395,7 +362,6 @@ public class MinimalSetsStrategyTests
             setHistory.Add((week, strategy.CurrentSetCount));
         }
 
-        // Assert
         strategy.CurrentSetCount.Should().BeGreaterThanOrEqualTo(2);
         strategy.CurrentSetCount.Should().BeLessThanOrEqualTo(6);
 
@@ -407,7 +373,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void Full21WeekCycle_ConsistentImprovement_ShouldReachMinimum()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -416,7 +381,6 @@ public class MinimalSetsStrategyTests
             minimumSets: 2,
             maximumSets: 8);
 
-        // Act - Always complete in fewer sets than required (consistent improvement)
         for (int week = 1; week <= 21; week++)
         {
             var plannedSets = strategy.CalculatePlannedSets(week, 1).ToList();
@@ -437,7 +401,6 @@ public class MinimalSetsStrategyTests
             strategy.ApplyPerformanceResult(performance);
         }
 
-        // Assert - Should reach minimum sets with consistent improvement
         strategy.CurrentSetCount.Should().Be(2, "Should reach minimum with consistent improvement");
     }
 
@@ -448,7 +411,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void UpdateWeight_ShouldChangeCurrentWeight()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -457,17 +419,14 @@ public class MinimalSetsStrategyTests
 
         var newWeight = Weight.Create(28m, WeightUnit.Kilograms); // Reduced assistance
 
-        // Act
         strategy.UpdateWeight(newWeight);
 
-        // Assert
         strategy.CurrentWeight.Value.Should().Be(28m);
     }
 
     [Fact]
     public void UpdateWeight_DifferentUnit_ShouldThrowException()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -476,38 +435,32 @@ public class MinimalSetsStrategyTests
 
         var newWeight = Weight.Create(60m, WeightUnit.Pounds);
 
-        // Act & Assert - CheckRule throws BusinessRuleViolationException
         Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateWeight(newWeight));
     }
 
     [Fact]
     public void UpdateTargetTotalReps_ShouldChangeTarget()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act
         strategy.UpdateTargetTotalReps(50);
 
-        // Assert
         strategy.TargetTotalReps.Should().Be(50);
     }
 
     [Fact]
     public void UpdateTargetTotalReps_InvalidValue_ShouldThrowException()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act & Assert - CheckRule throws BusinessRuleViolationException
         Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateTargetTotalReps(5)); // Below 10
         Assert.Throws<BusinessRuleViolationException>(() => strategy.UpdateTargetTotalReps(250)); // Above 200
     }
@@ -515,7 +468,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void ResetSetCount_ShouldReturnToStartingSets()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -536,10 +488,8 @@ public class MinimalSetsStrategyTests
 
         strategy.CurrentSetCount.Should().Be(3, "Should have reduced after success");
 
-        // Act
         strategy.ResetSetCount();
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(4, "Should reset to starting sets");
     }
 
@@ -550,7 +500,6 @@ public class MinimalSetsStrategyTests
     [Fact]
     public void GetSummary_ShouldReturnCorrectDetails()
     {
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -559,10 +508,8 @@ public class MinimalSetsStrategyTests
             minimumSets: 2,
             maximumSets: 8);
 
-        // Act
         var summary = strategy.GetSummary();
 
-        // Assert
         summary.Type.Should().Be("Minimal Sets");
         summary.Details["Target Total Reps"].Should().Be("40");
         summary.Details["Current Sets"].Should().Be("3");
@@ -583,17 +530,14 @@ public class MinimalSetsStrategyTests
     [InlineData(21, 3)] // Block 3: Final deload
     public void CalculatePlannedSets_AllBlocks_ShouldUseCurrentState(int week, int expectedSets)
     {
-        // Arrange - MinimalSets doesn't vary by week (unlike Linear)
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
             startingSets: 3,
             equipment: EquipmentType.Machine);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(week, (week - 1) / 7 + 1).ToList();
 
-        // Assert - MinimalSets uses current state, not week-based periodization
         plannedSets.Should().HaveCount(expectedSets);
     }
 
@@ -607,7 +551,6 @@ public class MinimalSetsStrategyTests
         // 4 sets target, complete in 3
         // Verify reduction to 3 sets
 
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -631,10 +574,8 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.CurrentSetCount.Should().Be(3, "Should reduce to 3 sets when completed target in 3 (one less)");
     }
 
@@ -645,7 +586,6 @@ public class MinimalSetsStrategyTests
         // Complete 50 reps in 2 sets
         // Verify only reduces to 3 sets (not 2)
 
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight,
             targetTotalReps: 40,
@@ -668,10 +608,8 @@ public class MinimalSetsStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert - Even with 50 reps in 2 sets, only reduce by 1 (to 3)
         strategy.CurrentSetCount.Should().Be(3,
             "Should only reduce by 1 set at a time, even with significantly better performance");
     }
@@ -682,7 +620,6 @@ public class MinimalSetsStrategyTests
         // Change weight from 32kg to 28kg assistance
         // Verify set count unchanged
 
-        // Arrange
         var strategy = MinimalSetsStrategy.Create(
             _assistedWeight, // 32kg
             targetTotalReps: 40,
@@ -695,10 +632,8 @@ public class MinimalSetsStrategyTests
 
         var newWeight = Weight.Create(28m, WeightUnit.Kilograms); // Reduced assistance
 
-        // Act
         strategy.UpdateWeight(newWeight);
 
-        // Assert
         strategy.CurrentWeight.Value.Should().Be(28m, "Weight should be updated to 28kg");
         strategy.CurrentSetCount.Should().Be(4, "Set count should remain unchanged after weight update");
     }

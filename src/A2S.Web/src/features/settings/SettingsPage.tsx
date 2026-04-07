@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { apiClient } from '@/api';
 import { workoutTemplates } from '@/data/workoutTemplates';
 import { useQueryClient } from '@tanstack/react-query';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import toast from 'react-hot-toast';
 import type { WorkoutDto, ExerciseDto, LinearProgressionDto, RepsPerSetProgressionDto, MinimalSetsProgressionDto } from '@/types/workout';
 
@@ -76,14 +77,17 @@ export function SettingsPage() {
   const [seedProgress, setSeedProgress] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const queryClient = useQueryClient();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
 
   const handleSeedData = async () => {
     if (isSeeding) return;
 
-    const confirmed = window.confirm(
-      'This will create a new 4-day program and fill weeks 1-17 with random workout data. ' +
-      'Any existing active workout will be deleted. Continue?'
-    );
+    const confirmed = await confirm({
+      title: 'Seed Workout Data',
+      description: 'This will create a new 4-day program and fill weeks 1-17 with random workout data. Any existing active workout will be deleted.',
+      confirmLabel: 'Seed Data',
+      variant: 'destructive',
+    });
 
     if (!confirmed) return;
 
@@ -202,7 +206,7 @@ export function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `a2s-program-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `99-strength-export-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -220,6 +224,7 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      {ConfirmDialog}
       <main className="container-apple py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>

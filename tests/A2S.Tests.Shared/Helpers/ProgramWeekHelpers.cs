@@ -8,19 +8,19 @@ public static class ProgramWeekHelpers
 {
     private static readonly int?[] RepOutTargets =
     {
-        null, 15, 13, 12, 13, 12, 11, null, 13, 12, 11, 12, 11, 10, null, 12, 11, 10, 11, 10, 9, null
+        null, 10, 8, 6, 9, 7, 5, null, 8, 6, 4, 7, 5, 3, null, 6, 4, 2, 4, 2, 2, null
     };
 
     private static readonly int[] RepsPerSet =
     {
-        0, 12, 11, 10, 11, 10, 9, 5, 11, 10, 9, 10, 9, 8, 5, 10, 9, 8, 9, 8, 7, 5
+        0, 5, 4, 3, 5, 4, 3, 5, 4, 3, 2, 4, 3, 2, 5, 3, 2, 1, 2, 1, 1, 5
     };
 
     private static readonly decimal[] Intensities =
     {
-        0m, 0.65m, 0.68m, 0.70m, 0.68m, 0.70m, 0.73m, 0.60m,
-        0.68m, 0.70m, 0.73m, 0.70m, 0.73m, 0.76m, 0.60m,
-        0.70m, 0.73m, 0.76m, 0.73m, 0.76m, 0.79m, 0.60m
+        0m, 0.79m, 0.84m, 0.87m, 0.79m, 0.84m, 0.87m, 0.58m,
+        0.84m, 0.87m, 0.92m, 0.84m, 0.87m, 0.92m, 0.58m,
+        0.87m, 0.92m, 0.96m, 0.92m, 0.96m, 0.96m, 0.58m
     };
 
     public static int GetRepOutTargetForWeek(int week)

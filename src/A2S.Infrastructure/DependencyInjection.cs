@@ -24,11 +24,9 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Configure Database options using Options pattern
         services.Configure<DatabaseOptions>(
             configuration.GetSection(DatabaseOptions.SectionName));
 
-        // Register DbContext with options
         services.AddDbContext<A2SDbContext>((serviceProvider, options) =>
         {
             var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
@@ -56,19 +54,16 @@ public static class DependencyInjection
             }
         });
 
-        // Register repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWorkoutRepository, WorkoutRepository>();
         services.AddScoped<IExerciseDefinitionRepository, ExerciseDefinitionRepository>();
 
-        // Register Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // Register Domain Services
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
-        services.AddSingleton<IExerciseLibraryProvider, ExerciseLibraryProvider>();
+        services.AddMemoryCache();
+        services.AddScoped<IExerciseLibraryProvider, ExerciseLibraryProvider>();
 
-        // Register Domain Event Dispatcher
         services.AddScoped<IDomainEventDispatcher, MediatRDomainEventDispatcher>();
 
         return services;

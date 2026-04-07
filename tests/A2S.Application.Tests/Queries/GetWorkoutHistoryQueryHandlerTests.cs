@@ -17,7 +17,7 @@ public class GetWorkoutHistoryQueryHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly GetWorkoutHistoryQueryHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("ccc44444-4444-4444-4444-444444444444"));
+    private static readonly UserId TestUserId = new("ccc44444-4444-4444-4444-444444444444");
 
     public GetWorkoutHistoryQueryHandlerTests()
     {
@@ -72,7 +72,7 @@ public class GetWorkoutHistoryQueryHandlerTests
     [Fact]
     public async Task Handle_WithWorkoutIdNotOwnedByUser_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

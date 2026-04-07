@@ -31,13 +31,17 @@ public class ExerciseLibraryController : ControllerBase
         [FromQuery] EquipmentType? equipmentType,
         [FromQuery] string? muscleGroup,
         [FromQuery] string? searchTerm,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken cancellationToken = default)
     {
         var query = new GetExerciseLibraryQuery
         {
             EquipmentType = equipmentType,
             MuscleGroup = muscleGroup,
-            SearchTerm = searchTerm
+            SearchTerm = searchTerm,
+            Page = page,
+            PageSize = pageSize
         };
 
         var result = await _mediator.Send(query, cancellationToken);

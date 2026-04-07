@@ -139,7 +139,6 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </summary>
     public override void ApplyPerformanceResult(ExercisePerformance performance)
     {
-        // Skip progression when weight hasn't been confirmed yet (first session)
         if (IsWeightPending)
             return;
 
@@ -221,7 +220,6 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
 
         if (CurrentSetCount < effectiveMaxSets)
         {
-            // Add one set
             CurrentSetCount++;
         }
         else
@@ -249,7 +247,6 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     {
         if (CurrentSetCount > 1)
         {
-            // Remove one set
             CurrentSetCount--;
         }
         else

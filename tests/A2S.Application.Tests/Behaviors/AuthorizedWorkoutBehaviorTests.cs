@@ -18,7 +18,7 @@ public class AuthorizedWorkoutBehaviorTests
     private readonly ICurrentUserService _currentUserService;
     private readonly AuthorizedWorkoutBehavior<TestWorkoutCommand, Result> _behavior;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("ddd11111-1111-1111-1111-111111111111"));
+    private static readonly UserId TestUserId = new("ddd11111-1111-1111-1111-111111111111");
     private static readonly Guid TestWorkoutGuid = Guid.Parse("ddd22222-2222-2222-2222-222222222222");
 
     public AuthorizedWorkoutBehaviorTests()
@@ -60,7 +60,7 @@ public class AuthorizedWorkoutBehaviorTests
     [Fact]
     public async Task Handle_WhenUserDoesNotOwnWorkout_ReturnsUnauthorizedFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

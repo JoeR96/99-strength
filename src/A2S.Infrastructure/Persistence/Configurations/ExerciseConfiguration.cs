@@ -53,7 +53,6 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
                 value => new WorkoutId(value))
             .IsRequired();
 
-        // ExerciseProgression relationship (one-to-one)
         builder.HasOne(e => e.Progression)
             .WithOne()
             .HasForeignKey<ExerciseProgression>("ExerciseId")

@@ -38,6 +38,7 @@ public class WorkoutRepository : Repository<Workout, WorkoutId>, IWorkoutReposit
     public async Task<IReadOnlyList<Workout>> GetAllAsync(UserId userId, CancellationToken ct = default)
     {
         return await Context.Workouts
+            .AsNoTracking()
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
             .Where(w => w.UserId == userId)
@@ -48,6 +49,7 @@ public class WorkoutRepository : Repository<Workout, WorkoutId>, IWorkoutReposit
     public async Task<IReadOnlyList<Workout>> GetByStatusAsync(UserId userId, WorkoutStatus status, CancellationToken ct = default)
     {
         return await Context.Workouts
+            .AsNoTracking()
             .Include(w => w.Exercises)
                 .ThenInclude(e => e.Progression)
             .Where(w => w.UserId == userId && w.Status == status)
@@ -58,6 +60,7 @@ public class WorkoutRepository : Repository<Workout, WorkoutId>, IWorkoutReposit
     public async Task<IReadOnlyList<Workout>> GetAllByUserSummaryAsync(UserId userId, CancellationToken ct = default)
     {
         return await Context.Workouts
+            .AsNoTracking()
             .Include(w => w.Exercises)
             .Where(w => w.UserId == userId)
             .OrderByDescending(w => w.CreatedAt)

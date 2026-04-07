@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -92,17 +93,8 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.AddDbContext<A2SDbContext>(options =>
             {
                 options.UseNpgsql(ConnectionString);
+                options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
             });
-
-            // Add simplified TestDbContext for tests
-            services.AddDbContext<TestDbContext>(options =>
-            {
-                options.UseNpgsql(ConnectionString);
-            });
-
-            // Replace IUserRepository with a test implementation that uses TestDbContext
-            services.RemoveAll<IUserRepository>();
-            services.AddScoped<IUserRepository, TestUserRepository>();
 
             // Replace ICurrentUserService with test implementation
             services.RemoveAll<ICurrentUserService>();
@@ -130,10 +122,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             // Use Migrate() to apply all migrations (EnsureCreated doesn't run migrations)
             var a2sDbContext = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
             a2sDbContext.Database.Migrate();
-
-            // TestDbContext still uses EnsureCreated as it's a simpler schema
-            var testDbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            testDbContext.Database.EnsureCreated();
         });
     }
 

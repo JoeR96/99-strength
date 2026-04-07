@@ -22,7 +22,6 @@ public class WeightConfirmationTests
     [Fact]
     public void WhenCableExerciseProgressesWeight_PendingWeightConfirmationIsTrue()
     {
-        // Arrange: Cable exercise at max sets, all reps hit max → triggers weight increase
         var strategy = RepsPerSetStrategy.Create(
             _repRange, EquipmentType.Cable,
             startingSets: 2, targetSets: 3,
@@ -31,11 +30,9 @@ public class WeightConfirmationTests
         // Advance to max sets
         AdvanceToMaxSets(strategy, 3);
 
-        // Act: One more success → should trigger weight increase with pending confirmation
         var performance = CreateAllMaxPerformance(strategy.CurrentSetCount, _startingWeight);
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         strategy.PendingWeightConfirmation.Should().BeTrue();
         strategy.SuggestedWeight.Should().NotBeNull();
         strategy.SuggestedWeight!.Value.Should().Be(22.5m); // 20 + 2.5
@@ -97,7 +94,6 @@ public class WeightConfirmationTests
     }
 
 
-
     [Fact]
     public void WhenConfirmWorkingWeight_ClearsPendingAndSetsWeight()
     {
@@ -112,11 +108,9 @@ public class WeightConfirmationTests
         strategy.ApplyPerformanceResult(performance);
         strategy.PendingWeightConfirmation.Should().BeTrue();
 
-        // Act: Confirm with different weight (gym has 25kg cable stack, not 22.5)
         var confirmedWeight = Weight.Create(25m, WeightUnit.Kilograms);
         strategy.ConfirmWorkingWeight(confirmedWeight);
 
-        // Assert
         strategy.PendingWeightConfirmation.Should().BeFalse();
         strategy.SuggestedWeight.Should().BeNull();
         strategy.CurrentWeight!.Value.Should().Be(25m);
@@ -134,10 +128,8 @@ public class WeightConfirmationTests
         var performance = CreateAllMaxPerformance(strategy.CurrentSetCount, _startingWeight);
         strategy.ApplyPerformanceResult(performance);
 
-        // Act: Confirm with system-suggested weight
         strategy.ConfirmWorkingWeight(strategy.SuggestedWeight!);
 
-        // Assert
         strategy.PendingWeightConfirmation.Should().BeFalse();
         strategy.CurrentWeight!.Value.Should().Be(22.5m);
     }
@@ -173,7 +165,6 @@ public class WeightConfirmationTests
     }
 
 
-
     [Fact]
     public void WhenExerciseConfirmWorkingWeight_DelegatesToProgression()
     {
@@ -191,10 +182,8 @@ public class WeightConfirmationTests
 
         exercise.Progression.PendingWeightConfirmation.Should().BeTrue();
 
-        // Act
         exercise.ConfirmWorkingWeight(Weight.Create(25m, WeightUnit.Kilograms));
 
-        // Assert
         exercise.Progression.PendingWeightConfirmation.Should().BeFalse();
         exercise.Progression.GetCurrentWeight()!.Value.Should().Be(25m);
     }
@@ -211,7 +200,6 @@ public class WeightConfirmationTests
 
         act.Should().Throw<InvalidOperationException>();
     }
-
 
 
     [Fact]
@@ -236,12 +224,10 @@ public class WeightConfirmationTests
         // Restore
         strategy.RestoreFromState(state);
 
-        // Assert pending state is restored
         strategy.PendingWeightConfirmation.Should().BeTrue();
         strategy.SuggestedWeight!.Value.Should().Be(22.5m);
         strategy.CurrentWeight!.Value.Should().Be(22.5m);
     }
-
 
 
     [Fact]
@@ -260,7 +246,6 @@ public class WeightConfirmationTests
         strategy.CurrentSetCount.Should().Be(3);
         strategy.PendingWeightConfirmation.Should().BeFalse();
     }
-
 
 
     [Fact]
@@ -299,7 +284,6 @@ public class WeightConfirmationTests
 
         act.Should().Throw<BusinessRuleViolationException>();
     }
-
 
 
     private static void AdvanceToMaxSets(RepsPerSetStrategy strategy, int targetSets)

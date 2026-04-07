@@ -21,7 +21,7 @@ export interface WorkoutTemplate {
  * - RepsPerSet progression for accessories
  *
  * IMPORTANT: templateName must match exactly with ExerciseLibrary names
- * hevyExerciseTemplateId must match Hevy's exercise IDs from hevyExercises.ts
+ * externalTemplateId must match Hevy's exercise IDs from hevyExercises.ts
  */
 const fourDayHypertrophyTemplate: WorkoutTemplate = {
   id: 'four-day-hypertrophy',
@@ -35,7 +35,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Lat Pulldown - RepsPerSet (3 sets x 12 reps -> 5 sets)
     {
       templateName: "Lat Pulldown (Cable)",
-      hevyExerciseTemplateId: "6A6C31A5",
+      externalTemplateId: "6A6C31A5",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -45,7 +45,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Overhead Press (Smith Machine) - Linear (TM: 65kg)
     {
       templateName: "Overhead Press (Smith Machine)",
-      hevyExerciseTemplateId: "B09A1304",
+      externalTemplateId: "B09A1304",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 1,
@@ -56,7 +56,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Seated Cable Row - RepsPerSet (4 sets x 12 reps)
     {
       templateName: "Seated Cable Row - V Grip (Cable)",
-      hevyExerciseTemplateId: "0393F233",
+      externalTemplateId: "0393F233",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -66,7 +66,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Lateral Raise (Cable) - RepsPerSet (4 sets x 8 reps)
     {
       templateName: "Lateral Raise (Cable)",
-      hevyExerciseTemplateId: "BE289E45",
+      externalTemplateId: "BE289E45",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -76,7 +76,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Bicep Curl (Cable) - RepsPerSet (4 sets x 20 reps)
     {
       templateName: "Bicep Curl (Cable)",
-      hevyExerciseTemplateId: "ADA8623C",
+      externalTemplateId: "ADA8623C",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -86,7 +86,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Triceps Pushdown - RepsPerSet (4 sets x 20 reps)
     {
       templateName: "Triceps Pushdown",
-      hevyExerciseTemplateId: "93A552C6",
+      externalTemplateId: "93A552C6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -96,7 +96,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Rear Delt Reverse Fly (Cable) - RepsPerSet (4 sets x 12 reps)
     {
       templateName: "Rear Delt Reverse Fly (Cable)",
-      hevyExerciseTemplateId: "C315DC2A",
+      externalTemplateId: "C315DC2A",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -108,7 +108,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Smith Squat - Linear (TM: 107.5kg)
     {
       templateName: "Squat (Smith Machine)",
-      hevyExerciseTemplateId: "DDCC3821",
+      externalTemplateId: "DDCC3821",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 2,
@@ -119,7 +119,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Lunge (Barbell) - RepsPerSet (4 sets x 9 reps)
     {
       templateName: "Lunge (Barbell)",
-      hevyExerciseTemplateId: "6E6EE645",
+      externalTemplateId: "6E6EE645",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -130,7 +130,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Lying Leg Curl (Machine) - RepsPerSet (4 sets x 12 reps)
     {
       templateName: "Lying Leg Curl (Machine)",
-      hevyExerciseTemplateId: "B8127AD1",
+      externalTemplateId: "B8127AD1",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -140,7 +140,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Hip Abduction (Machine) - RepsPerSet (3 sets x 12 reps)
     {
       templateName: "Hip Abduction (Machine)",
-      hevyExerciseTemplateId: "F4B4C6EE",
+      externalTemplateId: "F4B4C6EE",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -150,7 +150,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Calf Press (Machine) - RepsPerSet (3 sets x 15 reps)
     {
       templateName: "Calf Press (Machine)",
-      hevyExerciseTemplateId: "91237BDD",
+      externalTemplateId: "91237BDD",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -162,7 +162,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Triceps Dip (Assisted) - RepsPerSet (3 sets, 40 total reps)
     {
       templateName: "Triceps Dip (Assisted)",
-      hevyExerciseTemplateId: "4B4BF8C2",
+      externalTemplateId: "4B4BF8C2",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -172,7 +172,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Pull Up (Assisted) - RepsPerSet (6 sets, 40 total reps)
     {
       templateName: "Pull Up (Assisted)",
-      hevyExerciseTemplateId: "2C37EC5E",
+      externalTemplateId: "2C37EC5E",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -182,7 +182,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Concentration Curl - RepsPerSet (4 sets x 15 reps)
     {
       templateName: "Concentration Curl",
-      hevyExerciseTemplateId: "724CDE60",
+      externalTemplateId: "724CDE60",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -193,7 +193,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // EZ Bar Biceps Curl - RepsPerSet (3 sets x 15 reps)
     {
       templateName: "EZ Bar Biceps Curl",
-      hevyExerciseTemplateId: "01A35BF9",
+      externalTemplateId: "01A35BF9",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -203,7 +203,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Single Arm Triceps Pushdown (Cable) - RepsPerSet (6 sets x 25 reps)
     {
       templateName: "Single Arm Triceps Pushdown (Cable)",
-      hevyExerciseTemplateId: "552AB030",
+      externalTemplateId: "552AB030",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -214,7 +214,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Lateral Raise (Dumbbell) - RepsPerSet (3 sets x 20 reps)
     {
       templateName: "Lateral Raise (Dumbbell)",
-      hevyExerciseTemplateId: "422B08F1",
+      externalTemplateId: "422B08F1",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -224,7 +224,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Chest Fly (Machine) - RepsPerSet (3 sets x 8 reps)
     {
       templateName: "Chest Fly (Machine)",
-      hevyExerciseTemplateId: "78683336",
+      externalTemplateId: "78683336",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -236,7 +236,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Hip Thrust (Machine) - RepsPerSet (3 sets x 8 reps)
     {
       templateName: "Hip Thrust (Machine)",
-      hevyExerciseTemplateId: "68CE0B9B",
+      externalTemplateId: "68CE0B9B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -246,7 +246,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Front Squat - Linear (TM: 80kg)
     {
       templateName: "Front Squat",
-      hevyExerciseTemplateId: "5046D0A9",
+      externalTemplateId: "5046D0A9",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 4,
@@ -257,7 +257,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Single Leg Press (Machine) - RepsPerSet (4 sets x 12 reps)
     {
       templateName: "Single Leg Press (Machine)",
-      hevyExerciseTemplateId: "3FD83744",
+      externalTemplateId: "3FD83744",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -268,7 +268,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Leg Extension (Machine) - RepsPerSet (4 sets x 12 reps)
     {
       templateName: "Leg Extension (Machine)",
-      hevyExerciseTemplateId: "75A4F6C4",
+      externalTemplateId: "75A4F6C4",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -278,7 +278,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
     // Hip Adduction (Machine) - RepsPerSet (4 sets)
     {
       templateName: "Hip Adduction (Machine)",
-      hevyExerciseTemplateId: "8BEBFED6",
+      externalTemplateId: "8BEBFED6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -315,7 +315,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // From Hevy Week 2 Day 1: working weight 56.3kg at 85% → TM ≈ 65kg
     {
       templateName: "Overhead Press (Smith Machine)",
-      hevyExerciseTemplateId: "B09A1304",
+      externalTemplateId: "B09A1304",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 1,
@@ -326,7 +326,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Bent Over Row (Barbell) - RepsPerSet (3 sets)
     {
       templateName: "Bent Over Row (Barbell)",
-      hevyExerciseTemplateId: "55E6546F",
+      externalTemplateId: "55E6546F",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -338,7 +338,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Hanging Knee Raise - Bodyweight core work (3 sets)
     {
       templateName: "Hanging Knee Raise",
-      hevyExerciseTemplateId: "08590920",
+      externalTemplateId: "08590920",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -350,7 +350,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Lateral Raise (Cable) - RepsPerSet (6 sets from Hevy)
     {
       templateName: "Lateral Raise (Cable)",
-      hevyExerciseTemplateId: "BE289E45",
+      externalTemplateId: "BE289E45",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -362,7 +362,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Bicep Curl (Cable) - RepsPerSet (3 sets)
     {
       templateName: "Bicep Curl (Cable)",
-      hevyExerciseTemplateId: "ADA8623C",
+      externalTemplateId: "ADA8623C",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -374,7 +374,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Crucifix Tricep Pulldown - RepsPerSet (3 sets)
     {
       templateName: "Crucifix Tricep Pulldown",
-      hevyExerciseTemplateId: "4296b371-d566-46c0-8c63-88fc3e97054a",
+      externalTemplateId: "4296b371-d566-46c0-8c63-88fc3e97054a",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -389,7 +389,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // From Hevy Week 2 Day 2: working weight 92.5kg at 85% → TM ≈ 110kg
     {
       templateName: "Squat (Barbell)",
-      hevyExerciseTemplateId: "D04AC939",
+      externalTemplateId: "D04AC939",
       category: ExerciseCategory.MainLift,
       progressionType: "Linear",
       assignedDay: 2,
@@ -400,7 +400,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Romanian Deadlift (Dumbbell) - RepsPerSet (3 sets, unilateral)
     {
       templateName: "Romanian Deadlift (Dumbbell)",
-      hevyExerciseTemplateId: "72CFFAD5",
+      externalTemplateId: "72CFFAD5",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -413,7 +413,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Hip Abduction (Machine) - RepsPerSet (4 sets)
     {
       templateName: "Hip Abduction (Machine)",
-      hevyExerciseTemplateId: "F4B4C6EE",
+      externalTemplateId: "F4B4C6EE",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -425,7 +425,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Leg Extension (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Leg Extension (Machine)",
-      hevyExerciseTemplateId: "75A4F6C4",
+      externalTemplateId: "75A4F6C4",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -437,7 +437,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Calf Press (Machine) - RepsPerSet (4 sets)
     {
       templateName: "Calf Press (Machine)",
-      hevyExerciseTemplateId: "91237BDD",
+      externalTemplateId: "91237BDD",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -451,7 +451,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Single Arm Lat Pulldown - RepsPerSet (4 sets, UNILATERAL)
     {
       templateName: "Single Arm Lat Pulldown",
-      hevyExerciseTemplateId: "2EE45F81",
+      externalTemplateId: "2EE45F81",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -464,7 +464,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Overhead Press (Barbell) - RepsPerSet (3 sets)
     {
       templateName: "Overhead Press (Barbell)",
-      hevyExerciseTemplateId: "7B8D84E8",
+      externalTemplateId: "7B8D84E8",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -476,7 +476,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Lateral Raise (Dumbbell) - RepsPerSet (3 sets)
     {
       templateName: "Lateral Raise (Dumbbell)",
-      hevyExerciseTemplateId: "422B08F1",
+      externalTemplateId: "422B08F1",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -488,7 +488,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Single Arm Cable Row - RepsPerSet (4 sets)
     {
       templateName: "Single Arm Cable Row",
-      hevyExerciseTemplateId: "D0C4A899",
+      externalTemplateId: "D0C4A899",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -500,7 +500,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // EZ Bar Biceps Curl - RepsPerSet (2 sets)
     {
       templateName: "EZ Bar Biceps Curl",
-      hevyExerciseTemplateId: "01A35BF9",
+      externalTemplateId: "01A35BF9",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -512,7 +512,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Skullcrusher (Barbell) - RepsPerSet (3 sets)
     {
       templateName: "Skullcrusher (Barbell)",
-      hevyExerciseTemplateId: "875F585F",
+      externalTemplateId: "875F585F",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -526,7 +526,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Pause Squat (Barbell) - RepsPerSet (3 sets, rep range 3-4-5)
     {
       templateName: "Pause Squat (Barbell)",
-      hevyExerciseTemplateId: "CE1054CE",
+      externalTemplateId: "CE1054CE",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -535,13 +535,12 @@ const monkModeTemplate: WorkoutTemplate = {
       startingSets: 3,
       targetSets: 5,
       repRangeMinimum: 3,
-      repRangeTarget: 4,
       repRangeMaximum: 5,
     },
     // Hip Thrust (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Hip Thrust (Machine)",
-      hevyExerciseTemplateId: "68CE0B9B",
+      externalTemplateId: "68CE0B9B",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -553,7 +552,7 @@ const monkModeTemplate: WorkoutTemplate = {
     // Hip Adduction (Machine) - RepsPerSet (3 sets)
     {
       templateName: "Hip Adduction (Machine)",
-      hevyExerciseTemplateId: "8BEBFED6",
+      externalTemplateId: "8BEBFED6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -588,7 +587,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Back Squat - Main lift (4 sets x 8-10)
     {
       templateName: "Squat (Barbell)",
-      hevyExerciseTemplateId: "D04AC939",
+      externalTemplateId: "D04AC939",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -597,13 +596,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 8,
-      repRangeTarget: 10,
       repRangeMaximum: 12,
     },
     // Smith Squat Lunge (4 sets x 10-12 /leg, unilateral)
     {
       templateName: "Single Leg Smith Lunge",
-      hevyExerciseTemplateId: "1ae9ac4c-da64-47ac-95ad-5e738299827a",
+      externalTemplateId: "1ae9ac4c-da64-47ac-95ad-5e738299827a",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -616,7 +614,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Lying Leg Curl (4 sets x 10-12)
     {
       templateName: "Lying Leg Curl (Machine)",
-      hevyExerciseTemplateId: "B8127AD1",
+      externalTemplateId: "B8127AD1",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -628,7 +626,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Hip Abduction (4 sets x 12-15)
     {
       templateName: "Hip Abduction (Machine)",
-      hevyExerciseTemplateId: "F4B4C6EE",
+      externalTemplateId: "F4B4C6EE",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -637,13 +635,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Pallof Press (3 sets x 8-10 /side, unilateral)
     {
       templateName: "Cable Core Palloff Press",
-      hevyExerciseTemplateId: "CC55119B",
+      externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -656,7 +653,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Calf Raises (4 sets x 15-20)
     {
       templateName: "Standing Calf Raise (Machine)",
-      hevyExerciseTemplateId: "E05C2C38",
+      externalTemplateId: "E05C2C38",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 1,
@@ -665,7 +662,6 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 15,
-      repRangeTarget: 20,
       repRangeMaximum: 25,
     },
 
@@ -673,7 +669,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Incline Smith Press - Main lift (4 sets x 8-10)
     {
       templateName: "Incline Bench Press (Smith Machine)",
-      hevyExerciseTemplateId: "3A6FA3D1",
+      externalTemplateId: "3A6FA3D1",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -685,7 +681,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Overhead DB Press (4 sets x 8-10)
     {
       templateName: "Overhead Press (Dumbbell)",
-      hevyExerciseTemplateId: "6AC96645",
+      externalTemplateId: "6AC96645",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -697,7 +693,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Single Arm Cable Lat Pulldown (4 sets x 10-12 /arm, unilateral)
     {
       templateName: "Single Arm Lat Pulldown",
-      hevyExerciseTemplateId: "2EE45F81",
+      externalTemplateId: "2EE45F81",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -710,7 +706,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Cable Lateral Raise (4 sets x 12-15)
     {
       templateName: "Lateral Raise (Cable)",
-      hevyExerciseTemplateId: "BE289E45",
+      externalTemplateId: "BE289E45",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -719,13 +715,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Chest Flye (4 sets x 10-12)
     {
       templateName: "Chest Fly (Machine)",
-      hevyExerciseTemplateId: "78683336",
+      externalTemplateId: "78683336",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -737,7 +732,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Cable Tricep Pushdown (4 sets x 10-12)
     {
       templateName: "Triceps Pushdown",
-      hevyExerciseTemplateId: "93A552C6",
+      externalTemplateId: "93A552C6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 2,
@@ -751,7 +746,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Pause Squat (4 sets x 5-8)
     {
       templateName: "Pause Squat (Barbell)",
-      hevyExerciseTemplateId: "CE1054CE",
+      externalTemplateId: "CE1054CE",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -760,13 +755,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 5,
-      repRangeTarget: 8,
       repRangeMaximum: 10,
     },
     // Romanian Deadlift (4 sets x 8-10)
     {
       templateName: "Romanian Deadlift (Barbell)",
-      hevyExerciseTemplateId: "2B4B7310",
+      externalTemplateId: "2B4B7310",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -778,7 +772,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Booty Builder / Hip Thrust (4 sets x 12-15)
     {
       templateName: "Hip Thrust (Machine)",
-      hevyExerciseTemplateId: "68CE0B9B",
+      externalTemplateId: "68CE0B9B",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -787,13 +781,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Hip Adduction (4 sets x 12-15)
     {
       templateName: "Hip Adduction (Machine)",
-      hevyExerciseTemplateId: "8BEBFED6",
+      externalTemplateId: "8BEBFED6",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -802,13 +795,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Hip Abduction (4 sets x 12-15)
     {
       templateName: "Hip Abduction (Machine)",
-      hevyExerciseTemplateId: "F4B4C6EE",
+      externalTemplateId: "F4B4C6EE",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -817,13 +809,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Pallof Press (3 sets x 8-10 /side, unilateral)
     {
       templateName: "Cable Core Palloff Press",
-      hevyExerciseTemplateId: "CC55119B",
+      externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 3,
@@ -838,7 +829,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Assisted Pull-ups (4 sets x 6-10)
     {
       templateName: "Pull Up (Assisted)",
-      hevyExerciseTemplateId: "2C37EC5E",
+      externalTemplateId: "2C37EC5E",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -847,13 +838,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 6,
-      repRangeTarget: 10,
       repRangeMaximum: 12,
     },
     // Assisted Dips (4 sets x 8-10)
     {
       templateName: "Triceps Dip (Assisted)",
-      hevyExerciseTemplateId: "4B4BF8C2",
+      externalTemplateId: "4B4BF8C2",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -865,7 +855,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Cable Low Row (4 sets x 10-12)
     {
       templateName: "Seated Cable Row - V Grip (Cable)",
-      hevyExerciseTemplateId: "0393F233",
+      externalTemplateId: "0393F233",
       category: ExerciseCategory.Auxiliary,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -877,7 +867,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Rear Delt Flyes (4 sets x 12-15)
     {
       templateName: "Rear Delt Reverse Fly (Dumbbell)",
-      hevyExerciseTemplateId: "E5988A0A",
+      externalTemplateId: "E5988A0A",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -886,13 +876,12 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       repRangeMinimum: 12,
-      repRangeTarget: 15,
       repRangeMaximum: 18,
     },
     // Concentration Curl (3 sets x 10-12 /arm, unilateral)
     {
       templateName: "Concentration Curl",
-      hevyExerciseTemplateId: "724CDE60",
+      externalTemplateId: "724CDE60",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,
@@ -905,7 +894,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     // Skullcrushers (3 sets x 10-12)
     {
       templateName: "Skullcrusher (Barbell)",
-      hevyExerciseTemplateId: "875F585F",
+      externalTemplateId: "875F585F",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
       assignedDay: 4,

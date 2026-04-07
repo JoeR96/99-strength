@@ -1,5 +1,6 @@
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
+using A2S.Domain.Aggregates.User;
 using A2S.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,7 +35,6 @@ public class A2SDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all entity configurations from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(A2SDbContext).Assembly);
     }
 
@@ -44,7 +44,6 @@ public class A2SDbContext : DbContext
     /// </summary>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Collect domain events before save
         var aggregatesWithEvents = ChangeTracker
             .Entries<IHasDomainEvents>()
             .Where(e => e.Entity.DomainEvents.Any())
@@ -55,16 +54,13 @@ public class A2SDbContext : DbContext
             .SelectMany(e => e.DomainEvents)
             .ToList();
 
-        // Clear domain events before save to avoid duplicate dispatching on retry
         foreach (var entity in aggregatesWithEvents)
         {
             entity.ClearDomainEvents();
         }
 
-        // Persist changes
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        // Dispatch events after successful save
         if (_domainEventDispatcher is not null && domainEvents.Count > 0)
         {
             await _domainEventDispatcher.DispatchEventsAsync(domainEvents, cancellationToken);

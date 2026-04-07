@@ -1,7 +1,8 @@
 using A2S.Domain.Common;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace A2S.Infrastructure.Persistence.Configurations;
 
@@ -17,9 +18,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.Id)
-            .HasConversion(
+            .HasConversion(new ValueConverter<UserId, string>(
                 id => id.Value,
-                value => new UserId(value))
+                value => new UserId(value)))
+            .HasColumnType("character varying")
             .HasMaxLength(256)
             .ValueGeneratedNever();
 
@@ -34,11 +36,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
-        // Unique index on email for fast lookups and uniqueness constraint
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
-        // Ignore domain events (not persisted)
         builder.Ignore(u => u.DomainEvents);
     }
 }

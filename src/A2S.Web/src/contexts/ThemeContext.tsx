@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'retro' | 'osrs' | 'apple';
 
 interface ThemeContextType {
   mode: ThemeMode;
@@ -10,55 +10,44 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'a2s-theme-mode';
+const STORAGE_KEY = '99-strength-theme-mode';
+const THEME_ORDER: ThemeMode[] = ['retro', 'osrs', 'apple'];
 
 function getInitialMode(): ThemeMode {
-  // Check localStorage first
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') {
+  if (stored === 'retro' || stored === 'osrs' || stored === 'apple') {
     return stored;
   }
+  // Migrate legacy values
+  if (stored === 'light') return 'retro';
+  if (stored === 'dark') return 'osrs';
+  return 'retro';
+}
 
-  // Check system preference
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark';
+function applyThemeClass(mode: ThemeMode) {
+  const root = document.documentElement;
+  root.classList.remove('dark', 'apple-theme');
+  if (mode === 'osrs') {
+    root.classList.add('dark');
+  } else if (mode === 'apple') {
+    root.classList.add('apple-theme');
   }
-
-  return 'light';
+  // 'retro' uses :root defaults — no class needed
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(getInitialMode);
 
-  // Apply theme when mode changes - just toggle the dark class
   useEffect(() => {
-    const root = document.documentElement;
-    if (mode === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    applyThemeClass(mode);
     localStorage.setItem(STORAGE_KEY, mode);
   }, [mode]);
 
-  // Listen for system preference changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Only auto-switch if user hasn't set a preference
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        setModeState(e.matches ? 'dark' : 'light');
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
   const toggleMode = () => {
-    setModeState(prev => prev === 'light' ? 'dark' : 'light');
+    setModeState(prev => {
+      const idx = THEME_ORDER.indexOf(prev);
+      return THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+    });
   };
 
   const setMode = (newMode: ThemeMode) => {

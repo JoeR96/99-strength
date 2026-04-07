@@ -36,14 +36,12 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
     {
         try
         {
-            // Ensure user is authenticated
             var userId = _currentUserService.GetUserId();
             if (userId == null)
             {
                 return Result.Failure<Guid>("User must be authenticated to create a workout.");
             }
 
-            // Check if there's already an active workout for this user
             var existingWorkout = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
             if (existingWorkout != null)
             {
@@ -54,7 +52,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 ? CreateConfiguredExercises(request.Exercises)
                 : CreateExercisesForVariant(request.Variant);
 
-            // Create the workout
             var workout = Workout.Create(
                 userId.Value,
                 request.Name,
@@ -62,10 +59,8 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 exercises,
                 request.BlockSequence);
 
-            // Start the workout immediately
             workout.Start();
 
-            // Persist
             await _workoutRepository.AddAsync(workout, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -86,11 +81,9 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
 
         foreach (var exerciseRequest in exerciseRequests)
         {
-            // Find the template from the library
             var template = _exerciseLibrary.GetByName(exerciseRequest.TemplateName);
             if (template == null)
             {
-                // Skip exercises that don't exist in the library
                 continue;
             }
 
@@ -98,7 +91,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
 
             if (exerciseRequest.ProgressionType == "Linear")
             {
-                // Create Linear progression exercise
                 var trainingMax = TrainingMax.Create(
                     exerciseRequest.TrainingMaxValue ?? 100m,
                     exerciseRequest.TrainingMaxUnit ?? WeightUnit.Kilograms
@@ -120,7 +112,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             }
             else if (exerciseRequest.ProgressionType == "MinimalSets")
             {
-                // Create MinimalSets progression exercise
                 var weight = Weight.Create(
                     exerciseRequest.StartingWeight ?? 30m,
                     exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
@@ -140,13 +131,17 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             }
             else // RepsPerSet
             {
-                // Create RepsPerSet progression exercise
-                // Weight is deferred - will be confirmed after the first session
+                // Weight is optional - if provided, uses it immediately;
+                // if not provided, will be confirmed after the first session
                 RepRange repRange = (exerciseRequest.RepRangeMinimum.HasValue
                     && exerciseRequest.RepRangeMaximum.HasValue)
                     ? RepRange.Create(exerciseRequest.RepRangeMinimum.Value,
                                       exerciseRequest.RepRangeMaximum.Value)
                     : template.DefaultRepRange ?? RepRange.Common.Medium;
+
+                Weight? startingWeight = exerciseRequest.StartingWeight.HasValue && exerciseRequest.WeightUnit.HasValue
+                    ? Weight.Create(exerciseRequest.StartingWeight.Value, exerciseRequest.WeightUnit.Value)
+                    : null;
 
                 exercise = Exercise.CreateWithRepsPerSetProgression(
                     name: template.Name,
@@ -158,7 +153,8 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                     repRange: repRange,
                     startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
                     targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
-                    isUnilateral: exerciseRequest.IsUnilateral
+                    isUnilateral: exerciseRequest.IsUnilateral,
+                    startingWeight: startingWeight
                 );
             }
 
@@ -182,7 +178,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
         const string DeadliftHevyId = "C6272009";
         const string OverheadPressHevyId = "7B8D84E8";
 
-        // Create default main 4 lifts with Linear progression
         var squat = _exerciseLibrary.GetByName("Squat (Barbell)");
         if (squat != null)
         {

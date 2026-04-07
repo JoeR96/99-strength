@@ -3,7 +3,12 @@
  * Run with: node scripts/fetch-hevy-exercises.js
  */
 
-const HEVY_API_KEY = 'bbc441b6-532e-4574-91c4-41b227f9f044';
+const HEVY_API_KEY = process.env.HEVY_API_KEY;
+if (!HEVY_API_KEY) {
+  console.error('Error: HEVY_API_KEY environment variable is required.');
+  console.error('Usage: HEVY_API_KEY=your-key node scripts/fetch-hevy-exercises.js');
+  process.exit(1);
+}
 const HEVY_API_BASE_URL = 'https://api.hevyapp.com/v1';
 
 async function fetchAllExerciseTemplates() {

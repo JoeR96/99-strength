@@ -18,6 +18,12 @@ namespace A2S.Domain.Aggregates.Workout;
 /// </remarks>
 public sealed class Workout : AggregateRoot<WorkoutId>
 {
+    // JSON property names for snapshot serialization
+    private const string JsonTrainingMaxValue = "TrainingMaxValue";
+    private const string JsonTrainingMaxUnit = "TrainingMaxUnit";
+    private const string JsonUseAmrap = "UseAmrap";
+    private const string JsonBaseSetsPerExercise = "BaseSetsPerExercise";
+
     private readonly List<Exercise> _exercises = new();
     private readonly List<WorkoutActivity> _completedActivities = new();
     private readonly List<WorkoutActivity> _archivedActivities = new();
@@ -80,7 +86,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         var exercisesList = exercises.ToList();
         CheckRule(exercisesList.Any(), "Workout must have at least one exercise");
 
-        // Validate exercise ordering
         ValidateExerciseOrdering(exercisesList);
 
         UserId = userId;
@@ -149,7 +154,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         var performancesList = performances.ToList();
         var exercisesForDay = ValidateDayCompletion(day, performancesList);
 
-        // Capture snapshots BEFORE applying progression
         var snapshots = CapturePreProgressionSnapshots(exercisesForDay);
 
         ApplyPerformancesToExercises(day, performancesList);
@@ -249,7 +253,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(CurrentWeek < TotalWeeks,
             $"Cannot progress beyond week {TotalWeeks}");
 
-        // Validate all days in current week are complete before progressing
         CheckRule(AreAllDaysCompletedInCurrentWeek(),
             $"Cannot progress to next week until all {GetDaysPerWeek()} days are completed in Week {CurrentWeek}");
 
@@ -298,7 +301,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         {
             Resume();
         }
-        // If already Active, no-op
     }
 
     /// <summary>
@@ -311,7 +313,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         {
             Pause();
         }
-        // If not active, no-op (allows idempotent deactivation)
     }
 
     /// <summary>
@@ -419,6 +420,18 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Replaces the progression strategy for an exercise.
+    /// Used when substituting an exercise and changing its progression type.
+    /// </summary>
+    public void ReplaceExerciseProgression(ExerciseId exerciseId, ExerciseProgression newProgression)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId)
+            ?? throw new InvalidOperationException($"Exercise {exerciseId} not found in this workout");
+
+        exercise.ReplaceProgression(newProgression);
+    }
+
+    /// <summary>
     /// Gets planned sets for all exercises on a specific day.
     /// Translates the current program week to a template week for the WeeklyProgram table.
     /// </summary>
@@ -521,7 +534,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
         var newTotalWeeks = newSequence.Count * 7;
 
-        // Allow restart on completed workouts: reset week and status
         if (Status == WorkoutStatus.Completed)
         {
             _blockSequence = new List<int>(newSequence);
@@ -553,7 +565,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(Status == WorkoutStatus.NotStarted || Status == WorkoutStatus.Active,
             "Cannot add exercises to a completed or paused workout");
 
-        // Validate no duplicate exercise on same day with same order
         var conflictingExercise = _exercises.FirstOrDefault(e =>
             e.AssignedDay == exercise.AssignedDay &&
             e.OrderInDay == exercise.OrderInDay);
@@ -762,6 +773,97 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Retrofixes the training max history for a linear progression exercise.
+    /// Replays all completed activities from the original starting TM,
+    /// recalculating TM adjustments via AmrapDeltaTable at each step,
+    /// and corrects historical progression snapshots.
+    /// </summary>
+    /// <returns>List of (Week, OldTm, NewTm) changes made.</returns>
+    public List<(int Week, decimal OldTm, decimal NewTm)> RetrofixTrainingMaxHistory(
+        ExerciseId exerciseId, decimal originalStartingTm)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId)
+            ?? throw new InvalidOperationException($"Exercise {exerciseId} not found in this workout");
+
+        if (exercise.Progression is not LinearProgressionStrategy linear)
+        {
+            throw new InvalidOperationException(
+                $"Exercise {exercise.Name} does not use Linear progression.");
+        }
+
+        var changes = new List<(int Week, decimal OldTm, decimal NewTm)>();
+
+        var activitiesForExercise = _completedActivities
+            .Select((activity, index) => (activity, index))
+            .Where(x => x.activity.Performances.Any(p => p.ExerciseId == exerciseId))
+            .OrderBy(x => x.activity.WeekNumber)
+            .ThenBy(x => x.activity.CompletedAt)
+            .ToList();
+
+        if (activitiesForExercise.Count == 0)
+        {
+            return changes;
+        }
+
+        var currentTm = originalStartingTm;
+
+        foreach (var (activity, activityIndex) in activitiesForExercise)
+        {
+            var snapshotIndex = -1;
+            for (var i = 0; i < activity.ProgressionSnapshots.Count; i++)
+            {
+                if (activity.ProgressionSnapshots[i].ExerciseId == exerciseId)
+                {
+                    snapshotIndex = i;
+                    break;
+                }
+            }
+
+            if (snapshotIndex >= 0)
+            {
+                var oldSnapshot = activity.ProgressionSnapshots[snapshotIndex];
+                using var oldJson = System.Text.Json.JsonDocument.Parse(oldSnapshot.ProgressionStateJson);
+                var oldTmValue = oldJson.RootElement.GetProperty(JsonTrainingMaxValue).GetDecimal();
+
+                var correctedJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    TrainingMaxValue = currentTm,
+                    TrainingMaxUnit = oldJson.RootElement.GetProperty(JsonTrainingMaxUnit).GetInt32(),
+                    UseAmrap = oldJson.RootElement.GetProperty(JsonUseAmrap).GetBoolean(),
+                    BaseSetsPerExercise = oldJson.RootElement.GetProperty(JsonBaseSetsPerExercise).GetInt32()
+                });
+
+                var correctedSnapshot = new ProgressionSnapshot(
+                    oldSnapshot.ExerciseId,
+                    oldSnapshot.ExerciseName,
+                    oldSnapshot.ProgressionType,
+                    correctedJson);
+
+                var correctedActivity = activity.WithReplacedSnapshot(snapshotIndex, correctedSnapshot);
+                ReplaceCompletedActivity(activityIndex, correctedActivity);
+
+                changes.Add((activity.WeekNumber, oldTmValue, currentTm));
+            }
+
+            var performance = activity.Performances.FirstOrDefault(p => p.ExerciseId == exerciseId);
+            if (performance != null && !performance.SkipProgression)
+            {
+                var delta = performance.GetAmrapDelta();
+                var adjustment = AmrapDeltaTable.GetAdjustment(delta);
+
+                if (adjustment.Type != AdjustmentType.None)
+                {
+                    currentTm = Math.Round(currentTm * (1 + adjustment.Amount), 2);
+                }
+            }
+        }
+
+        SetExerciseTrainingMax(exerciseId, TrainingMax.Create(currentTm, linear.TrainingMax.Unit));
+
+        return changes;
+    }
+
+    /// <summary>
     /// Undoes the last completed day, restoring progression state.
     /// Only allows undoing the most recent completion (single undo).
     /// </summary>
@@ -770,12 +872,10 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(Status == WorkoutStatus.Active, "Cannot undo when workout is not active");
         CheckRule(_completedActivities.Any(), "No completed activities to undo");
 
-        // Get the last activity (most recent)
         var lastActivity = _completedActivities
             .OrderByDescending(a => a.CompletedAt)
             .First();
 
-        // Check if this would cross week boundary
         var wouldRollbackWeek = lastActivity.WeekNumber < CurrentWeek;
 
         // Restore progression snapshots (if available - older activities may not have them)
@@ -791,10 +891,8 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         // Note: If no snapshots exist (older completion), we can only remove the activity
         // but cannot restore the progression state. The user should be aware of this.
 
-        // Remove the activity
         _completedActivities.Remove(lastActivity);
 
-        // Adjust current day/week
         if (wouldRollbackWeek)
         {
             CurrentWeek = lastActivity.WeekNumber;
@@ -802,7 +900,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         }
         CurrentDay = (int)lastActivity.Day;
 
-        // Record audit entry
         var hasSnapshots = snapshots != null && snapshots.Count > 0;
         _auditEntries.Add(ProgressionAuditEntry.UndoCompletion(
             lastActivity.WeekNumber,
@@ -836,7 +933,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         {
             var orders = dayGroup.Select(e => e.OrderInDay).OrderBy(o => o).ToList();
 
-            // Check for no duplicates
             var duplicates = orders.GroupBy(o => o).Where(g => g.Count() > 1).ToList();
             if (duplicates.Any())
             {
@@ -844,7 +940,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
                     $"Duplicate order numbers found for {dayGroup.Key}: {string.Join(", ", duplicates.Select(d => d.Key))}");
             }
 
-            // Check ordering starts at 1 and is sequential
             for (int i = 0; i < orders.Count; i++)
             {
                 if (orders[i] != i + 1)

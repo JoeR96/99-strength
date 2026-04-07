@@ -1,5 +1,5 @@
 using A2S.Application.Commands.Users;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
 using A2S.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;
@@ -23,15 +23,12 @@ public class CreateUserCommandHandlerTests
     [Fact]
     public async Task Handle_WithValidCommand_ShouldCreateUser()
     {
-        // Arrange
         var command = new CreateUserCommand("test@example.com", "Test User");
         _userRepository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Email.Should().Be("test@example.com");
         result.Value.Name.Should().Be("Test User");
@@ -44,17 +41,14 @@ public class CreateUserCommandHandlerTests
     [Fact]
     public async Task Handle_WithDuplicateEmail_ShouldReturnFailure()
     {
-        // Arrange
         var existingUser = User.Create("existing@example.com", "Existing User");
         var command = new CreateUserCommand("existing@example.com", "New User");
 
         _userRepository.GetByEmailAsync("existing@example.com", Arg.Any<CancellationToken>())
             .Returns(existingUser);
 
-        // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("already exists");
 

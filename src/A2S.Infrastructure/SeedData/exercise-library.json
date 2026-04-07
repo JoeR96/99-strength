@@ -3440,16 +3440,6 @@
     "description": "Hevy: lats"
   },
   {
-    "name": "Single Arm Lat Pulldown",
-    "equipment": "Machine",
-    "defaultRepRange": {
-      "minimum": 8,
-      "maximum": 12
-    },
-    "defaultSets": 3,
-    "description": "Hevy: lats"
-  },
-  {
     "name": "Single Arm Tricep Extension (Dumbbell)",
     "equipment": "Dumbbell",
     "defaultRepRange": {

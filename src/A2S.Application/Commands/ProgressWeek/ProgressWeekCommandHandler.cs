@@ -37,7 +37,6 @@ public sealed class ProgressWeekCommandHandler : IRequestHandler<ProgressWeekCom
                 return Result.Failure<ProgressWeekResult>("User must be authenticated.");
             }
 
-            // Get the workout
             var workout = await _workoutRepository.GetByIdAsync(
                 new WorkoutId(request.WorkoutId),
                 cancellationToken);
@@ -47,37 +46,30 @@ public sealed class ProgressWeekCommandHandler : IRequestHandler<ProgressWeekCom
                 return Result.Failure<ProgressWeekResult>("Workout not found.");
             }
 
-            // Verify the workout belongs to the current user
             if (workout.UserId != userId.Value)
             {
                 return Result.Failure<ProgressWeekResult>("You can only progress your own workouts.");
             }
 
-            // Verify the workout is active
             if (workout.Status != WorkoutStatus.Active)
             {
                 return Result.Failure<ProgressWeekResult>("Workout must be active to progress to next week.");
             }
 
-            // Check if already at the final week
             if (workout.CurrentWeek >= workout.TotalWeeks)
             {
                 return Result.Failure<ProgressWeekResult>("Workout has already reached the final week.");
             }
 
-            // Capture previous state
             var previousWeek = workout.CurrentWeek;
 
-            // Progress to the next week
             workout.ProgressToNextWeek();
 
             // Determine if the new week is a deload week (weeks 7, 14, 21)
             var isDeloadWeek = workout.IsDeloadWeek();
 
-            // Check if program completed (after progressing to final deload)
             var isProgramComplete = workout.Status == WorkoutStatus.Completed;
 
-            // Save changes
             _workoutRepository.Update(workout);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -92,7 +84,6 @@ public sealed class ProgressWeekCommandHandler : IRequestHandler<ProgressWeekCom
         }
         catch (InvalidOperationException ex)
         {
-            // Domain rule violations throw InvalidOperationException
             return Result.Failure<ProgressWeekResult>(ex.Message);
         }
         catch (Exception ex)

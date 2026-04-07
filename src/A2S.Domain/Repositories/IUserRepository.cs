@@ -1,5 +1,5 @@
 using A2S.Domain.Common;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
 
 namespace A2S.Domain.Repositories;
 

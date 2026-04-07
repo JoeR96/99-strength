@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { useCurrentWorkout } from '@/hooks/useWorkouts';
 import { WeekOverview } from '@/features/workout/WeekOverview';
 import { NextWeekPreview } from '@/features/workout/NextWeekPreview';
+import { DashboardExerciseTracking } from './DashboardExerciseTracking';
 
 /**
  * Modern dashboard with mosaic-style layout using Golden Twilight theme.
@@ -138,7 +139,7 @@ export function DashboardPage() {
                     <p className="text-body text-muted-foreground">No program selected</p>
                   </div>
                   <Button className="w-full" onClick={() => navigate('/setup')}>
-                    Start A2S Program
+                    Start Program
                   </Button>
                 </>
               )}
@@ -183,6 +184,11 @@ export function DashboardPage() {
             </div>
           )}
 
+          {/* Exercise Progression Tracking */}
+          {workout && (
+            <DashboardExerciseTracking workout={workout} />
+          )}
+
           {/* Personal Records Card */}
           <Card className="md:col-span-2 lg:col-span-3 overflow-hidden">
             <CardHeader className="pb-4">
@@ -213,7 +219,7 @@ export function DashboardPage() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-muted-foreground">
-              A2S Workout Tracker - Built for strength athletes
+              99 Strength — Built for strength athletes
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help</a>

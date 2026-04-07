@@ -38,7 +38,6 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
                 return Result.Failure<WeekPlanDto>("User must be authenticated.");
             }
 
-            // Get workout - either by ID or active workout
             Workout? workout;
             if (request.WorkoutId.HasValue)
             {
@@ -54,13 +53,11 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
                 return Result.Failure<WeekPlanDto>("Workout not found.");
             }
 
-            // Validate week number
             if (request.WeekNumber < 1 || request.WeekNumber > workout.TotalWeeks)
             {
                 return Result.Failure<WeekPlanDto>($"Week number must be between 1 and {workout.TotalWeeks}.");
             }
 
-            // Validate day number
             var daysPerWeek = workout.GetDaysPerWeek();
             if (request.DayNumber < 1 || request.DayNumber > daysPerWeek)
             {
@@ -71,17 +68,14 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             var templateWeek = workout.GetTemplateWeek(request.WeekNumber);
             var blockType = workout.GetBlockType(request.WeekNumber);
 
-            // Get exercises for this day
             var dayNumber = (DayNumber)request.DayNumber;
             var dayExercises = workout.Exercises
                 .Where(e => e.AssignedDay == dayNumber)
                 .OrderBy(e => e.OrderInDay)
                 .ToList();
 
-            // Get week parameters from the program provider using template week
             var weekParams = _programProvider.GetWeekParameters(templateWeek);
 
-            // Map exercises with their planned sets
             var plannedExercises = dayExercises.Select(exercise =>
                 MapExerciseToPlannedDto(exercise, templateWeek, blockType, weekParams)
             ).ToList();
@@ -112,7 +106,6 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
         int blockNumber,
         WeekParameters weekParams)
     {
-        // Use domain method to calculate planned sets
         var plannedSets = exercise.CalculatePlannedSets(weekNumber, blockNumber).ToList();
 
         var setDtos = plannedSets.Select(ps => new PlannedSetDto
@@ -147,7 +140,6 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
         var progression = exercise.Progression;
         var data = progression.GetProgressionData();
 
-        // Common metadata
         var tm = progression.GetTrainingMax();
         var currentWeight = progression.GetCurrentWeight();
 

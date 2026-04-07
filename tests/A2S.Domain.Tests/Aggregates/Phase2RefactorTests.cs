@@ -46,7 +46,7 @@ public class Phase2RefactorTests
     [Fact]
     public void User_ExtendsAggregateRoot()
     {
-        var user = Domain.Entities.User.Reconstitute(Guid.NewGuid().ToString(), "ext-id", "Test User", DateTime.UtcNow);
+        var user = Domain.Aggregates.User.User.Reconstitute(Guid.NewGuid().ToString(), "ext-id", "Test User", DateTime.UtcNow);
 
         user.Id.Should().BeOfType<UserId>();
         user.Should().BeAssignableTo<AggregateRoot<UserId>>();
@@ -392,7 +392,7 @@ public class Phase2RefactorTests
     public void User_Create_WithExplicitId_UsesProvidedId()
     {
         var userId = new UserId("aaa11111-1111-1111-1111-111111111111");
-        var user = Domain.Entities.User.Create("test@example.com", "Test", userId);
+        var user = Domain.Aggregates.User.User.Create("test@example.com", "Test", userId);
 
         user.Id.Should().Be(userId);
     }
@@ -400,7 +400,7 @@ public class Phase2RefactorTests
     [Fact]
     public void User_Create_WithoutId_GeneratesNewId()
     {
-        var user = Domain.Entities.User.Create("test@example.com", "Test");
+        var user = Domain.Aggregates.User.User.Create("test@example.com", "Test");
 
         user.Id.Value.Should().NotBeNullOrEmpty();
     }

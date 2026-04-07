@@ -1,52 +1,61 @@
-using System.Reflection;
-using System.Text.Json;
 using A2S.Application.Services;
 using A2S.Domain.Enums;
+using A2S.Domain.Repositories;
 using A2S.Domain.ValueObjects;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace A2S.Infrastructure.SeedData;
 
 /// <summary>
-/// Provides exercise templates from embedded JSON data.
+/// Provides exercise templates from the database via IExerciseDefinitionRepository.
+/// Caches results in memory with a sliding expiration.
 /// </summary>
 public sealed class ExerciseLibraryProvider : IExerciseLibraryProvider
 {
-    private readonly Lazy<IReadOnlyList<ExerciseTemplate>> _templates = new(LoadTemplates);
+    private const string CacheKey = "ExerciseLibrary_AllTemplates";
+    private static readonly TimeSpan SlidingExpiration = TimeSpan.FromMinutes(5);
 
-    public IReadOnlyList<ExerciseTemplate> AllTemplates => _templates.Value;
+    private readonly IExerciseDefinitionRepository _repository;
+    private readonly IMemoryCache _cache;
+
+    public ExerciseLibraryProvider(IExerciseDefinitionRepository repository, IMemoryCache cache)
+    {
+        _repository = repository;
+        _cache = cache;
+    }
+
+    public IReadOnlyList<ExerciseTemplate> AllTemplates =>
+        _cache.GetOrCreate(CacheKey, entry =>
+        {
+            entry.SlidingExpiration = SlidingExpiration;
+            return LoadTemplatesFromDbAsync().GetAwaiter().GetResult();
+        })!;
+
+    public async Task<IReadOnlyList<ExerciseTemplate>> GetAllTemplatesAsync(CancellationToken ct = default)
+    {
+        var cached = await _cache.GetOrCreateAsync(CacheKey, async entry =>
+        {
+            entry.SlidingExpiration = SlidingExpiration;
+            return await LoadTemplatesFromDbAsync(ct);
+        });
+        return cached!;
+    }
 
     public ExerciseTemplate? GetByName(string name) =>
         AllTemplates.FirstOrDefault(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-    private static IReadOnlyList<ExerciseTemplate> LoadTemplates()
+    private async Task<IReadOnlyList<ExerciseTemplate>> LoadTemplatesFromDbAsync(CancellationToken ct = default)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("A2S.Infrastructure.SeedData.exercise-library.json")
-            ?? throw new InvalidOperationException("Embedded resource 'exercise-library.json' not found.");
+        var definitions = await _repository.GetAllAsync(ct);
 
-        var entries = JsonSerializer.Deserialize<List<ExerciseEntry>>(stream, JsonOptions)
-            ?? throw new InvalidOperationException("Failed to deserialize exercise library JSON.");
-
-        return entries.Select(e => new ExerciseTemplate(
-            Name: e.Name,
-            Equipment: Enum.Parse<EquipmentType>(e.Equipment),
-            DefaultRepRange: e.DefaultRepRange is { } rr ? RepRange.Create(rr.Minimum, rr.Maximum) : null,
-            DefaultSets: e.DefaultSets,
-            Description: e.Description ?? ""
+        return definitions.Select(d => new ExerciseTemplate(
+            Name: d.Name,
+            Equipment: d.EquipmentType,
+            DefaultRepRange: d.DefaultRepRangeMin.HasValue && d.DefaultRepRangeMax.HasValue
+                ? RepRange.Create(d.DefaultRepRangeMin.Value, d.DefaultRepRangeMax.Value)
+                : null,
+            DefaultSets: d.DefaultSets,
+            Description: d.Description
         )).ToArray();
     }
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
-    private sealed record ExerciseEntry(
-        string Name,
-        string Equipment,
-        RepRangeEntry? DefaultRepRange,
-        int? DefaultSets,
-        string? Description);
-
-    private sealed record RepRangeEntry(int Minimum, int Maximum);
 }

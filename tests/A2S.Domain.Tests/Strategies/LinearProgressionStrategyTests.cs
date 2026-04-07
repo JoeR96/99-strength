@@ -64,14 +64,11 @@ public class LinearProgressionStrategyTests
     public void Primary_CalculatePlannedSets_ShouldMatchSpreadsheet(
         int week, int block, int expectedRepsPerSet, int expectedSets, int expectedRepOutTarget)
     {
-        // Arrange
         var strategy = LinearProgressionStrategy.Create(
             _primaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: block).ToList();
 
-        // Assert
         plannedSets.Should().HaveCount(expectedSets,
             $"Week {week}: should have {expectedSets} sets");
 
@@ -138,14 +135,11 @@ public class LinearProgressionStrategyTests
     public void Auxiliary_CalculatePlannedSets_ShouldMatchSpreadsheet(
         int week, int block, int expectedRepsPerSet, int expectedSets, int expectedRepOutTarget)
     {
-        // Arrange
         var strategy = LinearProgressionStrategy.Create(
             _auxiliaryTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
 
-        // Act
         var plannedSets = strategy.CalculatePlannedSets(week, blockNumber: block).ToList();
 
-        // Assert
         plannedSets.Should().HaveCount(expectedSets,
             $"Week {week}: should have {expectedSets} sets");
 
@@ -227,7 +221,7 @@ public class LinearProgressionStrategyTests
     public void ApplyPerformanceResult_WithAmrapDelta_ShouldAdjustTmCorrectly(
         int amrapDelta, decimal expectedAdjustmentPercent)
     {
-        // Arrange — TM=100kg for easy math
+        // TM=100kg for easy math
         var tm = TrainingMax.Create(100m, WeightUnit.Kilograms);
         var strategy = LinearProgressionStrategy.Create(
             tm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
@@ -256,10 +250,9 @@ public class LinearProgressionStrategyTests
 
         var performance = new ExercisePerformance(_testExerciseId, plannedSets, completedSets);
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert — TM stored at 2dp precision, NOT rounded to 2.5kg
+        // TM stored at 2dp precision, NOT rounded to 2.5kg
         var expectedTm = Math.Round(100m * (1 + expectedAdjustmentPercent), 2);
         strategy.TrainingMax.Value.Should().Be(expectedTm,
             $"AMRAP delta {amrapDelta} should result in {expectedAdjustmentPercent * 100}% TM adjustment");
@@ -333,7 +326,6 @@ public class LinearProgressionStrategyTests
     [Fact]
     public void Full21WeekCycle_Primary_WithConsistentPerformance_ShouldProgressTm()
     {
-        // Arrange
         var startingTm = TrainingMax.Create(120m, WeightUnit.Kilograms);
         var strategy = LinearProgressionStrategy.Create(
             startingTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Primary);
@@ -343,7 +335,7 @@ public class LinearProgressionStrategyTests
             (0, 120m)
         };
 
-        // Act — Simulate 21 weeks with +5 AMRAP delta (+3%) on non-deload weeks
+        // Simulate 21 weeks with +5 AMRAP delta (+3%) on non-deload weeks
         for (int week = 1; week <= 21; week++)
         {
             var blockNumber = (week - 1) / 7 + 1;
@@ -375,7 +367,6 @@ public class LinearProgressionStrategyTests
             tmHistory.Add((week, strategy.TrainingMax.Value));
         }
 
-        // Assert
         var finalTm = strategy.TrainingMax.Value;
         finalTm.Should().BeGreaterThan(120m,
             "TM should increase over 21 weeks with consistent +5 AMRAP delta");
@@ -396,7 +387,6 @@ public class LinearProgressionStrategyTests
     [Fact]
     public void Full21WeekCycle_Auxiliary_WithConsistentPerformance_ShouldProgressTm()
     {
-        // Arrange
         var startingTm = TrainingMax.Create(67.5m, WeightUnit.Kilograms);
         var strategy = LinearProgressionStrategy.Create(
             startingTm, useAmrap: true, baseSetsPerExercise: 5, tier: ProgramTier.Auxiliary);
@@ -437,7 +427,6 @@ public class LinearProgressionStrategyTests
             tmHistory.Add((week, strategy.TrainingMax.Value));
         }
 
-        // Assert
         var finalTm = strategy.TrainingMax.Value;
         finalTm.Should().BeGreaterThan(67.5m,
             "TM should increase over 21 weeks with consistent +3 AMRAP delta");

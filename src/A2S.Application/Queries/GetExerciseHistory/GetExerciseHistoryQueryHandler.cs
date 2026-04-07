@@ -37,7 +37,6 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
                 return Result.Failure<AggregatedExerciseHistoryDto?>("Exercise name is required.");
             }
 
-            // Get all workouts for the user
             var workouts = await _workoutRepository.GetAllAsync(userId.Value, cancellationToken);
 
             if (workouts == null || !workouts.Any())
@@ -45,20 +44,17 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
                 return Result.Success<AggregatedExerciseHistoryDto?>(null);
             }
 
-            // Find all sessions for this exercise name across all workouts
             var sessions = new List<ExerciseSessionDto>();
             var exerciseName = request.ExerciseName.Trim();
 
             foreach (var workout in workouts)
             {
-                // Find exercises matching the name
                 var matchingExercises = workout.Exercises
                     .Where(e => e.Name.Equals(exerciseName, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 foreach (var exercise in matchingExercises)
                 {
-                    // Find completed activities that include this exercise
                     foreach (var activity in workout.CompletedActivities)
                     {
                         var performance = activity.Performances?.FirstOrDefault(p => p.ExerciseId == exercise.Id);
@@ -98,10 +94,8 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
                 return Result.Success<AggregatedExerciseHistoryDto?>(null);
             }
 
-            // Order sessions by date
             sessions = sessions.OrderBy(s => s.CompletedAt).ToList();
 
-            // Calculate aggregates
             var allSets = sessions.SelectMany(s => s.Sets).ToList();
             var totalVolume = sessions.Sum(s => s.SessionVolume);
             var totalSets = allSets.Count;

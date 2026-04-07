@@ -30,7 +30,6 @@ public class ExerciseProgressionConfiguration : IEntityTypeConfiguration<Exercis
         builder.Property("ExerciseId")
             .IsRequired();
 
-        // TPH discriminator
         builder.HasDiscriminator(p => p.ProgressionType)
             .HasValue<LinearProgressionStrategy>("Linear")
             .HasValue<RepsPerSetStrategy>("RepsPerSet")

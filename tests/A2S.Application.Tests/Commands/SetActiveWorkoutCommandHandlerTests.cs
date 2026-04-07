@@ -18,7 +18,7 @@ public class SetActiveWorkoutCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly SetActiveWorkoutCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa11111-1111-1111-1111-111111111111"));
+    private static readonly UserId TestUserId = new("aaa11111-1111-1111-1111-111111111111");
 
     public SetActiveWorkoutCommandHandlerTests()
     {
@@ -93,7 +93,7 @@ public class SetActiveWorkoutCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

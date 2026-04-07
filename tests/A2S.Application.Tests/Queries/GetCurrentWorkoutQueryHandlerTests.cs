@@ -17,7 +17,7 @@ public class GetCurrentWorkoutQueryHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly GetCurrentWorkoutQueryHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("ccc11111-1111-1111-1111-111111111111"));
+    private static readonly UserId TestUserId = new("ccc11111-1111-1111-1111-111111111111");
 
     public GetCurrentWorkoutQueryHandlerTests()
     {

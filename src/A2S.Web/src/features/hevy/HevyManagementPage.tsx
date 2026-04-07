@@ -11,6 +11,7 @@ import { HevySettings } from '@/components/hevy/HevySettings';
 import { useHevy } from '@/contexts/HevyContext';
 import { hevyApi } from '@/services/hevyApi';
 import { apiClient } from '@/api/apiClient';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { HevyRoutine } from '@/types/hevy';
 import type { WorkoutSummaryDto } from '@/types/workout';
 
@@ -25,6 +26,7 @@ export function HevyManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingRoutine, setDeletingRoutine] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirmDialog();
 
   // Fetch routines and programs when API is configured and valid
   useEffect(() => {
@@ -41,7 +43,6 @@ export function HevyManagementPage() {
         hevyApi.getAllRoutines(),
         apiClient.get<WorkoutSummaryDto[]>('/workouts').then(res => res.data),
       ]);
-      console.log('Fetched routines from Hevy:', routinesData.map(r => ({ id: r.id, title: r.title })));
       setRoutines(routinesData);
       setPrograms(programsData);
     } catch (err) {
@@ -53,11 +54,14 @@ export function HevyManagementPage() {
   };
 
   const handleDeleteRoutine = async (routineId: string) => {
-    if (!confirm('Are you sure you want to delete this routine from Hevy?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Routine',
+      description: 'Are you sure you want to delete this routine from Hevy?',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (!confirmed) return;
 
-    console.log('Attempting to delete routine with ID:', routineId);
     setDeletingRoutine(routineId);
     setError(null);
     try {
@@ -69,8 +73,7 @@ export function HevyManagementPage() {
       // If 404, Hevy API may not support deletion for this routine type
       // or the routine was already deleted. Either way, remove from view.
       if (errorMessage.includes('404')) {
-        console.log('Routine deletion returned 404 - Hevy API may not support routine deletion');
-        // Note: The Hevy API may not support deleting routines via API.
+        // The Hevy API may not support deleting routines via API.
         // Users should delete routines directly in the Hevy app.
         setError('Could not delete routine via API. Try deleting directly in the Hevy app.');
         // Still refresh to show current state
@@ -117,6 +120,7 @@ export function HevyManagementPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      {ConfirmDialog}
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Hevy Integration</h1>

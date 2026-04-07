@@ -30,7 +30,6 @@ public class CurrentUserService : ICurrentUserService
                 return userId.ToString();
             }
 
-            // Fallback: Get from JWT claims directly (for Clerk JWT where email may not be present)
             // Clerk uses 'sub' claim for user ID
             var sub = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
                    ?? httpContext.User.FindFirstValue("sub");
@@ -52,7 +51,6 @@ public class CurrentUserService : ICurrentUserService
                 return email.ToString();
             }
 
-            // Fallback: Get from JWT claims directly
             return httpContext.User.FindFirstValue(ClaimTypes.Email)
                 ?? httpContext.User.FindFirstValue("email");
         }

@@ -18,7 +18,7 @@ public class RemoveExerciseCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly RemoveExerciseCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa77777-7777-7777-7777-777777777777"));
+    private static readonly UserId TestUserId = new("aaa77777-7777-7777-7777-777777777777");
     private static readonly Guid TestWorkoutGuid = Guid.Parse("bbb77777-7777-7777-7777-777777777777");
 
     public RemoveExerciseCommandHandlerTests()
@@ -74,7 +74,7 @@ public class RemoveExerciseCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

@@ -36,7 +36,6 @@ public sealed class SetActiveWorkoutCommandHandler : IRequestHandler<SetActiveWo
                 return Result.Failure<bool>("User must be authenticated.");
             }
 
-            // Get the workout to activate
             var workoutToActivate = await _workoutRepository.GetByIdAsync(
                 new WorkoutId(request.WorkoutId),
                 cancellationToken);
@@ -46,13 +45,11 @@ public sealed class SetActiveWorkoutCommandHandler : IRequestHandler<SetActiveWo
                 return Result.Failure<bool>("Workout not found.");
             }
 
-            // Verify the workout belongs to the current user
             if (workoutToActivate.UserId != userId.Value)
             {
                 return Result.Failure<bool>("You can only activate your own workouts.");
             }
 
-            // Deactivate any currently active workout
             var currentActive = await _workoutRepository.GetActiveWorkoutAsync(userId.Value, cancellationToken);
             if (currentActive != null && currentActive.Id != workoutToActivate.Id)
             {
@@ -60,7 +57,6 @@ public sealed class SetActiveWorkoutCommandHandler : IRequestHandler<SetActiveWo
                 _workoutRepository.Update(currentActive);
             }
 
-            // Activate the requested workout
             workoutToActivate.SetAsActive();
             _workoutRepository.Update(workoutToActivate);
 

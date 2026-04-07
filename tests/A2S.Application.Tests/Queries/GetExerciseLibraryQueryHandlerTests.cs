@@ -29,41 +29,45 @@ public class GetExerciseLibraryQueryHandlerTests
             new(new ExerciseDefinitionId(Guid.NewGuid()), "Squat", EquipmentType.Barbell, "Legs", true, "Barbell squat"),
             new(new ExerciseDefinitionId(Guid.NewGuid()), "Bicep Curl", EquipmentType.Dumbbell, "Arms", false, "DB curl")
         };
-        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(definitions);
+        _repository.SearchPagedAsync(
+            null, null, null, 1, 50, Arg.Any<CancellationToken>())
+            .Returns((definitions.AsReadOnly() as IReadOnlyList<ExerciseDefinition>, 2));
 
         var result = await _handler.Handle(new GetExerciseLibraryQuery(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Templates.Should().HaveCount(2);
-        await _repository.Received(1).GetAllAsync(Arg.Any<CancellationToken>());
+        result.Value.TotalCount.Should().Be(2);
     }
 
     [Fact]
-    public async Task Handle_WithEquipmentTypeFilter_CallsSearchAsync()
+    public async Task Handle_WithEquipmentTypeFilter_CallsSearchPagedAsync()
     {
-        _repository.SearchAsync(EquipmentType.Barbell, null, null, Arg.Any<CancellationToken>())
-            .Returns(new List<ExerciseDefinition>());
+        _repository.SearchPagedAsync(
+            EquipmentType.Barbell, null, null, 1, 50, Arg.Any<CancellationToken>())
+            .Returns((Array.Empty<ExerciseDefinition>() as IReadOnlyList<ExerciseDefinition>, 0));
 
         var query = new GetExerciseLibraryQuery { EquipmentType = EquipmentType.Barbell };
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        await _repository.Received(1).SearchAsync(
-            EquipmentType.Barbell, null, null, Arg.Any<CancellationToken>());
+        await _repository.Received(1).SearchPagedAsync(
+            EquipmentType.Barbell, null, null, 1, 50, Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_WithSearchTerm_CallsSearchAsync()
+    public async Task Handle_WithSearchTerm_CallsSearchPagedAsync()
     {
-        _repository.SearchAsync(null, null, "squat", Arg.Any<CancellationToken>())
-            .Returns(new List<ExerciseDefinition>());
+        _repository.SearchPagedAsync(
+            null, null, "squat", 1, 50, Arg.Any<CancellationToken>())
+            .Returns((Array.Empty<ExerciseDefinition>() as IReadOnlyList<ExerciseDefinition>, 0));
 
         var query = new GetExerciseLibraryQuery { SearchTerm = "squat" };
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        await _repository.Received(1).SearchAsync(
-            null, null, "squat", Arg.Any<CancellationToken>());
+        await _repository.Received(1).SearchPagedAsync(
+            null, null, "squat", 1, 50, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -72,8 +76,9 @@ public class GetExerciseLibraryQueryHandlerTests
         var definition = new ExerciseDefinition(
             new ExerciseDefinitionId(Guid.NewGuid()), "Bench Press", EquipmentType.Barbell,
             "Chest", true, "Flat barbell bench press", 5, 10, 4);
-        _repository.GetAllAsync(Arg.Any<CancellationToken>())
-            .Returns(new List<ExerciseDefinition> { definition });
+        _repository.SearchPagedAsync(
+            null, null, null, 1, 50, Arg.Any<CancellationToken>())
+            .Returns((new List<ExerciseDefinition> { definition }.AsReadOnly() as IReadOnlyList<ExerciseDefinition>, 1));
 
         var result = await _handler.Handle(new GetExerciseLibraryQuery(), CancellationToken.None);
 

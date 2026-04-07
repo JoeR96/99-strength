@@ -8,7 +8,7 @@ export function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">A2S Workout Tracker</h1>
+          <h1 className="text-3xl font-bold text-gray-900">99 Strength</h1>
           <p className="mt-2 text-gray-600">Create your account to get started</p>
         </div>
         <SignUp

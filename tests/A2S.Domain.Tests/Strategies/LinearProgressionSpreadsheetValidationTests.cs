@@ -241,10 +241,8 @@ public class LinearProgressionSpreadsheetValidationTests
         performance.GetAmrapDelta().Should().Be(expectedDelta,
             $"Delta should be {amrapResult} - {repOutTarget} = {expectedDelta}");
 
-        // Act
         strategy.ApplyPerformanceResult(performance);
 
-        // Assert
         var manualCalc = Math.Round(tmBefore * (decimal)multiplierD, 2);
         strategy.TrainingMax.Value.Should().Be(manualCalc,
             $"TM should be {tmBefore} × {multiplierD} = {manualCalc}");

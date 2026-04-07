@@ -311,7 +311,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
         if (existingRoutineId) {
           try {
             await hevyApi.deleteRoutine(existingRoutineId);
-            console.log(`Deleted old Hevy routine ${existingRoutineId}`);
             // Wait for Hevy API to process the deletion
             await new Promise((r) => setTimeout(r, 1000));
           } catch (deleteError) {
@@ -390,7 +389,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
             const isExpanded = expandedExercise === state.exerciseId;
             const isLinear = state.progressionType === "Linear" && !state.wantSwap;
             const isRepsPerSet = state.progressionType === "RepsPerSet" && !state.wantSwap;
-            const swapTarget = state.progressionType === "Linear" ? "Reps Per Set" : "A2S Hypertrophy";
+            const swapTarget = state.progressionType === "Linear" ? "Reps Per Set" : "Linear (Hypertrophy)";
 
             return (
               <div
@@ -421,7 +420,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                       {state.wantSwap
                         ? `→ ${swapTarget}`
                         : state.progressionType === "Linear"
-                        ? "A2S Hypertrophy"
+                        ? "Linear (Hypertrophy)"
                         : state.progressionType === "RepsPerSet"
                         ? "Reps Per Set"
                         : "Minimal Sets"}
@@ -676,7 +675,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                     {state.wantSwap && state.progressionType === "RepsPerSet" && (
                       <div className="space-y-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
                         <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">
-                          Configure A2S Hypertrophy
+                          Configure Linear (Hypertrophy)
                         </p>
                         <div>
                           <Label className="text-sm">Training Max ({state.unit})</Label>
@@ -715,7 +714,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                         {state.wantSwap
-                          ? `Cancel — keep ${state.progressionType === "Linear" ? "A2S Hypertrophy" : "Reps Per Set"}`
+                          ? `Cancel — keep ${state.progressionType === "Linear" ? "Linear (Hypertrophy)" : "Reps Per Set"}`
                           : `Swap to ${swapTarget}`}
                       </button>
                     )}

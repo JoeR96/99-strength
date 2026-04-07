@@ -29,7 +29,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .IsRequired()
             .HasMaxLength(200);
 
-        // PostgreSQL optimistic concurrency via xmin system column
         builder.Property<uint>("xmin")
             .HasColumnType("xid")
             .ValueGeneratedOnAddOrUpdate()
@@ -63,7 +62,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         builder.Property(w => w.CompletedAt);
 
-        // BlockSequence as JSON column
         var blockSequenceConverter = new ValueConverter<List<int>, string>(
             v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
             v => string.IsNullOrEmpty(v)
@@ -78,18 +76,12 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .HasDefaultValueSql("'[1,2,3]'::jsonb")
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        // Exercises relationship
         builder.HasMany(w => w.Exercises)
             .WithOne()
             .HasForeignKey("WorkoutId")
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Ignore domain events (not persisted)
         builder.Ignore(w => w.DomainEvents);
-
-        // AuditEntries as owned complex type (JSON column)
-        builder.Navigation(w => w.AuditEntries)
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.OwnsMany(w => w.AuditEntries, audit =>
         {
@@ -109,10 +101,7 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             audit.Property(a => a.Reason).HasMaxLength(500);
         });
 
-        // CompletedActivities as owned complex type (JSON column)
-        // EF Core 9 handles nested collections in JSON automatically
-        // Use backing field to allow EF Core to populate the private List<T>
-        builder.Navigation(w => w.CompletedActivities)
+        builder.Navigation(w => w.AuditEntries)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.OwnsMany(w => w.CompletedActivities, activity =>
@@ -123,7 +112,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             activity.Property(a => a.BlockNumber);
             activity.Property(a => a.CompletedAt);
 
-            // Include Performances in JSON serialization for history tracking
             activity.OwnsMany(a => a.Performances, perf =>
             {
                 perf.Property(p => p.ExerciseId)
@@ -155,7 +143,6 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                 });
             });
 
-            // ProgressionSnapshots for undo capability
             activity.OwnsMany(a => a.ProgressionSnapshots, snap =>
             {
                 snap.Property(s => s.ExerciseId)
@@ -168,7 +155,9 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             });
         });
 
-        // ArchivedActivities as owned complex type (JSON column)
+        builder.Navigation(w => w.CompletedActivities)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // Stores historical activities from completed program cycles
         builder.OwnsMany(w => w.ArchivedActivities, activity =>
         {
@@ -223,5 +212,8 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         builder.Navigation(w => w.ArchivedActivities)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasIndex(w => w.UserId);
+        builder.HasIndex(w => new { w.UserId, w.Status });
     }
 }

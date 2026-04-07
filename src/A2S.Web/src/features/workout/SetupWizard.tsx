@@ -21,7 +21,7 @@ export function SetupWizard() {
   const [currentStep, setCurrentStep] = useState<WizardStep>("welcome");
   const [setupMode, setSetupMode] = useState<SetupMode | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
-  const [workoutName, setWorkoutName] = useState("My A2S Program");
+  const [workoutName, setWorkoutName] = useState("My Program");
   const [variant, setVariant] = useState<ProgramVariant>(ProgramVariant.FourDay);
   const [totalWeeks, setTotalWeeks] = useState(21);
   const [blockSequence, setBlockSequence] = useState<number[]>([1, 2, 3]);
@@ -35,7 +35,7 @@ export function SetupWizard() {
       const templateData = exerciseLibrary.templates.find(t => t.name === ex.templateName);
       return {
         id: `template-${index}`,
-        hevyExerciseTemplateId: ex.hevyExerciseTemplateId || '', // Use template's ID or empty string
+        hevyExerciseTemplateId: ex.externalTemplateId || '', // Use template's ID or empty string
         template: templateData || {
           name: ex.templateName,
           equipment: 0,
@@ -218,7 +218,7 @@ export function SetupWizard() {
                     type="text"
                     value={workoutName}
                     onChange={(e) => setWorkoutName(e.target.value)}
-                    placeholder="My A2S Program"
+                    placeholder="My Program"
                   />
                 </div>
 
@@ -444,7 +444,7 @@ export function SetupWizard() {
                                     </div>
                                     {ex.progressionType === 'Linear' ? (
                                       <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
-                                        <span className="font-medium text-primary">A2S Linear</span>
+                                        <span className="font-medium text-primary">Linear</span>
                                         <span>TM: {ex.trainingMax ? `${ex.trainingMax.value}${ex.trainingMax.unit === WeightUnit.Kilograms ? 'kg' : 'lbs'}` : 'Not set'}</span>
                                         <span>{ex.isPrimary ? 'Primary' : 'Auxiliary'}</span>
                                         <span>{ex.baseSetsPerExercise ?? 4} sets</span>

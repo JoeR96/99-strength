@@ -17,7 +17,7 @@ public class ConfirmWorkingWeightCommandHandlerTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly ConfirmWorkingWeightCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5"));
+    private static readonly UserId TestUserId = new("a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5");
 
     public ConfirmWorkingWeightCommandHandlerTests()
     {
@@ -29,7 +29,7 @@ public class ConfirmWorkingWeightCommandHandlerTests
     [Fact]
     public async Task Handle_WhenValid_ConfirmsWeightAndSaves()
     {
-        var workout = CreateWorkout(TestUserId);
+        var workout = CreateWorkoutWithPendingWeight(TestUserId);
         var exerciseId = workout.Exercises.First().Id.Value;
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
             .Returns(workout);
@@ -46,7 +46,7 @@ public class ConfirmWorkingWeightCommandHandlerTests
     [Fact]
     public async Task Handle_WhenExerciseNotFound_ReturnsFailure()
     {
-        var workout = CreateWorkout(TestUserId);
+        var workout = CreateWorkoutWithPendingWeight(TestUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
             .Returns(workout);
 
@@ -59,16 +59,40 @@ public class ConfirmWorkingWeightCommandHandlerTests
         result.Error.Should().Contain("not found");
     }
 
-    private static Workout CreateWorkout(UserId userId)
+    /// <summary>
+    /// Creates a workout with a Cable exercise in pending weight confirmation state.
+    /// Cable exercises at max sets trigger pending weight confirmation upon progression.
+    /// </summary>
+    private static Workout CreateWorkoutWithPendingWeight(UserId userId)
     {
+        var weight = Weight.Create(50m, WeightUnit.Kilograms);
         var exercises = new List<Exercise>
         {
             Exercise.CreateWithRepsPerSetProgression(
                 "Cable Row", ExerciseCategory.Accessory, EquipmentType.Cable,
                 DayNumber.Day1, 1, "CABLE001",
-                RepRange.Create(8, 12), 3, 4, false,
-                Weight.Create(50m, WeightUnit.Kilograms))
+                RepRange.Create(8, 12), 3, 3, false,
+                weight)
         };
-        return Workout.Create(userId, "Test", ProgramVariant.FiveDay, exercises);
+        var workout = Workout.Create(userId, "Test", ProgramVariant.FiveDay, exercises);
+        workout.Start();
+
+        var exercise = workout.Exercises.First();
+        var plannedSets = new List<PlannedSet>
+        {
+            new(1, weight, 12),
+            new(2, weight, 12),
+            new(3, weight, 12)
+        };
+        var completedSets = new List<CompletedSet>
+        {
+            new(1, weight, 12),
+            new(2, weight, 12),
+            new(3, weight, 12)
+        };
+        var performance = new ExercisePerformance(exercise.Id, plannedSets, completedSets);
+        workout.CompleteDay(DayNumber.Day1, new[] { performance });
+
+        return workout;
     }
 }

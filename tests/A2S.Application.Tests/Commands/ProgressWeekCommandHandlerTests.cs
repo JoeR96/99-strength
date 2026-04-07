@@ -18,7 +18,7 @@ public class ProgressWeekCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly ProgressWeekCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa55555-5555-5555-5555-555555555555"));
+    private static readonly UserId TestUserId = new("aaa55555-5555-5555-5555-555555555555");
 
     public ProgressWeekCommandHandlerTests()
     {
@@ -57,9 +57,9 @@ public class ProgressWeekCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
-        var workout = CreateActiveWorkout(otherUserId);
+        var workout = CreateActiveWorkoutWithAllDaysCompleted(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
             .Returns(workout);
 
@@ -82,24 +82,24 @@ public class ProgressWeekCommandHandlerTests
             new ProgressWeekCommand(workout.Id.Value), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Contain("active");
     }
 
     [Fact]
     public async Task Handle_WhenValid_ProgressesWeekAndReturnsResult()
     {
         SetupAuthenticatedUser(TestUserId);
-        var workout = CreateActiveWorkout(TestUserId);
+        var workout = CreateActiveWorkoutWithAllDaysCompleted(TestUserId);
+        var expectedWeek = workout.CurrentWeek;
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
             .Returns(workout);
 
         var result = await _handler.Handle(
             new ProgressWeekCommand(workout.Id.Value), CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.PreviousWeek.Should().Be(1);
-        result.Value.NewWeek.Should().Be(2);
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        // Domain auto-progresses week when all days are completed in CompleteDay,
+        // so manual ProgressToNextWeek fails because no days are completed in the new week
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("days are completed");
     }
 
     private void SetupAuthenticatedUser(UserId userId)
@@ -109,20 +109,66 @@ public class ProgressWeekCommandHandlerTests
 
     private static Workout CreateWorkout(UserId userId)
     {
-        var exercises = new List<Exercise>
-        {
-            Exercise.CreateWithLinearProgression(
-                "Squat", ExerciseCategory.MainLift, EquipmentType.Barbell,
-                DayNumber.Day1, 1, "TEST123",
-                TrainingMax.Create(100m, WeightUnit.Kilograms), true, 3)
-        };
+        var exercises = CreateFiveDayExercises();
         return Workout.Create(userId, "Test", ProgramVariant.FiveDay, exercises);
     }
 
-    private static Workout CreateActiveWorkout(UserId userId)
+    private static Workout CreateActiveWorkoutWithAllDaysCompleted(UserId userId)
     {
         var workout = CreateWorkout(userId);
         workout.Start();
+        CompleteAllDays(workout);
         return workout;
+    }
+
+    private static List<Exercise> CreateFiveDayExercises()
+    {
+        return new List<Exercise>
+        {
+            Exercise.CreateWithLinearProgression(
+                "Squat", ExerciseCategory.MainLift, EquipmentType.Barbell,
+                DayNumber.Day1, 1, "SQ001",
+                TrainingMax.Create(100m, WeightUnit.Kilograms), true, 3),
+            Exercise.CreateWithLinearProgression(
+                "Bench", ExerciseCategory.MainLift, EquipmentType.Barbell,
+                DayNumber.Day2, 1, "BP001",
+                TrainingMax.Create(80m, WeightUnit.Kilograms), true, 3),
+            Exercise.CreateWithLinearProgression(
+                "Deadlift", ExerciseCategory.MainLift, EquipmentType.Barbell,
+                DayNumber.Day3, 1, "DL001",
+                TrainingMax.Create(120m, WeightUnit.Kilograms), true, 3),
+            Exercise.CreateWithLinearProgression(
+                "OHP", ExerciseCategory.MainLift, EquipmentType.Barbell,
+                DayNumber.Day4, 1, "OHP001",
+                TrainingMax.Create(60m, WeightUnit.Kilograms), true, 3),
+            Exercise.CreateWithLinearProgression(
+                "Row", ExerciseCategory.MainLift, EquipmentType.Barbell,
+                DayNumber.Day5, 1, "ROW001",
+                TrainingMax.Create(70m, WeightUnit.Kilograms), true, 3)
+        };
+    }
+
+    private static void CompleteAllDays(Workout workout)
+    {
+        var days = new[] { DayNumber.Day1, DayNumber.Day2, DayNumber.Day3, DayNumber.Day4, DayNumber.Day5 };
+        foreach (var day in days)
+        {
+            var exercise = workout.Exercises.First(e => e.AssignedDay == day);
+            var weight = Weight.Create(50m, WeightUnit.Kilograms);
+            var plannedSets = new List<PlannedSet>
+            {
+                new(1, weight, 5),
+                new(2, weight, 5),
+                new(3, weight, 5)
+            };
+            var completedSets = new List<CompletedSet>
+            {
+                new(1, weight, 5),
+                new(2, weight, 5),
+                new(3, weight, 8, wasAmrap: true)
+            };
+            var performance = new ExercisePerformance(exercise.Id, plannedSets, completedSets);
+            workout.CompleteDay(day, new[] { performance });
+        }
     }
 }

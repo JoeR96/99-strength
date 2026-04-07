@@ -248,7 +248,7 @@ export function WorkoutDashboard() {
                               </div>
                               <div className="flex justify-between text-muted-foreground">
                                 <span>Progression:</span>
-                                <span className="font-medium text-foreground">Linear (A2S)</span>
+                                <span className="font-medium text-foreground">Linear (Hypertrophy)</span>
                               </div>
                             </div>
                           )}

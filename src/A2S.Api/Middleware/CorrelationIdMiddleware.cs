@@ -18,14 +18,11 @@ public class CorrelationIdMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Try to get correlation ID from request header, or generate a new one
         var correlationId = context.Request.Headers[CorrelationIdHeader].FirstOrDefault()
                             ?? Guid.NewGuid().ToString();
 
-        // Add correlation ID to response headers
         context.Response.Headers.Append(CorrelationIdHeader, correlationId);
 
-        // Add correlation ID to Serilog context so it appears in all logs
         using (LogContext.PushProperty("CorrelationId", correlationId))
         {
             await _next(context);

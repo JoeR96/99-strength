@@ -8,4 +8,5 @@ namespace A2S.Application.Commands.Users;
 /// </summary>
 public sealed record CreateUserCommand(
     string Email,
-    string Name) : ICommand<Result<UserDto>>;
+    string Name,
+    string? Id = null) : ICommand<Result<UserDto>>;

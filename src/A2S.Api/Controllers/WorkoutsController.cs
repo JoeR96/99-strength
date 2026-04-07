@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
 using A2S.Application.Commands.SetActiveWorkout;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetWorkout;
+using A2S.Application.Queries.SimulateWorkout;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -131,5 +133,29 @@ public class WorkoutsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Simulates workout progression over a specified number of sessions.
+    /// Returns projected TM/weight/set data for each exercise.
+    /// </summary>
+    [HttpGet("{id:guid}/simulate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SimulateWorkout(
+        [FromRoute] Guid id,
+        [FromQuery][Range(1, 500)] int sessions = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(
+            new SimulateWorkoutQuery(id, sessions),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return result.ToProblemResult();
+        }
+
+        return Ok(result.Value);
     }
 }

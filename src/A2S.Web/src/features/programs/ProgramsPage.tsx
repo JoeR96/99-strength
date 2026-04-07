@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/layout/Navbar';
 import { useAllWorkouts, useSetActiveWorkout, useDeleteWorkout } from '@/hooks/useWorkouts';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { WorkoutSummaryDto } from '@/types/workout';
 import toast from 'react-hot-toast';
 
@@ -13,6 +14,7 @@ export function ProgramsPage() {
   const setActiveMutation = useSetActiveWorkout();
   const deleteMutation = useDeleteWorkout();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirmDialog();
 
   const handleSetActive = async (workoutId: string) => {
     try {
@@ -24,9 +26,13 @@ export function ProgramsPage() {
   };
 
   const handleDelete = async (workoutId: string) => {
-    if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Program',
+      description: 'Are you sure you want to delete this program? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (!confirmed) return;
 
     setDeletingId(workoutId);
     try {
@@ -72,6 +78,7 @@ export function ProgramsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      {ConfirmDialog}
       <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -95,7 +102,7 @@ export function ProgramsPage() {
             </svg>
             <h2 className="text-xl font-semibold mb-2">No Programs Yet</h2>
             <p className="text-muted-foreground mb-6">
-              Create your first A2S workout program to get started.
+              Create your first workout program to get started.
             </p>
             <Button onClick={() => navigate('/setup')} variant="glow">
               Create Your First Program

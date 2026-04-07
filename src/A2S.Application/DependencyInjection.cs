@@ -18,17 +18,14 @@ public static class DependencyInjection
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        // Register MediatR with all handlers from this assembly
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(assembly);
 
-            // Register pipeline behaviors
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
             config.AddOpenBehavior(typeof(AuthorizedWorkoutBehavior<,>));
         });
 
-        // Register all FluentValidation validators from this assembly
         services.AddValidatorsFromAssembly(assembly);
 
         return services;

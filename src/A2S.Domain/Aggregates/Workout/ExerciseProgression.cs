@@ -231,6 +231,41 @@ public abstract class ExerciseProgression : Entity<ExerciseProgressionId>
         return Weight.Create(standardIncrement, currentWeight.Unit);
     }
 
+    /// <summary>
+    /// Creates a progression strategy from a configuration record.
+    /// Dispatches to the correct concrete strategy based on progressionType.
+    /// </summary>
+    public static ExerciseProgression CreateFromConfig(ProgressionConfig config)
+    {
+        return config.ProgressionType.ToLowerInvariant() switch
+        {
+            "linear" => CreateLinear(
+                config.TrainingMax ?? throw new ArgumentException("Linear progression requires a training max.", nameof(config)),
+                config.UseAmrap ?? true,
+                config.BaseSetsPerExercise ?? 4),
+
+            "repsset" or "repsperset" => CreateRepsPerSet(
+                config.RepRange ?? throw new ArgumentException("RepsPerSet progression requires a rep range.", nameof(config)),
+                config.EquipmentType,
+                config.StartingSets ?? 2,
+                config.TargetSets ?? 4,
+                config.IsUnilateral ?? false,
+                config.StartingWeight),
+
+            "minimalsets" => CreateMinimalSets(
+                config.StartingWeight ?? throw new ArgumentException("MinimalSets progression requires a starting weight.", nameof(config)),
+                config.TargetTotalReps ?? throw new ArgumentException("MinimalSets progression requires target total reps.", nameof(config)),
+                config.StartingSets ?? Math.Max(config.MinimumSets ?? 2, Math.Min(config.MaximumSets ?? 10, ((config.MinimumSets ?? 2) + (config.MaximumSets ?? 10)) / 2)),
+                config.EquipmentType,
+                config.MinimumSets ?? 2,
+                config.MaximumSets ?? 10),
+
+            _ => throw new ArgumentException(
+                $"Unknown progression type: {config.ProgressionType}. Valid types are: Linear, RepsPerSet, MinimalSets",
+                nameof(config))
+        };
+    }
+
     // --- Factory methods ---
 
     /// <summary>
@@ -287,18 +322,15 @@ public sealed record ProgressionSummary
 /// </summary>
 public sealed record ProgressionData
 {
-    // Linear
     public bool? UseAmrap { get; init; }
     public int? BaseSetsPerExercise { get; init; }
 
-    // RepsPerSet
     public int? RepRangeMinimum { get; init; }
     public int? RepRangeMaximum { get; init; }
     public int? StartingSets { get; init; }
     public int? CurrentSetCount { get; init; }
     public int? TargetSets { get; init; }
 
-    // MinimalSets
     public int? TargetTotalReps { get; init; }
     public int? MinimumSets { get; init; }
     public int? MaximumSets { get; init; }

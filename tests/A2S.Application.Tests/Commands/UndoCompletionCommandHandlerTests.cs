@@ -18,7 +18,7 @@ public class UndoCompletionCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly UndoCompletionCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa99999-9999-9999-9999-999999999999"));
+    private static readonly UserId TestUserId = new("aaa99999-9999-9999-9999-999999999999");
 
     public UndoCompletionCommandHandlerTests()
     {
@@ -57,7 +57,7 @@ public class UndoCompletionCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateActiveWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

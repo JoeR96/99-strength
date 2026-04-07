@@ -18,7 +18,7 @@ public class UpdateBlockSequenceCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly UpdateBlockSequenceCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa88888-8888-8888-8888-888888888888"));
+    private static readonly UserId TestUserId = new("aaa88888-8888-8888-8888-888888888888");
 
     public UpdateBlockSequenceCommandHandlerTests()
     {
@@ -77,7 +77,7 @@ public class UpdateBlockSequenceCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkout(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())

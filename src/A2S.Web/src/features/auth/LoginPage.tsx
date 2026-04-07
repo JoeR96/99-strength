@@ -29,11 +29,11 @@ export function LoginPage() {
         <div className="mb-10 text-center">
           <div className="mb-6 flex justify-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 shadow-[0_0_40px_rgba(255,212,10,0.2)]">
-              <span className="text-4xl font-black text-primary">A</span>
+              <span className="text-4xl font-black text-primary">99</span>
             </div>
           </div>
           <h1 className="text-5xl font-black tracking-tight text-gradient-gold drop-shadow-lg">
-            A2S Tracker
+            99 Strength
           </h1>
           <p className="mt-4 text-lg text-gold-light/80 font-medium">
             Track your strength journey

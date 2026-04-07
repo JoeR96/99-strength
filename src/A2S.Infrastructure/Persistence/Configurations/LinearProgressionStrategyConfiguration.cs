@@ -12,7 +12,6 @@ public class LinearProgressionStrategyConfiguration : IEntityTypeConfiguration<L
 {
     public void Configure(EntityTypeBuilder<LinearProgressionStrategy> builder)
     {
-        // LinearProgressionStrategy specific properties
         builder.OwnsOne(lps => lps.TrainingMax, tm =>
         {
             tm.Property(t => t.Value)

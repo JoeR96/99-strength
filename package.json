@@ -25,9 +25,7 @@
     "format": "cd src/A2S.Web && npm run format",
     "lint": "cd src/A2S.Web && npm run lint"
   },
-  "dependencies": {
-    "deep-orc": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "concurrently": "^8.2.2",
     "wait-on": "^9.0.3"

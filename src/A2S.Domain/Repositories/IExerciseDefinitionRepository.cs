@@ -16,5 +16,13 @@ public interface IExerciseDefinitionRepository
         string? searchTerm = null,
         CancellationToken ct = default);
 
+    Task<(IReadOnlyList<ExerciseDefinition> Items, int TotalCount)> SearchPagedAsync(
+        EquipmentType? equipmentType = null,
+        string? muscleGroup = null,
+        string? searchTerm = null,
+        int page = 1,
+        int pageSize = 50,
+        CancellationToken ct = default);
+
     Task<ExerciseDefinition?> GetByNameAsync(string name, CancellationToken ct = default);
 }

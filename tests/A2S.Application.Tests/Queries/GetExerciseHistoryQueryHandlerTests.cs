@@ -17,7 +17,7 @@ public class GetExerciseHistoryQueryHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly GetExerciseHistoryQueryHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("ccc33333-3333-3333-3333-333333333333"));
+    private static readonly UserId TestUserId = new("ccc33333-3333-3333-3333-333333333333");
 
     public GetExerciseHistoryQueryHandlerTests()
     {

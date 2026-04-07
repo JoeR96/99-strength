@@ -20,7 +20,7 @@ public class CreateWorkoutCommandHandlerTests
     private readonly IExerciseLibraryProvider _exerciseLibrary;
     private readonly CreateWorkoutCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa44444-4444-4444-4444-444444444444"));
+    private static readonly UserId TestUserId = new("aaa44444-4444-4444-4444-444444444444");
 
     public CreateWorkoutCommandHandlerTests()
     {
@@ -63,6 +63,7 @@ public class CreateWorkoutCommandHandlerTests
     public async Task Handle_WhenValidWithDefaultExercises_CreatesAndReturnsId()
     {
         SetupAuthenticatedUser(TestUserId);
+        SetupDefaultExerciseLibrary();
         _workoutRepository.GetActiveWorkoutAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>())
             .Returns((Workout?)null);
 
@@ -109,6 +110,18 @@ public class CreateWorkoutCommandHandlerTests
     private void SetupAuthenticatedUser(UserId userId)
     {
         _currentUserService.UserId.Returns(userId.Value.ToString());
+    }
+
+    private void SetupDefaultExerciseLibrary()
+    {
+        _exerciseLibrary.GetByName("Squat (Barbell)")
+            .Returns(new ExerciseTemplate("Squat (Barbell)", EquipmentType.Barbell));
+        _exerciseLibrary.GetByName("Bench Press (Barbell)")
+            .Returns(new ExerciseTemplate("Bench Press (Barbell)", EquipmentType.Barbell));
+        _exerciseLibrary.GetByName("Deadlift (Barbell)")
+            .Returns(new ExerciseTemplate("Deadlift (Barbell)", EquipmentType.Barbell));
+        _exerciseLibrary.GetByName("Overhead Press (Barbell)")
+            .Returns(new ExerciseTemplate("Overhead Press (Barbell)", EquipmentType.Barbell));
     }
 
     private static Workout CreateWorkout(UserId userId)

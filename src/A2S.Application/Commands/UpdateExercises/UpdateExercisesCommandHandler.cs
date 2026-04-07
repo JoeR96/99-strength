@@ -65,7 +65,6 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 }
             }
 
-            // Only save if at least one update succeeded
             if (successCount > 0)
             {
                 _workoutRepository.Update(workout);
@@ -108,7 +107,6 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
             string? newValue = null;
             var updated = false;
 
-            // Handle Training Max update (applicable for Linear)
             if (update.TrainingMaxValue.HasValue)
             {
                 var existingTm = exercise.GetTrainingMax();
@@ -133,7 +131,6 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 updated = true;
             }
 
-            // Handle weight update (applicable for RepsPerSet and MinimalSets)
             if (update.WeightValue.HasValue)
             {
                 var currentWeight = exercise.GetCurrentWeight();
@@ -151,7 +148,6 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 updated = true;
             }
 
-            // Handle unilateral toggle (applicable for strategies that support it)
             if (update.IsUnilateral.HasValue && exercise.Progression.SupportsUnilateral)
             {
                 var prevUnilateral = exercise.Progression.IsUnilateral;

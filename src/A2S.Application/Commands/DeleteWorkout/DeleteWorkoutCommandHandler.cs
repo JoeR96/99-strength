@@ -45,7 +45,6 @@ public sealed class DeleteWorkoutCommandHandler : IRequestHandler<DeleteWorkoutC
                 return Result.Failure<bool>("Workout not found.");
             }
 
-            // Verify the workout belongs to the current user
             if (workout.UserId != userId.Value)
             {
                 return Result.Failure<bool>("You can only delete your own workouts.");

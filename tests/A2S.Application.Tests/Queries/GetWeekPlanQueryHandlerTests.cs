@@ -19,7 +19,7 @@ public class GetWeekPlanQueryHandlerTests
     private readonly IA2SProgramProvider _programProvider;
     private readonly GetWeekPlanQueryHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("ccc22222-2222-2222-2222-222222222222"));
+    private static readonly UserId TestUserId = new("ccc22222-2222-2222-2222-222222222222");
 
     public GetWeekPlanQueryHandlerTests()
     {

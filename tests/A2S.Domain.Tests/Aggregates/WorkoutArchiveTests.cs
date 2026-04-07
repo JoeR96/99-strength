@@ -61,15 +61,12 @@ public class WorkoutArchiveTests
     [Fact]
     public void UpdateBlockSequence_WhenCompleted_MovesActivitiesToArchive()
     {
-        // Arrange
         var workout = CreateCompletedWorkout();
         var originalActivityCount = workout.CompletedActivities.Count;
         originalActivityCount.Should().Be(28);
 
-        // Act
         workout.UpdateBlockSequence(new List<int> { 1, 2, 3 });
 
-        // Assert
         workout.ArchivedActivities.Should().HaveCount(28);
         workout.CompletedActivities.Should().BeEmpty();
     }
@@ -77,27 +74,21 @@ public class WorkoutArchiveTests
     [Fact]
     public void UpdateBlockSequence_WhenCompleted_ClearsCompletedActivities()
     {
-        // Arrange
         var workout = CreateCompletedWorkout();
 
-        // Act
         workout.UpdateBlockSequence(new List<int> { 1, 2, 3 });
 
-        // Assert
         workout.CompletedActivities.Should().BeEmpty();
     }
 
     [Fact]
     public void UpdateBlockSequence_WhenCompleted_RaisesProgramRestartedEvent()
     {
-        // Arrange
         var workout = CreateCompletedWorkout();
         workout.ClearDomainEvents(); // Clear events from creation/completion
 
-        // Act
         workout.UpdateBlockSequence(new List<int> { 1, 2, 3 });
 
-        // Assert
         var restartedEvent = workout.DomainEvents
             .OfType<ProgramRestarted>()
             .Should().ContainSingle()
@@ -110,13 +101,10 @@ public class WorkoutArchiveTests
     [Fact]
     public void UpdateBlockSequence_WhenCompleted_ResetsWorkoutState()
     {
-        // Arrange
         var workout = CreateCompletedWorkout();
 
-        // Act
         workout.UpdateBlockSequence(new List<int> { 1, 2, 3 });
 
-        // Assert
         workout.Status.Should().Be(WorkoutStatus.Active);
         workout.CurrentWeek.Should().Be(1);
         workout.CurrentDay.Should().Be(1);
@@ -127,7 +115,6 @@ public class WorkoutArchiveTests
     [Fact]
     public void UpdateBlockSequence_WhenCompletedTwice_AccumulatesArchivedActivities()
     {
-        // Arrange - complete workout once, restart, complete again, restart again
         var exercises = new[]
         {
             Exercise.CreateWithLinearProgression(
@@ -172,7 +159,6 @@ public class WorkoutArchiveTests
         // Restart again
         workout.UpdateBlockSequence(new List<int> { 1 });
 
-        // Assert - should have 56 archived activities (28 from each cycle)
         workout.ArchivedActivities.Should().HaveCount(56);
         workout.CompletedActivities.Should().BeEmpty();
     }

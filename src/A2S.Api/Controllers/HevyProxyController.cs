@@ -62,7 +62,7 @@ public class HevyProxyController : ControllerBase
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{HevyApiBaseUrl}/workouts/count");
         request.Headers.Add("api-key", apiKey);
 
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("HevyApi");
         using var response = await client.SendAsync(request, cancellationToken);
 
         return Ok(new { valid = response.IsSuccessStatusCode });
@@ -99,7 +99,7 @@ public class HevyProxyController : ControllerBase
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("api-key", apiKey);
 
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("HevyApi");
         using var response = await client.SendAsync(request, cancellationToken);
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -141,7 +141,7 @@ public class HevyProxyController : ControllerBase
         request.Headers.Add("api-key", apiKey);
         request.Content = new StringContent(body.GetRawText(), Encoding.UTF8, "application/json");
 
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("HevyApi");
         using var response = await client.SendAsync(request, cancellationToken);
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -184,7 +184,7 @@ public class HevyProxyController : ControllerBase
         request.Headers.Add("api-key", apiKey);
         request.Content = new StringContent(body.GetRawText(), Encoding.UTF8, "application/json");
 
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("HevyApi");
         using var response = await client.SendAsync(request, cancellationToken);
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -225,7 +225,7 @@ public class HevyProxyController : ControllerBase
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         request.Headers.Add("api-key", apiKey);
 
-        var client = _httpClientFactory.CreateClient();
+        var client = _httpClientFactory.CreateClient("HevyApi");
         using var response = await client.SendAsync(request, cancellationToken);
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
 

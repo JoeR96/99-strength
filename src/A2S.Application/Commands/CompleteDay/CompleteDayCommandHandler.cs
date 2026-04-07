@@ -38,7 +38,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 return Result.Failure<CompleteDayResult>("User must be authenticated.");
             }
 
-            // Get the workout
             var workout = await _workoutRepository.GetByIdAsync(
                 new WorkoutId(request.WorkoutId),
                 cancellationToken);
@@ -48,19 +47,16 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 return Result.Failure<CompleteDayResult>("Workout not found.");
             }
 
-            // Verify the workout belongs to the current user
             if (workout.UserId != userId.Value)
             {
                 return Result.Failure<CompleteDayResult>("You can only complete days in your own workouts.");
             }
 
-            // Verify the workout is active
             if (workout.Status != WorkoutStatus.Active)
             {
                 return Result.Failure<CompleteDayResult>("Workout must be active to complete a day.");
             }
 
-            // Get exercises for this day to calculate planned sets
             var dayExercises = workout.Exercises
                 .Where(e => e.AssignedDay == request.Day)
                 .ToDictionary(e => e.Id.Value, e => e);
@@ -70,7 +66,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 return Result.Failure<CompleteDayResult>($"No exercises assigned to {request.Day}.");
             }
 
-            // Build exercise performances from request data
             var performances = new List<ExercisePerformance>();
             var progressionChanges = new List<ProgressionChangeDto>();
 
@@ -82,12 +77,10 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                         $"Exercise {performanceRequest.ExerciseId} not found or not assigned to {request.Day}.");
                 }
 
-                // Get planned sets for this exercise (translate program week to template week)
                 var templateWeek = workout.GetTemplateWeek(workout.CurrentWeek);
                 var blockType = workout.GetBlockType(workout.CurrentWeek);
                 var plannedSets = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
 
-                // Convert request data to domain value objects
                 var completedSets = performanceRequest.CompletedSets
                     .Select(s => new CompletedSet(
                         s.SetNumber,
@@ -96,7 +89,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                         s.WasAmrap))
                     .ToList();
 
-                // Create the performance record
                 var performance = new ExercisePerformance(
                     exercise.Id,
                     plannedSets,
@@ -105,7 +97,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
 
                 performances.Add(performance);
 
-                // Track progression changes for the response
                 var changeDescription = performanceRequest.WasTemporarySubstitution
                     ? "Skipped (temporary substitution)"
                     : GetProgressionChangeDescription(exercise, performance);
@@ -117,7 +108,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 });
             }
 
-            // Collect exercises needing weight confirmation (pending weight)
             var pendingWeightExercises = new List<PendingWeightExerciseDto>();
             foreach (var performanceRequest in request.Performances)
             {
@@ -137,13 +127,10 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 }
             }
 
-            // Capture the week/day before completing
             var weekBeforeComplete = workout.CurrentWeek;
 
-            // Complete the day - this applies progression rules and auto-progresses
             workout.CompleteDay(request.Day, performances);
 
-            // After progression, collect exercises needing working weight confirmation
             // (Cable/Machine exercises that had weight increased during progression)
             foreach (var ex in dayExercises.Values)
             {
@@ -160,12 +147,10 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 }
             }
 
-            // Check if week progressed or program completed
             var weekProgressed = workout.CurrentWeek > weekBeforeComplete;
             var programComplete = workout.Status == WorkoutStatus.Completed;
             var isDeloadWeek = weekProgressed && workout.IsDeloadWeek();
 
-            // Save changes
             _workoutRepository.Update(workout);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -186,7 +171,6 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
         }
         catch (InvalidOperationException ex)
         {
-            // Domain rule violations throw InvalidOperationException
             return Result.Failure<CompleteDayResult>(ex.Message);
         }
         catch (Exception ex)

@@ -211,7 +211,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// Applies performance results to update progression state.
     /// Returns TrainingMaxAdjusted event if TM was adjusted, null otherwise.
     /// </summary>
-    public TrainingMaxAdjusted? ApplyProgression(ExercisePerformance performance)
+    internal TrainingMaxAdjusted? ApplyProgression(ExercisePerformance performance)
     {
         CheckRule(performance.ExerciseId == Id,
             "Performance data must be for this exercise");
@@ -234,7 +234,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Updates the starting weight. Delegates to progression strategy polymorphically.
     /// </summary>
-    public void UpdateStartingWeight(Weight weight)
+    internal void UpdateStartingWeight(Weight weight)
     {
         Progression.UpdateWeight(weight);
     }
@@ -242,7 +242,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Confirms the starting weight after the first session.
     /// </summary>
-    public void ConfirmStartingWeight(Weight weight)
+    internal void ConfirmStartingWeight(Weight weight)
     {
         Progression.ConfirmStartingWeight(weight);
     }
@@ -251,7 +251,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// Confirms the new working weight after Cable/Machine progression.
     /// Clears the PendingWeightConfirmation flag and applies the user-confirmed weight.
     /// </summary>
-    public void ConfirmWorkingWeight(Weight confirmedWeight)
+    internal void ConfirmWorkingWeight(Weight confirmedWeight)
     {
         Progression.ConfirmWorkingWeight(confirmedWeight);
     }
@@ -260,7 +260,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// Updates the Training Max for the exercise.
     /// Returns event to be raised by aggregate root.
     /// </summary>
-    public TrainingMaxAdjusted? UpdateTrainingMax(TrainingMax trainingMax, string? reason = null)
+    internal TrainingMaxAdjusted? UpdateTrainingMax(TrainingMax trainingMax, string? reason = null)
     {
         return Progression.UpdateTrainingMaxValue(trainingMax, reason);
     }
@@ -268,7 +268,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Updates the rep range. Delegates to progression strategy polymorphically.
     /// </summary>
-    public void UpdateRepRange(RepRange repRange)
+    internal void UpdateRepRange(RepRange repRange)
     {
         Progression.UpdateRepRange(repRange);
     }
@@ -276,7 +276,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Changes the assigned training day for this exercise.
     /// </summary>
-    public void ChangeAssignedDay(DayNumber newDay, int newOrderInDay)
+    internal void ChangeAssignedDay(DayNumber newDay, int newOrderInDay)
     {
         CheckRule(newOrderInDay >= 1, "Order in day must be at least 1");
 
@@ -291,7 +291,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <param name="newName">New exercise name</param>
     /// <param name="newExternalTemplateId">Optional new External template ID. If not provided, keeps the existing one.</param>
     /// <returns>The original name for audit purposes</returns>
-    public string Substitute(string newName, string? newExternalTemplateId = null)
+    internal string Substitute(string newName, string? newExternalTemplateId = null)
     {
         CheckRule(!string.IsNullOrWhiteSpace(newName), "New exercise name cannot be empty");
 
@@ -319,7 +319,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// Used when substituting an exercise and changing its progression type.
     /// </summary>
     /// <param name="newProgression">The new progression strategy to use</param>
-    public void ReplaceProgression(ExerciseProgression newProgression)
+    internal void ReplaceProgression(ExerciseProgression newProgression)
     {
         CheckRule(newProgression != null, "New progression cannot be null");
         Progression = newProgression;
@@ -346,7 +346,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Updates the weight. Delegates to progression strategy polymorphically.
     /// </summary>
-    public void UpdateWeight(Weight weight)
+    internal void UpdateWeight(Weight weight)
     {
         Progression.UpdateWeight(weight);
     }
@@ -354,7 +354,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Sets whether this exercise is unilateral. Delegates to progression strategy.
     /// </summary>
-    public void SetUnilateral(bool isUnilateral)
+    internal void SetUnilateral(bool isUnilateral)
     {
         Progression.SetUnilateral(isUnilateral);
     }
@@ -378,7 +378,7 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>
     /// Restores progression state from a snapshot (used when undoing a completed day).
     /// </summary>
-    public void RestoreFromSnapshot(ProgressionSnapshot snapshot)
+    internal void RestoreFromSnapshot(ProgressionSnapshot snapshot)
     {
         if (snapshot.ExerciseId != Id)
         {

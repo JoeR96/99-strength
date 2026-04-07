@@ -18,7 +18,7 @@ public class ConfirmStartingWeightCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly ConfirmStartingWeightCommandHandler _handler;
 
-    private static readonly UserId TestUserId = new(Guid.Parse("aaa66666-6666-6666-6666-666666666666"));
+    private static readonly UserId TestUserId = new("aaa66666-6666-6666-6666-666666666666");
 
     public ConfirmStartingWeightCommandHandlerTests()
     {
@@ -79,7 +79,7 @@ public class ConfirmStartingWeightCommandHandlerTests
     [Fact]
     public async Task Handle_WhenNotOwner_ReturnsFailure()
     {
-        var otherUserId = new UserId(Guid.NewGuid());
+        var otherUserId = new UserId(Guid.NewGuid().ToString());
         SetupAuthenticatedUser(TestUserId);
         var workout = CreateWorkoutWithRepsPerSet(otherUserId);
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
@@ -106,8 +106,7 @@ public class ConfirmStartingWeightCommandHandlerTests
             Exercise.CreateWithRepsPerSetProgression(
                 "Lat Pulldown", ExerciseCategory.Accessory, EquipmentType.Cable,
                 DayNumber.Day1, 1, "LAT001",
-                RepRange.Create(8, 12), 3, 4, false,
-                Weight.Create(50m, WeightUnit.Kilograms))
+                RepRange.Create(8, 12), 3, 4, false)
         };
         return Workout.Create(userId, "Test", ProgramVariant.FiveDay, exercises);
     }

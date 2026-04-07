@@ -3,11 +3,23 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useCurrentWorkout, useSubstituteExercise, useUpdateExercises, useUndoCompletion, useRemoveExercise } from "@/hooks/useWorkouts";
 import { workoutsApi } from "@/api/workouts";
 import { useHevy } from "@/contexts/HevyContext";
-import { hevyApi } from "@/services/hevyApi";
-import { syncDayAsRoutine, getOrCreateRoutineFolder } from "@/services/hevySyncService";
 import { getWeekParameters, roundToGymIncrement } from "@/utils/weekParameters";
 import { kgToLbs } from "@/utils/constants";
 import toast from "react-hot-toast";
+import { saveWorkoutProgress, loadWorkoutProgress, clearWorkoutProgress } from "./workoutProgressPersistence";
+import {
+  createTemporarySubstituteHandler,
+  createPermanentSubstituteHandler,
+  createToggleUnilateralHandler,
+  createSaveExerciseConfigHandler,
+  createChangeProgressionHandler,
+} from "./workoutConfigHandlers";
+import {
+  createApplySubstitutionHandler,
+  createRemoveFromSubstitutionHandler,
+  createApplyWeightDiscrepancyHandler,
+  createMissingExerciseHandler,
+} from "./workoutReconciliationHandlers";
 import type {
   SetEntry,
   ExerciseEntry,
@@ -23,55 +35,10 @@ import type {
   WeightDiscrepancy,
   MissingExercise,
   PendingWeightExerciseDto,
-  ProgressionConfigRequest,
   WeightUnit,
 } from "./workoutSessionTypes";
-import type { RepsPerSetConfig } from "./ExerciseSubstitutionModal";
-import type { ExerciseConfigUpdate } from "./EditExerciseConfigModal";
-import type { ExercisePerformanceRequest, ExerciseTemplate, ExerciseUpdateRequest } from "@/types/workout";
+import type { ExercisePerformanceRequest } from "@/types/workout";
 import type { PulledWorkoutData } from "@/services/hevySyncService";
-
-const WORKOUT_PROGRESS_KEY = "workout_progress";
-
-function saveWorkoutProgress(
-  workoutId: string,
-  dayNumber: number,
-  weekNumber: number,
-  exerciseEntries: ExerciseEntry[]
-): void {
-  const progress: SavedWorkoutProgress = {
-    workoutId,
-    dayNumber,
-    weekNumber,
-    savedAt: new Date().toISOString(),
-    exercises: exerciseEntries.map((entry) => ({
-      exerciseId: entry.exercise.id,
-      sets: entry.sets.map((set) => ({
-        setNumber: set.setNumber,
-        weight: set.weight,
-        reps: set.reps,
-        isAmrap: set.isAmrap,
-        completed: set.completed,
-      })),
-    })),
-  };
-  localStorage.setItem(WORKOUT_PROGRESS_KEY, JSON.stringify(progress));
-}
-
-function loadWorkoutProgress(): SavedWorkoutProgress | null {
-  try {
-    const stored = localStorage.getItem(WORKOUT_PROGRESS_KEY);
-    if (!stored) return null;
-    return JSON.parse(stored) as SavedWorkoutProgress;
-  } catch (error) {
-    console.warn('Failed to parse saved workout progress:', error);
-    return null;
-  }
-}
-
-function clearWorkoutProgress(): void {
-  localStorage.removeItem(WORKOUT_PROGRESS_KEY);
-}
 
 export function useWorkoutSession() {
   const { day } = useParams<{ day: string }>();
@@ -302,63 +269,19 @@ export function useWorkoutSession() {
     toast.success("Starting fresh workout");
   };
 
-  const handleApplySubstitution = async (sub: DetectedSubstitution, isPermanent: boolean) => {
-    const entryIndex = exerciseEntries.findIndex((e) => e.exercise.id === sub.originalExerciseId);
-    if (entryIndex === -1) return;
-    const entry = exerciseEntries[entryIndex];
-    const newSets: SetEntry[] = sub.sets.map((pulledSet, index) => ({
-      setNumber: pulledSet.setNumber,
-      weight: convertWeightFromKg(pulledSet.weight, entry.weightUnit),
-      reps: pulledSet.reps,
-      isAmrap: entry.isAmrapExercise && index === sub.sets.length - 1,
-      completed: true,
-    }));
-
-    if (isPermanent && workout) {
-      try {
-        await substituteExercise.mutateAsync({
-          workoutId: workout.id,
-          request: {
-            exerciseId: sub.originalExerciseId,
-            newExerciseName: sub.hevyExerciseName,
-            newHevyExerciseTemplateId: sub.hevyTemplateId,
-            reason: "Pulled from Hevy workout",
-          },
-        });
-        setExerciseEntries((prev) =>
-          prev.map((e, i) => i === entryIndex ? { ...e, exercise: { ...e.exercise, name: sub.hevyExerciseName }, sets: newSets } : e)
-        );
-        toast.success(`Permanently replaced "${sub.originalExerciseName}" with "${sub.hevyExerciseName}"`);
-        await refetch();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to substitute exercise";
-        toast.error(message);
-        return;
-      }
-    } else {
-      setTemporarySubstitutions((prev) => [
-        ...prev.filter((s) => s.originalExerciseId !== sub.originalExerciseId),
-        { originalExerciseId: sub.originalExerciseId, originalName: sub.originalExerciseName, substituteName: sub.hevyExerciseName },
-      ]);
-      setExerciseEntries((prev) =>
-        prev.map((e, i) => i === entryIndex ? { ...e, exercise: { ...e.exercise, name: sub.hevyExerciseName }, sets: newSets } : e)
-      );
-      toast.success(`Substituted "${sub.originalExerciseName}" with "${sub.hevyExerciseName}" for this session`);
-    }
-  };
-
-  const handleRemoveFromSubstitution = async (sub: DetectedSubstitution) => {
-    if (!workout) return;
+  const reconciliationDeps = { workout, exerciseEntries, setExerciseEntries, setTemporarySubstitutions, setIsPrefilled, substituteExercise, updateExercisesMutation, removeExerciseMutation, refetch, convertWeightFromKg };
+  const handleApplySubstitution = createApplySubstitutionHandler(reconciliationDeps);
+  const handleRemoveFromSubstitution = createRemoveFromSubstitutionHandler(reconciliationDeps);
+  const handleApplyWeightDiscrepancy = async (discrepancy: WeightDiscrepancy, confirmedWeight: number, decision: 'skip' | 'update') => {
+    setWeightDiscrepancies((prev) => prev.filter((d) => d.exerciseId !== discrepancy.exerciseId));
+    const handler = createApplyWeightDiscrepancyHandler(reconciliationDeps);
     try {
-      await removeExerciseMutation.mutateAsync({ workoutId: workout.id, exerciseId: sub.originalExerciseId });
-      setExerciseEntries((prev) => prev.filter((e) => e.exercise.id !== sub.originalExerciseId));
-      toast.success(`Removed "${sub.originalExerciseName}" from program`);
-      await refetch();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to remove exercise";
-      toast.error(message);
+      await handler(discrepancy, confirmedWeight, decision);
+    } catch {
+      setWeightDiscrepancies((prev) => [...prev, discrepancy]);
     }
   };
+  const handleMissingExercise = createMissingExerciseHandler(reconciliationDeps);
 
   const handleSubstitutionsComplete = () => {
     setShowSubstitutionModal(false);
@@ -366,57 +289,10 @@ export function useWorkoutSession() {
     toast.success("Workout data prefilled! Review and complete workout when ready.");
   };
 
-  const handleApplyWeightDiscrepancy = async (discrepancy: WeightDiscrepancy, confirmedWeight: number, decision: 'skip' | 'update') => {
-    setWeightDiscrepancies((prev) => prev.filter((d) => d.exerciseId !== discrepancy.exerciseId));
-
-    if (decision === 'skip') {
-      setExerciseEntries((prev) =>
-        prev.map((entry) => entry.exercise.id === discrepancy.exerciseId ? { ...entry, skipProgression: true } : entry)
-      );
-      toast.success(`Will skip progression for "${discrepancy.exerciseName}" this week`);
-    } else if (decision === 'update' && workout) {
-      try {
-        if (discrepancy.progressionType === 'Linear') {
-          const weekParams = getWeekParameters(workout.currentWeek);
-          const newTm = roundToGymIncrement(confirmedWeight / weekParams.intensity, 'kg');
-          await updateExercisesMutation.mutateAsync({
-            workoutId: workout.id,
-            request: {
-              updates: [{
-                exerciseId: discrepancy.exerciseId,
-                trainingMaxValue: newTm,
-                trainingMaxUnit: 1,
-                reason: `Updated TM from Hevy sync: actual weight ${confirmedWeight}kg at ${Math.round(weekParams.intensity * 100)}% intensity → TM ${newTm}kg`,
-              }],
-            },
-          });
-          toast.success(`Updated Training Max for "${discrepancy.exerciseName}" to ${newTm}kg`);
-          await refetch();
-        } else {
-          await workoutsApi.updateWorkingWeight(workout.id, discrepancy.exerciseId, confirmedWeight, 1, 'Updated from Hevy sync - weight discrepancy');
-          toast.success(`Updated working weight for "${discrepancy.exerciseName}"`);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to update weight";
-        toast.error(message);
-        setWeightDiscrepancies((prev) => [...prev, discrepancy]);
-        return;
-      }
-    }
-  };
-
   const handleWeightDiscrepanciesComplete = () => {
     setWeightDiscrepanciesProcessed(true);
     setShowWeightDiscrepancyModal(false);
     toast.success("Weight changes applied!");
-  };
-
-  const handleMissingExercise = async (exercise: MissingExercise, decision: 'delete' | 'skip') => {
-    if (decision === 'delete' || decision === 'skip') {
-      setExerciseEntries((prev) =>
-        prev.map((entry) => entry.exercise.id === exercise.exerciseId ? { ...entry, sets: [], skipProgression: true } : entry)
-      );
-    }
   };
 
   const handleMissingExercisesComplete = () => {
@@ -530,266 +406,12 @@ export function useWorkoutSession() {
     setSubstitutionModalOpen(true);
   };
 
-  const handleTemporarySubstitute = (originalExercise: ExerciseDto, substituteTemplate: ExerciseTemplate, repsConfig?: RepsPerSetConfig) => {
-    setTemporarySubstitutions((prev) => [
-      ...prev.filter((s) => s.originalExerciseId !== originalExercise.id),
-      { originalExerciseId: originalExercise.id, originalName: originalExercise.name, substituteName: substituteTemplate.name },
-    ]);
-    setExerciseEntries((prev) =>
-      prev.map((entry) => {
-        if (entry.exercise.id !== originalExercise.id) return entry;
-        if (repsConfig) {
-          const newSets: SetEntry[] = [];
-          for (let i = 1; i <= repsConfig.sets; i++) {
-            newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.maxReps, isAmrap: false, completed: false });
-          }
-          return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.maxReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
-        }
-        return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name } };
-      })
-    );
-    const message = repsConfig
-      ? `Substituted "${originalExercise.name}" with "${substituteTemplate.name}" (Reps Per Set: ${repsConfig.sets}×${repsConfig.minReps}-${repsConfig.maxReps})`
-      : `Substituted "${originalExercise.name}" with "${substituteTemplate.name}" for this session`;
-    toast.success(message);
-  };
-
-  const handlePermanentSubstitute = async (originalExercise: ExerciseDto, substituteTemplate: ExerciseTemplate, repsConfig?: RepsPerSetConfig) => {
-    if (!workout) return;
-    try {
-      await substituteExercise.mutateAsync({
-        workoutId: workout.id,
-        request: {
-          exerciseId: originalExercise.id,
-          newExerciseName: substituteTemplate.name,
-          reason: repsConfig ? `User substitution - switched to RepsPerSet (${repsConfig.sets}×${repsConfig.minReps}-${repsConfig.maxReps})` : "User substitution",
-          newProgressionConfig: repsConfig ? { type: "RepsPerSet", repRangeMinimum: repsConfig.minReps, repRangeMaximum: repsConfig.maxReps, startingWeight: repsConfig.startingWeight, weightUnit: 1, targetSets: repsConfig.sets } : undefined,
-        },
-      });
-      setExerciseEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.exercise.id !== originalExercise.id) return entry;
-          if (repsConfig) {
-            const newSets: SetEntry[] = [];
-            for (let i = 1; i <= repsConfig.sets; i++) {
-              newSets.push({ setNumber: i, weight: repsConfig.startingWeight, reps: repsConfig.maxReps, isAmrap: false, completed: false });
-            }
-            return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name }, sets: newSets, targetSets: repsConfig.sets, targetReps: repsConfig.maxReps, targetWeight: repsConfig.startingWeight, isAmrapExercise: false };
-          }
-          return { ...entry, exercise: { ...entry.exercise, name: substituteTemplate.name } };
-        })
-      );
-      const message = repsConfig
-        ? `Permanently replaced "${originalExercise.name}" with "${substituteTemplate.name}" (Reps Per Set progression)`
-        : `Permanently replaced "${originalExercise.name}" with "${substituteTemplate.name}"`;
-      toast.success(message);
-      await refetch();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to substitute exercise";
-      toast.error(message);
-    }
-  };
-
-  const syncRoutineAfterChange = async (toastId: string, successMsg: string, failureMsg: string) => {
-    const syncKey = `week${workout!.currentWeek}-day${dayNumber}`;
-    const existingRoutineId = workout!.hevySyncedRoutines?.[syncKey];
-    if (existingRoutineId) {
-      try { await hevyApi.deleteRoutine(existingRoutineId); } catch (error) { console.warn('Failed to delete Hevy routine:', error); }
-    }
-    let folderId = workout!.hevyRoutineFolderId;
-    if (!folderId) {
-      const folderResult = await getOrCreateRoutineFolder(workout!.name);
-      if (folderResult) {
-        folderId = folderResult.folderId;
-        try { await workoutsApi.setHevyFolderId(workout!.id, folderId); } catch (error) { console.warn('Failed to set Hevy folder ID:', error); }
-      }
-    }
-    const { data: updatedWorkout } = await refetch();
-    if (updatedWorkout) {
-      const result = await syncDayAsRoutine(updatedWorkout, dayNumber, folderId, true);
-      if (result.success) {
-        toast.success(successMsg, { id: toastId });
-      } else {
-        toast.error(`${failureMsg}: ${result.message}`, { id: toastId });
-      }
-    }
-  };
-
-  const handleToggleUnilateral = async (exercise: ExerciseDto) => {
-    if (!workout) return;
-    if (exercise.progression.type !== "RepsPerSet") {
-      toast.error("Unilateral toggle only applies to RepsPerSet exercises");
-      return;
-    }
-    const repsPerSetProg = exercise.progression as RepsPerSetProgressionDto;
-    const newUnilateral = !repsPerSetProg.isUnilateral;
-
-    try {
-      toast.loading("Updating exercise...", { id: "toggle-unilateral" });
-      await updateExercisesMutation.mutateAsync({
-        workoutId: workout.id,
-        request: { updates: [{ exerciseId: exercise.id, isUnilateral: newUnilateral, reason: `Set ${newUnilateral ? "unilateral" : "bilateral"} mode` }] },
-      });
-
-      if (hevyApi.isConfigured()) {
-        await syncRoutineAfterChange(
-          "toggle-unilateral",
-          `${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}. Hevy routine updated!`,
-          "Exercise updated but Hevy sync failed"
-        );
-      } else {
-        toast.success(`${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}`, { id: "toggle-unilateral" });
-        await refetch();
-      }
-
-      setExerciseEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.exercise.id !== exercise.id) return entry;
-          const currentSetCount = entry.sets.length;
-          let newSets: SetEntry[];
-          if (newUnilateral) {
-            newSets = [];
-            for (let i = 0; i < currentSetCount * 2; i++) {
-              const sourceSet = entry.sets[Math.floor(i / 2)];
-              newSets.push({ setNumber: i + 1, weight: sourceSet.weight, reps: sourceSet.reps, isAmrap: false, completed: false });
-            }
-          } else {
-            const newSetCount = Math.ceil(currentSetCount / 2);
-            newSets = entry.sets.slice(0, newSetCount).map((set, i) => ({ ...set, setNumber: i + 1 }));
-          }
-          return { ...entry, sets: newSets, targetSets: newSets.length };
-        })
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to toggle unilateral";
-      toast.error(message, { id: "toggle-unilateral" });
-    }
-  };
-
-  const handleSaveExerciseConfig = async (exerciseId: string, config: ExerciseConfigUpdate) => {
-    if (!workout) return;
-    try {
-      toast.loading("Saving changes...", { id: "save-exercise-config" });
-      const updateRequest: ExerciseUpdateRequest = { exerciseId, reason: "Manual configuration update" };
-      if (config.trainingMaxValue !== undefined) { updateRequest.trainingMaxValue = config.trainingMaxValue; updateRequest.trainingMaxUnit = config.trainingMaxUnit; }
-      if (config.weightValue !== undefined) { updateRequest.weightValue = config.weightValue; updateRequest.weightUnit = config.weightUnit; }
-      if (config.isUnilateral !== undefined) { updateRequest.isUnilateral = config.isUnilateral; }
-
-      await updateExercisesMutation.mutateAsync({ workoutId: workout.id, request: { updates: [updateRequest] } });
-
-      if (hevyApi.isConfigured()) {
-        await syncRoutineAfterChange(
-          "save-exercise-config",
-          "Exercise updated and Hevy routine refreshed!",
-          "Exercise updated but Hevy sync failed"
-        );
-      } else {
-        toast.success("Exercise configuration saved!", { id: "save-exercise-config" });
-        await refetch();
-      }
-
-      const { data: refreshedWorkout } = await refetch();
-      if (refreshedWorkout) {
-        const updatedExercise = refreshedWorkout.exercises.find(e => e.id === exerciseId);
-        if (updatedExercise) {
-          setExerciseEntries(prev => prev.map(entry => {
-            if (entry.exercise.id !== exerciseId) return entry;
-            const isRepsPerSet = updatedExercise.progression.type === "RepsPerSet";
-            const repsPerSetProg = isRepsPerSet ? (updatedExercise.progression as RepsPerSetProgressionDto) : null;
-            const previousUnilateral = (entry.exercise.progression as RepsPerSetProgressionDto)?.isUnilateral;
-            const newUnilateral = repsPerSetProg?.isUnilateral;
-            if (isRepsPerSet && previousUnilateral !== newUnilateral) {
-              const currentSetCount = entry.sets.length;
-              let newSets: SetEntry[];
-              if (newUnilateral && !previousUnilateral) {
-                newSets = [];
-                for (let i = 0; i < currentSetCount * 2; i++) {
-                  const sourceSet = entry.sets[Math.floor(i / 2)];
-                  newSets.push({ setNumber: i + 1, weight: config.weightValue ?? sourceSet.weight, reps: sourceSet.reps, isAmrap: false, completed: false });
-                }
-              } else if (!newUnilateral && previousUnilateral) {
-                const newSetCount = Math.ceil(currentSetCount / 2);
-                newSets = entry.sets.slice(0, newSetCount).map((set, i) => ({ ...set, setNumber: i + 1, weight: config.weightValue ?? set.weight }));
-              } else {
-                newSets = entry.sets.map(set => ({ ...set, weight: config.weightValue ?? set.weight }));
-              }
-              return { ...entry, exercise: updatedExercise, sets: newSets, targetSets: newSets.length, targetWeight: config.weightValue ?? entry.targetWeight };
-            }
-            return { ...entry, exercise: updatedExercise, sets: entry.sets.map(set => ({ ...set, weight: config.weightValue ?? config.trainingMaxValue ?? set.weight })), targetWeight: config.weightValue ?? config.trainingMaxValue ?? entry.targetWeight };
-          }));
-        }
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to save changes";
-      toast.error(message, { id: "save-exercise-config" });
-      throw error;
-    }
-  };
-
-  const handleChangeProgression = async (exerciseId: string, config: ProgressionConfigRequest) => {
-    if (!workout) return;
-    const exercise = workout.exercises.find(e => e.id === exerciseId);
-    if (!exercise) return;
-    try {
-      toast.loading("Changing progression...", { id: "change-progression" });
-      await substituteExercise.mutateAsync({
-        workoutId: workout.id,
-        request: { exerciseId, newExerciseName: exercise.name, reason: `Changed progression from ${exercise.progression.type} to ${config.type}`, newProgressionConfig: config },
-      });
-
-      if (hevyApi.isConfigured()) {
-        await syncRoutineAfterChange(
-          "change-progression",
-          `Changed ${exercise.name} to ${config.type} progression. Hevy routine updated!`,
-          "Progression changed but Hevy sync failed"
-        );
-      } else {
-        toast.success(`Changed ${exercise.name} to ${config.type} progression`, { id: "change-progression" });
-      }
-
-      const { data: refreshedWorkout } = await refetch();
-      if (refreshedWorkout) {
-        const updatedExercise = refreshedWorkout.exercises.find(e => e.id === exerciseId);
-        if (updatedExercise) {
-          setExerciseEntries(prev => prev.map(entry => {
-            if (entry.exercise.id !== exerciseId) return entry;
-            const isLinear = updatedExercise.progression.type === "Linear";
-            const isRepsPerSet = updatedExercise.progression.type === "RepsPerSet";
-            const linearProg = isLinear ? (updatedExercise.progression as LinearProgressionDto) : null;
-            const rpsProgression = isRepsPerSet ? (updatedExercise.progression as RepsPerSetProgressionDto) : null;
-            let newSets: SetEntry[];
-            let newTargetSets: number, newTargetReps: number, newTargetWeight: number, newIsAmrap: boolean;
-
-            if (isLinear && linearProg) {
-              const weekParams = getWeekParameters(workout.currentWeek);
-              newTargetSets = weekParams.sets;
-              newTargetReps = weekParams.targetReps;
-              newTargetWeight = Math.round((linearProg.trainingMax.value * weekParams.intensity / 100) / 2.5) * 2.5;
-              newIsAmrap = linearProg.useAmrap;
-              newSets = Array.from({ length: newTargetSets }, (_, i) => ({ setNumber: i + 1, weight: newTargetWeight, reps: newTargetReps, isAmrap: newIsAmrap && i === newTargetSets - 1, completed: false }));
-            } else if (isRepsPerSet && rpsProgression) {
-              newTargetSets = rpsProgression.currentSetCount;
-              newTargetReps = rpsProgression.repRange.maximum;
-              newTargetWeight = rpsProgression.currentWeight;
-              newIsAmrap = false;
-              newSets = Array.from({ length: newTargetSets }, (_, i) => ({ setNumber: i + 1, weight: newTargetWeight, reps: newTargetReps, isAmrap: false, completed: false }));
-            } else {
-              const minProg = updatedExercise.progression as MinimalSetsProgressionDto;
-              newTargetSets = minProg?.currentSetCount ?? 4;
-              newTargetReps = minProg ? Math.ceil(minProg.targetTotalReps / newTargetSets) : 10;
-              newTargetWeight = minProg?.currentWeight ?? 0;
-              newIsAmrap = false;
-              newSets = Array.from({ length: newTargetSets }, (_, i) => ({ setNumber: i + 1, weight: newTargetWeight, reps: newTargetReps, isAmrap: false, completed: false }));
-            }
-            return { ...entry, exercise: updatedExercise, sets: newSets, targetSets: newTargetSets, targetReps: newTargetReps, targetWeight: newTargetWeight, isAmrapExercise: newIsAmrap, weightUnit: rpsProgression?.weightUnit ?? (linearProg?.trainingMax.unit === 2 ? "Pounds" : "Kilograms") };
-          }));
-        }
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to change progression";
-      toast.error(message, { id: "change-progression" });
-    }
-  };
+  const configDeps = { workout, dayNumber, refetch, setExerciseEntries, setTemporarySubstitutions, substituteExercise, updateExercisesMutation };
+  const handleTemporarySubstitute = createTemporarySubstituteHandler(configDeps);
+  const handlePermanentSubstitute = createPermanentSubstituteHandler(configDeps);
+  const handleToggleUnilateral = createToggleUnilateralHandler(configDeps);
+  const handleSaveExerciseConfig = createSaveExerciseConfigHandler(configDeps);
+  const handleChangeProgression = createChangeProgressionHandler(configDeps);
 
   const allSetsCompleted = exerciseEntries.every((entry) => entry.sets.every((set) => set.completed));
   const completedSetsCount = exerciseEntries.reduce((acc, entry) => acc + entry.sets.filter((s) => s.completed).length, 0);

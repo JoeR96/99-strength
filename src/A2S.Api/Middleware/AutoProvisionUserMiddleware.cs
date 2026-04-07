@@ -1,5 +1,7 @@
-using A2S.Domain.Entities;
+using A2S.Application.Commands.Users;
+using A2S.Domain.Common;
 using A2S.Domain.Repositories;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -22,7 +24,7 @@ public class AutoProvisionUserMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository, IUnitOfWork unitOfWork)
+    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository, IMediator mediator)
     {
         if (context.User.Identity?.IsAuthenticated != true)
         {
@@ -43,7 +45,7 @@ public class AutoProvisionUserMiddleware
         var email = context.User.FindFirstValue(ClaimTypes.Email)
             ?? context.User.FindFirstValue("email");
 
-        var user = await userRepository.GetByIdAsync(new A2S.Domain.Common.UserId(sub));
+        var user = await userRepository.GetByIdAsync(new UserId(sub));
 
         if (user is null)
         {
@@ -54,17 +56,29 @@ public class AutoProvisionUserMiddleware
 
             try
             {
-                user = User.Create(email ?? $"{sub}@clerk.local", name, new A2S.Domain.Common.UserId(sub));
-                await userRepository.AddAsync(user);
-                await unitOfWork.SaveChangesAsync();
+                var command = new CreateUserCommand(
+                    email ?? $"{sub}@clerk.local",
+                    name,
+                    sub);
+                var result = await mediator.Send(command);
 
-                _logger.LogInformation("Auto-provisioned new user {UserId} with email {Email}", user.Id, email);
+                if (result.IsFailure)
+                {
+                    _logger.LogError("Failed to auto-provision user for sub {Sub}: {Error}", sub, result.Error);
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    return;
+                }
+
+                context.Items["UserId"] = result.Value.Id;
+                context.Items["UserEmail"] = result.Value.Email;
+
+                _logger.LogInformation("Auto-provisioned new user {UserId} with email {Email}", result.Value.Id, email);
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Concurrent user creation detected for sub {Sub}, fetching existing user", sub);
 
-                user = await userRepository.GetByIdAsync(new A2S.Domain.Common.UserId(sub));
+                user = await userRepository.GetByIdAsync(new UserId(sub));
 
                 if (user is null)
                 {
@@ -72,7 +86,13 @@ public class AutoProvisionUserMiddleware
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     return;
                 }
+
+                context.Items["UserId"] = user.Id.Value;
+                context.Items["UserEmail"] = user.Email;
             }
+
+            await _next(context);
+            return;
         }
 
         context.Items["UserId"] = user.Id.Value;

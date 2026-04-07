@@ -1,6 +1,6 @@
 using A2S.Application.Queries.Users;
 using A2S.Domain.Common;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
 using A2S.Domain.Repositories;
 using FluentAssertions;
 using NSubstitute;
@@ -22,18 +22,15 @@ public class GetUserByIdQueryHandlerTests
     [Fact]
     public async Task Handle_WhenUserExists_ShouldReturnUserDto()
     {
-        // Arrange
-        var userId = new UserId(Guid.NewGuid());
+        var userId = new UserId(Guid.NewGuid().ToString());
         var user = User.Reconstitute(userId.Value, "test@example.com", "Test User", DateTime.UtcNow);
         var query = new GetUserByIdQuery(userId);
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(user);
 
-        // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(userId.Value);
         result.Email.Should().Be("test@example.com");
@@ -43,17 +40,14 @@ public class GetUserByIdQueryHandlerTests
     [Fact]
     public async Task Handle_WhenUserDoesNotExist_ShouldReturnNull()
     {
-        // Arrange
-        var userId = new UserId(Guid.NewGuid());
+        var userId = new UserId(Guid.NewGuid().ToString());
         var query = new GetUserByIdQuery(userId);
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        // Act
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // Assert
         result.Should().BeNull();
     }
 }

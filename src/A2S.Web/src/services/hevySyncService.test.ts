@@ -137,21 +137,16 @@ describe('Hevy Sync Service', () => {
 
       const createRoutineCalls = vi.mocked(hevyApi.createRoutine).mock.calls;
 
-      // Week 1 should have intensity 75%, 5 sets, 10 reps
+      // Week 1 should have intensity 65%, 4 sets, 12 reps (per A2S2 Hypertrophy table)
       createRoutineCalls.forEach((call) => {
         const request = call[0] as HevyCreateRoutineRequest;
         const exercise = request.routine.exercises[0];
 
-        // Should have 5 sets for week 1
-        expect(exercise.sets).toHaveLength(5);
-
-        // Each set should have 10 reps target
-        exercise.sets.forEach((set) => {
-          expect(set.reps).toBe(10);
-        });
+        // Should have 4 sets for week 1
+        expect(exercise.sets).toHaveLength(4);
 
         // Notes should mention intensity
-        expect(request.routine.notes).toContain('75%');
+        expect(request.routine.notes).toContain('65%');
       });
     });
 
@@ -220,9 +215,9 @@ describe('Hevy Sync Service', () => {
       const request = createRoutineCalls[0][0] as HevyCreateRoutineRequest;
       const exercise = request.routine.exercises[0];
 
-      // Week 1 = 75% intensity, TM = 100kg
-      // Working weight should be 75kg (100 * 0.75), rounded to nearest 2.5kg
-      expect(exercise.sets[0].weight_kg).toBe(75);
+      // Week 1 = 65% intensity, TM = 100kg
+      // Working weight should be 65kg (100 * 0.65), rounded to nearest 2.5kg
+      expect(exercise.sets[0].weight_kg).toBe(65);
     });
 
     it('should not include rep_range in sets (API rejects null values)', async () => {

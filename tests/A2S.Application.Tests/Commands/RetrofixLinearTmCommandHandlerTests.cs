@@ -18,7 +18,7 @@ public class RetrofixLinearTmCommandHandlerTests
     private readonly ICurrentUserService _currentUserService;
     private readonly RetrofixLinearTmCommandHandler _handler;
 
-    private static readonly Guid TestUserId = Guid.Parse("d1d1d1d1-e2e2-f3f3-a4a4-b5b5b5b5b5b5");
+    private static readonly string TestUserId = "d1d1d1d1-e2e2-f3f3-a4a4-b5b5b5b5b5b5";
     private static readonly Guid TestWorkoutId = Guid.Parse("c2c2c2c2-d3d3-e4e4-f5f5-a6a6a6a6a6a6");
     private static readonly Guid TestExerciseId = Guid.Parse("b3b3b3b3-c4c4-d5d5-e6e6-f7f7f7f7f7f7");
     private static readonly Guid NonExistentExerciseId = Guid.Parse("a4a4a4a4-b5b5-c6c6-d7d7-e8e8e8e8e8e8");
@@ -28,7 +28,7 @@ public class RetrofixLinearTmCommandHandlerTests
         _workoutRepository = Substitute.For<IWorkoutRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _currentUserService.GetUserId().Returns(new UserId(TestUserId));
+        _currentUserService.UserId.Returns(TestUserId);
         _handler = new RetrofixLinearTmCommandHandler(_workoutRepository, _unitOfWork, _currentUserService);
     }
 

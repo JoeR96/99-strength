@@ -26,7 +26,7 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
         Description = string.Empty;
     }
 
-    public ExerciseDefinition(
+    internal ExerciseDefinition(
         ExerciseDefinitionId id,
         string name,
         EquipmentType equipmentType,
@@ -48,5 +48,30 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
         DefaultRepRangeMin = defaultRepRangeMin;
         DefaultRepRangeMax = defaultRepRangeMax;
         DefaultSets = defaultSets;
+    }
+
+    /// <summary>
+    /// Creates a new ExerciseDefinition with validation.
+    /// </summary>
+    public static ExerciseDefinition Create(
+        string name,
+        EquipmentType equipmentType,
+        string muscleGroup,
+        bool isCompound,
+        string description,
+        int? defaultRepRangeMin = null,
+        int? defaultRepRangeMax = null,
+        int? defaultSets = null)
+    {
+        return new ExerciseDefinition(
+            new ExerciseDefinitionId(Guid.NewGuid()),
+            name,
+            equipmentType,
+            muscleGroup,
+            isCompound,
+            description,
+            defaultRepRangeMin,
+            defaultRepRangeMax,
+            defaultSets);
     }
 }

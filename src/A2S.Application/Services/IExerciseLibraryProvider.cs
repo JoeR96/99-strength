@@ -28,4 +28,10 @@ public interface IExerciseLibraryProvider
     /// Gets an exercise template by name (case-insensitive).
     /// </summary>
     ExerciseTemplate? GetByName(string name);
+
+    /// <summary>
+    /// Asynchronously gets all available exercise templates.
+    /// Prefer this over AllTemplates to avoid sync-over-async.
+    /// </summary>
+    Task<IReadOnlyList<ExerciseTemplate>> GetAllTemplatesAsync(CancellationToken ct = default);
 }

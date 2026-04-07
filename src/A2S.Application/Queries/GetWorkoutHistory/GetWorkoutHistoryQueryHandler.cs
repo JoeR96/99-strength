@@ -197,7 +197,6 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
     {
         var weeklyHistory = new List<WeeklyPerformanceDto>();
 
-        // Filter to activities for this exercise's assigned day, grouped by week
         var activitiesByWeek = domainActivities
             .Where(a => (int)a.Day == (int)exercise.AssignedDay)
             .GroupBy(a => a.WeekNumber);
@@ -225,7 +224,6 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
             var avgWeight = sets.Count > 0 ? sets.Average(s => s.Weight) : 0;
             var amrapSet = sets.FirstOrDefault(s => s.WasAmrap);
 
-            // Extract progression snapshot data for this exercise
             decimal? tmAtWeek = null;
             string? tmUnitAtWeek = null;
             decimal? weightAtWeek = null;

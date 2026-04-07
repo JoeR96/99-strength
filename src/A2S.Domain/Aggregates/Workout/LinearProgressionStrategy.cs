@@ -101,7 +101,6 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
             return;
         }
 
-        // Validate AMRAP set was completed
         var amrapPlanned = performance.PlannedSets.LastOrDefault(s => s.IsAmrap);
         if (amrapPlanned == null)
         {
@@ -116,7 +115,6 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
             return;
         }
 
-        // Calculate delta and adjustment
         var delta = performance.GetAmrapDelta();
         var adjustment = AmrapDeltaTable.GetAdjustment(delta);
 

@@ -47,7 +47,6 @@ public sealed class UndoCompletionCommandHandler : IRequestHandler<UndoCompletio
                 return Result.Failure<UndoCompletionResult>("Workout not found.");
             }
 
-            // Validate ownership
             if (workout.UserId != userId.Value)
             {
                 return Result.Failure<UndoCompletionResult>("You do not have permission to modify this workout.");
@@ -72,7 +71,6 @@ public sealed class UndoCompletionCommandHandler : IRequestHandler<UndoCompletio
         }
         catch (InvalidOperationException ex)
         {
-            // Domain rule violations throw InvalidOperationException
             return Result.Failure<UndoCompletionResult>(ex.Message);
         }
         catch (Exception ex)

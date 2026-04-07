@@ -11,7 +11,6 @@ public class MinimalSetsStrategyConfiguration : IEntityTypeConfiguration<Minimal
 {
     public void Configure(EntityTypeBuilder<MinimalSetsStrategy> builder)
     {
-        // MinimalSetsStrategy specific properties
         builder.OwnsOne(mss => mss.CurrentWeight, w =>
         {
             w.Property(wt => wt.Value)

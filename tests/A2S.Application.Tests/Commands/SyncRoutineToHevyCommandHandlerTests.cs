@@ -24,7 +24,7 @@ public class SyncRoutineToHevyCommandHandlerTests
     private readonly SyncRoutineToHevyCommandHandler _handler;
 
     private static readonly Guid TestWorkoutId = Guid.Parse("e1e1e1e1-f2f2-a3a3-b4b4-c5c5c5c5c5c5");
-    private static readonly Guid TestUserId = Guid.Parse("f2f2f2f2-a3a3-b4b4-c5c5-d6d6d6d6d6d6");
+    private static readonly string TestUserId = "f2f2f2f2-a3a3-b4b4-c5c5-d6d6d6d6d6d6";
 
     public SyncRoutineToHevyCommandHandlerTests()
     {

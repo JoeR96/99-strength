@@ -1,6 +1,7 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
+using A2S.Domain.Common;
 using A2S.Domain.Repositories;
 using MediatR;
 
@@ -22,7 +23,6 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
 
     public async Task<Result<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        // Check if email already exists
         var existingUser = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
         if (existingUser is not null)
         {
@@ -31,14 +31,14 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
                 ErrorCode.Conflict);
         }
 
-        // Create user via factory method
-        var user = User.Create(request.Email, request.Name);
+        var user = User.Create(
+            request.Email,
+            request.Name,
+            request.Id != null ? new UserId(request.Id) : null);
 
-        // Persist user
         await _userRepository.AddAsync(user, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Return DTO
         return Result.Success(new UserDto(
             user.Id.Value,
             user.Email,

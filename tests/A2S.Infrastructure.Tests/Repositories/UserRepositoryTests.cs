@@ -1,5 +1,5 @@
 using A2S.Domain.Common;
-using A2S.Domain.Entities;
+using A2S.Domain.Aggregates.User;
 using A2S.Tests.Shared;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -49,14 +49,11 @@ public class UserRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task AddAsync_ShouldPersistUserToDatabase()
     {
-        // Arrange
         var user = User.Create("test@example.com", "Test User");
 
-        // Act
         await _dbContext.AppUsers.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
-        // Assert - use a new context to verify persistence
         await using var verifyContext = CreateNewDbContext();
         var savedUser = await verifyContext.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
 
@@ -68,16 +65,13 @@ public class UserRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task GetByIdAsync_ShouldReturnUser_WhenUserExists()
     {
-        // Arrange
         var user = User.Create("test@example.com", "Test User");
         await _dbContext.AppUsers.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
-        // Act
         await using var queryContext = CreateNewDbContext();
         var result = await queryContext.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(user.Id);
     }
@@ -85,29 +79,23 @@ public class UserRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task GetByIdAsync_ShouldReturnNull_WhenUserDoesNotExist()
     {
-        // Arrange
-        var nonExistentId = new UserId(Guid.NewGuid());
+        var nonExistentId = new UserId(Guid.NewGuid().ToString());
 
-        // Act
         var result = await _dbContext.AppUsers.FirstOrDefaultAsync(u => u.Id == nonExistentId);
 
-        // Assert
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task GetByEmailAsync_ShouldReturnUser_WhenEmailExists()
     {
-        // Arrange
         var user = User.Create("test@example.com", "Test User");
         await _dbContext.AppUsers.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
-        // Act
         await using var queryContext = CreateNewDbContext();
         var result = await queryContext.AppUsers.FirstOrDefaultAsync(u => u.Email == "test@example.com");
 
-        // Assert
         result.Should().NotBeNull();
         result!.Email.Should().Be("test@example.com");
     }
@@ -115,37 +103,31 @@ public class UserRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task UniqueEmailConstraint_ShouldThrowOnDuplicateEmail()
     {
-        // Arrange
         var user1 = User.Create("duplicate@example.com", "User 1");
         await _dbContext.AppUsers.AddAsync(user1);
         await _dbContext.SaveChangesAsync();
 
-        // Act
         await using var insertContext = CreateNewDbContext();
         var user2 = User.Create("duplicate@example.com", "User 2");
         await insertContext.AppUsers.AddAsync(user2);
 
         var act = async () => await insertContext.SaveChangesAsync();
 
-        // Assert
         await act.Should().ThrowAsync<DbUpdateException>();
     }
 
     [Fact]
     public async Task Update_ShouldPersistChanges()
     {
-        // Arrange
         var user = User.Create("test@example.com", "Original Name");
         await _dbContext.AppUsers.AddAsync(user);
         await _dbContext.SaveChangesAsync();
 
-        // Act
         await using var updateContext = CreateNewDbContext();
         var userToUpdate = await updateContext.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
         userToUpdate!.UpdateName("Updated Name");
         await updateContext.SaveChangesAsync();
 
-        // Assert
         await using var verifyContext = CreateNewDbContext();
         var updatedUser = await verifyContext.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
         updatedUser!.Name.Should().Be("Updated Name");

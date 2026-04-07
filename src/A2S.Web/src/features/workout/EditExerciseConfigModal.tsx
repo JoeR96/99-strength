@@ -154,7 +154,6 @@ export function EditExerciseConfigModal({
           startingWeight: weightValue,
           weightUnit: rpsWeightUnit,
           repRangeMinimum: repRangeMin,
-          repRangeTarget: repRangeTarget,
           repRangeMaximum: repRangeMax,
           targetSets: repsPerSetProg.targetSets ?? 5,
           isUnilateral: isUnilateral,
@@ -183,7 +182,7 @@ export function EditExerciseConfigModal({
 
   if (!isOpen) return null;
 
-  const swapTargetLabel = isLinear ? "Reps Per Set" : "A2S Hypertrophy";
+  const swapTargetLabel = isLinear ? "Reps Per Set" : "Linear (Hypertrophy)";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -349,7 +348,7 @@ export function EditExerciseConfigModal({
             <div className="space-y-4">
               <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  This will replace the A2S Hypertrophy progression with Reps Per Set.
+                  This will replace the Linear (Hypertrophy) progression with Reps Per Set.
                 </p>
               </div>
 
@@ -453,7 +452,7 @@ export function EditExerciseConfigModal({
             <div className="space-y-4">
               <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  This will replace Reps Per Set with A2S Hypertrophy (Linear) progression.
+                  This will replace Reps Per Set with Linear (Hypertrophy) progression.
                 </p>
               </div>
 
