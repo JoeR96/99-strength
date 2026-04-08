@@ -102,7 +102,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
-    await dbContext.Database.MigrateAsync();
+
+    // Verify database is up to date — migrations are applied as a deploy step
+    // (EF migration bundle), not at app startup. This avoids multi-instance
+    // races, slow/failed boots, and the need for the app identity to hold DDL rights.
+    var pending = (await dbContext.Database.GetPendingMigrationsAsync()).ToList();
+    if (pending.Count > 0)
+    {
+        throw new InvalidOperationException(
+            $"Database has {pending.Count} pending migration(s): {string.Join(", ", pending)}. " +
+            "Run the EF migration bundle via the deploy pipeline before starting the API.");
+    }
 
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     await ExerciseDefinitionSeeder.SeedAsync(dbContext, logger);
