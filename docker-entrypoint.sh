@@ -12,7 +12,9 @@ if [ -z "$CONN" ]; then
 fi
 
 echo "[entrypoint] Applying EF Core migrations via bundle..."
-/app/efbundle --connection "$CONN"
+# A2SDbContextFactory (design-time) reads A2S_CONNECTION_STRING directly and
+# takes precedence over --connection, so we must export it for the bundle.
+A2S_CONNECTION_STRING="$CONN" /app/efbundle --connection "$CONN"
 echo "[entrypoint] Migrations applied. Starting API."
 
 exec dotnet A2S.Api.dll
