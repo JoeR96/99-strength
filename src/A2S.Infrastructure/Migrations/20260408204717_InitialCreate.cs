@@ -22,7 +22,6 @@ namespace A2S.Infrastructure.Migrations
                     IsCompound = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     DefaultRepRangeMin = table.Column<int>(type: "integer", nullable: true),
-                    DefaultRepRangeTarget = table.Column<int>(type: "integer", nullable: true),
                     DefaultRepRangeMax = table.Column<int>(type: "integer", nullable: true),
                     DefaultSets = table.Column<int>(type: "integer", nullable: true)
                 },
@@ -35,7 +34,7 @@ namespace A2S.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Id = table.Column<string>(type: "character varying", maxLength: 256, nullable: false),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -107,6 +106,7 @@ namespace A2S.Infrastructure.Migrations
                     TrainingMaxUnit = table.Column<string>(type: "text", nullable: true),
                     UseAmrap = table.Column<bool>(type: "boolean", nullable: true),
                     BaseSetsPerExercise = table.Column<int>(type: "integer", nullable: true),
+                    Tier = table.Column<int>(type: "integer", nullable: true),
                     MinimalSets_CurrentWeightValue = table.Column<decimal>(type: "numeric(6,2)", nullable: true),
                     MinimalSets_CurrentWeightUnit = table.Column<string>(type: "text", nullable: true),
                     MinimalSets_TargetTotalReps = table.Column<int>(type: "integer", nullable: true),
@@ -116,7 +116,6 @@ namespace A2S.Infrastructure.Migrations
                     MinimalSets_MaximumSets = table.Column<int>(type: "integer", nullable: true),
                     MinimalSets_Equipment = table.Column<string>(type: "text", nullable: true),
                     RepRangeMinimum = table.Column<int>(type: "integer", nullable: true),
-                    RepRangeTarget = table.Column<int>(type: "integer", nullable: true),
                     RepRangeMaximum = table.Column<int>(type: "integer", nullable: true),
                     CurrentSetCount = table.Column<int>(type: "integer", nullable: true),
                     StartingSets = table.Column<int>(type: "integer", nullable: true),
@@ -172,6 +171,16 @@ namespace A2S.Infrastructure.Migrations
                 table: "Users",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Workouts_UserId",
+                table: "Workouts",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Workouts_UserId_Status",
+                table: "Workouts",
+                columns: new[] { "UserId", "Status" });
         }
 
         /// <inheritdoc />
