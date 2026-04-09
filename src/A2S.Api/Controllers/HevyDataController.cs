@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using A2S.Api.Contracts.Responses;
+using A2S.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -18,6 +19,7 @@ public class HevyDataController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<HevyDataController> _logger;
+    private readonly ICurrentUserService _currentUser;
     private const string HevyApiBaseUrl = "https://api.hevyapp.com/v1";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -26,22 +28,15 @@ public class HevyDataController : ControllerBase
         PropertyNameCaseInsensitive = true
     };
 
-    public HevyDataController(IHttpClientFactory httpClientFactory, ILogger<HevyDataController> logger)
+    public HevyDataController(
+        IHttpClientFactory httpClientFactory,
+        ILogger<HevyDataController> logger,
+        ICurrentUserService currentUser)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _currentUser = currentUser;
     }
-
-    /// <summary>
-    /// Resolves API key: header takes priority, then falls back to the persisted key
-    /// set by AutoProvisionUserMiddleware.
-    /// </summary>
-    private string? ResolveApiKey(string? headerKey)
-        => !string.IsNullOrEmpty(headerKey)
-            ? headerKey
-            : HttpContext.Items.TryGetValue("HevyApiKey", out var k) && k is string key
-                ? key
-                : null;
 
     /// <summary>
     /// Get all Hevy workouts with exercise summaries, suitable for listing.
@@ -54,7 +49,7 @@ public class HevyDataController : ControllerBase
         [FromQuery][Range(1, 100)] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -129,7 +124,7 @@ public class HevyDataController : ControllerBase
         [FromQuery][Range(1, 20)] int maxPages = 10,
         CancellationToken cancellationToken = default)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();

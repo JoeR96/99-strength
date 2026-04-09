@@ -57,4 +57,20 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(UserId);
+
+    public string? HevyApiKey
+    {
+        get
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null) return null;
+
+            if (httpContext.Items.TryGetValue("HevyApiKey", out var key) && key is string apiKey)
+            {
+                return apiKey;
+            }
+
+            return null;
+        }
+    }
 }

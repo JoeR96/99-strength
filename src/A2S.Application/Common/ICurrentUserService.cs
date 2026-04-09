@@ -20,4 +20,9 @@ public interface ICurrentUserService
     /// Gets whether a user is currently authenticated.
     /// </summary>
     bool IsAuthenticated { get; }
+
+    /// <summary>
+    /// Gets the user's persisted Hevy API key, if configured.
+    /// </summary>
+    string? HevyApiKey { get; }
 }

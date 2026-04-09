@@ -1,3 +1,4 @@
+using A2S.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Frozen;
@@ -17,6 +18,7 @@ public class HevyProxyController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<HevyProxyController> _logger;
+    private readonly ICurrentUserService _currentUser;
     private const string HevyApiBaseUrl = "https://api.hevyapp.com/v1";
 
     /// <summary>
@@ -35,18 +37,15 @@ public class HevyProxyController : ControllerBase
         "page", "page_size", "offset"
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    public HevyProxyController(IHttpClientFactory httpClientFactory, ILogger<HevyProxyController> logger)
+    public HevyProxyController(
+        IHttpClientFactory httpClientFactory,
+        ILogger<HevyProxyController> logger,
+        ICurrentUserService currentUser)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _currentUser = currentUser;
     }
-
-    private string? ResolveApiKey(string? headerKey)
-        => !string.IsNullOrEmpty(headerKey)
-            ? headerKey
-            : HttpContext.Items.TryGetValue("HevyApiKey", out var k) && k is string key
-                ? key
-                : null;
 
     /// <summary>
     /// Validate Hevy API key.
@@ -56,7 +55,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return BadRequest(new ProblemDetails
@@ -88,7 +87,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -132,7 +131,7 @@ public class HevyProxyController : ControllerBase
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -176,7 +175,7 @@ public class HevyProxyController : ControllerBase
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -219,7 +218,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey = ResolveApiKey(apiKey);
+        apiKey ??= _currentUser.HevyApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
