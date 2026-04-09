@@ -41,6 +41,13 @@ public class HevyProxyController : ControllerBase
         _logger = logger;
     }
 
+    private string? ResolveApiKey(string? headerKey)
+        => !string.IsNullOrEmpty(headerKey)
+            ? headerKey
+            : HttpContext.Items.TryGetValue("HevyApiKey", out var k) && k is string key
+                ? key
+                : null;
+
     /// <summary>
     /// Validate Hevy API key.
     /// </summary>
@@ -49,6 +56,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return BadRequest(new ProblemDetails
@@ -80,6 +88,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -123,6 +132,7 @@ public class HevyProxyController : ControllerBase
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -166,6 +176,7 @@ public class HevyProxyController : ControllerBase
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -208,6 +219,7 @@ public class HevyProxyController : ControllerBase
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();

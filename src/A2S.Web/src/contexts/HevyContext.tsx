@@ -1,10 +1,12 @@
 /**
  * Hevy Context
- * Manages Hevy API key in session memory only (never persisted to localStorage)
+ * Manages Hevy API key — persisted server-side on the User entity so it
+ * survives page reloads and device switches.
  */
 
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { hevyApi } from '@/services/hevyApi';
+import { apiClient } from '@/api/apiClient';
 import toast from 'react-hot-toast';
 
 interface HevyContextType {
@@ -12,6 +14,7 @@ interface HevyContextType {
   isConfigured: boolean;
   isValidating: boolean;
   isValid: boolean | null;
+  isLoading: boolean;
   setApiKey: (key: string) => Promise<boolean>;
   clearApiKey: () => void;
   validateKey: () => Promise<boolean>;
@@ -23,6 +26,26 @@ export function HevyProvider({ children }: { children: ReactNode }) {
   const [apiKey, setApiKeyState] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load persisted key from the backend on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await apiClient.get<{ apiKey: string | null }>('/users/me/hevy-api-key');
+        if (!cancelled && data.apiKey) {
+          setApiKeyState(data.apiKey);
+          hevyApi.setApiKey(data.apiKey);
+        }
+      } catch {
+        // Not logged in yet or endpoint unavailable — ignore
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const setApiKey = async (key: string): Promise<boolean> => {
     setIsValidating(true);
@@ -30,17 +53,24 @@ export function HevyProvider({ children }: { children: ReactNode }) {
       hevyApi.setApiKey(key);
       setApiKeyState(key);
 
+      // Persist to backend
+      try {
+        await apiClient.put('/users/me/hevy-api-key', { apiKey: key });
+      } catch {
+        // Non-fatal — key is still in memory for this session
+      }
+
       try {
         const valid = await hevyApi.validateApiKey();
         setIsValid(valid);
         if (valid) {
           toast.success('Connected to Hevy successfully!');
         } else {
-          toast.success('API key saved for this session. Will verify on next sync.');
+          toast.success('API key saved. Will verify on next sync.');
           setIsValid(null);
         }
       } catch {
-        toast.success('API key saved for this session. Will verify on next sync.');
+        toast.success('API key saved. Will verify on next sync.');
         setIsValid(null);
       }
 
@@ -57,6 +87,10 @@ export function HevyProvider({ children }: { children: ReactNode }) {
     setApiKeyState(null);
     hevyApi.clearApiKey();
     setIsValid(null);
+
+    // Remove from backend
+    apiClient.put('/users/me/hevy-api-key', { apiKey: null }).catch(() => {});
+
     toast.success('Disconnected from Hevy');
   };
 
@@ -82,6 +116,7 @@ export function HevyProvider({ children }: { children: ReactNode }) {
         isConfigured: apiKey !== null && apiKey.length > 0,
         isValidating,
         isValid,
+        isLoading,
         setApiKey,
         clearApiKey,
         validateKey,

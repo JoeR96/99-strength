@@ -29,6 +29,7 @@ public sealed class User : AggregateRoot<UserId>
     public string Email { get; private set; }
     public string Name { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public string? HevyApiKey { get; private set; }
 
     /// <summary>
     /// Creates a new user with validation.
@@ -82,5 +83,13 @@ public sealed class User : AggregateRoot<UserId>
     {
         ValidateName(name);
         Name = name.Trim();
+    }
+
+    /// <summary>
+    /// Stores the user's Hevy API key so it persists across sessions.
+    /// </summary>
+    public void SetHevyApiKey(string? apiKey)
+    {
+        HevyApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey.Trim();
     }
 }

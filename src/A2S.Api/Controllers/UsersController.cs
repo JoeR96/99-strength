@@ -4,6 +4,7 @@ using A2S.Api.Extensions;
 using A2S.Application.Commands.Users;
 using A2S.Application.Queries.Users;
 using A2S.Domain.Common;
+using A2S.Domain.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +20,14 @@ namespace A2S.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UsersController(IMediator mediator)
+    public UsersController(IMediator mediator, IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _mediator = mediator;
+        _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -104,4 +109,50 @@ public class UsersController : ControllerBase
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
     }
+
+    /// <summary>
+    /// Saves the current user's Hevy API key.
+    /// </summary>
+    [HttpPut("me/hevy-api-key")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetHevyApiKey(
+        [FromBody] SetHevyApiKeyRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
+        {
+            return NotFound();
+        }
+
+        var user = await _userRepository.GetByIdAsync(new UserId(userId), cancellationToken);
+        if (user is null) return NotFound();
+
+        user.SetHevyApiKey(request.ApiKey);
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Gets the current user's Hevy API key.
+    /// </summary>
+    [HttpGet("me/hevy-api-key")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHevyApiKey(CancellationToken cancellationToken)
+    {
+        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
+        {
+            return NotFound();
+        }
+
+        var user = await _userRepository.GetByIdAsync(new UserId(userId), cancellationToken);
+        if (user is null) return NotFound();
+
+        return Ok(new { apiKey = user.HevyApiKey });
+    }
 }
+
+public sealed record SetHevyApiKeyRequest(string? ApiKey);

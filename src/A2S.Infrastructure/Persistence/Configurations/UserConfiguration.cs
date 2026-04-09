@@ -36,6 +36,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
+        builder.Property(u => u.HevyApiKey)
+            .HasMaxLength(256)
+            .IsRequired(false);
+
         builder.HasIndex(u => u.Email)
             .IsUnique();
 

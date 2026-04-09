@@ -33,6 +33,17 @@ public class HevyDataController : ControllerBase
     }
 
     /// <summary>
+    /// Resolves API key: header takes priority, then falls back to the persisted key
+    /// set by AutoProvisionUserMiddleware.
+    /// </summary>
+    private string? ResolveApiKey(string? headerKey)
+        => !string.IsNullOrEmpty(headerKey)
+            ? headerKey
+            : HttpContext.Items.TryGetValue("HevyApiKey", out var k) && k is string key
+                ? key
+                : null;
+
+    /// <summary>
     /// Get all Hevy workouts with exercise summaries, suitable for listing.
     /// </summary>
     [HttpGet("workouts")]
@@ -43,6 +54,7 @@ public class HevyDataController : ControllerBase
         [FromQuery][Range(1, 100)] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -117,6 +129,7 @@ public class HevyDataController : ControllerBase
         [FromQuery][Range(1, 20)] int maxPages = 10,
         CancellationToken cancellationToken = default)
     {
+        apiKey = ResolveApiKey(apiKey);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
