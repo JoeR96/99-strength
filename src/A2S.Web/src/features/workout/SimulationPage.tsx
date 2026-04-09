@@ -3,13 +3,14 @@
  * Simulate workout progression over time using real progression logic
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/api/apiClient';
+import { apiClient, getAuthToken } from '@/api/apiClient';
 import { useAllWorkouts } from '@/hooks/useWorkouts';
+import { readNdjsonStream } from '@/lib/ndjson';
 import {
   LineChart,
   Line,
@@ -76,12 +77,92 @@ const CHART_COLORS = [
   'hsl(330, 80%, 55%)',
 ];
 
+interface StreamDayEvent {
+  type: 'day';
+  outcome: string;
+  day: number;
+  weekNumber: number;
+  blockNumber: number;
+  exercisesCompleted: number;
+  newCurrentWeek: number;
+  newCurrentDay: number;
+  weekProgressed: boolean;
+  programComplete: boolean;
+  isDeloadWeek: boolean;
+  progressionChanges: Array<{ exerciseId: string; exerciseName: string; change: string }>;
+}
+
+type StreamEvent =
+  | { type: 'started'; totalDays: number }
+  | StreamDayEvent
+  | { type: 'completed' }
+  | { type: 'error'; message: string };
+
 export function SimulationPage() {
   const { data: workouts, isLoading: loadingWorkouts } = useAllWorkouts();
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [sessionCount, setSessionCount] = useState(30);
   const [runSimulation, setRunSimulation] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+
+  // Persistent streaming run state
+  const [runDays, setRunDays] = useState(84);
+  const [runSuccessRate, setRunSuccessRate] = useState(0.65);
+  const [runMaintainRate, setRunMaintainRate] = useState(0.25);
+  const [streaming, setStreaming] = useState(false);
+  const [streamEvents, setStreamEvents] = useState<StreamDayEvent[]>([]);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [streamDone, setStreamDone] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleRunStream = async () => {
+    if (!selectedWorkoutId) return;
+    setStreaming(true);
+    setStreamEvents([]);
+    setStreamError(null);
+    setStreamDone(false);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const token = await getAuthToken();
+      const baseUrl = apiClient.defaults.baseURL ?? '';
+      const url = `${baseUrl}/workouts/${selectedWorkoutId}/simulate/stream` +
+        `?days=${runDays}&successRate=${runSuccessRate}&maintainRate=${runMaintainRate}`;
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) {
+        setStreamError(`HTTP ${response.status}`);
+        setStreaming(false);
+        return;
+      }
+      for await (const evt of readNdjsonStream<StreamEvent>(response)) {
+        if (evt.type === 'day') {
+          setStreamEvents((prev) => [...prev, evt]);
+        } else if (evt.type === 'error') {
+          setStreamError(evt.message);
+          break;
+        } else if (evt.type === 'completed') {
+          setStreamDone(true);
+          break;
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        setStreamError((err as Error).message);
+      }
+    } finally {
+      setStreaming(false);
+      abortRef.current = null;
+    }
+  };
+
+  const handleCancelStream = () => {
+    abortRef.current?.abort();
+  };
 
   const { data: simulation, isLoading: loadingSimulation, error } = useSimulation(
     selectedWorkoutId,
@@ -192,6 +273,93 @@ export function SimulationPage() {
                 )}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Dev-only: persistent day-by-day simulation (streams via NDJSON) */}
+        <Card className="mb-6 border-dashed">
+          <CardHeader>
+            <CardTitle className="text-base">Persistent Run (dev)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-end gap-4 mb-4">
+              <div className="w-24">
+                <label className="block text-xs text-muted-foreground mb-1">Days</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={200}
+                  value={runDays}
+                  onChange={(e) => setRunDays(Math.max(1, Math.min(200, parseInt(e.target.value) || 1)))}
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="w-28">
+                <label className="block text-xs text-muted-foreground mb-1">Success %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={Math.round(runSuccessRate * 100)}
+                  onChange={(e) => setRunSuccessRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="w-28">
+                <label className="block text-xs text-muted-foreground mb-1">Maintain %</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={Math.round(runMaintainRate * 100)}
+                  onChange={(e) => setRunMaintainRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                />
+              </div>
+              {streaming ? (
+                <Button variant="destructive" onClick={handleCancelStream}>Cancel</Button>
+              ) : (
+                <Button onClick={handleRunStream} disabled={!selectedWorkoutId}>
+                  Run Persistent
+                </Button>
+              )}
+              <div className="text-xs text-muted-foreground ml-auto">
+                {streamEvents.length} day(s) · {streamDone ? 'done' : streaming ? 'streaming…' : 'idle'}
+              </div>
+            </div>
+
+            {streamError && (
+              <div className="mb-3 rounded border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+                {streamError}
+              </div>
+            )}
+
+            {streamEvents.length > 0 && (
+              <div className="max-h-80 overflow-y-auto space-y-1 rounded border border-border bg-muted/20 p-2 text-xs font-mono">
+                {streamEvents.map((e, idx) => (
+                  <div key={idx} className="flex gap-3">
+                    <span className="text-muted-foreground">#{idx + 1}</span>
+                    <span>W{e.weekNumber} D{e.day} B{e.blockNumber}</span>
+                    <span
+                      className={
+                        e.outcome === 'Success'
+                          ? 'text-green-600'
+                          : e.outcome === 'Fail'
+                            ? 'text-destructive'
+                            : 'text-yellow-600'
+                      }
+                    >
+                      {e.outcome}
+                    </span>
+                    {e.isDeloadWeek && <span className="text-blue-500">deload</span>}
+                    {e.programComplete && <span className="font-semibold">PROGRAM COMPLETE</span>}
+                    <span className="text-muted-foreground">
+                      → W{e.newCurrentWeek} D{e.newCurrentDay}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

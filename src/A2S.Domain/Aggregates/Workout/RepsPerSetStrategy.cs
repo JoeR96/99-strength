@@ -124,6 +124,11 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// </summary>
     public override IEnumerable<PlannedSet> CalculatePlannedSets(int weekNumber, int blockNumber)
     {
+        CheckRule(
+            RepRange.Maximum > 0,
+            $"Exercise progression {Id.Value} has an invalid RepRange (Maximum={RepRange.Maximum}). " +
+            "This usually indicates a template or persisted row is missing rep range values.");
+
         var weight = CurrentWeight ?? Weight.Create(0, WeightUnit.Kilograms);
         var sets = new List<PlannedSet>();
         for (int i = 1; i <= CurrentSetCount; i++)

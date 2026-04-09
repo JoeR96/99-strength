@@ -1,13 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
 using A2S.Application.Commands.SetActiveWorkout;
+using A2S.Application.Commands.SimulateAndCompleteDay;
 using A2S.Application.Queries.GetAllWorkouts;
 using A2S.Application.Queries.GetWorkout;
 using A2S.Application.Queries.SimulateWorkout;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A2S.Api.Controllers;
@@ -157,5 +160,74 @@ public class WorkoutsController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Dev-only: streams persistent day-by-day simulation over NDJSON.
+    /// Each line is one JSON event: started | day | completed | error.
+    /// Completes real days via CompleteDayCommand so workout state persists.
+    /// </summary>
+    [HttpGet("{id:guid}/simulate/stream")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task SimulateStream(
+        [FromRoute] Guid id,
+        [FromQuery][Range(1, 200)] int days = 84,
+        [FromQuery][Range(0.0, 1.0)] double successRate = 0.65,
+        [FromQuery][Range(0.0, 1.0)] double maintainRate = 0.25,
+        [FromQuery] int? seed = null,
+        CancellationToken cancellationToken = default)
+    {
+        Response.ContentType = "application/x-ndjson";
+        Response.Headers["Cache-Control"] = "no-cache";
+        Response.Headers["X-Accel-Buffering"] = "no";
+        HttpContext.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
+
+        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        async Task WriteEvent(object payload)
+        {
+            var line = JsonSerializer.Serialize(payload, jsonOptions) + "\n";
+            await Response.WriteAsync(line, cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+        }
+
+        await WriteEvent(new { type = "started", totalDays = days });
+
+        for (int i = 0; i < days; i++)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+
+            var perDaySeed = seed.HasValue ? seed.Value + i : (int?)null;
+            var result = await _mediator.Send(
+                new SimulateAndCompleteDayCommand(id, successRate, maintainRate, perDaySeed),
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                await WriteEvent(new { type = "error", message = result.Error });
+                return;
+            }
+
+            var inner = result.Value.InnerResult;
+            await WriteEvent(new
+            {
+                type = "day",
+                outcome = result.Value.OutcomeLabel,
+                day = (int)inner.Day,
+                weekNumber = inner.WeekNumber,
+                blockNumber = inner.BlockNumber,
+                exercisesCompleted = inner.ExercisesCompleted,
+                progressionChanges = inner.ProgressionChanges,
+                newCurrentWeek = inner.NewCurrentWeek,
+                newCurrentDay = inner.NewCurrentDay,
+                weekProgressed = inner.WeekProgressed,
+                programComplete = inner.ProgramComplete,
+                isDeloadWeek = inner.IsDeloadWeek
+            });
+
+            if (inner.ProgramComplete) break;
+        }
+
+        await WriteEvent(new { type = "completed" });
     }
 }

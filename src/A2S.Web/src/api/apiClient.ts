@@ -18,6 +18,21 @@ export const setTokenGetter = (getter: () => Promise<string | null>) => {
   getToken = getter;
 };
 
+/**
+ * Returns the current auth token, if available. Used by code that needs to
+ * bypass axios (e.g. raw fetch for streaming responses).
+ */
+export const getAuthToken = async (): Promise<string | null> => {
+  if (!getToken) return null;
+  try {
+    return await getToken();
+  } catch {
+    return null;
+  }
+};
+
+export const API_BASE_URL_EXPORT = API_BASE_URL;
+
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   async (config) => {

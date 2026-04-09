@@ -41,6 +41,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 1,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Overhead Press (Smith Machine) - Linear (TM: 65kg)
     {
@@ -62,8 +64,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 3,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
-    // Lateral Raise (Cable) - RepsPerSet (4 sets x 8 reps)
+    // Lateral Raise (Cable) - RepsPerSet (4 sets x 8-12 reps)
     {
       templateName: "Lateral Raise (Cable)",
       externalTemplateId: "BE289E45",
@@ -72,8 +76,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 4,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
-    // Bicep Curl (Cable) - RepsPerSet (4 sets x 20 reps)
+    // Bicep Curl (Cable) - RepsPerSet (4 sets x 15-20 reps)
     {
       templateName: "Bicep Curl (Cable)",
       externalTemplateId: "ADA8623C",
@@ -82,8 +88,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 5,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 15,
+      repRangeMaximum: 20,
     },
-    // Triceps Pushdown - RepsPerSet (4 sets x 20 reps)
+    // Triceps Pushdown - RepsPerSet (4 sets x 15-20 reps)
     {
       templateName: "Triceps Pushdown",
       externalTemplateId: "93A552C6",
@@ -92,6 +100,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 6,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 15,
+      repRangeMaximum: 20,
     },
     // Rear Delt Reverse Fly (Cable) - RepsPerSet (4 sets x 12 reps)
     {
@@ -102,6 +112,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 1,
       orderInDay: 7,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
 
     // ==================== DAY 2 ====================
@@ -116,7 +128,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       trainingMaxValue: 107.5,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
-    // Lunge (Barbell) - RepsPerSet (4 sets x 9 reps)
+    // Lunge (Barbell) - RepsPerSet (4 sets x 8-12 reps)
     {
       templateName: "Lunge (Barbell)",
       externalTemplateId: "6E6EE645",
@@ -125,6 +137,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 2,
       orderInDay: 2,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
       isUnilateral: true,
     },
     // Lying Leg Curl (Machine) - RepsPerSet (4 sets x 12 reps)
@@ -136,8 +150,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 2,
       orderInDay: 3,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
-    // Hip Abduction (Machine) - RepsPerSet (3 sets x 12 reps)
+    // Hip Abduction (Machine) - RepsPerSet (3 sets x 10-15 reps)
     {
       templateName: "Hip Abduction (Machine)",
       externalTemplateId: "F4B4C6EE",
@@ -146,8 +162,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 2,
       orderInDay: 4,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
-    // Calf Press (Machine) - RepsPerSet (3 sets x 15 reps)
+    // Calf Press (Machine) - RepsPerSet (3 sets x 12-20 reps)
     {
       templateName: "Calf Press (Machine)",
       externalTemplateId: "91237BDD",
@@ -156,6 +174,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 2,
       orderInDay: 5,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 12,
+      repRangeMaximum: 20,
     },
 
     // ==================== DAY 3 ====================
@@ -168,6 +188,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 1,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Pull Up (Assisted) - RepsPerSet (6 sets, 40 total reps)
     {
@@ -178,8 +200,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 2,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 6,
+      repRangeMaximum: 12,
     },
-    // Concentration Curl - RepsPerSet (4 sets x 15 reps)
+    // Concentration Curl - RepsPerSet (4 sets x 10-15 reps)
     {
       templateName: "Concentration Curl",
       externalTemplateId: "724CDE60",
@@ -188,9 +212,11 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 3,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
       isUnilateral: true,
     },
-    // EZ Bar Biceps Curl - RepsPerSet (3 sets x 15 reps)
+    // EZ Bar Biceps Curl - RepsPerSet (3 sets x 10-15 reps)
     {
       templateName: "EZ Bar Biceps Curl",
       externalTemplateId: "01A35BF9",
@@ -199,8 +225,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 4,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
-    // Single Arm Triceps Pushdown (Cable) - RepsPerSet (6 sets x 25 reps)
+    // Single Arm Triceps Pushdown (Cable) - RepsPerSet (6 sets x 15-25 reps)
     {
       templateName: "Single Arm Triceps Pushdown (Cable)",
       externalTemplateId: "552AB030",
@@ -209,9 +237,11 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 5,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 15,
+      repRangeMaximum: 25,
       isUnilateral: true,
     },
-    // Lateral Raise (Dumbbell) - RepsPerSet (3 sets x 20 reps)
+    // Lateral Raise (Dumbbell) - RepsPerSet (3 sets x 15-20 reps)
     {
       templateName: "Lateral Raise (Dumbbell)",
       externalTemplateId: "422B08F1",
@@ -220,8 +250,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 6,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 15,
+      repRangeMaximum: 20,
     },
-    // Chest Fly (Machine) - RepsPerSet (3 sets x 8 reps)
+    // Chest Fly (Machine) - RepsPerSet (3 sets x 8-12 reps)
     {
       templateName: "Chest Fly (Machine)",
       externalTemplateId: "78683336",
@@ -230,10 +262,12 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 3,
       orderInDay: 7,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
 
     // ==================== DAY 4 ====================
-    // Hip Thrust (Machine) - RepsPerSet (3 sets x 8 reps)
+    // Hip Thrust (Machine) - RepsPerSet (3 sets x 8-12 reps)
     {
       templateName: "Hip Thrust (Machine)",
       externalTemplateId: "68CE0B9B",
@@ -242,6 +276,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 4,
       orderInDay: 1,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Front Squat - Linear (TM: 80kg)
     {
@@ -254,7 +290,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       trainingMaxValue: 80,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
-    // Single Leg Press (Machine) - RepsPerSet (4 sets x 12 reps)
+    // Single Leg Press (Machine) - RepsPerSet (4 sets x 8-12 reps)
     {
       templateName: "Single Leg Press (Machine)",
       externalTemplateId: "3FD83744",
@@ -263,9 +299,11 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 4,
       orderInDay: 3,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
       isUnilateral: true,
     },
-    // Leg Extension (Machine) - RepsPerSet (4 sets x 12 reps)
+    // Leg Extension (Machine) - RepsPerSet (4 sets x 10-15 reps)
     {
       templateName: "Leg Extension (Machine)",
       externalTemplateId: "75A4F6C4",
@@ -274,8 +312,10 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 4,
       orderInDay: 4,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
-    // Hip Adduction (Machine) - RepsPerSet (4 sets)
+    // Hip Adduction (Machine) - RepsPerSet (4 sets x 10-15)
     {
       templateName: "Hip Adduction (Machine)",
       externalTemplateId: "8BEBFED6",
@@ -284,6 +324,8 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
       assignedDay: 4,
       orderInDay: 5,
       weightUnit: WeightUnit.Kilograms,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
   ] as CreateExerciseRequest[],
 };
@@ -323,7 +365,7 @@ const monkModeTemplate: WorkoutTemplate = {
       trainingMaxValue: 65,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
-    // Bent Over Row (Barbell) - RepsPerSet (3 sets)
+    // Bent Over Row (Barbell) - RepsPerSet (3 sets x 8-12)
     {
       templateName: "Bent Over Row (Barbell)",
       externalTemplateId: "55E6546F",
@@ -334,8 +376,10 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
-    // Hanging Knee Raise - Bodyweight core work (3 sets)
+    // Hanging Knee Raise - Bodyweight core work (3 sets x 10-15)
     {
       templateName: "Hanging Knee Raise",
       externalTemplateId: "08590920",
@@ -346,8 +390,10 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
-    // Lateral Raise (Cable) - RepsPerSet (6 sets from Hevy)
+    // Lateral Raise (Cable) - RepsPerSet (6 sets x 12-18, from Hevy)
     {
       templateName: "Lateral Raise (Cable)",
       externalTemplateId: "BE289E45",
@@ -358,8 +404,10 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 6,
       targetSets: 8,
+      repRangeMinimum: 12,
+      repRangeMaximum: 18,
     },
-    // Bicep Curl (Cable) - RepsPerSet (3 sets)
+    // Bicep Curl (Cable) - RepsPerSet (3 sets x 10-15)
     {
       templateName: "Bicep Curl (Cable)",
       externalTemplateId: "ADA8623C",
@@ -370,8 +418,10 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
-    // Crucifix Tricep Pulldown - RepsPerSet (3 sets)
+    // Crucifix Tricep Pulldown - RepsPerSet (3 sets x 10-15)
     {
       templateName: "Crucifix Tricep Pulldown",
       externalTemplateId: "4296b371-d566-46c0-8c63-88fc3e97054a",
@@ -382,6 +432,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
 
     // ==================== DAY 2: Legs (Posterior Focus) ====================
@@ -409,6 +461,8 @@ const monkModeTemplate: WorkoutTemplate = {
       startingSets: 3,
       targetSets: 5,
       isUnilateral: true,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Hip Abduction (Machine) - RepsPerSet (4 sets)
     {
@@ -421,6 +475,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 12,
+      repRangeMaximum: 18,
     },
     // Leg Extension (Machine) - RepsPerSet (3 sets)
     {
@@ -433,6 +489,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Calf Press (Machine) - RepsPerSet (4 sets)
     {
@@ -445,6 +503,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 15,
+      repRangeMaximum: 25,
     },
 
     // ==================== DAY 3: Upper Pull/Arms ====================
@@ -460,6 +520,8 @@ const monkModeTemplate: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       isUnilateral: true,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Overhead Press (Barbell) - RepsPerSet (3 sets)
     {
@@ -472,6 +534,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Lateral Raise (Dumbbell) - RepsPerSet (3 sets)
     {
@@ -484,6 +548,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 15,
+      repRangeMaximum: 20,
     },
     // Single Arm Cable Row - RepsPerSet (4 sets)
     {
@@ -496,6 +562,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // EZ Bar Biceps Curl - RepsPerSet (2 sets)
     {
@@ -508,6 +576,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 2,
       targetSets: 4,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Skullcrusher (Barbell) - RepsPerSet (3 sets)
     {
@@ -520,6 +590,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
 
     // ==================== DAY 4: Legs (Quad Focus) ====================
@@ -548,6 +620,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Hip Adduction (Machine) - RepsPerSet (3 sets)
     {
@@ -560,6 +634,8 @@ const monkModeTemplate: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
   ] as CreateExerciseRequest[],
 };
@@ -610,6 +686,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       isUnilateral: true,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Lying Leg Curl (4 sets x 10-12)
     {
@@ -622,6 +700,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Hip Abduction (4 sets x 12-15)
     {
@@ -649,6 +729,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 3,
       targetSets: 5,
       isUnilateral: true,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Calf Raises (4 sets x 15-20)
     {
@@ -677,6 +759,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Overhead DB Press (4 sets x 8-10)
     {
@@ -689,6 +773,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Single Arm Cable Lat Pulldown (4 sets x 10-12 /arm, unilateral)
     {
@@ -702,6 +788,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 4,
       targetSets: 6,
       isUnilateral: true,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Cable Lateral Raise (4 sets x 12-15)
     {
@@ -728,6 +816,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Cable Tricep Pushdown (4 sets x 10-12)
     {
@@ -740,6 +830,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
 
     // ==================== DAY 3: Lower — Posterior Chain & Realignment ====================
@@ -768,6 +860,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Booty Builder / Hip Thrust (4 sets x 12-15)
     {
@@ -823,6 +917,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 3,
       targetSets: 5,
       isUnilateral: true,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
 
     // ==================== DAY 4: Upper — Pull + Push Accent ====================
@@ -851,6 +947,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 8,
+      repRangeMaximum: 12,
     },
     // Cable Low Row (4 sets x 10-12)
     {
@@ -863,6 +961,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 4,
       targetSets: 6,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Rear Delt Flyes (4 sets x 12-15)
     {
@@ -890,6 +990,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       startingSets: 3,
       targetSets: 5,
       isUnilateral: true,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
     // Skullcrushers (3 sets x 10-12)
     {
@@ -902,6 +1004,8 @@ const optimised4DayV2Template: WorkoutTemplate = {
       weightUnit: WeightUnit.Kilograms,
       startingSets: 3,
       targetSets: 5,
+      repRangeMinimum: 10,
+      repRangeMaximum: 15,
     },
   ] as CreateExerciseRequest[],
 };
@@ -914,6 +1018,22 @@ export const workoutTemplates: WorkoutTemplate[] = [
   monkModeTemplate,
   optimised4DayV2Template,
 ];
+
+// Build-time validation: every RepsPerSet exercise must specify explicit rep ranges.
+// Linear exercises use trainingMaxValue instead and are exempt.
+for (const template of workoutTemplates) {
+  for (const exercise of template.exercises) {
+    if (exercise.progressionType === "RepsPerSet") {
+      if (exercise.repRangeMinimum == null || exercise.repRangeMaximum == null) {
+        throw new Error(
+          `Template "${template.name}" exercise "${exercise.templateName}" ` +
+          `(day ${exercise.assignedDay}, order ${exercise.orderInDay}) ` +
+          `is missing repRangeMinimum/repRangeMaximum. All RepsPerSet exercises must specify explicit rep ranges.`
+        );
+      }
+    }
+  }
+}
 
 /**
  * Get a template by ID
