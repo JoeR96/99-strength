@@ -114,7 +114,7 @@ public class HevyDataController : ControllerBase
     public async Task<IActionResult> GetExerciseHistory(
         [FromRoute] string exerciseTemplateId,
         [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
-        [FromQuery][Range(1, 10)] int maxPages = 10,
+        [FromQuery][Range(1, 20)] int maxPages = 10,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(apiKey))
