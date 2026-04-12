@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary button - dark olive green with subtle shadow
+        // Primary button - dark orange with subtle shadow
         default:
           "bg-primary text-white border border-primary shadow-md hover:bg-primary/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
 

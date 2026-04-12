@@ -35,7 +35,7 @@
   --color-popover: hsl(240 10% 10%);
   --color-popover-foreground: hsl(0 0% 95%);
 
-  --color-primary: hsl(85 40% 30%); /* Dark Olive Green for buttons/accents */
+  --color-primary: hsl(25 80% 45%); /* Dark Olive Green for buttons/accents */
   --color-primary-foreground: hsl(0 0% 100%);
 
   --color-secondary: hsl(240 10% 20%);
@@ -58,7 +58,7 @@
 
   --color-border: hsl(0 0% 25%);
   --color-input: hsl(0 0% 20%);
-  --color-ring: hsl(85 40% 30%);
+  --color-ring: hsl(25 80% 45%);
 
   /* Arcade radius - sharp/pixel feel */
   --radius-sm: 0.25rem;
@@ -104,7 +104,7 @@
     --color-popover: hsl(240 10% 10%);
     --color-popover-foreground: hsl(0 0% 95%);
 
-    --color-primary: hsl(85 40% 30%); /* Dark Olive Green */
+    --color-primary: hsl(25 80% 45%); /* Dark Olive Green */
     --color-primary-foreground: hsl(0 0% 100%);
 
     --color-secondary: hsl(240 10% 18%);
@@ -127,7 +127,7 @@
 
     --color-border: hsl(0 0% 22%);
     --color-input: hsl(0 0% 18%);
-    --color-ring: hsl(85 40% 30%);
+    --color-ring: hsl(25 80% 45%);
 
     /* Subtle shadows */
     --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
@@ -387,10 +387,10 @@
   }
 
   .neon-text-magenta {
-    color: hsl(85 40% 45%);
+    color: hsl(25 80% 55%);
     text-shadow:
-      0 0 5px hsl(85 40% 30%),
-      0 0 10px hsl(85 40% 30%);
+      0 0 5px hsl(25 80% 45%),
+      0 0 10px hsl(25 80% 45%);
   }
 
   .neon-text-yellow {
@@ -423,19 +423,19 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    box-shadow: 0 4px 0 hsl(85 40% 20%);
+    box-shadow: 0 4px 0 hsl(25 80% 30%);
     transition: all var(--duration-fast) var(--ease-arcade);
   }
 
   .arcade-btn:hover {
     box-shadow:
-      0 4px 0 hsl(85 40% 20%),
+      0 4px 0 hsl(25 80% 30%),
       0 0 15px color-mix(in srgb, var(--color-primary) 50%, transparent);
   }
 
   .arcade-btn:active {
     transform: translateY(4px);
-    box-shadow: 0 0 0 hsl(85 40% 20%);
+    box-shadow: 0 0 0 hsl(25 80% 30%);
   }
 
   /* Hover lift */
@@ -593,8 +593,8 @@
   .arcade-progress-bar {
     background: linear-gradient(
       90deg,
-      hsl(85 40% 30%) 0%,
-      hsl(85 50% 35%) 100%
+      hsl(25 80% 45%) 0%,
+      hsl(25 90% 50%) 100%
     );
   }
 
