@@ -10,10 +10,12 @@ import {
   MUSCLE_CATEGORIES,
   ExerciseCard,
   ExerciseListItem,
-  ExerciseHistoryModal,
 } from './ExerciseLibraryComponents';
+import { HevyExerciseModal } from '@/features/hevy/HevyExerciseModal';
+import { useHevy } from '@/contexts/HevyContext';
 
 export function ExerciseLibraryPage() {
+  const { apiKey } = useHevy();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<Set<string>>(new Set());
   const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(new Set());
@@ -397,8 +399,10 @@ export function ExerciseLibraryPage() {
 
       {/* Exercise History Modal */}
       {selectedExerciseForHistory && (
-        <ExerciseHistoryModal
-          exercise={selectedExerciseForHistory}
+        <HevyExerciseModal
+          exerciseTemplateId={selectedExerciseForHistory.id}
+          exerciseTitle={selectedExerciseForHistory.title}
+          apiKey={apiKey}
           onClose={() => setSelectedExerciseForHistory(null)}
         />
       )}
