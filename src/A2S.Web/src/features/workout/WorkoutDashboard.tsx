@@ -170,20 +170,27 @@ export function WorkoutDashboard() {
 
         {/* Progress bar */}
         <Card className="p-6 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-semibold">Program Progress</span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round((workout.currentWeek / workout.totalWeeks) * 100)}%
-            </span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{
-                width: `${(workout.currentWeek / workout.totalWeeks) * 100}%`,
-              }}
-            />
-          </div>
+          {(() => {
+            const completedDays = (workout.currentWeek - 1) * workout.daysPerWeek + workout.completedDaysInCurrentWeek.length;
+            const totalDays = workout.totalWeeks * workout.daysPerWeek;
+            const pct = Math.round((completedDays / totalDays) * 100);
+            return (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">Program Progress</span>
+                  <span className="text-sm text-muted-foreground">
+                    {completedDays}/{totalDays} days ({pct}%)
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-300"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </>
+            );
+          })()}
         </Card>
 
         {/* Week Overview */}
