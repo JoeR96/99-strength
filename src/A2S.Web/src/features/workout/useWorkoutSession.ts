@@ -10,7 +10,6 @@ import { saveWorkoutProgress, loadWorkoutProgress, clearWorkoutProgress } from "
 import {
   createTemporarySubstituteHandler,
   createPermanentSubstituteHandler,
-  createToggleUnilateralHandler,
   createSaveExerciseConfigHandler,
   createChangeProgressionHandler,
 } from "./workoutConfigHandlers";
@@ -409,7 +408,6 @@ export function useWorkoutSession() {
   const configDeps = { workout, dayNumber, refetch, setExerciseEntries, setTemporarySubstitutions, substituteExercise, updateExercisesMutation };
   const handleTemporarySubstitute = createTemporarySubstituteHandler(configDeps);
   const handlePermanentSubstitute = createPermanentSubstituteHandler(configDeps);
-  const handleToggleUnilateral = createToggleUnilateralHandler(configDeps);
   const handleSaveExerciseConfig = createSaveExerciseConfigHandler(configDeps);
   const handleChangeProgression = createChangeProgressionHandler(configDeps);
 
@@ -432,7 +430,7 @@ export function useWorkoutSession() {
     allSetsCompleted, completedSetsCount, totalSetsCount, completedExercisesCount, totalExercisesCount, progressPercentage,
     // Handlers
     handleSetChange, handleSetComplete, handleCompleteWorkout, handleOpenSubstitution,
-    handleTemporarySubstitute, handlePermanentSubstitute, handleToggleUnilateral,
+    handleTemporarySubstitute, handlePermanentSubstitute,
     handleSaveExerciseConfig, handleChangeProgression, handleUndoCompletion,
     handleApplySubstitution, handleRemoveFromSubstitution, handleSubstitutionsComplete,
     handleConfirmWeights, handleApplyWeightDiscrepancy, handleWeightDiscrepanciesComplete,

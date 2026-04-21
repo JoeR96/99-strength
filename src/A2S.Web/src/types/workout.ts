@@ -19,6 +19,7 @@ export type ExerciseCategory = typeof ExerciseCategory[keyof typeof ExerciseCate
 export const A2SProgressionType = {
   Linear: 'Linear',
   RepsPerSet: 'RepsPerSet',
+  MinimalSets: 'MinimalSets',
 } as const;
 export type A2SProgressionType = typeof A2SProgressionType[keyof typeof A2SProgressionType];
 
@@ -96,6 +97,8 @@ export interface SelectedExercise {
   startingWeight?: number;
   weightUnit?: WeightUnit;
   isUnilateral?: boolean;
+  // MinimalSets progression config
+  targetTotalReps?: number;
 }
 
 // DEPRECATED: For backwards compatibility with existing stories
@@ -368,8 +371,6 @@ export interface ExerciseUpdateRequest {
   // For RepsPerSet/MinimalSets progression
   weightValue?: number;
   weightUnit?: WeightUnit;
-  // For RepsPerSet progression - unilateral toggle
-  isUnilateral?: boolean;
   reason?: string;
 }
 

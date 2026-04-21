@@ -43,8 +43,6 @@ interface ExerciseEditState {
   repRangeMax: number;
   originalRepRangeMin: number;
   originalRepRangeMax: number;
-  isUnilateral: boolean;
-  originalIsUnilateral: boolean;
   startingSets: number;
   originalStartingSets: number;
   currentSets: number;
@@ -122,8 +120,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           repRangeMax: rpsProg?.repRange?.maximum ?? 12,
           originalRepRangeMin: rpsProg?.repRange?.minimum ?? 8,
           originalRepRangeMax: rpsProg?.repRange?.maximum ?? 12,
-          isUnilateral: rpsProg?.isUnilateral ?? false,
-          originalIsUnilateral: rpsProg?.isUnilateral ?? false,
           startingSets: rpsProg?.startingSets ?? 2,
           originalStartingSets: rpsProg?.startingSets ?? 2,
           currentSets: rpsProg?.currentSetCount ?? 2,
@@ -161,7 +157,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           updated.newValue !== updated.originalValue ||
           updated.repRangeMin !== updated.originalRepRangeMin ||
           updated.repRangeMax !== updated.originalRepRangeMax ||
-          updated.isUnilateral !== updated.originalIsUnilateral ||
           updated.startingSets !== updated.originalStartingSets ||
           updated.currentSets !== updated.originalCurrentSets ||
           updated.targetSets !== updated.originalTargetSets ||
@@ -259,7 +254,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
           targetSets: state.targetSets,
           startingSets: state.startingSets,
           currentSets: state.currentSets,
-          isUnilateral: state.isUnilateral,
+          isUnilateral: (workout.exercises.find(e => e.id === state.exerciseId)?.progression as RepsPerSetProgressionDto | undefined)?.isUnilateral ?? false,
         };
 
         await substituteExercise.mutateAsync({
@@ -288,7 +283,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
               exerciseId: state.exerciseId,
               weightValue: state.newValue,
               weightUnit: state.weightUnit,
-              isUnilateral: state.isUnilateral !== state.originalIsUnilateral ? state.isUnilateral : undefined,
               reason: "Manual adjustment",
             };
           }
@@ -523,32 +517,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div>
-                            <div className="font-medium text-sm">Unilateral</div>
-                            <div className="text-xs text-muted-foreground">
-                              One side at a time
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateState(state.exerciseId, {
-                                isUnilateral: !state.isUnilateral,
-                              })
-                            }
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              state.isUnilateral ? "bg-primary" : "bg-muted"
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                state.isUnilateral ? "translate-x-6" : "translate-x-1"
-                              }`}
-                            />
-                          </button>
-                        </div>
-
                         <div>
                           <Label className="text-sm font-medium mb-1 block">Sets</Label>
                           <div className="grid grid-cols-2 gap-2">
@@ -595,9 +563,6 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                               />
                             </div>
                           </div>
-                          {state.isUnilateral && (
-                            <p className="text-xs text-muted-foreground mt-1">Per side</p>
-                          )}
                         </div>
                       </>
                     )}

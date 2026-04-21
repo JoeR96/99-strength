@@ -113,15 +113,23 @@ export function SelectedExerciseCard({
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.baseSetsPerExercise} sets</span>
           </>
-        ) : exercise.progressionType === 'RepsPerSet' && exercise.repRange ? (
+        ) : (exercise.progressionType === 'RepsPerSet' || exercise.progressionType === 'MinimalSets') && exercise.repRange ? (
           <>
             <span className="font-medium text-primary">
-              {exercise.startingWeight}{exercise.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}
+              {exercise.startingWeight != null
+                ? `${exercise.startingWeight}${exercise.weightUnit === WeightUnit.Kilograms ? 'kg' : 'lbs'}`
+                : 'TBD'}
             </span>
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.repRange.minimum}-{exercise.repRange.maximum} reps</span>
             <span className="text-muted-foreground/50">•</span>
             <span>{exercise.currentSets}→{exercise.targetSets} sets</span>
+            {exercise.progressionType === 'MinimalSets' && (
+              <>
+                <span className="text-muted-foreground/50">•</span>
+                <span className="text-muted-foreground">Minimal Sets</span>
+              </>
+            )}
           </>
         ) : null}
 

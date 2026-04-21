@@ -17,7 +17,6 @@ export interface DayCardProps {
   onEdit: () => void;
   onPullWorkout: () => void;
   onSubstituteExercise: (exercise: ExerciseDto) => void;
-  onToggleUnilateral: (exercise: ExerciseDto) => void;
   blockSequence: number[];
 }
 
@@ -41,7 +40,7 @@ function formatSyncTime(date: Date): string {
   });
 }
 
-export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubstitute, onToggleUnilateral }: { exercise: ExerciseDto; weekNumber: number; blockSequence: number[]; onSubstitute: () => void; onToggleUnilateral: () => void }) {
+export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubstitute }: { exercise: ExerciseDto; weekNumber: number; blockSequence: number[]; onSubstitute: () => void }) {
   const isLinear = exercise.progression.type === "Linear";
   const isRepsPerSet = exercise.progression.type === "RepsPerSet";
   const isMinimalSets = exercise.progression.type === "MinimalSets";
@@ -117,23 +116,14 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
             <span>Target Sets:</span>
             <span className="font-medium text-foreground">{repsPerSetProg.targetSets}</span>
           </div>
-          <div className="flex justify-between items-center pt-1 mt-1 border-t border-border/50">
-            <span>Unilateral:</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleUnilateral();
-              }}
-              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                repsPerSetProg.isUnilateral
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-              title={repsPerSetProg.isUnilateral ? "Click to set bilateral" : "Click to set unilateral (per side)"}
-            >
-              {repsPerSetProg.isUnilateral ? "Per Side" : "Both"}
-            </button>
-          </div>
+          {repsPerSetProg.isUnilateral && (
+            <div className="flex justify-between items-center pt-1 mt-1 border-t border-border/50">
+              <span>Unilateral:</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">
+                Per Side
+              </span>
+            </div>
+          )}
           {repsPerSetProg.isUnilateral && (
             <div className="text-primary text-[10px] font-medium">
               {repsPerSetProg.currentSetCount} sets × 2 sides = {repsPerSetProg.currentSetCount * 2} total
@@ -166,7 +156,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
   );
 }
 
-export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, onToggleUnilateral, blockSequence }: DayCardProps) {
+export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, blockSequence }: DayCardProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   const dayLabel = `W${weekNumber} D${dayNumber}`;
@@ -247,7 +237,6 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
                 weekNumber={weekNumber}
                 blockSequence={blockSequence}
                 onSubstitute={() => onSubstituteExercise(exercise)}
-                onToggleUnilateral={() => onToggleUnilateral(exercise)}
               />
             ))
         ) : (

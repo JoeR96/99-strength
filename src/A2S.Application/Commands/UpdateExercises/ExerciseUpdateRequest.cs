@@ -12,6 +12,5 @@ public sealed record ExerciseUpdateRequest
     public WeightUnit? TrainingMaxUnit { get; init; }
     public decimal? WeightValue { get; init; }
     public WeightUnit? WeightUnit { get; init; }
-    public bool? IsUnilateral { get; init; }
     public string? Reason { get; init; }
 }

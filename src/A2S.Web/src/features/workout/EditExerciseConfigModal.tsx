@@ -24,8 +24,6 @@ export interface ExerciseConfigUpdate {
   // For RepsPerSet/MinimalSets
   weightValue?: number;
   weightUnit?: WeightUnit;
-  // For RepsPerSet only
-  isUnilateral?: boolean;
 }
 
 type ProgressionType = "Linear" | "RepsPerSet";
@@ -76,10 +74,6 @@ export function EditExerciseConfigModal({
   const [targetSets, setTargetSets] = useState<number>(
     repsPerSetProg?.targetSets ?? 5
   );
-  const [isUnilateral, setIsUnilateral] = useState<boolean>(
-    repsPerSetProg?.isUnilateral ?? false
-  );
-
   // Reset form when exercise changes
   useEffect(() => {
     setWantSwap(false);
@@ -92,14 +86,12 @@ export function EditExerciseConfigModal({
       setRepRangeMin(8);
       setRepRangeMax(12);
       setTargetSets(5);
-      setIsUnilateral(false);
     }
     if (repsPerSetProg) {
       setWeightValue(repsPerSetProg.currentWeight);
       setRepRangeMin(repsPerSetProg.repRange?.minimum ?? 8);
       setRepRangeMax(repsPerSetProg.repRange?.maximum ?? 12);
       setTargetSets(repsPerSetProg.targetSets ?? 5);
-      setIsUnilateral(repsPerSetProg.isUnilateral ?? false);
       setRpsWeightUnit(
         repsPerSetProg.weightUnit?.toLowerCase() === "pounds"
           ? WeightUnit.Pounds
@@ -131,7 +123,7 @@ export function EditExerciseConfigModal({
 
             repRangeMaximum: repRangeMax,
             targetSets: targetSets,
-            isUnilateral: isUnilateral,
+            isUnilateral: repsPerSetProg?.isUnilateral ?? false,
           };
         } else {
           // Swapping from RepsPerSet -> Linear
@@ -156,7 +148,7 @@ export function EditExerciseConfigModal({
           repRangeMinimum: repRangeMin,
           repRangeMaximum: repRangeMax,
           targetSets: repsPerSetProg.targetSets ?? 5,
-          isUnilateral: isUnilateral,
+          isUnilateral: repsPerSetProg.isUnilateral ?? false,
         };
         await onChangeProgression(exercise.id, config);
       } else {
@@ -168,7 +160,6 @@ export function EditExerciseConfigModal({
         } else if (isRepsPerSet) {
           config.weightValue = weightValue;
           config.weightUnit = rpsWeightUnit;
-          config.isUnilateral = isUnilateral;
         }
         await onSave(exercise.id, config);
       }
@@ -306,35 +297,12 @@ export function EditExerciseConfigModal({
                 </div>
               </div>
 
-              {/* Unilateral Toggle */}
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div>
-                  <div className="font-medium text-sm">Unilateral</div>
-                  <div className="text-xs text-muted-foreground">
-                    One side at a time (sets doubled)
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsUnilateral(!isUnilateral)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isUnilateral ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isUnilateral ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
               {repsPerSetProg && (
                 <div className="text-sm text-muted-foreground bg-muted/50 rounded p-3">
                   <div className="font-medium mb-1">Current Config:</div>
                   <div>
                     Sets: {repsPerSetProg.currentSetCount}/{repsPerSetProg.targetSets}
-                    {isUnilateral && " per side"}
+                    {repsPerSetProg.isUnilateral && " per side"}
                   </div>
                 </div>
               )}
@@ -420,28 +388,6 @@ export function EditExerciseConfigModal({
                 />
               </div>
 
-              {/* Unilateral Toggle */}
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div>
-                  <div className="font-medium text-sm">Unilateral</div>
-                  <div className="text-xs text-muted-foreground">
-                    One side at a time (sets doubled)
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsUnilateral(!isUnilateral)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isUnilateral ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isUnilateral ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
             </div>
           )}
 

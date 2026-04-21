@@ -42,7 +42,7 @@ export function SetupWizard() {
           description: '',
         } as ExerciseTemplate,
         category: ex.category,
-        progressionType: ex.progressionType as 'Linear' | 'RepsPerSet',
+        progressionType: ex.progressionType as 'Linear' | 'RepsPerSet' | 'MinimalSets',
         assignedDay: ex.assignedDay as DayNumber,
         orderInDay: ex.orderInDay,
         trainingMax: ex.trainingMaxValue ? {
@@ -51,12 +51,15 @@ export function SetupWizard() {
         } : undefined,
         isPrimary: ex.category === ExerciseCategory.MainLift,
         baseSetsPerExercise: templateData?.defaultSets || 4,
-        repRange: templateData?.defaultRepRange,
+        repRange: (ex.repRangeMinimum != null && ex.repRangeMaximum != null)
+          ? { minimum: ex.repRangeMinimum, maximum: ex.repRangeMaximum }
+          : templateData?.defaultRepRange,
         currentSets: ex.startingSets ?? templateData?.defaultSets ?? 3,
         targetSets: ex.targetSets ?? (templateData?.defaultSets ?? 3) + 2,
         startingWeight: ex.startingWeight,
         weightUnit: ex.weightUnit || WeightUnit.Kilograms,
         isUnilateral: ex.isUnilateral,
+        targetTotalReps: ex.targetTotalReps,
       };
     });
 
@@ -114,6 +117,11 @@ export function SetupWizard() {
         startingSets: ex.currentSets,
         targetSets: ex.targetSets,
         isUnilateral: ex.isUnilateral,
+        // RepsPerSet rep range (so backend receives explicit ranges instead of defaults)
+        repRangeMinimum: ex.repRange?.minimum,
+        repRangeMaximum: ex.repRange?.maximum,
+        // MinimalSets progression fields
+        targetTotalReps: ex.targetTotalReps,
       }));
 
       await createWorkout.mutateAsync({

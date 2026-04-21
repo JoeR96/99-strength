@@ -6,7 +6,7 @@ import { useHevy } from "@/contexts/HevyContext";
 import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy, getOrCreateRoutineFolder } from "@/services/hevySyncService";
 import { workoutsApi } from "@/api/workouts";
 import toast from "react-hot-toast";
-import { type WorkoutDto, type ExerciseDto, type ExerciseTemplate, type RepsPerSetProgressionDto } from "@/types/workout";
+import { type WorkoutDto, type ExerciseDto, type ExerciseTemplate } from "@/types/workout";
 import { EditExercisesModal } from "./EditExercisesModal";
 import { ExerciseSubstitutionConfigModal } from "./ExerciseSubstitutionConfigModal";
 import { type ProgressionConfig, type LinearConfig, type RepsPerSetConfig, type MinimalSetsConfig } from "./SubstitutionConfigForms";
@@ -194,38 +194,6 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   // Exercise substitution handlers (for planning ahead)
   const handleOpenSubstitution = (exercise: ExerciseDto) => {
     setExerciseToSubstitute(exercise);
-  };
-
-  // Toggle unilateral status for RepsPerSet exercises
-  const handleToggleUnilateral = async (exercise: ExerciseDto) => {
-    if (exercise.progression.type !== "RepsPerSet") {
-      toast.error("Unilateral toggle is only available for RepsPerSet exercises");
-      return;
-    }
-
-    const repsPerSetProg = exercise.progression as RepsPerSetProgressionDto;
-    const newUnilateral = !repsPerSetProg.isUnilateral;
-
-    try {
-      await updateExercisesMutation.mutateAsync({
-        workoutId: workout.id,
-        request: {
-          updates: [{
-            exerciseId: exercise.id,
-            isUnilateral: newUnilateral,
-            reason: `Set ${newUnilateral ? "unilateral" : "bilateral"} mode`,
-          }],
-        },
-      });
-
-      toast.success(`${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}`);
-      // Clear session synced days since exercises changed
-      setSessionSyncedDays(new Set());
-      onWorkoutUpdated?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to toggle unilateral";
-      toast.error(message);
-    }
   };
 
   const handleUndoCompletion = async () => {
@@ -431,7 +399,6 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
             onEdit={() => setEditingDay(day)}
             onPullWorkout={() => handlePullWorkout(day)}
             onSubstituteExercise={handleOpenSubstitution}
-            onToggleUnilateral={handleToggleUnilateral}
             blockSequence={workout.blockSequence ?? [1, 2, 3]}
           />
         ))}

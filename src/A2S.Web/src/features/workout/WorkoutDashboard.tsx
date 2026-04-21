@@ -32,7 +32,6 @@ export function WorkoutDashboard() {
           trainingMaxUnit: config.trainingMaxUnit,
           weightValue: config.weightValue,
           weightUnit: config.weightUnit,
-          isUnilateral: config.isUnilateral,
         }],
       },
     });

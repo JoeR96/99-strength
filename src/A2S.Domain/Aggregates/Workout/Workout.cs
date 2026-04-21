@@ -352,18 +352,6 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
-    /// Sets whether an exercise is unilateral (performed one side at a time).
-    /// Only applicable for exercises using RepsPerSet progression.
-    /// </summary>
-    public void SetExerciseUnilateral(ExerciseId exerciseId, bool isUnilateral)
-    {
-        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
-        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
-
-        exercise.SetUnilateral(isUnilateral);
-    }
-
-    /// <summary>
     /// Confirms the starting weight for an exercise via the aggregate root.
     /// </summary>
     public void ConfirmExerciseStartingWeight(ExerciseId exerciseId, Weight weight)

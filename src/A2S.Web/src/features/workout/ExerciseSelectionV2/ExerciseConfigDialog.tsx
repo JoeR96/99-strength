@@ -50,7 +50,6 @@ export function ExerciseConfigDialog({
   const [currentSets, setCurrentSets] = useState<number>(3);
   const [targetSets, setTargetSets] = useState<number>(5);
   // MinimalSets progression state
-  const [minimalSetsWeight, setMinimalSetsWeight] = useState<number>(0);
   const [targetTotalReps, setTargetTotalReps] = useState<number>(40);
   const [minSets, setMinSets] = useState<number>(3);
   const [maxSets, setMaxSets] = useState<number>(6);
@@ -78,6 +77,14 @@ export function ExerciseConfigDialog({
       if (exercise.currentSets) setCurrentSets(exercise.currentSets);
       if (exercise.targetSets) setTargetSets(exercise.targetSets);
       if (exercise.weightUnit !== undefined) setWeightUnit(exercise.weightUnit);
+
+      // MinimalSets progression (reuse currentSets/targetSets as min/max)
+      if (exercise.targetTotalReps != null) setTargetTotalReps(exercise.targetTotalReps);
+      if (exercise.currentSets) {
+        setMinSets(exercise.currentSets);
+        setMinimalCurrentSets(exercise.currentSets);
+      }
+      if (exercise.targetSets) setMaxSets(exercise.targetSets);
     }
   }, [exercise]);
 
@@ -100,13 +107,12 @@ export function ExerciseConfigDialog({
         startingWeight: undefined,
       };
     } else if (progressionType === 'MinimalSets') {
-      // MinimalSets maps to RepsPerSet on the backend for now
       progressionUpdates = {
-        progressionType: 'RepsPerSet' as const,
+        progressionType: 'MinimalSets' as const,
         assignedDay,
         category: ExerciseCategory.Accessory,
         isUnilateral: undefined,
-        startingWeight: minimalSetsWeight,
+        startingWeight: undefined,
         weightUnit,
         currentSets: minimalCurrentSets,
         targetSets: maxSets,
@@ -114,6 +120,7 @@ export function ExerciseConfigDialog({
           minimum: Math.floor(targetTotalReps / maxSets),
           maximum: Math.ceil(targetTotalReps / minSets),
         },
+        targetTotalReps,
         trainingMax: undefined,
         isPrimary: undefined,
         baseSetsPerExercise: undefined,
@@ -387,28 +394,10 @@ export function ExerciseConfigDialog({
                   Minimal Sets Settings
                 </h3>
 
-                {/* Weight (for assisted exercises, can be 0 or negative for assistance) */}
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-foreground">Weight / Assistance</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={minimalSetsWeight}
-                      onChange={(e) => setMinimalSetsWeight(Number(e.target.value))}
-                      className="flex-1 px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                      step="2.5"
-                    />
-                    <select
-                      value={weightUnit}
-                      onChange={(e) => setWeightUnit(Number(e.target.value) as WeightUnit)}
-                      className="px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
-                    >
-                      <option value={WeightUnitEnum.Kilograms}>kg</option>
-                      <option value={WeightUnitEnum.Pounds}>lbs</option>
-                    </select>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Use 0 for bodyweight, negative for assisted (e.g., -30 for band assistance)
+                {/* Weight info (set after first session) */}
+                <div className="p-3 bg-muted/50 rounded-xl border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Weight / assistance will be set after your first session. Just enter the load you use during your workout and confirm it afterwards.
                   </p>
                 </div>
 

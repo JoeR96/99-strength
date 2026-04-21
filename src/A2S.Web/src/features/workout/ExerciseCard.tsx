@@ -14,7 +14,6 @@ interface ExerciseCardProps {
   ) => void;
   onSetComplete: (exerciseIndex: number, setIndex: number) => void;
   onSubstitute: (exercise: ExerciseDto) => void;
-  onToggleUnilateral: (exercise: ExerciseDto) => void;
   onEdit: (exercise: ExerciseDto) => void;
   isTemporarilySubstituted: boolean;
   originalName?: string;
@@ -26,7 +25,6 @@ export function ExerciseCard({
   onSetChange,
   onSetComplete,
   onSubstitute,
-  onToggleUnilateral,
   onEdit,
   isTemporarilySubstituted,
   originalName,
@@ -77,17 +75,6 @@ export function ExerciseCard({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </Button>
-          {isRepsPerSet && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onToggleUnilateral(entry.exercise)}
-              className={`text-xs px-2 ${repsPerSetProg?.isUnilateral ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground hover:text-foreground"}`}
-              aria-label={repsPerSetProg?.isUnilateral ? "Switch to bilateral (both sides together)" : "Switch to unilateral (one side at a time)"}
-            >
-              {repsPerSetProg?.isUnilateral ? "1-Arm" : "2-Arm"}
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="sm"

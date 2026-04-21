@@ -127,60 +127,6 @@ export function createPermanentSubstituteHandler(deps: WorkoutConfigDeps) {
   };
 }
 
-export function createToggleUnilateralHandler(deps: WorkoutConfigDeps) {
-  return async (exercise: ExerciseDto) => {
-    if (!deps.workout) return;
-    if (exercise.progression.type !== "RepsPerSet") {
-      toast.error("Unilateral toggle only applies to RepsPerSet exercises");
-      return;
-    }
-    const repsPerSetProg = exercise.progression as RepsPerSetProgressionDto;
-    const newUnilateral = !repsPerSetProg.isUnilateral;
-
-    try {
-      toast.loading("Updating exercise...", { id: "toggle-unilateral" });
-      await deps.updateExercisesMutation.mutateAsync({
-        workoutId: deps.workout.id,
-        request: { updates: [{ exerciseId: exercise.id, isUnilateral: newUnilateral, reason: `Set ${newUnilateral ? "unilateral" : "bilateral"} mode` }] },
-      });
-
-      if (hevyApi.isConfigured()) {
-        await syncRoutineAfterChange(
-          deps,
-          "toggle-unilateral",
-          `${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}. Hevy routine updated!`,
-          "Exercise updated but Hevy sync failed"
-        );
-      } else {
-        toast.success(`${exercise.name} is now ${newUnilateral ? "unilateral (per side)" : "bilateral"}`, { id: "toggle-unilateral" });
-        await deps.refetch();
-      }
-
-      deps.setExerciseEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.exercise.id !== exercise.id) return entry;
-          const currentSetCount = entry.sets.length;
-          let newSets: SetEntry[];
-          if (newUnilateral) {
-            newSets = [];
-            for (let i = 0; i < currentSetCount * 2; i++) {
-              const sourceSet = entry.sets[Math.floor(i / 2)];
-              newSets.push({ setNumber: i + 1, weight: sourceSet.weight, reps: sourceSet.reps, isAmrap: false, completed: false });
-            }
-          } else {
-            const newSetCount = Math.ceil(currentSetCount / 2);
-            newSets = entry.sets.slice(0, newSetCount).map((set, i) => ({ ...set, setNumber: i + 1 }));
-          }
-          return { ...entry, sets: newSets, targetSets: newSets.length };
-        })
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to toggle unilateral";
-      toast.error(message, { id: "toggle-unilateral" });
-    }
-  };
-}
-
 export function createSaveExerciseConfigHandler(deps: WorkoutConfigDeps) {
   return async (exerciseId: string, config: ExerciseConfigUpdate) => {
     if (!deps.workout) return;
@@ -189,7 +135,6 @@ export function createSaveExerciseConfigHandler(deps: WorkoutConfigDeps) {
       const updateRequest: ExerciseUpdateRequest = { exerciseId, reason: "Manual configuration update" };
       if (config.trainingMaxValue !== undefined) { updateRequest.trainingMaxValue = config.trainingMaxValue; updateRequest.trainingMaxUnit = config.trainingMaxUnit; }
       if (config.weightValue !== undefined) { updateRequest.weightValue = config.weightValue; updateRequest.weightUnit = config.weightUnit; }
-      if (config.isUnilateral !== undefined) { updateRequest.isUnilateral = config.isUnilateral; }
 
       await deps.updateExercisesMutation.mutateAsync({ workoutId: deps.workout.id, request: { updates: [updateRequest] } });
 

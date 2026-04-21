@@ -91,7 +91,6 @@ export function WorkoutSession() {
                   onSetChange={session.handleSetChange}
                   onSetComplete={session.handleSetComplete}
                   onSubstitute={session.handleOpenSubstitution}
-                  onToggleUnilateral={session.handleToggleUnilateral}
                   onEdit={session.setExerciseToEdit}
                   isTemporarilySubstituted={!!substitution}
                   originalName={substitution?.originalName}

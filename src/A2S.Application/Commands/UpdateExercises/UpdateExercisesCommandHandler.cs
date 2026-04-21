@@ -148,14 +148,6 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 updated = true;
             }
 
-            if (update.IsUnilateral.HasValue && exercise.Progression.SupportsUnilateral)
-            {
-                var prevUnilateral = exercise.Progression.IsUnilateral;
-                workout.SetExerciseUnilateral(exerciseId, update.IsUnilateral.Value);
-                messages.Add($"Unilateral: {prevUnilateral} → {update.IsUnilateral.Value}");
-                updated = true;
-            }
-
             if (updated)
             {
                 return new ExerciseUpdateResult

@@ -319,28 +319,6 @@ describe('workoutsApi', () => {
       expect(result).toEqual(response);
     });
 
-    it('should handle unilateral toggle update', async () => {
-      const request = {
-        updates: [
-          {
-            exerciseId: 'ex-1',
-            isUnilateral: true,
-          },
-        ],
-      };
-      vi.mocked(apiClient.put).mockResolvedValue({ data: { updatedCount: 1, results: [] } });
-
-      await workoutsApi.updateExercises('workout-123', request);
-
-      expect(apiClient.put).toHaveBeenCalledWith(
-        '/workouts/workout-123/exercises',
-        expect.objectContaining({
-          updates: expect.arrayContaining([
-            expect.objectContaining({ isUnilateral: true }),
-          ]),
-        })
-      );
-    });
   });
 
   describe('substituteExercise', () => {
