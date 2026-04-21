@@ -60,7 +60,7 @@ export function HevySyncButton({
     );
   }
 
-  if (!isValid) {
+  if (isValid === false) {
     return (
       <Button variant={variant} size={size} className={className} disabled>
         <svg className="h-4 w-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

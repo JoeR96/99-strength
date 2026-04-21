@@ -102,7 +102,7 @@ export function HevyDataPage() {
           </p>
         </div>
 
-        {!isConfigured || !isValid ? (
+        {!isConfigured || isValid === false ? (
           <div className="space-y-4">
             <Card>
               <CardContent className="pt-6">
