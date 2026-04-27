@@ -49,3 +49,6 @@ src/A2S.Web/.env.example
 src/A2S.Web/.env.test.example
 
 .vercel
+docker-compose.override.yml
+WORKBENCH.md
+.gitignore
