@@ -360,7 +360,7 @@ const monkModeTemplate: WorkoutTemplate = {
       progressionType: "Linear",
       assignedDay: 1,
       orderInDay: 1,
-      trainingMaxValue: 75,
+      trainingMaxValue: 92.5,
       trainingMaxUnit: WeightUnit.Kilograms,
     },
     {
