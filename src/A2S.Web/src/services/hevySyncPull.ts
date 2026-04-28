@@ -158,8 +158,14 @@ export async function pullWorkoutFromHevy(
       const actualWeights = hevyInfo.sets.map(s => s.weight);
       const hasVaryingWeights = new Set(actualWeights).size > 1;
 
-      const shouldReportDiscrepancy = hasVaryingWeights ||
-        (actualWeights.length > 0 && Math.abs(actualWeights[0] - prescribedWeight) > 0.01);
+      // First-time RepsPerSet/MinimalSets log: no prescribed weight exists yet,
+      // so the Hevy weight is by definition the starting weight — no discrepancy.
+      const isFirstTimeWeightCapture =
+        (exercise.progression.type === 'RepsPerSet' || exercise.progression.type === 'MinimalSets') &&
+        prescribedWeight === 0;
+
+      const shouldReportDiscrepancy = !isFirstTimeWeightCapture && (hasVaryingWeights ||
+        (actualWeights.length > 0 && Math.abs(actualWeights[0] - prescribedWeight) > 0.01));
 
       if (shouldReportDiscrepancy) {
         weightDiscrepancies.push({
