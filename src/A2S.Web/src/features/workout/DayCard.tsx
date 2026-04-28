@@ -253,11 +253,11 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
             Upcoming
           </Button>
         ) : hevyEnabled && (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <Button
-              variant={isCurrent ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              className="flex-1"
+              className="w-full"
               onClick={handleSync}
               disabled={isSyncing || isSynced}
               data-testid={`send-to-hevy-day-${dayNumber}`}
@@ -289,7 +289,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
             <Button
               variant="outline"
               size="sm"
-              className="flex-1"
+              className="w-full"
               onClick={handlePull}
               disabled={isPulling}
               title="Pull workout data from Hevy"
