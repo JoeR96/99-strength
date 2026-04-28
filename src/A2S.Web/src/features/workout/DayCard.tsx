@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
 import { getWeekParameters, getTemplateWeek, roundToGymIncrement } from "@/utils/weekParameters";
@@ -253,74 +252,67 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
           <Button variant="outline" size="sm" className="w-full" disabled data-testid={`start-workout-day-${dayNumber}`}>
             Upcoming
           </Button>
-        ) : (
+        ) : hevyEnabled && (
           <div className="flex gap-2">
-            <Link to={`/workout/session/${dayNumber}`} className="flex-1">
-              <Button
-                variant={isCurrent ? "default" : "outline"}
-                size="sm"
-                className="w-full"
-                data-testid={`start-workout-day-${dayNumber}`}
-              >
-                {isCurrent ? "Start" : "Start"}
-              </Button>
-            </Link>
-            {hevyEnabled && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePull}
-                disabled={isPulling}
-                title="Pull workout data from Hevy"
-                data-testid={`pull-workout-day-${dayNumber}`}
-              >
-                {isPulling ? (
-                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <Button
+              variant={isCurrent ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={handleSync}
+              disabled={isSyncing || isSynced}
+              data-testid={`send-to-hevy-day-${dayNumber}`}
+            >
+              {isSyncing ? (
+                <>
+                  <svg className="h-4 w-4 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                ) : (
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  Sending...
+                </>
+              ) : isSynced ? (
+                <span className="flex items-center gap-1" title={syncTimestamp ? `Synced ${syncTimestamp.toLocaleString()}` : 'Synced to Hevy'}>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {syncTimestamp ? `Synced ${formatSyncTime(syncTimestamp)}` : 'Sent to Hevy'}
+                </span>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Send to Hevy
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={handlePull}
+              disabled={isPulling}
+              title="Pull workout data from Hevy"
+              data-testid={`pull-workout-day-${dayNumber}`}
+            >
+              {isPulling ? (
+                <>
+                  <svg className="h-4 w-4 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Pulling...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                   </svg>
-                )}
-              </Button>
-            )}
+                  Pull from Hevy
+                </>
+              )}
+            </Button>
           </div>
-        )}
-
-        {hevyEnabled && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs"
-            onClick={handleSync}
-            disabled={isSyncing || isSynced}
-          >
-            {isSyncing ? (
-              <>
-                <svg className="h-3 w-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Syncing...
-              </>
-            ) : isSynced ? (
-              <span className="flex items-center gap-1" title={syncTimestamp ? `Synced ${syncTimestamp.toLocaleString()}` : 'Synced to Hevy'}>
-                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                {syncTimestamp ? `Synced ${formatSyncTime(syncTimestamp)}` : 'Sent to Hevy'}
-              </span>
-            ) : (
-              <>
-                <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Send to Hevy
-              </>
-            )}
-          </Button>
         )}
       </div>
     </div>
