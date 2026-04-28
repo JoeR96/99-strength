@@ -141,12 +141,12 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
     /// <summary>
     /// Applies performance results and adjusts sets or weight based on performance.
     /// Implements the Reps Per Set progression algorithm from business-rules.md lines 187-210.
+    /// Set-count progression evaluates from rep performance alone, so it runs even
+    /// when CurrentWeight is still pending — only the weight-increment branch needs
+    /// a known weight, and that branch only fires once max sets have been reached.
     /// </summary>
     public override void ApplyPerformanceResult(ExercisePerformance performance)
     {
-        if (IsWeightPending)
-            return;
-
         var evaluation = EvaluatePerformance(performance);
 
         switch (evaluation)
@@ -227,10 +227,12 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         {
             CurrentSetCount++;
         }
-        else
+        else if (CurrentWeight != null)
         {
-            // At max sets, increase weight and reset to starting sets
-            var newWeight = CurrentWeight!.Add(GetWeightIncrement());
+            // At max sets, increase weight and reset to starting sets.
+            // Skipped when weight is still pending — set count stays at max
+            // until the user confirms a starting weight on a future session.
+            var newWeight = CurrentWeight.Add(GetWeightIncrement());
             CurrentWeight = newWeight;
             CurrentSetCount = StartingSets;
 
@@ -254,13 +256,15 @@ public sealed class RepsPerSetStrategy : ExerciseProgression
         {
             CurrentSetCount--;
         }
-        else
+        else if (CurrentWeight != null)
         {
-            // At minimum sets, reduce weight (if possible)
+            // At minimum sets, reduce weight (if possible).
+            // Skipped when weight is still pending — there is no weight to
+            // reduce yet, the user will set it on confirmation.
             var decrement = GetWeightIncrement();
 
             // Only decrease if we won't go below zero
-            if (CurrentWeight!.Value >= decrement.Value)
+            if (CurrentWeight.Value >= decrement.Value)
             {
                 CurrentWeight = CurrentWeight.Subtract(decrement);
             }
