@@ -121,7 +121,7 @@ public class ProgressionStrategyEdgeCaseTests
     }
 
     [Fact]
-    public void RpsWithPendingWeight_ApplyPerformance_IsNoOp()
+    public void RpsWithPendingWeight_ApplyPerformance_StillProgressesSets()
     {
         var strategy = RepsPerSetStrategy.Create(
             _repRange, EquipmentType.Cable, startingSets: 3, targetSets: 5);
@@ -132,7 +132,8 @@ public class ProgressionStrategyEdgeCaseTests
 
         strategy.ApplyPerformanceResult(new ExercisePerformance(_exerciseId, plannedSets, completedSets));
 
-        strategy.CurrentSetCount.Should().Be(3, "Sets should not change while weight is pending");
+        strategy.CurrentSetCount.Should().Be(4, "Set-count progression evaluates from rep performance alone, so it runs even when weight is still pending");
+        strategy.IsWeightPending.Should().BeTrue("Weight remains pending until the user confirms a starting weight");
     }
 
     [Fact]
