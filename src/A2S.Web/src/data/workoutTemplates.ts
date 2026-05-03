@@ -418,8 +418,8 @@ const monkModeTemplate: WorkoutTemplate = {
 
     // ==================== DAY 2: Upper (Push Focus) ====================
     {
-      templateName: "Overhead Press (Smith Machine)",
-      externalTemplateId: "B09A1304",
+      templateName: "Overhead Press (Barbell)",
+      externalTemplateId: "7B8D84E8",
       category: ExerciseCategory.MainLift,
       progressionType: "RepsPerSet",
       assignedDay: 2,
