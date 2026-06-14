@@ -574,7 +574,34 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
+        var affectedDay = exercise!.AssignedDay;
         _exercises.Remove(exercise);
+
+        // Re-sequence the affected day so OrderInDay stays contiguous (1, 2, 3, ...).
+        // Leaving a gap would violate the sequential-ordering invariant enforced by
+        // ValidateExerciseOrdering on subsequent operations.
+        ResequenceDay(affectedDay);
+    }
+
+    /// <summary>
+    /// Compacts OrderInDay values for a single day to be contiguous starting at 1,
+    /// preserving the existing relative order.
+    /// </summary>
+    private void ResequenceDay(DayNumber day)
+    {
+        var ordered = _exercises
+            .Where(e => e.AssignedDay == day)
+            .OrderBy(e => e.OrderInDay)
+            .ToList();
+
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            var expectedOrder = i + 1;
+            if (ordered[i].OrderInDay != expectedOrder)
+            {
+                ordered[i].ChangeAssignedDay(day, expectedOrder);
+            }
+        }
     }
 
     /// <summary>

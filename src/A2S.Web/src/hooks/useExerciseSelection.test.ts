@@ -290,6 +290,66 @@ describe('useExerciseSelection', () => {
 
       expect(result.current.selectedExercises).toHaveLength(1);
     });
+
+    it('should re-sequence orderInDay so no gap is left after removing a middle exercise', () => {
+      const { result } = renderHook(() => useExerciseSelection());
+
+      // Day 2 with five contiguous exercises (orders 1..5)
+      const day2: SelectedExercise[] = [1, 2, 3, 4, 5].map((order) => ({
+        id: `ex-${order}`,
+        template: createTemplate(`Exercise ${order}`),
+        hevyExerciseTemplateId: '',
+        category: ExerciseCategory.Accessory,
+        progressionType: 'RepsPerSet',
+        assignedDay: 2 as DayNumber,
+        orderInDay: order,
+      }));
+
+      act(() => {
+        result.current.setExercises(day2);
+      });
+
+      // Remove the 3rd exercise (order 3) — previously left a gap at position 3
+      act(() => {
+        result.current.removeExercise('ex-3');
+      });
+
+      const remaining = result.current.exercisesByDay[2];
+      expect(remaining).toHaveLength(4);
+      // Orders must be contiguous 1..4 with no gap (backend requires this)
+      expect(remaining.map((e) => e.orderInDay)).toEqual([1, 2, 3, 4]);
+      // The removed exercise is gone; relative order of the rest is preserved
+      expect(remaining.map((e) => e.template.name)).toEqual([
+        'Exercise 1',
+        'Exercise 2',
+        'Exercise 4',
+        'Exercise 5',
+      ]);
+    });
+
+    it('should only re-sequence the affected day, leaving other days untouched', () => {
+      const { result } = renderHook(() => useExerciseSelection());
+
+      const exercises: SelectedExercise[] = [
+        { id: 'd1-1', template: createTemplate('D1 A'), hevyExerciseTemplateId: '', category: ExerciseCategory.MainLift, progressionType: 'Linear', assignedDay: 1 as DayNumber, orderInDay: 1 },
+        { id: 'd1-2', template: createTemplate('D1 B'), hevyExerciseTemplateId: '', category: ExerciseCategory.Accessory, progressionType: 'RepsPerSet', assignedDay: 1 as DayNumber, orderInDay: 2 },
+        { id: 'd2-1', template: createTemplate('D2 A'), hevyExerciseTemplateId: '', category: ExerciseCategory.Accessory, progressionType: 'RepsPerSet', assignedDay: 2 as DayNumber, orderInDay: 1 },
+        { id: 'd2-2', template: createTemplate('D2 B'), hevyExerciseTemplateId: '', category: ExerciseCategory.Accessory, progressionType: 'RepsPerSet', assignedDay: 2 as DayNumber, orderInDay: 2 },
+      ];
+
+      act(() => {
+        result.current.setExercises(exercises);
+      });
+
+      act(() => {
+        result.current.removeExercise('d1-1'); // remove first of Day 1
+      });
+
+      // Day 1 re-sequenced to start at 1
+      expect(result.current.exercisesByDay[1].map((e) => e.orderInDay)).toEqual([1]);
+      // Day 2 untouched
+      expect(result.current.exercisesByDay[2].map((e) => e.orderInDay)).toEqual([1, 2]);
+    });
   });
 
   describe('updateExercise', () => {
