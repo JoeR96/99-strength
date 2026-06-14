@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace A2S.Application.Queries.GetWeekPlan;
 
 /// <summary>
@@ -25,6 +27,12 @@ public sealed record PlannedExerciseDto
     public string Category { get; init; } = string.Empty;
     public string Equipment { get; init; } = string.Empty;
     public int OrderInDay { get; init; }
+
+    /// <summary>
+    /// Hevy exercise template ID for syncing.
+    /// Serialized as "hevyExerciseTemplateId" to match the frontend contract used by Hevy sync.
+    /// </summary>
+    [JsonPropertyName("hevyExerciseTemplateId")]
     public string ExternalTemplateId { get; init; } = string.Empty;
     public string ProgressionType { get; init; } = string.Empty;
     public IReadOnlyList<PlannedSetDto> PlannedSets { get; init; } = Array.Empty<PlannedSetDto>();

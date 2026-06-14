@@ -331,7 +331,7 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
 };
 
 /**
- * Monk Mode Template
+ * Big Daves Bonanza Template
  * A 4-day Upper/Lower split with posterior chain focus
  * - Day 1: Upper Push/Pull
  * - Day 2: Legs (Posterior Focus)
@@ -344,9 +344,9 @@ const fourDayHypertrophyTemplate: WorkoutTemplate = {
  *
  * Starting weights based on Hevy training history
  */
-const monkModeTemplate: WorkoutTemplate = {
-  id: 'monk-mode',
-  name: 'Monk Mode',
+const bigDavesBonanzaTemplate: WorkoutTemplate = {
+  id: 'big-daves-bonanza',
+  name: 'Big Daves Bonanza',
   description: 'A 4-day split: quad-focused lower, push upper, posterior lower, pull upper. Squat as Linear main lift; assisted pull/dip use MinimalSets.',
   variant: 4,
   totalWeeks: 21,
@@ -475,7 +475,7 @@ const monkModeTemplate: WorkoutTemplate = {
       repRangeMaximum: 15,
     },
     {
-      templateName: "Cable Core Palloff Press",
+      templateName: "Cable Core Pallof Press",
       externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
@@ -585,7 +585,7 @@ const monkModeTemplate: WorkoutTemplate = {
       repRangeMaximum: 12,
     },
     {
-      templateName: "Cable Core Palloff Press",
+      templateName: "Cable Core Pallof Press",
       externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
@@ -759,7 +759,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     },
     // Pallof Press (3 sets x 8-10 /side, unilateral)
     {
-      templateName: "Cable Core Palloff Press",
+      templateName: "Cable Core Pallof Press",
       externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
@@ -947,7 +947,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
     },
     // Pallof Press (3 sets x 8-10 /side, unilateral)
     {
-      templateName: "Cable Core Palloff Press",
+      templateName: "Cable Core Pallof Press",
       externalTemplateId: "CC55119B",
       category: ExerciseCategory.Accessory,
       progressionType: "RepsPerSet",
@@ -1055,7 +1055,7 @@ const optimised4DayV2Template: WorkoutTemplate = {
  */
 export const workoutTemplates: WorkoutTemplate[] = [
   fourDayHypertrophyTemplate,
-  monkModeTemplate,
+  bigDavesBonanzaTemplate,
   optimised4DayV2Template,
 ];
 
