@@ -10,6 +10,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 
 export interface CompletedSetDto {
   setNumber: number;
@@ -384,12 +385,12 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={volumeChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
+                  <XAxis dataKey="week" stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} />
+                  <YAxis stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} />
+                  <Tooltip contentStyle={chartTooltipContentStyle}
                     formatter={(value) => typeof value === 'number' ? [`${value} kg·reps`, 'Volume'] : [value, 'Volume']} />
-                  <Area type="monotone" dataKey="volume" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="volume" stroke={chartColors.primary} fill={chartColors.primaryTranslucent} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -400,12 +401,12 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weightChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} domain={['auto', 'auto']} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
+                  <XAxis dataKey="week" stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} />
+                  <YAxis stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} domain={['auto', 'auto']} />
+                  <Tooltip contentStyle={chartTooltipContentStyle}
                     formatter={(value) => [`${value} ${exercise.weightUnit.toLowerCase()}`, 'Weight']} />
-                  <Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="weight" stroke={chartColors.primary} strokeWidth={2} dot={{ fill: chartColors.primary, strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

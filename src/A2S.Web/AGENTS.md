@@ -80,14 +80,17 @@ src/
 
 ### Theming
 
-Two themes via CSS custom properties in `index.css`:
+**Three** themes, driven by CSS custom properties in `index.css` and a root-level class set by `ThemeContext` (`contexts/ThemeContext.tsx`):
 
-| Theme | Class | Style |
-|-------|-------|-------|
-| **Retro Arcade** | (default/light) | Dark bg, neon magenta/yellow, pixel fonts (Press Start 2P, VT323), scanline overlay |
+| Theme | Root class | Style |
+|-------|-----------|-------|
+| **Retro Arcade** | _(none — `:root` default)_ | Dark bg, olive/yellow accents, pixel/display fonts, scanline overlay |
 | **OSRS** | `.dark` | Brown parchment, gold text, RuneScape UF font |
+| **Apple** | `.apple-theme` | Light minimalist, blue accent, SF Pro / system font |
 
-Theme toggled via `ThemeContext`. Both are dark-background themes despite light/dark naming.
+`ThemeContext` cycles `retro → osrs → apple` and toggles the root class. See **`src/AGENTS.md` (styling rules)** below for the token contract — read it before touching any colour.
+
+> ⚠️ The colour CSS variables are named `--color-*` (Tailwind v4 `@theme`) and **already contain a full `hsl(...)` value**. Reference them as `var(--color-primary)` (or the `bg-primary` / `text-foreground` utilities) — **never** `hsl(var(--primary))`, which resolves to `hsl(undefined)` and renders black/illegible. This bit every Recharts chart until fixed; charts now use `src/lib/chartTheme.ts`.
 
 ### Storybook
 

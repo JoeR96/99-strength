@@ -16,6 +16,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 
 interface SetDetail {
   weightKg: number;
@@ -123,10 +124,12 @@ export function HevyExerciseModal({
     { key: 'reps' as const, label: 'Reps' },
   ];
 
+  // All metrics share the theme primary colour so the line, legend, and label stay
+  // consistent (only one metric is shown at a time). See lib/chartTheme.ts.
   const chartConfig = {
-    weight: { dataKey: 'maxWeight', label: 'Max Weight (kg)', color: 'hsl(var(--primary))' },
-    volume: { dataKey: 'totalVolume', label: 'Total Volume (kg)', color: 'hsl(210, 100%, 50%)' },
-    reps: { dataKey: 'maxReps', label: 'Max Reps', color: 'hsl(150, 80%, 40%)' },
+    weight: { dataKey: 'maxWeight', label: 'Max Weight (kg)', color: chartColors.primary },
+    volume: { dataKey: 'totalVolume', label: 'Total Volume (kg)', color: chartColors.primary },
+    reps: { dataKey: 'maxReps', label: 'Max Reps', color: chartColors.primary },
   };
 
   const activeConfig = chartConfig[chartMetric];
@@ -261,25 +264,21 @@ export function HevyExerciseModal({
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
                       <XAxis
                         dataKey="date"
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke={chartColors.mutedForeground}
+                        tick={{ fill: chartColors.mutedForeground }}
                         fontSize={11}
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke={chartColors.mutedForeground}
+                        tick={{ fill: chartColors.mutedForeground }}
                         fontSize={11}
                         width={50}
                       />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                        }}
+                      <Tooltip contentStyle={chartTooltipContentStyle}
                         formatter={(value) => [
                           `${value}${chartMetric === 'reps' ? '' : 'kg'}`,
                           activeConfig.label,

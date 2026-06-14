@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 
 type TimePeriod = '1M' | '3M' | '6M' | '1Y' | 'ALL';
 type Metric = 'weight' | 'volume' | 'e1rm';
@@ -42,10 +43,12 @@ const PERIOD_MS: Record<Exclude<TimePeriod, 'ALL'>, number> = {
   '1Y': 365 * 24 * 60 * 60 * 1000,
 };
 
+// All metrics share the theme primary colour so the line, legend, and label stay
+// consistent (only one metric is shown at a time). See lib/chartTheme.ts.
 const METRIC_CONFIG: Record<Metric, { label: string; color: string }> = {
-  weight: { label: 'Max Weight', color: 'hsl(var(--primary))' },
-  volume: { label: 'Volume', color: 'hsl(210, 100%, 50%)' },
-  e1rm: { label: 'Est. 1RM (Epley)', color: 'hsl(30, 90%, 50%)' },
+  weight: { label: 'Max Weight', color: chartColors.primary },
+  volume: { label: 'Volume', color: chartColors.primary },
+  e1rm: { label: 'Est. 1RM (Epley)', color: chartColors.primary },
 };
 
 function estimateE1RM(weight: number, reps: number): number {
@@ -145,25 +148,19 @@ export function ExerciseHistoryChart({ sessions, weightUnit }: ExerciseHistoryCh
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
               <XAxis
                 dataKey="date"
-                stroke="hsl(var(--muted-foreground))"
+                stroke={chartColors.mutedForeground}
                 fontSize={12}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fill: chartColors.mutedForeground }}
               />
               <YAxis
-                stroke="hsl(var(--muted-foreground))"
+                stroke={chartColors.mutedForeground}
                 fontSize={12}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fill: chartColors.mutedForeground }}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  color: 'hsl(var(--foreground))',
-                }}
+              <Tooltip contentStyle={chartTooltipContentStyle}
                 formatter={(value) => {
                   const suffix = activeMetric === 'volume' ? '' : ` ${unitLabel}`;
                   return [`${value}${suffix}`, METRIC_CONFIG[activeMetric].label];
