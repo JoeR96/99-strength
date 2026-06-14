@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
-package-lock.json
+# NOTE: package-lock.json is intentionally committed for reproducible installs.
+# Do not ignore it — an un-pinned lockfile let a declared dependency
+# (@radix-ui/react-alert-dialog) go uninstalled and broke `vite build`.
 
 # .NET
 bin/

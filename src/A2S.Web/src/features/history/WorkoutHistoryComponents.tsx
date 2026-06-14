@@ -11,6 +11,7 @@ import {
   Area,
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { blockColors, getBlockColor } from '@/lib/blockColors';
 
 export interface CompletedSetDto {
   setNumber: number;
@@ -78,11 +79,6 @@ export interface WorkoutHistoryDto {
   exerciseHistories: ExerciseHistoryDto[];
 }
 
-export const BLOCK_COLORS = {
-  1: '#3b82f6',
-  2: '#8b5cf6',
-  3: '#ec4899',
-};
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -117,7 +113,7 @@ export function GitHubStyleCalendar({
               const activity = day.activity;
               const isToday = day.date.toDateString() === new Date().toDateString();
               const isSelected = selectedDate && day.date.toDateString() === selectedDate.toDateString();
-              const blockColor = activity ? BLOCK_COLORS[activity.blockNumber as keyof typeof BLOCK_COLORS] : undefined;
+              const blockColor = activity ? getBlockColor(activity.blockNumber) : undefined;
 
               return (
                 <div
@@ -154,9 +150,9 @@ export function GitHubStyleCalendar({
             })}
           </div>
           <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
-            {[1, 2, 3].map(b => (
+            {Object.keys(blockColors).map(Number).map(b => (
               <div key={b} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: BLOCK_COLORS[b as keyof typeof BLOCK_COLORS] }} />
+                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getBlockColor(b) }} />
                 <span>Block {b}</span>
               </div>
             ))}
@@ -439,7 +435,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
                       </td>
                       <td className="py-3 px-4">
                         <span className="inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-medium text-white"
-                          style={{ backgroundColor: BLOCK_COLORS[week.blockNumber as keyof typeof BLOCK_COLORS] }}>{week.blockNumber}</span>
+                          style={{ backgroundColor: getBlockColor(week.blockNumber) }}>{week.blockNumber}</span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{week.completedAt ? new Date(week.completedAt).toLocaleDateString() : '-'}</td>
                       <td className="py-3 px-4 text-right font-mono text-foreground">{week.setsCompleted}</td>

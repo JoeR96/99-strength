@@ -22,9 +22,6 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isOsrs = mode === 'osrs';
-  const isApple = mode === 'apple';
-
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -53,40 +50,16 @@ export function Navbar() {
   }, [mobileMenuOpen]);
 
   return (
-    <nav className={`sticky top-0 z-50 border-b ${
-      mode === 'osrs'
-        ? 'bg-gradient-to-b from-[hsl(30,30%,18%)] to-[hsl(30,28%,14%)] border-[hsl(30,40%,30%)]'
-        : mode === 'apple'
-        ? 'bg-white/80 backdrop-blur-xl border-[hsl(0,0%,90%)]'
-        : 'bg-card backdrop-blur border-border'
-    }`}>
+    <nav className="sticky top-0 z-50 border-b border-border bg-card backdrop-blur">
       <div className="container-apple">
         <div className="flex h-16 justify-between items-center">
           {/* Logo */}
           <div className="flex items-center gap-8">
             <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-md ${
-                mode === 'osrs'
-                  ? 'bg-gradient-to-b from-[hsl(30,35%,35%)] to-[hsl(30,45%,20%)] border-2 border-[hsl(45,80%,45%)]'
-                  : mode === 'apple'
-                  ? 'bg-[hsl(211,100%,50%)] rounded-xl'
-                  : 'bg-primary'
-              }`}>
-                <span className={`text-lg font-bold ${
-                  mode === 'osrs'
-                    ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif] drop-shadow-[1px_1px_0_rgba(0,0,0,0.8)]'
-                    : mode === 'apple'
-                    ? 'text-white font-[-apple-system,BlinkMacSystemFont,sans-serif]'
-                    : 'text-white font-[Orbitron,sans-serif]'
-                }`}>99</span>
+              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
+                <span className="text-lg font-bold font-display text-primary-foreground">99</span>
               </div>
-              <h1 className={`text-xl font-bold tracking-wide uppercase hidden sm:block ${
-                mode === 'osrs'
-                  ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]'
-                  : mode === 'apple'
-                  ? 'text-[hsl(0,0%,11%)] font-[-apple-system,BlinkMacSystemFont,sans-serif] normal-case tracking-tight'
-                  : 'text-white font-[Orbitron,sans-serif]'
-              }`}>
+              <h1 className="text-xl font-bold font-display tracking-wide uppercase hidden sm:block text-foreground">
                 Strength
               </h1>
             </Link>
@@ -99,24 +72,10 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className={`px-4 py-2 rounded text-base font-medium uppercase tracking-wide transition-all duration-150 ${
-                      isOsrs
-                        ? `font-[RuneScape_UF,Times_New_Roman,serif] ${
-                            isActive
-                              ? 'bg-[hsl(45,100%,45%)]/20 text-[hsl(45,100%,55%)]'
-                              : 'text-[hsl(40,20%,65%)] hover:text-[hsl(45,100%,55%)] hover:bg-[hsl(30,30%,20%)]'
-                          }`
-                        : isApple
-                        ? `font-[-apple-system,BlinkMacSystemFont,sans-serif] normal-case tracking-normal ${
-                            isActive
-                              ? 'bg-[hsl(211,100%,50%)]/10 text-[hsl(211,100%,50%)]'
-                              : 'text-[hsl(0,0%,45%)] hover:text-[hsl(0,0%,11%)] hover:bg-[hsl(0,0%,96%)]'
-                          }`
-                        : `font-[Orbitron,sans-serif] ${
-                            isActive
-                              ? 'bg-primary/20 text-primary'
-                              : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`
+                    className={`px-4 py-2 rounded text-base font-medium font-display uppercase tracking-wide transition-all duration-150 ${
+                      isActive
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
                     {link.label}
@@ -131,13 +90,7 @@ export function Navbar() {
             {/* Hamburger Menu Button — mobile only */}
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className={`lg:hidden flex h-11 w-11 items-center justify-center rounded-md border transition-all duration-150 ${
-                isOsrs
-                  ? 'border-[hsl(45,80%,45%)] bg-[hsl(30,30%,20%)] text-[hsl(45,100%,55%)] hover:bg-[hsl(30,35%,25%)]'
-                  : isApple
-                  ? 'border-[hsl(0,0%,90%)] bg-transparent text-[hsl(0,0%,45%)] hover:text-[hsl(0,0%,11%)] hover:bg-[hsl(0,0%,96%)] rounded-xl'
-                  : 'border-gray-600 bg-transparent text-gray-400 hover:text-white hover:border-gray-500'
-              }`}
+              className="lg:hidden flex h-11 w-11 items-center justify-center rounded-md border border-border bg-transparent text-muted-foreground transition-all duration-150 hover:text-foreground hover:bg-muted"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileMenuOpen}
             >
@@ -155,13 +108,7 @@ export function Navbar() {
             {/* Theme Toggle */}
             <button
               onClick={toggleMode}
-              className={`flex h-11 w-11 items-center justify-center rounded-md border transition-all duration-150 ${
-                isOsrs
-                  ? 'border-[hsl(45,80%,45%)] bg-[hsl(30,30%,20%)] text-[hsl(45,100%,55%)] hover:bg-[hsl(30,35%,25%)]'
-                  : isApple
-                  ? 'border-[hsl(0,0%,90%)] bg-transparent text-[hsl(0,0%,45%)] hover:text-[hsl(0,0%,11%)] hover:bg-[hsl(0,0%,96%)] rounded-xl'
-                  : 'border-gray-600 bg-transparent text-gray-400 hover:text-white hover:border-gray-500'
-              }`}
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-transparent text-muted-foreground transition-all duration-150 hover:text-foreground hover:bg-muted"
               aria-label={`Switch theme (current: ${mode === 'retro' ? 'Retro Arcade' : mode === 'osrs' ? 'OSRS' : 'Apple'})`}
               title={`Theme: ${mode === 'retro' ? 'Retro Arcade' : mode === 'osrs' ? 'OSRS' : 'Apple'}`}
             >
@@ -184,29 +131,11 @@ export function Navbar() {
             </button>
 
             {/* Player Name */}
-            <div className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded border ${
-              isOsrs
-                ? 'bg-[hsl(30,30%,18%)] border-[hsl(30,40%,30%)]'
-                : isApple
-                ? 'bg-[hsl(0,0%,96%)] border-[hsl(0,0%,90%)] rounded-xl'
-                : 'bg-white/5 border-gray-700'
-            }`}>
-              <span className={`text-sm font-medium uppercase tracking-wide ${
-                isOsrs
-                  ? 'text-[hsl(40,20%,60%)] font-[RuneScape_UF,Times_New_Roman,serif]'
-                  : isApple
-                  ? 'text-[hsl(0,0%,55%)] font-[-apple-system,BlinkMacSystemFont,sans-serif] normal-case'
-                  : 'text-gray-500 font-[Orbitron,sans-serif]'
-              }`}>
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded border border-border bg-muted">
+              <span className="text-sm font-medium font-display uppercase tracking-wide text-muted-foreground">
                 Player:
               </span>
-              <span className={`text-lg font-semibold ${
-                isOsrs
-                  ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif]'
-                  : isApple
-                  ? 'text-[hsl(0,0%,11%)] font-[-apple-system,BlinkMacSystemFont,sans-serif]'
-                  : 'text-white font-[VT323,monospace]'
-              }`}>
+              <span className="text-lg font-semibold text-foreground">
                 {user?.firstName || 'Guest'}
               </span>
             </div>
@@ -215,7 +144,7 @@ export function Navbar() {
               afterSignOutUrl="/sign-in"
               appearance={{
                 elements: {
-                  avatarBox: "h-11 w-11 rounded-md border border-gray-600"
+                  avatarBox: "h-11 w-11 rounded-md border border-border"
                 }
               }}
             />
@@ -231,13 +160,7 @@ export function Navbar() {
             {/* Menu panel */}
             <div
               ref={menuRef}
-              className={`absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto border-b shadow-lg ${
-                isOsrs
-                  ? 'bg-[hsl(30,28%,14%)] border-[hsl(30,40%,30%)]'
-                  : isApple
-                  ? 'bg-white border-[hsl(0,0%,90%)]'
-                  : 'bg-card border-border'
-              }`}
+              className="absolute top-16 left-0 right-0 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-border bg-card shadow-lg"
             >
               <nav className="px-4 py-3 space-y-1">
                 {navLinks.map((link) => {
@@ -246,24 +169,10 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       to={link.href}
-                      className={`block px-4 py-3 rounded text-base font-medium uppercase tracking-wide transition-all duration-150 ${
-                        isOsrs
-                          ? `font-[RuneScape_UF,Times_New_Roman,serif] ${
-                              isActive
-                                ? 'bg-[hsl(45,100%,45%)]/20 text-[hsl(45,100%,55%)]'
-                                : 'text-[hsl(40,20%,65%)] hover:text-[hsl(45,100%,55%)] hover:bg-[hsl(30,30%,20%)]'
-                            }`
-                          : isApple
-                          ? `font-[-apple-system,BlinkMacSystemFont,sans-serif] normal-case tracking-normal ${
-                              isActive
-                                ? 'bg-[hsl(211,100%,50%)]/10 text-[hsl(211,100%,50%)]'
-                                : 'text-[hsl(0,0%,45%)] hover:text-[hsl(0,0%,11%)] hover:bg-[hsl(0,0%,96%)]'
-                            }`
-                          : `font-[Orbitron,sans-serif] ${
-                              isActive
-                                ? 'bg-primary/20 text-primary'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`
+                      className={`block px-4 py-3 rounded text-base font-medium font-display uppercase tracking-wide transition-all duration-150 ${
+                        isActive
+                          ? 'bg-primary/20 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >
                       {link.label}
@@ -273,24 +182,10 @@ export function Navbar() {
               </nav>
 
               {/* Player name — visible on small screens in menu */}
-              <div className={`sm:hidden px-4 py-3 border-t ${
-                isOsrs ? 'border-[hsl(30,40%,30%)]' : isApple ? 'border-[hsl(0,0%,90%)]' : 'border-gray-700'
-              }`}>
+              <div className="sm:hidden px-4 py-3 border-t border-border">
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium uppercase tracking-wide ${
-                    isOsrs
-                      ? 'text-[hsl(40,20%,60%)] font-[RuneScape_UF,Times_New_Roman,serif]'
-                      : isApple
-                      ? 'text-[hsl(0,0%,55%)] font-[-apple-system,BlinkMacSystemFont,sans-serif] normal-case'
-                      : 'text-gray-500 font-[Orbitron,sans-serif]'
-                  }`}>Player:</span>
-                  <span className={`text-lg font-semibold ${
-                    isOsrs
-                      ? 'text-[hsl(45,100%,55%)] font-[RuneScape_UF,Times_New_Roman,serif]'
-                      : isApple
-                      ? 'text-[hsl(0,0%,11%)] font-[-apple-system,BlinkMacSystemFont,sans-serif]'
-                      : 'text-white font-[VT323,monospace]'
-                  }`}>{user?.firstName || 'Guest'}</span>
+                  <span className="text-sm font-medium font-display uppercase tracking-wide text-muted-foreground">Player:</span>
+                  <span className="text-lg font-semibold text-foreground">{user?.firstName || 'Guest'}</span>
                 </div>
               </div>
             </div>

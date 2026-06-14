@@ -38,11 +38,11 @@ For translucency, use `color-mix`, not an alpha slot:
 
 Use theme tokens, not literal `#hex` / `hsl(...)` / `rgb(...)` in components — whether as inline `style`, Tailwind arbitrary values (`bg-[hsl(...)]`), or constant maps. A hardcoded colour won't change with the theme and silently breaks one or more of the three themes.
 
-If you genuinely need a **fixed categorical palette** (distinct series that must stay distinct regardless of theme — e.g. multi-series charts, training-block identity), centralise it in `lib/chartTheme.ts` and prefer theme tokens for the entries where possible. Don't redefine palettes inline per file.
+If you genuinely need a **fixed categorical palette** (distinct values that must stay distinct regardless of theme), centralise it in one module — `lib/chartTheme.ts` for chart series, `lib/blockColors.ts` for training-block identity — and import it. Don't redefine palettes inline per file.
 
 ### Tailwind `dark:` variant ≠ our themes
 
-Tailwind's `dark:` modifier keys off the `.dark` class — which here means **OSRS only**, not "dark mode" in general (Retro is also dark; Apple is light). Don't reach for `dark:` to mean "dark theme". Style with the semantic tokens, which already resolve per active theme. (Known debt: `Navbar.tsx` and the two `BLOCK_COLORS` maps still use hardcoded per-theme `hsl(...)` / `dark:` — see "Known debt" below.)
+Tailwind's `dark:` modifier keys off the `.dark` class — which here means **OSRS only**, not "dark mode" in general (Retro is also dark; Apple is light). Don't reach for `dark:` to mean "dark theme". Style with the semantic tokens, which already resolve per active theme.
 
 ## Charts (Recharts)
 
@@ -73,5 +73,4 @@ Font families are theme tokens too (`--font-display`, `--font-text`, `--font-arc
 
 ## Known debt (don't replicate; fix opportunistically)
 
-- **`components/layout/Navbar.tsx`** — ~30 hardcoded per-theme `hsl(...)` Tailwind arbitrary values gated on `isOsrs`/`isApple`. Should migrate to semantic tokens so it themes automatically. Large; do behind a visual check across all 3 themes.
-- **`BLOCK_COLORS`** is duplicated in `features/history/WorkoutHistoryComponents.tsx` (hex) and `features/workout/BlockSequenceEditor.tsx` (Tailwind classes incl. `dark:`), with **different** colours. Consolidate into one shared palette and decide whether block identity is theme-fixed or theme-aware.
+_None tracked here right now._ The two former entries — `Navbar.tsx`'s hardcoded per-theme `hsl(...)` chains and the duplicated/divergent `BLOCK_COLORS` maps — have been migrated to semantic tokens and `lib/blockColors.ts` respectively. When you spot a hardcoded colour or a `dark:`-to-mean-dark-theme usage, fix it and (if non-trivial) note it here.
