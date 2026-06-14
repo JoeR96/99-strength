@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useUpdateBlockSequence } from "@/hooks/useWorkouts";
 import type { WorkoutDto } from "@/types/workout";
+import { getBlockColor } from "@/lib/blockColors";
 import toast from "react-hot-toast";
 
 interface BlockSequenceEditorProps {
@@ -18,11 +19,19 @@ const BLOCK_LABELS: Record<number, string> = {
   3: "Block 3 (90-105%)",
 };
 
-const BLOCK_COLORS: Record<number, string> = {
-  1: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700",
-  2: "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-700",
-  3: "bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-300 dark:border-red-700",
-};
+/**
+ * Inline style for a block chip: tinted background + the block's identity colour as
+ * text/border. Uses the shared block palette (lib/blockColors) so it renders identically
+ * across themes — replaces the old Tailwind `dark:` class map, which only changed on OSRS.
+ */
+function blockChipStyle(blockType: number): React.CSSProperties {
+  const color = getBlockColor(blockType);
+  return {
+    backgroundColor: `color-mix(in srgb, ${color} 18%, transparent)`,
+    color,
+    borderColor: `color-mix(in srgb, ${color} 45%, transparent)`,
+  };
+}
 
 export function BlockSequenceEditor({ workout, isOpen, onClose, onUpdated }: BlockSequenceEditorProps) {
   const currentSequence = workout.blockSequence ?? [1, 2, 3];
@@ -94,9 +103,10 @@ export function BlockSequenceEditor({ workout, isOpen, onClose, onUpdated }: Blo
               return (
                 <div
                   key={idx}
+                  style={blockChipStyle(blockType)}
                   className={`relative flex items-center gap-1 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                    BLOCK_COLORS[blockType] ?? BLOCK_COLORS[1]
-                  } ${isCurrent ? "ring-2 ring-primary" : ""} ${isPast ? "opacity-60" : ""}`}
+                    isCurrent ? "ring-2 ring-primary" : ""
+                  } ${isPast ? "opacity-60" : ""}`}
                 >
                   <span>B{blockType}</span>
                   {isCurrent && (
