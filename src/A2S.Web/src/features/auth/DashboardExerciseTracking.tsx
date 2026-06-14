@@ -17,6 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 import type {
   WorkoutDto,
   ExerciseHistoryDto,
@@ -87,7 +88,7 @@ function ExerciseProgressionChart({
     );
   }
 
-  const lineColor = type === 'linear' ? 'hsl(var(--primary))' : 'hsl(210, 100%, 50%)';
+  const lineColor = chartColors.primary;
   const label = type === 'linear' ? 'Training Max' : 'Volume';
   const unitLabel = type === 'linear' ? history.weightUnit === 'Kilograms' ? 'kg' : 'lbs' : '';
 
@@ -95,27 +96,21 @@ function ExerciseProgressionChart({
     <div className="h-40">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
           <XAxis
             dataKey="week"
-            stroke="hsl(var(--muted-foreground))"
+            stroke={chartColors.mutedForeground}
             fontSize={10}
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            tick={{ fill: chartColors.mutedForeground }}
           />
           <YAxis
-            stroke="hsl(var(--muted-foreground))"
+            stroke={chartColors.mutedForeground}
             fontSize={10}
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            tick={{ fill: chartColors.mutedForeground }}
             width={45}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: 'hsl(var(--card))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '8px',
-              color: 'hsl(var(--foreground))',
-              fontSize: '12px',
-            }}
+            contentStyle={chartTooltipContentStyle}
             formatter={(_value, _name, props) => {
               const d = props.payload as unknown as ChartDataPoint;
               const lines: string[] = [];

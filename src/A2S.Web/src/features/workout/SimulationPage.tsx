@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { chartColors, chartSeriesPalette, chartTooltipContentStyle } from '@/lib/chartTheme';
 
 interface SimulationDataPoint {
   session: number;
@@ -66,16 +67,9 @@ function useSimulation(workoutId: string | null, sessions: number, enabled: bool
   });
 }
 
-const CHART_COLORS = [
-  'hsl(var(--primary))',
-  'hsl(210, 100%, 50%)',
-  'hsl(150, 80%, 40%)',
-  'hsl(0, 80%, 55%)',
-  'hsl(45, 90%, 50%)',
-  'hsl(280, 70%, 55%)',
-  'hsl(180, 70%, 40%)',
-  'hsl(330, 80%, 55%)',
-];
+// Multi-series simulation charts need distinct colours per exercise; use the shared
+// theme-token palette so every series stays on-theme. See lib/chartTheme.ts.
+const CHART_COLORS = chartSeriesPalette;
 
 interface StreamDayEvent {
   type: 'day';
@@ -413,15 +407,17 @@ export function SimulationPage() {
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={linearExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
                         <XAxis
                           dataKey="session"
-                          stroke="hsl(var(--muted-foreground))"
+                          stroke={chartColors.mutedForeground}
+                          tick={{ fill: chartColors.mutedForeground }}
                           fontSize={11}
                           label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
                         />
                         <YAxis
-                          stroke="hsl(var(--muted-foreground))"
+                          stroke={chartColors.mutedForeground}
+                          tick={{ fill: chartColors.mutedForeground }}
                           fontSize={11}
                           label={{
                             value: 'TM (kg)',
@@ -431,12 +427,7 @@ export function SimulationPage() {
                           }}
                         />
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                          }}
+                          contentStyle={chartTooltipContentStyle}
                           formatter={(value, name) => [
                             `${Math.round(Number(value) * 100) / 100}kg`,
                             name,
@@ -474,15 +465,17 @@ export function SimulationPage() {
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={rpsExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
                         <XAxis
                           dataKey="session"
-                          stroke="hsl(var(--muted-foreground))"
+                          stroke={chartColors.mutedForeground}
+                          tick={{ fill: chartColors.mutedForeground }}
                           fontSize={11}
                           label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
                         />
                         <YAxis
-                          stroke="hsl(var(--muted-foreground))"
+                          stroke={chartColors.mutedForeground}
+                          tick={{ fill: chartColors.mutedForeground }}
                           fontSize={11}
                           label={{
                             value: 'Weight (kg)',
@@ -492,12 +485,7 @@ export function SimulationPage() {
                           }}
                         />
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                          }}
+                          contentStyle={chartTooltipContentStyle}
                           formatter={(value, name) => [
                             value != null ? `${value}kg` : 'Pending',
                             name,
@@ -591,23 +579,20 @@ export function SimulationPage() {
                     <div className="h-56">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={selectedSeries.dataPoints}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
                           <XAxis
                             dataKey="session"
-                            stroke="hsl(var(--muted-foreground))"
+                            stroke={chartColors.mutedForeground}
+                            tick={{ fill: chartColors.mutedForeground }}
                             fontSize={11}
                           />
                           <YAxis
-                            stroke="hsl(var(--muted-foreground))"
+                            stroke={chartColors.mutedForeground}
+                            tick={{ fill: chartColors.mutedForeground }}
                             fontSize={11}
                           />
                           <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'hsl(var(--card))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
-                              fontSize: '13px',
-                            }}
+                            contentStyle={chartTooltipContentStyle}
                             formatter={(value, key) => {
                               if (key === 'trainingMax') return [`${Math.round(Number(value) * 100) / 100}kg`, 'Training Max'];
                               if (key === 'currentWeight') return [value != null ? `${value}kg` : 'Pending', 'Weight'];
@@ -620,7 +605,7 @@ export function SimulationPage() {
                               type="monotone"
                               dataKey="trainingMax"
                               name="Training Max"
-                              stroke="hsl(var(--primary))"
+                              stroke={chartColors.primary}
                               strokeWidth={2}
                               dot={false}
                             />
@@ -631,7 +616,7 @@ export function SimulationPage() {
                               type="monotone"
                               dataKey="currentWeight"
                               name="Weight"
-                              stroke="hsl(var(--primary))"
+                              stroke={chartColors.primary}
                               strokeWidth={2}
                               dot={false}
                               connectNulls
