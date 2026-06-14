@@ -129,7 +129,10 @@ export async function resolveHevyTemplateId(exerciseName: string, storedTemplate
     }
   }
 
-  return storedTemplateId;
+  // Fall back to the stored ID. May be empty/undefined if neither the stored ID was a
+  // valid Hevy template ID nor the name matched — callers must guard against that before
+  // sending to Hevy (an empty/missing exercise_template_id is rejected by the API).
+  return storedTemplateId ?? '';
 }
 
 /**

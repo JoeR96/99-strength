@@ -99,6 +99,7 @@ export async function createCompletedWorkoutInHevy(
   try {
     const weekParams = getWeekParameters(workout.currentWeek);
     const hevyExercises: HevyWorkoutExercise[] = [];
+    const unresolved: string[] = [];
 
     for (const exerciseData of completedExercises) {
       const completedSets = exerciseData.sets.filter(s => s.reps > 0);
@@ -107,6 +108,10 @@ export async function createCompletedWorkoutInHevy(
           exerciseData.exercise.name,
           exerciseData.exercise.hevyExerciseTemplateId
         );
+        if (!resolvedTemplateId) {
+          unresolved.push(exerciseData.exercise.name);
+          continue;
+        }
         let amrapTarget: number | undefined;
         if (exerciseData.exercise.progression.type === 'Linear') {
           const prog = exerciseData.exercise.progression as LinearProgressionDto;
@@ -117,6 +122,14 @@ export async function createCompletedWorkoutInHevy(
         const hevyExercise = convertCompletedExerciseToHevy(exerciseData, amrapTarget, resolvedTemplateId);
         hevyExercises.push(hevyExercise);
       }
+    }
+
+    if (unresolved.length > 0) {
+      return {
+        success: false,
+        message: `Could not resolve a Hevy exercise template for: ${unresolved.join(', ')}. ` +
+          `Check the exercise name matches one in Hevy, or set a valid template ID.`,
+      };
     }
 
     if (hevyExercises.length === 0) {
@@ -196,13 +209,28 @@ export async function syncDayAsRoutineForWeek(
     const weekParams = getWeekParameters(weekNumber);
 
     const hevyExercises: HevyRoutineExercise[] = [];
+    const unresolved: string[] = [];
     for (const exercise of dayExercises) {
       const resolvedTemplateId = await resolveHevyTemplateId(
         exercise.name,
         exercise.hevyExerciseTemplateId
       );
+      // Hevy rejects a routine if any exercise_template_id is empty/missing. Catch it here
+      // with an exercise name rather than letting Hevy fail with a cryptic array index.
+      if (!resolvedTemplateId) {
+        unresolved.push(exercise.name);
+        continue;
+      }
       const hevyExercise = convertExerciseToHevyRoutine(exercise, weekNumber, resolvedTemplateId);
       hevyExercises.push(hevyExercise);
+    }
+
+    if (unresolved.length > 0) {
+      return {
+        success: false,
+        message: `Could not resolve a Hevy exercise template for: ${unresolved.join(', ')}. ` +
+          `Check the exercise name matches one in Hevy, or set a valid template ID.`,
+      };
     }
 
     const folderIdNum = folderId ? parseInt(folderId, 10) :

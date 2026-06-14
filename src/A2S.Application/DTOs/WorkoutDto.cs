@@ -86,7 +86,9 @@ public sealed record ExerciseDto
 
     /// <summary>
     /// Hevy exercise template ID for syncing.
+    /// Serialized as "hevyExerciseTemplateId" to match the frontend contract used by Hevy sync.
     /// </summary>
+    [JsonPropertyName("hevyExerciseTemplateId")]
     public string ExternalTemplateId { get; init; } = string.Empty;
 
     public ExerciseProgressionDto Progression { get; init; } = null!;
