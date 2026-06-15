@@ -100,8 +100,24 @@ export function SetupWizard() {
 
   const handleCreateWorkout = async () => {
     try {
+      // Normalize orderInDay to be contiguous (1, 2, 3, ...) within each day before
+      // sending. The backend requires sequential ordering with no gaps; this guards
+      // against any UI path (e.g. removals) leaving a gap regardless of upstream state.
+      const orderByDay = new Map<number, number>();
+      const sequencedExercises = [...selectedExercises]
+        .sort((a, b) =>
+          a.assignedDay !== b.assignedDay
+            ? a.assignedDay - b.assignedDay
+            : a.orderInDay - b.orderInDay
+        )
+        .map((ex) => {
+          const nextOrder = (orderByDay.get(ex.assignedDay) ?? 0) + 1;
+          orderByDay.set(ex.assignedDay, nextOrder);
+          return { ...ex, orderInDay: nextOrder };
+        });
+
       // Map selected exercises to API request format
-      const exercises: CreateExerciseRequest[] = selectedExercises.map((ex) => ({
+      const exercises: CreateExerciseRequest[] = sequencedExercises.map((ex) => ({
         templateName: ex.template.name,
         externalTemplateId: ex.hevyExerciseTemplateId ?? "",
         category: ex.category ?? ExerciseCategory.MainLift,

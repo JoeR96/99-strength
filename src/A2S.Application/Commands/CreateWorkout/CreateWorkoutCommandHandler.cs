@@ -84,7 +84,12 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
             var template = _exerciseLibrary.GetByName(exerciseRequest.TemplateName);
             if (template == null)
             {
-                continue;
+                // Fail loudly. Silently skipping leaves a gap in the day's OrderInDay
+                // sequence, which the Workout aggregate then rejects with a confusing
+                // "ordering must be sequential" error that doesn't name the real culprit.
+                throw new InvalidOperationException(
+                    $"Exercise template '{exerciseRequest.TemplateName}' was not found in the exercise library. " +
+                    "Add it to the library (exercise-library.json) before using it in a workout.");
             }
 
             Exercise exercise;

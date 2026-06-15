@@ -116,10 +116,33 @@ export function useExerciseSelection(programVariant: ProgramVariant = 4) {
   );
 
   /**
-   * Remove an exercise by ID
+   * Remove an exercise by ID.
+   * Re-sequences the remaining exercises in that day so orderInDay stays
+   * contiguous (1, 2, 3, ...). Without this, removing a middle exercise leaves
+   * a gap that the backend rejects ("ordering must be sequential starting from 1").
    */
   const removeExercise = useCallback((id: string) => {
-    setSelectedExercises((prev) => prev.filter((ex) => ex.id !== id));
+    setSelectedExercises((prev) => {
+      const removed = prev.find((ex) => ex.id === id);
+      if (!removed) return prev;
+
+      const remaining = prev.filter((ex) => ex.id !== id);
+
+      // Renumber the affected day's exercises to fill the gap.
+      const reorderedDay = remaining
+        .filter((ex) => ex.assignedDay === removed.assignedDay)
+        .sort((a, b) => a.orderInDay - b.orderInDay)
+        .map((ex, index) => ({ ...ex, orderInDay: index + 1 }));
+
+      const otherDays = remaining.filter((ex) => ex.assignedDay !== removed.assignedDay);
+
+      return [...otherDays, ...reorderedDay].sort((a, b) => {
+        if (a.assignedDay !== b.assignedDay) {
+          return a.assignedDay - b.assignedDay;
+        }
+        return a.orderInDay - b.orderInDay;
+      });
+    });
   }, []);
 
   /**

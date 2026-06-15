@@ -2050,6 +2050,16 @@
     "description": "Hevy: shoulders"
   },
   {
+    "name": "Cable Core Pallof Press",
+    "equipment": "Machine",
+    "defaultRepRange": {
+      "minimum": 8,
+      "maximum": 12
+    },
+    "defaultSets": 3,
+    "description": "Hevy: abdominals"
+  },
+  {
     "name": "Lateral Raise (Dumbbell)",
     "equipment": "Dumbbell",
     "defaultRepRange": {
