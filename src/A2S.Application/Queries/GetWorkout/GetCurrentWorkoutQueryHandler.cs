@@ -43,7 +43,7 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             var exerciseDtos = workout.Exercises
                 .OrderBy(e => e.AssignedDay)
                 .ThenBy(e => e.OrderInDay)
-                .Select(MapExerciseToDto)
+                .Select(e => MapExerciseToDto(e, workout))
                 .ToList();
 
             var completedDays = workout.GetCompletedDaysInCurrentWeek()
@@ -79,7 +79,38 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
         }
     }
 
-    private static ExerciseDto MapExerciseToDto(Exercise exercise)
+    private static LastPerformanceDto? MapLastPerformance(Exercise exercise, Workout workout)
+    {
+        var lastActivity = workout.CompletedActivities
+            .Where(a => a.Performances.Any(p => p.ExerciseId == exercise.Id && p.CompletedSets.Count > 0))
+            .OrderByDescending(a => a.CompletedAt)
+            .FirstOrDefault();
+
+        if (lastActivity == null)
+        {
+            return null;
+        }
+
+        var performance = lastActivity.Performances.First(p => p.ExerciseId == exercise.Id);
+
+        return new LastPerformanceDto
+        {
+            WeekNumber = lastActivity.WeekNumber,
+            CompletedAt = lastActivity.CompletedAt,
+            Sets = performance.CompletedSets
+                .Select(s => new LastPerformanceSetDto
+                {
+                    SetNumber = s.SetNumber,
+                    Weight = s.Weight?.Value ?? 0,
+                    WeightUnit = s.Weight?.Unit.ToString() ?? "Kilograms",
+                    Reps = s.ActualReps,
+                    WasAmrap = s.WasAmrap
+                })
+                .ToList()
+        };
+    }
+
+    private static ExerciseDto MapExerciseToDto(Exercise exercise, Workout workout)
     {
         var progression = exercise.Progression;
         var data = progression.GetProgressionData();
@@ -112,7 +143,9 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CurrentWeight = progression.GetCurrentWeight()?.Value ?? 0,
                 WeightUnit = progression.GetCurrentWeight()?.Unit.ToString() ?? "Kilograms",
                 IsUnilateral = progression.IsUnilateral,
-                IsWeightPending = progression.IsWeightPending
+                IsWeightPending = progression.IsWeightPending,
+                PendingWeightConfirmation = progression.PendingWeightConfirmation,
+                SuggestedWeight = progression.SuggestedWeight?.Value
             },
             "MinimalSets" => new MinimalSetsProgressionDto
             {
@@ -136,7 +169,8 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             AssignedDay = exercise.AssignedDay,
             OrderInDay = exercise.OrderInDay,
             ExternalTemplateId = exercise.ExternalTemplateId,
-            Progression = progressionDto
+            Progression = progressionDto,
+            LastPerformance = MapLastPerformance(exercise, workout)
         };
     }
 }

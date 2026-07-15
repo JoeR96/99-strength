@@ -301,7 +301,9 @@ public class RepsPerSetStrategyTests
 
     [Theory]
     [InlineData(EquipmentType.Dumbbell, 8, 1)]    // Dumbbell < 10kg: +1kg
-    [InlineData(EquipmentType.Dumbbell, 15, 2)]   // Dumbbell >= 10kg: +2kg
+    [InlineData(EquipmentType.Dumbbell, 10, 2)]   // Dumbbell >= 10kg: next even size (12)
+    [InlineData(EquipmentType.Dumbbell, 14, 2)]   // Dumbbell even: next even size (16)
+    [InlineData(EquipmentType.Dumbbell, 15, 1)]   // Dumbbell odd >= 10kg: rounds up to even (16)
     [InlineData(EquipmentType.Cable, 20, 2.5)]    // Cable: +2.5kg
     [InlineData(EquipmentType.Machine, 30, 2.5)]  // Machine: +2.5kg
     [InlineData(EquipmentType.Barbell, 40, 2.5)]  // Barbell: +2.5kg

@@ -90,7 +90,8 @@ export function CompletionSummary({
         dayNumber,
         completedExercises,
         workoutStartTime,
-        workoutEndTime
+        workoutEndTime,
+        result.progressionChanges
       );
 
       if (syncResult.success) {
@@ -233,6 +234,27 @@ export function CompletionSummary({
             })}
           </div>
         </Card>
+
+        {/* New working weights to confirm next session */}
+        {result.exercisesPendingWeightConfirmation?.length > 0 && (
+          <Card className="p-6 mb-6 border-amber-400 bg-amber-50 dark:bg-amber-950/20" data-testid="new-weights-card">
+            <h2 className="text-xl font-bold mb-1 text-amber-700 dark:text-amber-400">New Weights Next Session</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              These exercises progressed. Cable/machine stacks vary between gyms, so use the closest
+              weight your gym has and log what you actually lift — the app will adopt it automatically.
+            </p>
+            <div className="space-y-2">
+              {result.exercisesPendingWeightConfirmation.map((ex) => (
+                <div key={ex.exerciseId} className="flex items-center justify-between p-2 rounded bg-card border">
+                  <span className="font-medium">{ex.exerciseName}</span>
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                    try {ex.suggestedWeight} {ex.weightUnit === "Pounds" ? "lbs" : "kg"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Hevy Sync Option */}
         {isConfigured && isValid && (

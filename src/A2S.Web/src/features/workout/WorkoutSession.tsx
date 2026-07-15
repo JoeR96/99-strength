@@ -174,7 +174,6 @@ export function WorkoutSession() {
       {session.showWeightConfirmationModal && session.pendingWeightExercises.length > 0 && (
         <WeightConfirmationModal
           exercises={session.pendingWeightExercises}
-          phase={session.weightConfirmationPhase}
           onConfirm={session.handleConfirmWeights}
           onSkip={session.handleSkipWeightConfirmation}
         />
