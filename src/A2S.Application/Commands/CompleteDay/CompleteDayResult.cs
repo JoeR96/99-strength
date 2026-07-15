@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using A2S.Domain.Enums;
 
 namespace A2S.Application.Commands.CompleteDay;
@@ -5,6 +6,7 @@ namespace A2S.Application.Commands.CompleteDay;
 /// <summary>
 /// Type of weight confirmation needed after completing a training day.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ConfirmationType
 {
     StartingWeight,

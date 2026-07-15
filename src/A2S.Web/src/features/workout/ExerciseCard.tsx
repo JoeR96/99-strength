@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,8 @@ interface ExerciseCardProps {
   onEdit: (exercise: ExerciseDto) => void;
   isTemporarilySubstituted: boolean;
   originalName?: string;
+  /** Collapse fully-completed cards to a one-line summary (Hevy prefill review). */
+  defaultCollapsed?: boolean;
 }
 
 export function ExerciseCard({
@@ -28,10 +31,62 @@ export function ExerciseCard({
   onEdit,
   isTemporarilySubstituted,
   originalName,
+  defaultCollapsed = false,
 }: ExerciseCardProps) {
   const allCompleted = entry.sets.every((s) => s.completed);
   const isRepsPerSet = entry.exercise.progression.type === "RepsPerSet";
   const repsPerSetProg = isRepsPerSet ? (entry.exercise.progression as RepsPerSetProgressionDto) : null;
+
+  const [collapsed, setCollapsed] = useState(defaultCollapsed && allCompleted);
+  // Prefill arrives after mount, so collapse when it lands (but never re-collapse
+  // after the user expands a card to edit).
+  useEffect(() => {
+    if (defaultCollapsed) setCollapsed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCollapsed]);
+
+  if (collapsed && allCompleted) {
+    const uniformWeight = entry.sets.every((s) => s.weight === entry.sets[0].weight);
+    const summary = uniformWeight
+      ? `${entry.sets[0].weight} ${entry.weightUnit} × ${entry.sets.map((s) => s.reps).join(" / ")}`
+      : entry.sets.map((s) => `${s.reps}×${s.weight}${entry.weightUnit}`).join(", ");
+    return (
+      <Card
+        className="p-3 border-green-500 bg-green-50 dark:bg-green-950/20 cursor-pointer"
+        data-testid={`exercise-card-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
+        onClick={() => setCollapsed(false)}
+        role="button"
+        aria-expanded={false}
+        aria-label={`Expand ${entry.exercise.name}`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <svg className="w-5 h-5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="font-semibold truncate">{entry.exercise.name}</span>
+            {repsPerSetProg?.isUnilateral && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
+                Per Side
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm text-muted-foreground" data-testid={`set-summary-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}>
+              {summary}
+            </span>
+            <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card

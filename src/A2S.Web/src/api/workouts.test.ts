@@ -404,6 +404,19 @@ describe('workoutsApi', () => {
     });
   });
 
+  describe('confirmWorkingWeight', () => {
+    it('should confirm new working weight after progression', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
+
+      await workoutsApi.confirmWorkingWeight('workout-123', 'ex-1', 32.5, 1);
+
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/workouts/workout-123/exercises/ex-1/confirm-working-weight',
+        { weight: 32.5, unit: 1 }
+      );
+    });
+  });
+
   describe('undoLastCompletion', () => {
     it('should undo last completion', async () => {
       const response = {

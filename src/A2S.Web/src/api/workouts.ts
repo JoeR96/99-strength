@@ -207,6 +207,18 @@ export const workoutsApi = {
     );
   },
 
+  confirmWorkingWeight: async (
+    workoutId: string,
+    exerciseId: string,
+    weight: number,
+    unit: 1 | 2
+  ): Promise<void> => {
+    await apiClient.post(
+      `/workouts/${workoutId}/exercises/${exerciseId}/confirm-working-weight`,
+      { weight, unit }
+    );
+  },
+
   /**
    * Undo the last completed day, rolling back progress
    */

@@ -4,8 +4,12 @@ import { WeightConfirmationModal } from './WeightConfirmationModal';
 import type { PendingWeightExerciseDto } from '@/types/workout';
 
 const mockExercises: PendingWeightExerciseDto[] = [
-  { exerciseId: 'ex-1', exerciseName: 'Lat Pulldown', suggestedWeight: 40, weightUnit: 'Kilograms' },
-  { exerciseId: 'ex-2', exerciseName: 'Bicep Curl', suggestedWeight: 15, weightUnit: 'Pounds' },
+  { exerciseId: 'ex-1', exerciseName: 'Lat Pulldown', suggestedWeight: 40, weightUnit: 'Kilograms', confirmationType: 'StartingWeight' },
+  { exerciseId: 'ex-2', exerciseName: 'Bicep Curl', suggestedWeight: 15, weightUnit: 'Pounds', confirmationType: 'StartingWeight' },
+];
+
+const mockWorkingWeightExercises: PendingWeightExerciseDto[] = [
+  { exerciseId: 'ex-3', exerciseName: 'Triceps Pushdown', suggestedWeight: 32.5, weightUnit: 'Kilograms', confirmationType: 'WorkingWeight' },
 ];
 
 describe('WeightConfirmationModal', () => {
@@ -13,6 +17,7 @@ describe('WeightConfirmationModal', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
+        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={vi.fn()}
       />
@@ -25,10 +30,41 @@ describe('WeightConfirmationModal', () => {
     expect(screen.getByText(/Suggested: 15 lbs/)).toBeInTheDocument();
   });
 
+  it('shows working-weight copy in post-completion phase', () => {
+    render(
+      <WeightConfirmationModal
+        exercises={mockWorkingWeightExercises}
+        phase="post-completion"
+        onConfirm={vi.fn()}
+        onSkip={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Confirm New Working Weights')).toBeInTheDocument();
+    expect(screen.getByText('Skip for now')).toBeInTheDocument();
+    expect(screen.getByText('Confirm Weights')).toBeInTheDocument();
+  });
+
+  it('shows cancel + confirm-and-complete buttons in pre-completion phase', () => {
+    render(
+      <WeightConfirmationModal
+        exercises={mockExercises}
+        phase="pre-completion"
+        onConfirm={vi.fn()}
+        onSkip={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Confirm & Complete Workout')).toBeInTheDocument();
+    expect(screen.queryByText('Skip for now')).not.toBeInTheDocument();
+  });
+
   it('pre-fills weight inputs with suggested values', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
+        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={vi.fn()}
       />
@@ -45,6 +81,7 @@ describe('WeightConfirmationModal', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
+        phase="pre-completion"
         onConfirm={onConfirm}
         onSkip={vi.fn()}
       />
@@ -54,7 +91,7 @@ describe('WeightConfirmationModal', () => {
     const inputs = screen.getAllByRole('spinbutton');
     fireEvent.change(inputs[0], { target: { value: '45' } });
 
-    fireEvent.click(screen.getByText('Confirm Weights'));
+    fireEvent.click(screen.getByText('Confirm & Complete Workout'));
 
     await waitFor(() => {
       expect(onConfirm).toHaveBeenCalledWith([
@@ -64,11 +101,27 @@ describe('WeightConfirmationModal', () => {
     });
   });
 
-  it('calls onSkip when skip button is clicked', () => {
+  it('calls onSkip when cancel button is clicked in pre-completion phase', () => {
     const onSkip = vi.fn();
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
+        phase="pre-completion"
+        onConfirm={vi.fn()}
+        onSkip={onSkip}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(onSkip).toHaveBeenCalled();
+  });
+
+  it('calls onSkip when skip button is clicked in post-completion phase', () => {
+    const onSkip = vi.fn();
+    render(
+      <WeightConfirmationModal
+        exercises={mockWorkingWeightExercises}
+        phase="post-completion"
         onConfirm={vi.fn()}
         onSkip={onSkip}
       />
@@ -84,7 +137,8 @@ describe('WeightConfirmationModal', () => {
 
     render(
       <WeightConfirmationModal
-        exercises={mockExercises}
+        exercises={mockWorkingWeightExercises}
+        phase="post-completion"
         onConfirm={onConfirm}
         onSkip={vi.fn()}
       />

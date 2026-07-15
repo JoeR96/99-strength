@@ -4,13 +4,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import type { PendingWeightExerciseDto } from "@/types/workout";
 
+export type WeightConfirmationPhase = "pre-completion" | "post-completion";
+
 interface WeightConfirmationModalProps {
   exercises: PendingWeightExerciseDto[];
+  /**
+   * pre-completion: starting weights must be confirmed before the day is submitted.
+   * Dismissing cancels the completion entirely.
+   * post-completion: progression raised Cable/Machine weights; confirming aligns the
+   * suggested weight to the gym's actual stack. Dismissing skips (re-asked next time).
+   */
+  phase: WeightConfirmationPhase;
   onConfirm: (confirmedWeights: { exerciseId: string; weight: number; unit: 1 | 2 }[]) => Promise<void>;
   onSkip: () => void;
 }
 
-export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: WeightConfirmationModalProps) {
+export function WeightConfirmationModal({ exercises, phase, onConfirm, onSkip }: WeightConfirmationModalProps) {
   const [weights, setWeights] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     for (const ex of exercises) {
@@ -19,6 +28,12 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
     return initial;
   });
   const [confirming, setConfirming] = useState(false);
+
+  const isPre = phase === "pre-completion";
+  const title = isPre ? "Confirm Starting Weights" : "Confirm New Working Weights";
+  const description = isPre
+    ? "These exercises were completed for the first time. Confirm the starting weight to finish this workout:"
+    : "These exercises progressed to a heavier weight. Adjust to match your gym's weight stack:";
 
   const handleConfirm = async () => {
     setConfirming(true);
@@ -42,10 +57,10 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
             </svg>
-            <DialogTitle>Confirm Starting Weights</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
           </div>
           <DialogDescription className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-            These exercises were completed for the first time. Confirm the starting weight for future progression:
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,10 +98,14 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
 
         <div className="p-4 border-t flex gap-2 justify-end">
           <Button variant="outline" onClick={onSkip} disabled={confirming}>
-            Skip for now
+            {isPre ? "Cancel" : "Skip for now"}
           </Button>
           <Button onClick={handleConfirm} disabled={confirming}>
-            {confirming ? "Confirming..." : "Confirm Weights"}
+            {confirming
+              ? "Confirming..."
+              : isPre
+                ? "Confirm & Complete Workout"
+                : "Confirm Weights"}
           </Button>
         </div>
       </DialogContent>

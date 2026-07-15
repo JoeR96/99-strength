@@ -81,6 +81,7 @@ export function useWorkoutSession() {
   const [missingExercisesProcessed, setMissingExercisesProcessed] = useState(false);
   const [showWeightConfirmationModal, setShowWeightConfirmationModal] = useState(false);
   const [pendingWeightExercises, setPendingWeightExercises] = useState<PendingWeightExerciseDto[]>([]);
+  const [weightConfirmationPhase, setWeightConfirmationPhase] = useState<"pre-completion" | "post-completion">("post-completion");
   const [weightDiscrepanciesProcessed, setWeightDiscrepanciesProcessed] = useState(false);
 
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
@@ -89,6 +90,9 @@ export function useWorkoutSession() {
 
   const workoutStartTime = useRef<Date>(new Date());
   const workoutEndTime = useRef<Date>(new Date());
+  // Survives a failed submit so the user isn't re-asked to confirm weights the
+  // backend has already accepted (re-confirming would be rejected).
+  const startingWeightsConfirmed = useRef(false);
 
   const dayNumber = parseInt(day || "1") as DayNumber;
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -336,7 +340,42 @@ export function useWorkoutSession() {
     });
   };
 
+  // Exercises whose starting weight is still unconfirmed must be confirmed BEFORE
+  // the day is submitted, so backing out of the modal cancels the completion
+  // instead of leaving a completed day behind.
+  const getUnconfirmedStartingWeightExercises = (): PendingWeightExerciseDto[] => {
+    if (startingWeightsConfirmed.current) return [];
+    return exerciseEntries
+      .filter((entry) => {
+        const prog = entry.exercise.progression;
+        const isPending = prog.type === "RepsPerSet" && (prog as RepsPerSetProgressionDto).isWeightPending;
+        return isPending && entry.sets.some((set) => set.completed);
+      })
+      .map((entry) => {
+        const firstCompleted = entry.sets.find((set) => set.completed)!;
+        return {
+          exerciseId: entry.exercise.id,
+          exerciseName: entry.exercise.name,
+          suggestedWeight: firstCompleted.weight,
+          weightUnit: entry.weightUnit === "lbs" ? "Pounds" : "Kilograms",
+          confirmationType: "StartingWeight" as const,
+        };
+      });
+  };
+
   const handleCompleteWorkout = async () => {
+    if (!workout) return;
+    const unconfirmed = getUnconfirmedStartingWeightExercises();
+    if (unconfirmed.length > 0) {
+      setPendingWeightExercises(unconfirmed);
+      setWeightConfirmationPhase("pre-completion");
+      setShowWeightConfirmationModal(true);
+      return;
+    }
+    await submitCompletion();
+  };
+
+  const submitCompletion = async () => {
     if (!workout) return;
     setIsSubmitting(true);
     try {
@@ -362,6 +401,7 @@ export function useWorkoutSession() {
       setCompletionResult(result);
       if (result.exercisesPendingWeightConfirmation?.length > 0) {
         setPendingWeightExercises(result.exercisesPendingWeightConfirmation);
+        setWeightConfirmationPhase("post-completion");
         setShowWeightConfirmationModal(true);
       } else {
         setShowCompletionSummary(true);
@@ -387,16 +427,38 @@ export function useWorkoutSession() {
     if (!workout) return;
     try {
       for (const cw of confirmedWeights) {
-        await workoutsApi.confirmStartingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
+        const pending = pendingWeightExercises.find((p) => p.exerciseId === cw.exerciseId);
+        if (pending?.confirmationType === "WorkingWeight") {
+          await workoutsApi.confirmWorkingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
+        } else {
+          await workoutsApi.confirmStartingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
+        }
       }
-      toast.success("Starting weights confirmed!");
       setShowWeightConfirmationModal(false);
       setPendingWeightExercises([]);
-      setShowCompletionSummary(true);
-      await refetch();
+      if (weightConfirmationPhase === "pre-completion") {
+        startingWeightsConfirmed.current = true;
+        toast.success("Starting weights confirmed!");
+        await submitCompletion();
+      } else {
+        toast.success("Weights confirmed!");
+        setShowCompletionSummary(true);
+        await refetch();
+      }
     } catch (error) {
-      console.error("Failed to confirm starting weights:", error);
-      toast.error("Failed to confirm starting weights. Please try again.");
+      console.error("Failed to confirm weights:", error);
+      toast.error("Failed to confirm weights. Please try again.");
+    }
+  };
+
+  const handleSkipWeightConfirmation = () => {
+    setShowWeightConfirmationModal(false);
+    setPendingWeightExercises([]);
+    if (weightConfirmationPhase === "pre-completion") {
+      // Backing out before confirming means the day was never submitted.
+      toast("Workout not completed yet — confirm starting weights to finish.");
+    } else {
+      setShowCompletionSummary(true);
     }
   };
 
@@ -421,7 +483,7 @@ export function useWorkoutSession() {
   return {
     // State
     workout, isLoading, exerciseEntries, isSubmitting, completionResult, showCompletionSummary,
-    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises,
+    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises, weightConfirmationPhase,
     substitutionModalOpen, exerciseToSubstitute, temporarySubstitutions, exerciseToEdit,
     weightDiscrepancies, showWeightDiscrepancyModal, missingExercises, showMissingExercisesModal,
     showRecoveryModal, savedProgressData,
@@ -433,7 +495,7 @@ export function useWorkoutSession() {
     handleTemporarySubstitute, handlePermanentSubstitute,
     handleSaveExerciseConfig, handleChangeProgression, handleUndoCompletion,
     handleApplySubstitution, handleRemoveFromSubstitution, handleSubstitutionsComplete,
-    handleConfirmWeights, handleApplyWeightDiscrepancy, handleWeightDiscrepanciesComplete,
+    handleConfirmWeights, handleSkipWeightConfirmation, handleApplyWeightDiscrepancy, handleWeightDiscrepanciesComplete,
     handleMissingExercise, handleMissingExercisesComplete,
     handleResumeProgress, handleStartFresh,
     // Setters for modals
