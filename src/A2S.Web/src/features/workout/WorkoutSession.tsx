@@ -78,7 +78,7 @@ export function WorkoutSession() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Exercises */}
-        <div className="space-y-6">
+        <div className={session.isPrefilled ? "space-y-3" : "space-y-6"}>
           {session.exerciseEntries
             .filter((entry) => entry.sets.length > 0)
             .map((entry, exerciseIndex) => {
@@ -94,6 +94,7 @@ export function WorkoutSession() {
                   onEdit={session.setExerciseToEdit}
                   isTemporarilySubstituted={!!substitution}
                   originalName={substitution?.originalName}
+                  defaultCollapsed={session.isPrefilled}
                 />
               );
             })}
@@ -173,11 +174,9 @@ export function WorkoutSession() {
       {session.showWeightConfirmationModal && session.pendingWeightExercises.length > 0 && (
         <WeightConfirmationModal
           exercises={session.pendingWeightExercises}
+          phase={session.weightConfirmationPhase}
           onConfirm={session.handleConfirmWeights}
-          onSkip={() => {
-            session.setShowWeightConfirmationModal(false);
-            session.setShowCompletionSummary(true);
-          }}
+          onSkip={session.handleSkipWeightConfirmation}
         />
       )}
 

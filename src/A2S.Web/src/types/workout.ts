@@ -333,11 +333,14 @@ export interface CompleteDayResult {
   exercisesPendingWeightConfirmation: PendingWeightExerciseDto[];
 }
 
+export type WeightConfirmationType = "StartingWeight" | "WorkingWeight";
+
 export interface PendingWeightExerciseDto {
   exerciseId: string;
   exerciseName: string;
   suggestedWeight: number;
   weightUnit: string;
+  confirmationType: WeightConfirmationType;
 }
 
 export interface ProgressWeekResult {
