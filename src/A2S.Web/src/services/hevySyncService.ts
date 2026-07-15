@@ -83,7 +83,8 @@ export async function createCompletedWorkoutInHevy(
   dayNumber: number,
   completedExercises: CompletedExerciseData[],
   startTime: Date,
-  endTime: Date
+  endTime: Date,
+  progressionChanges?: { exerciseId: string; change: string }[]
 ): Promise<SyncResult> {
   if (!hevyApi.isConfigured()) {
     return {
@@ -119,7 +120,11 @@ export async function createCompletedWorkoutInHevy(
             amrapTarget = weekParams.repOutTarget ?? weekParams.targetReps;
           }
         }
-        const hevyExercise = convertCompletedExerciseToHevy(exerciseData, amrapTarget, resolvedTemplateId);
+        const progressionChange = progressionChanges?.find(
+          (c) => c.exerciseId === exerciseData.exercise.id
+        )?.change;
+        const hevyExercise = convertCompletedExerciseToHevy(
+          exerciseData, amrapTarget, resolvedTemplateId, progressionChange);
         hevyExercises.push(hevyExercise);
       }
     }

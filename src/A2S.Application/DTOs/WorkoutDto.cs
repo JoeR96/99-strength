@@ -92,6 +92,34 @@ public sealed record ExerciseDto
     public string ExternalTemplateId { get; init; } = string.Empty;
 
     public ExerciseProgressionDto Progression { get; init; } = null!;
+
+    /// <summary>
+    /// The most recent completed performance for this exercise, if any.
+    /// Used by the UI and Hevy sync notes to show "what you hit last time".
+    /// </summary>
+    public LastPerformanceDto? LastPerformance { get; init; }
+}
+
+/// <summary>
+/// Snapshot of the most recent completed performance for an exercise.
+/// </summary>
+public sealed record LastPerformanceDto
+{
+    public int WeekNumber { get; init; }
+    public DateTime CompletedAt { get; init; }
+    public IReadOnlyList<LastPerformanceSetDto> Sets { get; init; } = Array.Empty<LastPerformanceSetDto>();
+}
+
+/// <summary>
+/// A single set from the most recent completed performance.
+/// </summary>
+public sealed record LastPerformanceSetDto
+{
+    public int SetNumber { get; init; }
+    public decimal Weight { get; init; }
+    public string WeightUnit { get; init; } = string.Empty;
+    public int Reps { get; init; }
+    public bool WasAmrap { get; init; }
 }
 
 /// <summary>
@@ -138,6 +166,18 @@ public sealed record RepsPerSetProgressionDto : ExerciseProgressionDto
     public string WeightUnit { get; init; } = string.Empty;
     public bool IsUnilateral { get; init; }
     public bool IsWeightPending { get; init; }
+
+    /// <summary>
+    /// True when progression raised the weight on a Cable/Machine exercise and the
+    /// actual gym stack weight hasn't been confirmed yet. Confirmed automatically
+    /// from the weight logged at the next completed session.
+    /// </summary>
+    public bool PendingWeightConfirmation { get; init; }
+
+    /// <summary>
+    /// The system-suggested new weight while PendingWeightConfirmation is true.
+    /// </summary>
+    public decimal? SuggestedWeight { get; init; }
 }
 
 /// <summary>

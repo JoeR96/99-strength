@@ -66,6 +66,26 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 return Result.Failure<CompleteDayResult>($"No exercises assigned to {request.Day}.");
             }
 
+            // A Cable/Machine weight raised by progression is confirmed implicitly by the
+            // next session: whatever the user actually lifted becomes the working weight
+            // (gym stacks vary, so the suggested weight is only a starting point). Must
+            // happen before progression is applied so it builds on the real weight.
+            foreach (var performanceRequest in request.Performances)
+            {
+                if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var pendingEx)
+                    && pendingEx.Progression.PendingWeightConfirmation
+                    && performanceRequest.CompletedSets.Count > 0)
+                {
+                    var firstSet = performanceRequest.CompletedSets[0];
+                    var actualWeight = Weight.Create(firstSet.Weight, firstSet.WeightUnit);
+                    var currentWeight = pendingEx.Progression.GetCurrentWeight();
+                    if (currentWeight == null || currentWeight.Unit == actualWeight.Unit)
+                    {
+                        workout.ConfirmExerciseWorkingWeight(pendingEx.Id, actualWeight);
+                    }
+                }
+            }
+
             var performances = new List<ExercisePerformance>();
             var progressionChanges = new List<ProgressionChangeDto>();
 

@@ -8,16 +8,11 @@ const mockExercises: PendingWeightExerciseDto[] = [
   { exerciseId: 'ex-2', exerciseName: 'Bicep Curl', suggestedWeight: 15, weightUnit: 'Pounds', confirmationType: 'StartingWeight' },
 ];
 
-const mockWorkingWeightExercises: PendingWeightExerciseDto[] = [
-  { exerciseId: 'ex-3', exerciseName: 'Triceps Pushdown', suggestedWeight: 32.5, weightUnit: 'Kilograms', confirmationType: 'WorkingWeight' },
-];
-
 describe('WeightConfirmationModal', () => {
   it('renders exercise names and suggested weights', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
-        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={vi.fn()}
       />
@@ -30,26 +25,10 @@ describe('WeightConfirmationModal', () => {
     expect(screen.getByText(/Suggested: 15 lbs/)).toBeInTheDocument();
   });
 
-  it('shows working-weight copy in post-completion phase', () => {
-    render(
-      <WeightConfirmationModal
-        exercises={mockWorkingWeightExercises}
-        phase="post-completion"
-        onConfirm={vi.fn()}
-        onSkip={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText('Confirm New Working Weights')).toBeInTheDocument();
-    expect(screen.getByText('Skip for now')).toBeInTheDocument();
-    expect(screen.getByText('Confirm Weights')).toBeInTheDocument();
-  });
-
-  it('shows cancel + confirm-and-complete buttons in pre-completion phase', () => {
+  it('shows cancel + confirm-and-complete buttons', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
-        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={vi.fn()}
       />
@@ -57,14 +36,12 @@ describe('WeightConfirmationModal', () => {
 
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Confirm & Complete Workout')).toBeInTheDocument();
-    expect(screen.queryByText('Skip for now')).not.toBeInTheDocument();
   });
 
   it('pre-fills weight inputs with suggested values', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
-        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={vi.fn()}
       />
@@ -81,7 +58,6 @@ describe('WeightConfirmationModal', () => {
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
-        phase="pre-completion"
         onConfirm={onConfirm}
         onSkip={vi.fn()}
       />
@@ -101,12 +77,11 @@ describe('WeightConfirmationModal', () => {
     });
   });
 
-  it('calls onSkip when cancel button is clicked in pre-completion phase', () => {
+  it('calls onSkip when cancel button is clicked', () => {
     const onSkip = vi.fn();
     render(
       <WeightConfirmationModal
         exercises={mockExercises}
-        phase="pre-completion"
         onConfirm={vi.fn()}
         onSkip={onSkip}
       />
@@ -116,35 +91,19 @@ describe('WeightConfirmationModal', () => {
     expect(onSkip).toHaveBeenCalled();
   });
 
-  it('calls onSkip when skip button is clicked in post-completion phase', () => {
-    const onSkip = vi.fn();
-    render(
-      <WeightConfirmationModal
-        exercises={mockWorkingWeightExercises}
-        phase="post-completion"
-        onConfirm={vi.fn()}
-        onSkip={onSkip}
-      />
-    );
-
-    fireEvent.click(screen.getByText('Skip for now'));
-    expect(onSkip).toHaveBeenCalled();
-  });
-
   it('shows confirming state while confirming', async () => {
     let resolveConfirm: () => void;
     const onConfirm = vi.fn().mockReturnValue(new Promise<void>((resolve) => { resolveConfirm = resolve; }));
 
     render(
       <WeightConfirmationModal
-        exercises={mockWorkingWeightExercises}
-        phase="post-completion"
+        exercises={mockExercises}
         onConfirm={onConfirm}
         onSkip={vi.fn()}
       />
     );
 
-    fireEvent.click(screen.getByText('Confirm Weights'));
+    fireEvent.click(screen.getByText('Confirm & Complete Workout'));
 
     await waitFor(() => {
       expect(screen.getByText('Confirming...')).toBeInTheDocument();

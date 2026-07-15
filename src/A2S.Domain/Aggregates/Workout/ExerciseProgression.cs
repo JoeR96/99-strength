@@ -210,7 +210,9 @@ public abstract class ExerciseProgression : Entity<ExerciseProgressionId>
     /// <remarks>
     /// Equipment-Based Weight Increments:
     /// - Bodyweight: 0 (progression via sets/reps only)
-    /// - Dumbbell: 1kg if weight &lt; 10kg, else 2kg (1lb/2lb for pounds)
+    /// - Dumbbell (kg): 1kg steps below 10kg; at 10kg and above, dumbbells only come in
+    ///   even sizes (12, 14, 16...), so the increment lands on the next even number
+    /// - Dumbbell (lbs): 1lb below 10lb, else 2lb
     /// - All others (Barbell, SmithMachine, PlateLoadedMachine, Cable, Machine): 2.5kg / 5lb
     /// </remarks>
     protected static Weight GetStandardWeightIncrement(EquipmentType equipmentType, Weight currentWeight)
@@ -222,6 +224,12 @@ public abstract class ExerciseProgression : Entity<ExerciseProgressionId>
 
         if (equipmentType == EquipmentType.Dumbbell)
         {
+            if (currentWeight.Unit == WeightUnit.Kilograms && currentWeight.Value >= 10)
+            {
+                var nextEven = Math.Floor(currentWeight.Value / 2) * 2 + 2;
+                return Weight.Create(nextEven - currentWeight.Value, currentWeight.Unit);
+            }
+
             var incrementValue = currentWeight.Value < 10 ? 1m : 2m;
             return Weight.Create(incrementValue, currentWeight.Unit);
         }

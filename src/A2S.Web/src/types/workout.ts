@@ -157,6 +157,22 @@ export interface ExerciseDto {
   orderInDay: number;
   hevyExerciseTemplateId: string;
   progression: ExerciseProgressionDto;
+  lastPerformance?: LastPerformanceDto | null;
+}
+
+// Most recent completed performance for an exercise ("what you hit last time")
+export interface LastPerformanceDto {
+  weekNumber: number;
+  completedAt: string;
+  sets: LastPerformanceSetDto[];
+}
+
+export interface LastPerformanceSetDto {
+  setNumber: number;
+  weight: number;
+  weightUnit: string;
+  reps: number;
+  wasAmrap: boolean;
 }
 
 export interface ExerciseProgressionDto {
@@ -180,6 +196,10 @@ export interface RepsPerSetProgressionDto extends ExerciseProgressionDto {
   weightUnit: string; // Backend returns string "Kilograms" or "Pounds"
   isUnilateral: boolean; // True if exercise is performed one side at a time
   isWeightPending: boolean; // True if starting weight has not yet been confirmed
+  // True when progression raised a Cable/Machine weight and the gym's actual stack
+  // weight hasn't been confirmed yet (confirmed automatically from the next session)
+  pendingWeightConfirmation: boolean;
+  suggestedWeight: number | null; // Suggested new weight while pendingWeightConfirmation
 }
 
 export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {

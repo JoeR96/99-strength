@@ -109,7 +109,13 @@ export function clearHevyTemplateCache(): void {
 }
 
 /**
- * Resolve a Hevy template ID — validate or look up by name
+ * Resolve a Hevy template ID — validate or look up by name.
+ *
+ * Matching is deliberately conservative: an exact (case-insensitive) title match wins;
+ * otherwise a substring match is only used when it is UNAMBIGUOUS. A loose "first
+ * substring hit wins" strategy previously bound exercises to the wrong template
+ * (e.g. "Squat (Barbell)" ↔ "Pause Squat (Barbell)"), silently sending data against
+ * the wrong Hevy exercise.
  */
 export async function resolveHevyTemplateId(exerciseName: string, storedTemplateId: string): Promise<string> {
   if (isValidHevyTemplateId(storedTemplateId)) {
@@ -117,16 +123,35 @@ export async function resolveHevyTemplateId(exerciseName: string, storedTemplate
   }
 
   const templateMap = await getHevyTemplateMap();
+  const query = exerciseName.toLowerCase().trim().replace(/\s+/g, ' ');
 
-  const exactMatch = templateMap.get(exerciseName.toLowerCase());
+  const exactMatch = templateMap.get(query);
   if (exactMatch) {
     return exactMatch;
   }
 
+  const candidates: { name: string; id: string }[] = [];
   for (const [name, id] of templateMap) {
-    if (name.includes(exerciseName.toLowerCase()) || exerciseName.toLowerCase().includes(name)) {
-      return id;
+    if (name.includes(query) || query.includes(name)) {
+      candidates.push({ name, id });
     }
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0].id;
+  }
+
+  if (candidates.length > 1) {
+    // Prefer the candidate closest in length to the query (e.g. "lat pulldown (cable)"
+    // over "single arm lat pulldown (cable)"). If two are equally close it's genuinely
+    // ambiguous — fail loudly rather than guessing the wrong exercise.
+    candidates.sort((a, b) =>
+      Math.abs(a.name.length - query.length) - Math.abs(b.name.length - query.length));
+    const [best, next] = candidates;
+    if (Math.abs(best.name.length - query.length) < Math.abs(next.name.length - query.length)) {
+      return best.id;
+    }
+    return '';
   }
 
   // Fall back to the stored ID. May be empty/undefined if neither the stored ID was a
@@ -136,12 +161,32 @@ export async function resolveHevyTemplateId(exerciseName: string, storedTemplate
 }
 
 /**
+ * Format the most recent completed performance for a note, e.g.
+ * "Last (W2): 12.5kg × 12/12/11" or per-set weights when they differ.
+ */
+export function formatLastPerformanceNote(exercise: ExerciseDto): string | null {
+  const last = exercise.lastPerformance;
+  if (!last || last.sets.length === 0) {
+    return null;
+  }
+
+  const unit = last.sets[0].weightUnit.toLowerCase() === 'pounds' ? 'lbs' : 'kg';
+  const uniformWeight = last.sets.every((s) => s.weight === last.sets[0].weight);
+  const summary = uniformWeight
+    ? `${last.sets[0].weight}${unit} × ${last.sets.map((s) => s.reps).join('/')}`
+    : last.sets.map((s) => `${s.reps}×${s.weight}${unit}`).join(', ');
+
+  return `Last (W${last.weekNumber}): ${summary}`;
+}
+
+/**
  * Convert completed exercise data to Hevy workout exercise format
  */
 export function convertCompletedExerciseToHevy(
   exerciseData: CompletedExerciseData,
   amrapTarget?: number,
-  resolvedTemplateId?: string
+  resolvedTemplateId?: string,
+  progressionChange?: string
 ): HevyWorkoutExercise {
   const templateId = resolvedTemplateId || exerciseData.exercise.hevyExerciseTemplateId;
 
@@ -157,7 +202,14 @@ export function convertCompletedExerciseToHevy(
       rpe: null,
     }));
 
-  const notes = amrapTarget ? `AMRAP target: ${amrapTarget} reps` : null;
+  const noteParts: string[] = [];
+  if (amrapTarget) {
+    noteParts.push(`AMRAP target: ${amrapTarget} reps`);
+  }
+  if (progressionChange) {
+    noteParts.push(`Progression: ${progressionChange}`);
+  }
+  const notes = noteParts.length > 0 ? noteParts.join(' | ') : null;
 
   return {
     exercise_template_id: templateId,
@@ -205,6 +257,10 @@ export function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: 
     if (prog.useAmrap && weekParams.repOutTarget != null) {
       noteParts.push(`AMRAP target: ${weekParams.repOutTarget}+ reps on last set`);
     }
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
     notes = noteParts.join(' | ');
 
   } else if (exercise.progression.type === 'RepsPerSet') {
@@ -224,8 +280,26 @@ export function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: 
       });
     }
 
-    const unilateralNote = prog.isUnilateral ? ` | Unilateral: ${prog.currentSetCount} sets per side` : '';
-    notes = `Rep range: ${prog.repRange.minimum}-${prog.repRange.maximum}${unilateralNote}`;
+    const effectiveMaxSets = Math.min(prog.targetSets, prog.isUnilateral ? 3 : 5);
+    const noteParts: string[] = [];
+    if (prog.pendingWeightConfirmation) {
+      const unitLabel = prog.weightUnit?.toLowerCase() === 'pounds' ? 'lbs' : 'kg';
+      noteParts.push(
+        `NEW WEIGHT: try ${prog.currentWeight}${unitLabel} — stacks vary, use the closest your gym has and log what you actually lift`
+      );
+    }
+    noteParts.push(`Rep range: ${prog.repRange.minimum}-${prog.repRange.maximum}`);
+    noteParts.push(`Sets: ${prog.currentSetCount}/${effectiveMaxSets}${prog.isUnilateral ? ' per side' : ''}`);
+    noteParts.push(
+      prog.currentSetCount < effectiveMaxSets
+        ? `Hit ${prog.repRange.maximum}s on every set to add a set`
+        : `Hit ${prog.repRange.maximum}s on every set to move up in weight`
+    );
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
+    notes = noteParts.join(' | ');
 
   } else if (exercise.progression.type === 'MinimalSets') {
     const prog = exercise.progression as MinimalSetsProgressionDto;
@@ -244,7 +318,12 @@ export function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: 
       });
     }
 
-    notes = `Target: ${prog.targetTotalReps} total reps across ${prog.minimumSets}-${prog.maximumSets} sets`;
+    const noteParts = [`Target: ${prog.targetTotalReps} total reps across ${prog.minimumSets}-${prog.maximumSets} sets`];
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
+    notes = noteParts.join(' | ');
   }
 
   return {

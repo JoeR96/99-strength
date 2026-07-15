@@ -81,7 +81,6 @@ export function useWorkoutSession() {
   const [missingExercisesProcessed, setMissingExercisesProcessed] = useState(false);
   const [showWeightConfirmationModal, setShowWeightConfirmationModal] = useState(false);
   const [pendingWeightExercises, setPendingWeightExercises] = useState<PendingWeightExerciseDto[]>([]);
-  const [weightConfirmationPhase, setWeightConfirmationPhase] = useState<"pre-completion" | "post-completion">("post-completion");
   const [weightDiscrepanciesProcessed, setWeightDiscrepanciesProcessed] = useState(false);
 
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
@@ -368,7 +367,6 @@ export function useWorkoutSession() {
     const unconfirmed = getUnconfirmedStartingWeightExercises();
     if (unconfirmed.length > 0) {
       setPendingWeightExercises(unconfirmed);
-      setWeightConfirmationPhase("pre-completion");
       setShowWeightConfirmationModal(true);
       return;
     }
@@ -399,13 +397,9 @@ export function useWorkoutSession() {
       const result = await workoutsApi.completeDay(workout.id, dayNumber, { performances });
       workoutEndTime.current = new Date();
       setCompletionResult(result);
-      if (result.exercisesPendingWeightConfirmation?.length > 0) {
-        setPendingWeightExercises(result.exercisesPendingWeightConfirmation);
-        setWeightConfirmationPhase("post-completion");
-        setShowWeightConfirmationModal(true);
-      } else {
-        setShowCompletionSummary(true);
-      }
+      // Working-weight bumps (Cable/Machine) are NOT prompted for — the summary shows
+      // the new suggested weight and the next session's logged weight confirms it.
+      setShowCompletionSummary(true);
       clearWorkoutProgress();
       await refetch();
     } catch (error) {
@@ -427,24 +421,13 @@ export function useWorkoutSession() {
     if (!workout) return;
     try {
       for (const cw of confirmedWeights) {
-        const pending = pendingWeightExercises.find((p) => p.exerciseId === cw.exerciseId);
-        if (pending?.confirmationType === "WorkingWeight") {
-          await workoutsApi.confirmWorkingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
-        } else {
-          await workoutsApi.confirmStartingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
-        }
+        await workoutsApi.confirmStartingWeight(workout.id, cw.exerciseId, cw.weight, cw.unit);
       }
       setShowWeightConfirmationModal(false);
       setPendingWeightExercises([]);
-      if (weightConfirmationPhase === "pre-completion") {
-        startingWeightsConfirmed.current = true;
-        toast.success("Starting weights confirmed!");
-        await submitCompletion();
-      } else {
-        toast.success("Weights confirmed!");
-        setShowCompletionSummary(true);
-        await refetch();
-      }
+      startingWeightsConfirmed.current = true;
+      toast.success("Starting weights confirmed!");
+      await submitCompletion();
     } catch (error) {
       console.error("Failed to confirm weights:", error);
       toast.error("Failed to confirm weights. Please try again.");
@@ -452,14 +435,10 @@ export function useWorkoutSession() {
   };
 
   const handleSkipWeightConfirmation = () => {
+    // Backing out before confirming means the day was never submitted.
     setShowWeightConfirmationModal(false);
     setPendingWeightExercises([]);
-    if (weightConfirmationPhase === "pre-completion") {
-      // Backing out before confirming means the day was never submitted.
-      toast("Workout not completed yet — confirm starting weights to finish.");
-    } else {
-      setShowCompletionSummary(true);
-    }
+    toast("Workout not completed yet — confirm starting weights to finish.");
   };
 
   const handleOpenSubstitution = (exercise: ExerciseDto) => {
@@ -483,7 +462,7 @@ export function useWorkoutSession() {
   return {
     // State
     workout, isLoading, exerciseEntries, isSubmitting, completionResult, showCompletionSummary,
-    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises, weightConfirmationPhase,
+    isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises,
     substitutionModalOpen, exerciseToSubstitute, temporarySubstitutions, exerciseToEdit,
     weightDiscrepancies, showWeightDiscrepancyModal, missingExercises, showMissingExercisesModal,
     showRecoveryModal, savedProgressData,
