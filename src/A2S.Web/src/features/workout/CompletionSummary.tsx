@@ -188,7 +188,6 @@ export function CompletionSummary({
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-semibold">{change.exerciseName}</span>
-                    <span className="text-sm ml-2">({change.progressionType})</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 rounded" data-testid={`outcome-label-${index}`}>
                     {getOutcomeLabel(change.change)}
@@ -200,40 +199,58 @@ export function CompletionSummary({
           </div>
         </Card>
 
-        {/* Next Session Preview */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4" data-testid="next-session-title">
-            {result.programComplete
-              ? "Final Session Summary"
-              : `Next ${dayName} Session (Week ${result.weekProgressed ? result.newCurrentWeek : result.weekNumber + 1})`}
-          </h2>
-          <div className="space-y-4">
-            {exerciseEntries.map((entry, index) => {
-              const change = result.progressionChanges.find((c) => c.exerciseId === entry.exercise.id);
-              return (
-                <div key={entry.exercise.id} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
-                  <div className="font-semibold">{entry.exercise.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    <span data-testid={`next-sets-${index}`}>{change?.newValue || `${entry.targetSets} sets`}</span>
-                    {" x "}
-                    <span data-testid={`next-reps-${index}`}>{entry.targetReps} reps</span>
-                    {" @ "}
-                    <span data-testid={`next-weight-${index}`}>{entry.targetWeight.toFixed(1)} {entry.weightUnit}</span>
-                  </div>
-                  {change && (
-                    <div className={`text-xs mt-1 ${
-                      getOutcomeLabel(change.change) === "SUCCESS" ? "text-green-600"
-                        : getOutcomeLabel(change.change) === "FAILED" ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}>
-                      {change.change}
+        {/* Next Session Preview (plan computed server-side after progression) */}
+        {(result.programComplete || result.nextSessionExercises?.length > 0) && (
+          <Card className="p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4" data-testid="next-session-title">
+              {result.programComplete
+                ? "Final Session Summary"
+                : `Next ${dayName} Session (Week ${result.weekNumber + 1})`}
+            </h2>
+            <div className="space-y-4">
+              {result.programComplete
+                ? exerciseEntries.map((entry, index) => (
+                    <div key={entry.exercise.id} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
+                      <div className="font-semibold">{entry.exercise.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        <span data-testid={`next-sets-${index}`}>{entry.targetSets} sets</span>
+                        {" x "}
+                        <span data-testid={`next-reps-${index}`}>{entry.targetReps} reps</span>
+                        {" @ "}
+                        <span data-testid={`next-weight-${index}`}>{entry.targetWeight.toFixed(1)} {entry.weightUnit}</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                  ))
+                : result.nextSessionExercises.map((next, index) => {
+                    const change = result.progressionChanges.find((c) => c.exerciseId === next.exerciseId);
+                    return (
+                      <div key={next.exerciseId} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
+                        <div className="font-semibold">{next.exerciseName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          <span data-testid={`next-sets-${index}`}>{next.setCount} sets</span>
+                          {" x "}
+                          <span data-testid={`next-reps-${index}`}>{next.targetReps} reps</span>
+                          {" @ "}
+                          <span data-testid={`next-weight-${index}`}>
+                            {next.weight.toFixed(1)} {next.weightUnit === "Pounds" ? "lbs" : "kg"}
+                          </span>
+                          {next.hasAmrap && <span className="ml-1">(last set AMRAP)</span>}
+                        </div>
+                        {change && (
+                          <div className={`text-xs mt-1 ${
+                            getOutcomeLabel(change.change) === "SUCCESS" ? "text-green-600"
+                              : getOutcomeLabel(change.change) === "FAILED" ? "text-red-600"
+                              : "text-yellow-600"
+                          }`}>
+                            {change.change}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+            </div>
+          </Card>
+        )}
 
         {/* New working weights to confirm next session */}
         {result.exercisesPendingWeightConfirmation?.length > 0 && (

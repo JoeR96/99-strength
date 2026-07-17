@@ -171,6 +171,11 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
             var programComplete = workout.Status == WorkoutStatus.Completed;
             var isDeloadWeek = weekProgressed && workout.IsDeloadWeek();
 
+            // This day's next occurrence is always in the following program week,
+            // regardless of whether the current week has advanced yet (other days
+            // of the week may still be outstanding).
+            var nextSessionExercises = CalculateNextSessionPlan(workout, dayExercises.Values, weekBeforeComplete + 1);
+
             _workoutRepository.Update(workout);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -186,7 +191,8 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 WeekProgressed = weekProgressed,
                 ProgramComplete = programComplete,
                 IsDeloadWeek = isDeloadWeek,
-                ExercisesPendingWeightConfirmation = pendingWeightExercises
+                ExercisesPendingWeightConfirmation = pendingWeightExercises,
+                NextSessionExercises = nextSessionExercises
             });
         }
         catch (InvalidOperationException ex)
@@ -202,5 +208,48 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
     private static string GetProgressionChangeDescription(Exercise exercise, ExercisePerformance performance)
     {
         return exercise.Progression.GetProgressionChangeDescription(performance);
+    }
+
+    /// <summary>
+    /// Computes the planned sets for the completed day's exercises at their next
+    /// occurrence, using the post-progression state. Empty when the program has
+    /// no week beyond the one just trained.
+    /// </summary>
+    private static List<NextSessionExerciseDto> CalculateNextSessionPlan(
+        Workout workout,
+        IEnumerable<Exercise> dayExercises,
+        int nextWeek)
+    {
+        var nextSessionExercises = new List<NextSessionExerciseDto>();
+        if (nextWeek > workout.TotalWeeks)
+        {
+            return nextSessionExercises;
+        }
+
+        var templateWeek = workout.GetTemplateWeek(nextWeek);
+        var blockType = workout.GetBlockType(nextWeek);
+
+        foreach (var exercise in dayExercises.OrderBy(e => e.OrderInDay))
+        {
+            var plannedSets = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
+            if (plannedSets.Count == 0)
+            {
+                continue;
+            }
+
+            var firstSet = plannedSets[0];
+            nextSessionExercises.Add(new NextSessionExerciseDto
+            {
+                ExerciseId = exercise.Id.Value,
+                ExerciseName = exercise.Name,
+                SetCount = plannedSets.Count,
+                TargetReps = firstSet.TargetReps,
+                Weight = firstSet.Weight.Value,
+                WeightUnit = firstSet.Weight.Unit.ToString(),
+                HasAmrap = plannedSets.Any(s => s.IsAmrap)
+            });
+        }
+
+        return nextSessionExercises;
     }
 }

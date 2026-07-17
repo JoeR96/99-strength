@@ -278,6 +278,134 @@ public class CompleteDayCommandHandlerTests
         exercise.Progression.GetCurrentWeight()!.Value.Should().Be(25m);
     }
 
+    [Fact]
+    public async Task Handle_WhenRepsPerSetWeightIncreases_NextSessionPlanShowsNewWeight()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var builder = new WorkoutBuilder()
+            .WithUserId(TestUserId)
+            .WithVariant(ProgramVariant.FourDay)
+            .WithExercise(b => b
+                .WithName("Lateral Raise (Cable)")
+                .WithCategory(ExerciseCategory.Accessory)
+                .WithEquipment(EquipmentType.Cable)
+                .WithDay(DayNumber.Day1)
+                .WithOrder(1)
+                .AsRepsPerSet(startingSets: 5, targetSets: 5,
+                    startingWeight: Weight.Create(20m, WeightUnit.Kilograms)));
+        foreach (var day in new[] { DayNumber.Day2, DayNumber.Day3, DayNumber.Day4 })
+        {
+            builder.WithDefaultLinearExercise($"Filler {day}", day, 1, 100m);
+        }
+        var workout = builder.Build();
+        workout.Start();
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
+            .Returns(workout);
+
+        var exercise = workout.Exercises.Single(e => e.AssignedDay == DayNumber.Day1);
+
+        // All sets hit max reps at max sets — SUCCESS bumps weight 20 -> 22.5
+        var result = await _handler.Handle(
+            CreateRepsPerSetCommand(workout, exercise.Id.Value, weight: 20m, reps: 12),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        var next = result.Value.NextSessionExercises.Should().ContainSingle().Subject;
+        next.ExerciseId.Should().Be(exercise.Id.Value);
+        next.ExerciseName.Should().Be("Lateral Raise (Cable)");
+        next.Weight.Should().Be(22.5m, "the preview must show the progressed weight, not the just-lifted one");
+        next.WeightUnit.Should().Be("Kilograms");
+        next.SetCount.Should().Be(5);
+        next.TargetReps.Should().Be(12);
+    }
+
+    [Fact]
+    public async Task Handle_WhenLinearExerciseMidWeek_NextSessionPlanUsesNextWeeksParameters()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        // FiveDay variant with only Day1 populated: completing Day1 does NOT advance
+        // the week, but the next Day1 session is still next week's plan.
+        var workout = CreateActiveWorkout(TestUserId);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
+            .Returns(workout);
+
+        var exercise = workout.Exercises.First(e => e.AssignedDay == DayNumber.Day1);
+        var command = new CompleteDayCommand(
+            workout.Id.Value,
+            DayNumber.Day1,
+            new List<ExercisePerformanceRequest>
+            {
+                new()
+                {
+                    ExerciseId = exercise.Id.Value,
+                    CompletedSets = new List<CompletedSetRequest>
+                    {
+                        new() { SetNumber = 1, Weight = 100m, WeightUnit = WeightUnit.Kilograms, ActualReps = 5, WasAmrap = false },
+                        new() { SetNumber = 2, Weight = 100m, WeightUnit = WeightUnit.Kilograms, ActualReps = 5, WasAmrap = false },
+                        new() { SetNumber = 3, Weight = 100m, WeightUnit = WeightUnit.Kilograms, ActualReps = 5, WasAmrap = false },
+                        new() { SetNumber = 4, Weight = 100m, WeightUnit = WeightUnit.Kilograms, ActualReps = 5, WasAmrap = false },
+                        new() { SetNumber = 5, Weight = 79m, WeightUnit = WeightUnit.Kilograms, ActualReps = 5, WasAmrap = true }
+                    }
+                }
+            });
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        workout.CurrentWeek.Should().Be(1, "other days of the week are still outstanding");
+
+        // Expected plan for week 2, computed from post-progression state
+        var expected = exercise
+            .CalculatePlannedSets(workout.GetTemplateWeek(2), workout.GetBlockType(2))
+            .ToList();
+
+        var next = result.Value.NextSessionExercises.Should().ContainSingle().Subject;
+        next.SetCount.Should().Be(expected.Count);
+        next.TargetReps.Should().Be(4, "A2S week 2 primary-tier reps are 4, not week 1's 5");
+        next.Weight.Should().Be(expected[0].Weight.Value);
+        next.HasAmrap.Should().Be(expected.Any(s => s.IsAmrap));
+    }
+
+    [Fact]
+    public async Task Handle_WhenCompletingDayInFinalWeek_NextSessionPlanIsEmpty()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var builder = new WorkoutBuilder()
+            .WithUserId(TestUserId)
+            .WithVariant(ProgramVariant.FourDay)
+            .WithBlockSequence([1]); // 7-week program
+        foreach (var day in new[] { DayNumber.Day1, DayNumber.Day2, DayNumber.Day3, DayNumber.Day4 })
+        {
+            builder.WithDefaultLinearExercise($"Lift {day}", day, 1, 100m);
+        }
+        var workout = builder.Build();
+        workout.Start();
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
+            .Returns(workout);
+
+        // Complete weeks 1-6 to arrive at the final week
+        for (var week = 1; week <= 6; week++)
+        {
+            foreach (var day in new[] { DayNumber.Day1, DayNumber.Day2, DayNumber.Day3, DayNumber.Day4 })
+            {
+                var ex = workout.Exercises.Single(e => e.AssignedDay == day);
+                var res = await _handler.Handle(
+                    CreateLinearDayCommand(workout, ex.Id.Value, day),
+                    CancellationToken.None);
+                res.IsSuccess.Should().BeTrue($"week {week} {day} should complete");
+            }
+        }
+        workout.CurrentWeek.Should().Be(7);
+
+        var finalDayExercise = workout.Exercises.Single(e => e.AssignedDay == DayNumber.Day1);
+        var result = await _handler.Handle(
+            CreateLinearDayCommand(workout, finalDayExercise.Id.Value, DayNumber.Day1),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue("completing a final-week day must not fail");
+        result.Value.NextSessionExercises.Should().BeEmpty("there is no next session after the final week");
+    }
+
     private static CompleteDayCommand CreateLinearDayCommand(Workout workout, Guid exerciseId, DayNumber day)
     {
         return new CompleteDayCommand(

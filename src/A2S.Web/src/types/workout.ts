@@ -330,10 +330,7 @@ export interface CompleteDayRequest {
 export interface ProgressionChangeDto {
   exerciseId: string;
   exerciseName: string;
-  progressionType: string;
   change: string;
-  previousValue?: string;
-  newValue?: string;
 }
 
 export type ProgressionOutcome = 'Success' | 'Maintained' | 'Failed' | 'Deload';
@@ -351,6 +348,8 @@ export interface CompleteDayResult {
   programComplete: boolean;
   isDeloadWeek: boolean;
   exercisesPendingWeightConfirmation: PendingWeightExerciseDto[];
+  /** Plan for this day's next occurrence, computed server-side after progression. Empty when the program has no further week. */
+  nextSessionExercises: NextSessionExerciseDto[];
 }
 
 export type WeightConfirmationType = "StartingWeight" | "WorkingWeight";
@@ -373,16 +372,15 @@ export interface ProgressWeekResult {
   isProgramComplete: boolean;
 }
 
-// Next session preview
-export interface NextSessionExercise {
-  id: string;
-  name: string;
-  progressionType: string;
-  sets: number;
-  reps: string;
-  weight: string;
-  outcome: ProgressionOutcome;
-  changeDescription: string;
+// Next session preview (mirrors backend NextSessionExerciseDto)
+export interface NextSessionExerciseDto {
+  exerciseId: string;
+  exerciseName: string;
+  setCount: number;
+  targetReps: number;
+  weight: number;
+  weightUnit: string;
+  hasAmrap: boolean;
 }
 
 // Exercise update types
