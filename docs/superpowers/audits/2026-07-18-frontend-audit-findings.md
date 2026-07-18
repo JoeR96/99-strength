@@ -120,3 +120,52 @@ Sweep: `find src/A2S.Web/src -name "*.tsx" -o -name "*.ts" | xargs wc -l | awk '
 ## Screen findings
 
 _One subsection per route/flow, appended during the Playwright walkthrough (Task 6)._
+
+_Visual audit of core screens (Task 6a), 2026-07-18. Screenshots in `audit-screenshots/` at desktop 1440px + mobile 390px, fullPage. AUDIT ONLY — no code changed. Where a visual defect has a clear code root, the root is named for the fix phase, but the finding is anchored to screenshot evidence per the format._
+
+### Cross-screen consistency
+
+- **[P2]** `cross-screen` — Retro leftover: every `<Button>` renders ALL-CAPS in the geometric/blocky Orbitron display font with letterspacing (contract bans `uppercase` and mandates system fonts). Visible on START W1 D1 WORKOUT, LOG, CANCEL, COMPLETE WORKOUT, SUBSTITUTE EXERCISE, CHANGE PROGRESSION TYPE, CLOSE across all screens. Root: `components/ui/button.tsx:8` base class `uppercase tracking-wide font-[Orbitron,sans-serif]`. Evidence: `workout-session--1440.png`, `modal-substitution--1440.png`, `modal-progression--1440.png`.
+- **[P2]** `cross-screen` — Retro leftover: the entire top nav (brand "STRENGTH" + every link DASHBOARD/WORKOUT/HISTORY/… + "PLAYER") is ALL-CAPS letterspaced display font; contract permits all-caps only for tiny eyebrow captions, not primary nav. Same on the mobile menu. Root: `components/layout/Navbar.tsx:60,73,108,145,160`. Evidence: `dashboard--1440.png`, `nav-mobile--390.png`.
+- **[P2]** `cross-screen` — Primary buttons (START WORKOUT, COMPLETE WORKOUT, SUBSTITUTE EXERCISE) render with a bevelled/gradient-looking burnt-orange fill plus low-contrast washed-out label text, reading as a retro "arcade button" rather than the flat minimal surface the contract calls for; the label contrast against the orange fill is noticeably weak. Evidence: `workout-session--1440.png`, `modal-substitution--1440.png`.
+- **[P3]** `cross-screen` — Off-token literal colours persist in shared chrome: badges use `bg-blue-100/text-blue-700` (the "Per Side" pill), status/outcome text uses named Tailwind colours, and buttons use `text-white`/`border-gray-500`/`text-gray-300` instead of tokens; a banned `glow` button variant (`shadow-primary/25→/40`) still exists in `button.tsx`. Cosmetically consistent but off-contract; catalogued in the Static findings above. Evidence: `workout-session--1440.png`.
+- Note (positive): dashboard, workout, and session share one card language — `bg-card` + 1px border + `rounded-lg`, no resting shadows, consistent `p-4`/`p-6` padding and heading scale. Card style is consistent across the three; the deviations are the button/nav typography above, not the surfaces.
+
+### dashboard
+
+- **[P2]** `dashboard` — Hero "Welcome back, big" and section headings ("Quick Stats", "Current Program", "This Week's Training", "Exercise Progression", "Personal Records") render in the blocky display font, and the START W1 D1 WORKOUT CTA is ALL-CAPS Orbitron — same retro leftover as cross-screen. Evidence: `dashboard--1440.png`, `dashboard--390.png`.
+- **[P2]** `dashboard` (390px) — The floating "island/palm" avatar widget overlaps and obscures card content: it sits on top of the "Workouts Done" stat in the Quick Stats card at 390px, and over the Exercise Progression cards further down. A fixed decorative overlay covering real data is both off-contract (glow/decorative element) and a mild usability hit. Evidence: `dashboard--390.png`.
+- **[P3]** `dashboard` — The "Exercise Progression" section renders ~20 near-identical cards each reading "Not enough data yet (need 2+/3+ sessions)"; the empty-state repeats verbatim per exercise, producing a very long, low-information wall on both breakpoints. An aggregated empty state would cut the density. Evidence: `dashboard--1440.png`.
+- **[P3]** `dashboard` — Empty "Personal Records" state is centred with a muted glyph + two-line copy and reads clean; noted only as the correct empty-state pattern the Exercise Progression section should follow. Evidence: `dashboard--1440.png`.
+
+### workout
+
+- **[P2]** `workout` — Retro leftover: page-header meta chips "MANAGE BLOCKS" and "» 21 weeks", the block toggles, and every "UPCOMING" footer label render in the ALL-CAPS blocky display font. Evidence: `workout--1440.png`.
+- **[P3]** `workout` — The four "This Week's Training" day columns are dense stacks of Weight/Sets/Reps/Target Sets label:value pairs with no per-exercise separation beyond spacing; at 390px this compresses into a long, hard-to-scan run where exercise boundaries are easy to lose. Consider a divider or heavier exercise-name weight. Evidence: `workout--390.png`, `workout--1440.png`.
+- **[P3]** `workout` — "Next Week Preview" cards are intentionally blurred/locked with a padlock; the lock affordance is clear, but at 390px the four blurred cards add substantial scroll length for a preview the user can't act on. Minor density note. Evidence: `workout--390.png`.
+
+### workout-session
+
+- **[P2]** `workout-session` — Retro leftover: CANCEL, LOG (×15), and COMPLETE WORKOUT are ALL-CAPS Orbitron; COMPLETE WORKOUT additionally shows the bevelled retro-orange fill with washed-out label. This is the primary mid-workout action surface, so the low-contrast label is the most consequential instance. Evidence: `workout-session--1440.png`, `workout-session--390.png`.
+- **[P1]** `workout-session` (390px) — The "Per Side" badge is a `rounded-full` pill so narrow it collapses to an oval/near-circle and wraps "Per / Side" onto two lines, breaking the badge shape and shoving the edit/swap icons; it reads as a rendering glitch mid-title on Single Arm Lat Pulldown and Cable Core Pallof Press. Off-token blue (`bg-blue-100 text-blue-700`) compounds it. Evidence: `workout-session--390.png`.
+- **[P2]** `workout-session` (390px) — The per-exercise edit (pencil) and swap (arrows) icon buttons are ~24px targets, under the 44px minimum; two small unlabelled icons sit close together in the card header, easy to mis-tap mid-workout. Evidence: `workout-session--390.png`.
+- **[P2]** `workout-session` — The floating island/palm avatar overlaps the swap icon on the Crucifix Tricep Pulldown card (390px) and floats mid-card on desktop, obscuring an interactive control. Evidence: `workout-session--390.png`, `workout-session--1440.png`.
+- **[P3]** `workout-session` — LOG (outline variant) buttons show a thin red vertical artifact at the right of the label on desktop; appears to be a rendering/caret artifact from the outline border and is cosmetically distracting when repeated ×15. Evidence: `workout-session--1440.png`.
+
+### nav-mobile
+
+- **[P2]** `nav-mobile` — Every menu item (DASHBOARD/WORKOUT/HISTORY/PROGRAMS/EXERCISES/SIMULATOR/HEVY/HEVY DATA/SETTINGS) and the "PLAYER" label render ALL-CAPS in the blocky display font — retro leftover, same root as the desktop nav. Evidence: `nav-mobile--390.png`.
+- **[P3]** `nav-mobile` — The active item (DASHBOARD) uses a full-width burnt-orange-tinted highlight bar; the tint is quite dark/muted and the active state reads more like a hover than a clear "you are here". Minor hierarchy polish. Evidence: `nav-mobile--390.png`.
+- Menu row heights are generous (comfortably ≥44px) and spacing is clean; no touch-target issue in the menu itself.
+
+### modal-progression
+
+- **[P1]** `modal-progression` (390px) — The modal footer button row overflows the viewport horizontally: "CHANGE PROGRESSION TYPE" and "CLOSE" sit side-by-side wider than 390px, so CLOSE is clipped to "CLO…" and runs off the right edge — the dismiss control is partially unreachable/cut off. The two footer buttons must stack (or the labels shorten) at this width. Evidence: `modal-progression--390.png`.
+- **[P2]** `modal-progression` — CHANGE PROGRESSION TYPE and CLOSE are ALL-CAPS Orbitron (retro leftover). Evidence: `modal-progression--1440.png`.
+- **[P3]** `modal-progression` — The "No completed weeks yet…" empty-state body is a single centred muted line in an otherwise tall panel; adequate but sparse. The "Reps Per Set" tag is orange and "Day 1" tag grey — two differently-styled tags on one header row is a minor inconsistency. Evidence: `modal-progression--1440.png`.
+
+### modal-substitution
+
+- **[P1]** `modal-substitution` (390px) — Same footer overflow as the progression modal: "CANCEL" and "SUBSTITUTE EXERCISE" sit side-by-side wider than the viewport, so CANCEL is clipped to "…EL" at the left edge and SUBSTITUTE EXERCISE runs off the right. Both footer actions are partially cut off. Buttons must stack at 390px. Evidence: `modal-substitution--390.png`.
+- **[P2]** `modal-substitution` — CANCEL and SUBSTITUTE EXERCISE are ALL-CAPS Orbitron and the primary shows the bevelled retro-orange fill with washed-out label (retro leftover). Evidence: `modal-substitution--1440.png`.
+- **[P3]** `modal-substitution` — The exercise search results list is a good, consistent card pattern (name + right-aligned equipment tag + muted "Hevy: …" line); no issue with the list itself. The search input's orange focus ring is heavy but on-brand. Evidence: `modal-substitution--1440.png`.
