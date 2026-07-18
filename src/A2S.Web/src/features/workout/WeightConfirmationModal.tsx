@@ -43,14 +43,14 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onSkip(); }}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-4 border-b bg-blue-100 dark:bg-blue-900">
-          <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+        <DialogHeader className="p-4 border-b bg-blue-100">
+          <div className="flex items-center gap-2 text-blue-800">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
             </svg>
             <DialogTitle>Confirm Starting Weights</DialogTitle>
           </div>
-          <DialogDescription className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+          <DialogDescription className="text-sm text-blue-700 mt-1">
             These exercises were completed for the first time. Confirm the starting weight to finish this workout:
           </DialogDescription>
         </DialogHeader>

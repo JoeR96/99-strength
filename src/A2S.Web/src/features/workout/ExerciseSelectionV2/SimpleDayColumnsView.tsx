@@ -29,7 +29,7 @@ function DayColumn({
       {/* Day header */}
       <div className="mb-3 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-bold">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">
             {day}
           </span>
           <h3 className="text-base font-semibold text-foreground">Day {day}</h3>

@@ -183,7 +183,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
     <div
       className={`p-4 border rounded-lg transition-all ${
         isCompleted
-          ? "border-green-500 bg-green-50 dark:bg-green-950"
+          ? "border-green-500 bg-green-50"
           : isCurrent
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
           : isUpcoming

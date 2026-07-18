@@ -110,15 +110,15 @@ export function CompletionSummary({
 
   const getOutcomeStyle = (change: string) => {
     if (change.toLowerCase().includes("increased") || change.toLowerCase().includes("added")) {
-      return "text-green-600 bg-green-100 dark:bg-green-900/30";
+      return "text-green-600 bg-green-100";
     }
     if (change.toLowerCase().includes("decreased") || change.toLowerCase().includes("reduced")) {
-      return "text-red-600 bg-red-100 dark:bg-red-900/30";
+      return "text-red-600 bg-red-100";
     }
     if (change.toLowerCase().includes("deload")) {
-      return "text-blue-600 bg-blue-100 dark:bg-blue-900/30";
+      return "text-blue-600 bg-blue-100";
     }
-    return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30";
+    return "text-yellow-600 bg-yellow-100";
   };
 
   const getOutcomeLabel = (change: string): string => {
@@ -139,7 +139,7 @@ export function CompletionSummary({
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Completion Header */}
-        <Card className="p-6 mb-6 text-center border-green-500 bg-green-50 dark:bg-green-950/20">
+        <Card className="p-6 mb-6 text-center border-green-500 bg-green-50">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -147,7 +147,7 @@ export function CompletionSummary({
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-green-700 dark:text-green-400" data-testid="completion-title">
+          <h1 className="text-2xl font-bold text-green-700" data-testid="completion-title">
             {result.programComplete ? "Program Complete!" : "Workout Complete!"}
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -254,8 +254,8 @@ export function CompletionSummary({
 
         {/* New working weights to confirm next session */}
         {result.exercisesPendingWeightConfirmation?.length > 0 && (
-          <Card className="p-6 mb-6 border-amber-400 bg-amber-50 dark:bg-amber-950/20" data-testid="new-weights-card">
-            <h2 className="text-xl font-bold mb-1 text-amber-700 dark:text-amber-400">New Weights Next Session</h2>
+          <Card className="p-6 mb-6 border-amber-400 bg-amber-50" data-testid="new-weights-card">
+            <h2 className="text-xl font-bold mb-1 text-amber-700">New Weights Next Session</h2>
             <p className="text-sm text-muted-foreground mb-4">
               These exercises progressed. Cable/machine stacks vary between gyms, so use the closest
               weight your gym has and log what you actually lift — the app will adopt it automatically.
@@ -264,7 +264,7 @@ export function CompletionSummary({
               {result.exercisesPendingWeightConfirmation.map((ex) => (
                 <div key={ex.exerciseId} className="flex items-center justify-between p-2 rounded bg-card border">
                   <span className="font-medium">{ex.exerciseName}</span>
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  <span className="text-sm font-semibold text-amber-700">
                     try {ex.suggestedWeight} {ex.weightUnit === "Pounds" ? "lbs" : "kg"}
                   </span>
                 </div>
@@ -325,7 +325,7 @@ export function CompletionSummary({
                 Next Week: Week {result.newCurrentWeek}
               </h2>
               {result.isDeloadWeek && (
-                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded">Deload Week</span>
+                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Deload Week</span>
               )}
             </div>
             <p className="text-sm text-muted-foreground mb-4">You've completed the week! Here's what's coming up next.</p>

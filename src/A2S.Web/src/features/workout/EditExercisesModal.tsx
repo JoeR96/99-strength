@@ -405,7 +405,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                         </span>
                       )}
                       {state.wantSwap && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-700">
                           Swapping
                         </span>
                       )}
@@ -577,8 +577,8 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
 
                     {/* Swap to RPS form (when Linear exercise wants to swap) */}
                     {state.wantSwap && state.progressionType === "Linear" && (
-                      <div className="space-y-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                        <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">
+                      <div className="space-y-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <p className="text-sm text-orange-700 font-medium">
                           Configure Reps Per Set
                         </p>
                         <div>
@@ -638,8 +638,8 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
 
                     {/* Swap to Linear form (when RPS exercise wants to swap) */}
                     {state.wantSwap && state.progressionType === "RepsPerSet" && (
-                      <div className="space-y-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                        <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">
+                      <div className="space-y-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <p className="text-sm text-orange-700 font-medium">
                           Configure Linear (Hypertrophy)
                         </p>
                         <div>
@@ -671,7 +671,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
                         }
                         className={`w-full px-3 py-2.5 text-sm font-medium rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
                           state.wantSwap
-                            ? "border-orange-400 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-700"
+                            ? "border-orange-400 bg-orange-50 text-orange-700"
                             : "border-border hover:border-primary/50 hover:bg-muted/50 text-muted-foreground"
                         }`}
                       >
