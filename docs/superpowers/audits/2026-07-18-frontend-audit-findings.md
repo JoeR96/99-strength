@@ -117,9 +117,20 @@ Sweep: `find src/A2S.Web/src -name "*.tsx" -o -name "*.ts" | xargs wc -l | awk '
 - `src/A2S.Web/src/features/workout/BlockSequenceEditor.tsx:27-34` (`blockChipStyle`) is a good example of the *correct* pattern (inline `style` object built from `getBlockColor()` + `color-mix`) — included here only as a positive reference point for what the modal/badge components above should migrate toward, not a violation.
 - `src/A2S.Web/src/data/hevyExercises.ts` (3109 lines) is a single flat exported array/object of exercise catalogue data with no logic — not a component SRP issue, but its size makes it a likely editor-performance and diff-noise concern; splitting by muscle group or equipment (or generating it) is worth a note for future maintainers even though it's out of scope for the styling contract.
 
+### Root causes & toolchain (Task 7 verification)
+
+- **[P2]** `src/A2S.Web/src/components/ui/button.tsx:8` — the Button base variant hardcodes `font-[Orbitron,sans-serif]` plus `uppercase tracking-wide`, which is the root cause of every "retro uppercase button" screen finding below. Orbitron is no longer loaded (falls back to sans-serif) but the arbitrary font-family and forced uppercase violate the contract's typography rules; fix once here and the button findings across all screens resolve together. Evidence: `grep -n "Orbitron" src/A2S.Web/src/components/ui/button.tsx`.
+- **[P3]** `src/A2S.Web` — `npm run lint` fails with 60 pre-existing errors across ~25 files (unused vars in `tests/e2e/*`, `react-hooks/rules-of-hooks` in `tests/e2e/fixtures/auth-fixture.ts:266`, setState-in-effect errors incl. `Navbar.tsx:25`). Verified none are on lines touched by the consolidation (Tasks 1–2); recorded here per plan instead of fixed. Evidence: lint run 2026-07-18.
+- Verification summary (Task 7): `npm run build` ✅; `npm test` 246/249 ✅ (3 pre-existing `ExerciseLibraryPage.test.tsx` failures, `useHevy` provider wrapper issue, confirmed failing on base commit); no decorative-font glyphs (Press Start 2P / VT323 / RuneScape) or scanline overlay visible in any Task 6 screenshot; no black-on-black/illegible screen observed except the specific contrast findings recorded below.
+
+### Out-of-scope environment observations (backend — not part of this audit's fix scope)
+
+- Fresh-database bootstrap is broken: `ExerciseDefinitionSeeder.SeedAsync` short-circuits when `ExerciseDefinitions` is non-empty, and migration `20260615210530_SeedCableCorePallofPress` always inserts one row — so a brand-new migrated DB ends up with exactly 1 exercise and every workout create 400s ("Exercise template ... was not found"). Workaround used for this audit: delete the row, restart API to reseed (445 definitions). Both Pallof spellings now exist in `exercise-library.json`, so the migration row is redundant on fresh DBs.
+- Concurrent first-login requests race user auto-provisioning: several parallel API calls each tried to insert the same user, producing `23505 duplicate key ... PK_Users` errors in the API log (harmless to the winner, noisy and wasteful).
+
 ## Screen findings
 
-_One subsection per route/flow, appended during the Playwright walkthrough (Task 6)._
+_Screenshots referenced below live in the repo-root `audit-screenshots/` directory (untracked by design)._
 
 _Visual audit of core screens (Task 6a), 2026-07-18. Screenshots in `audit-screenshots/` at desktop 1440px + mobile 390px, fullPage. AUDIT ONLY — no code changed. Where a visual defect has a clear code root, the root is named for the fix phase, but the finding is anchored to screenshot evidence per the format._
 
