@@ -4,7 +4,7 @@ Scope: everything under `src/`. Inherits `../AGENTS.md` (stack, structure, conve
 
 ## The theme
 
-One theme: **Arcade Minimal** — Apple-style minimal design language carrying the Retro Arcade palette. Dark near-black surfaces, burnt-orange primary, neon-yellow accent, system fonts, subtle 1px borders, soft shadows. There is no theme switcher and no `.dark`/`.apple-theme` class; a `dark:` Tailwind variant is always dead code — remove it on sight.
+One theme: **Arcade Minimal** — Apple-style minimal design language carrying the Retro Arcade palette. Dark near-black surfaces, burnt-orange primary, neon-yellow accent, system fonts, subtle 1px borders, soft shadows. There is no theme switcher and no `.dark`/`.apple-theme` class; a `dark:` Tailwind variant is always dead code. The ~126 existing occurrences are being removed by the Phase 2 sweep (see Known debt) — never add new ones, and don't hand-remove them ahead of that sweep.
 
 ## The token contract
 
