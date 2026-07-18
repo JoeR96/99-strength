@@ -4,6 +4,91 @@
 **Rubric:** `src/A2S.Web/src/AGENTS.md` (styling contract) + UX checklist in spec §3.
 **Severity:** P1 breaks usability/legibility · P2 violates contract/inconsistent · P3 polish.
 
+## Summary & fix order
+
+### Counts
+
+Every `- **[P1]**`/`[P2]`/`[P3]` line in the whole document (static + screen sections), recounted:
+
+| Severity | Static findings | Screen findings | Total |
+|---|---|---|---|
+| P1 | 0 | 7 | **7** |
+| P2 | 28 | 32 | **60** |
+| P3 | 7 | 23 | **30** |
+| **All** | **35** | **62** | **97** |
+
+Grand total: **97 findings.** (Counts reflect the findings in the body — the "Static findings" and "Screen findings" sections. The verbatim P1 block immediately below is a duplicated copy of the 7 body P1 lines for reference and is not itself counted, so a raw grep of the whole file returns 7 + 7 = 14 `[P1]` lines.)
+
+### Complete P1 list (verbatim)
+
+- **[P1]** `workout-session` (390px) — The "Per Side" badge is a `rounded-full` pill so narrow it collapses to an oval/near-circle and wraps "Per / Side" onto two lines, breaking the badge shape and shoving the edit/swap icons; it reads as a rendering glitch mid-title on Single Arm Lat Pulldown and Cable Core Pallof Press. Off-token blue (`bg-blue-100 text-blue-700`) compounds it. Evidence: `workout-session--390.png`.
+- **[P1]** `modal-progression` (390px) — The modal footer button row overflows the viewport horizontally: "CHANGE PROGRESSION TYPE" and "CLOSE" sit side-by-side wider than 390px, so CLOSE is clipped to "CLO…" and runs off the right edge — the dismiss control is partially unreachable/cut off. The two footer buttons must stack (or the labels shorten) at this width. Evidence: `modal-progression--390.png`.
+- **[P1]** `modal-substitution` (390px) — Same footer overflow as the progression modal: "CANCEL" and "SUBSTITUTE EXERCISE" sit side-by-side wider than the viewport, so CANCEL is clipped to "…EL" at the left edge and SUBSTITUTE EXERCISE runs off the right. Both footer actions are partially cut off. Buttons must stack at 390px. Evidence: `modal-substitution--390.png`.
+- **[P1]** `sign-up` — The ENTIRE page background is light/near-white (not just the Clerk card): the app shell renders a light-grey page with black "99 Strength" heading, whereas sign-in renders the correct near-black dark background. The two auth entry points are visually inconsistent with each other, and sign-up abandons the Arcade Minimal dark theme entirely — a full-page theme break, not just the embedded widget. Evidence: `sign-up--1440.png`, `sign-up--390.png` (contrast against `sign-in--1440.png`).
+- **[P1]** `setup-wizard-3-exercises` (390px) — In "Your Program", the day columns collapse to a 2-up grid of very narrow cards where each exercise row loses its NAME entirely: rows show only the index badge, weight, reps and sets (e.g. "1 · 45kg · 6-10 reps · 3→5 sets") with no exercise title, making the program list unreadable/unidentifiable at 390px. Exercise names are present at 1440px, so the name is being squeezed out by the narrow mobile column. Evidence: `setup-wizard-3-exercises--390.png` (contrast `setup-wizard-3-exercises--1440.png`).
+- **[P1]** `hevy` — The CONNECT HEVY primary button renders as a dark muted-brown fill with grey-on-brown label text (see crop) — the label is barely legible against the fill and the button reads as disabled despite being the page's primary CTA. This is a genuine contrast failure, distinct from (and worse than) the washed-out-label-on-orange retro bevel flagged elsewhere. Same on mobile. Evidence: `hevy--1440.png`, `hevy--390.png`.
+- **[P1]** `hevy-data` — The CONNECT HEVY button carries the same dark muted-brown fill / illegible grey label as on the Hevy page (same button, same failure). Evidence: `hevy-data--1440.png`, `hevy-data--390.png`.
+
+### Recommended fix grouping
+
+Every finding is assigned to exactly one group below. The two out-of-scope backend observations (fresh-DB seeder short-circuit; concurrent first-login user-provisioning race, both under "Out-of-scope environment observations") are **not** in any group — they are outside this audit's fix scope and stay out of all three.
+
+#### Group A — cross-cutting root-cause fixes (do first)
+
+Ordered by how many downstream findings each unblocks (most first). Each item names the screen findings it resolves so Phase 2 (Group B) does not double-fix them.
+
+1. **`button.tsx` Orbitron + `uppercase tracking-wide` root cause** — unblocks **~17 findings** (1 static root-cause P2 + the retro-button/nav-treatment instances across screens). Removing `font-[Orbitron,sans-serif] uppercase tracking-wide` from the Button base variant resolves: cross-screen retro-button + primary-button-treatment (139, 141, 142's button clause), dashboard (147), workout (154), workout-session (160), modal-progression (175), modal-substitution (181), setup-wizard-1 (202), setup-wizard-2 (209), setup-wizard-3 (219), setup-wizard-4 (226), programs (234), exercises button treatment, hevy (248), hevy-data (254), simulate (272), and the button-treatment-inconsistency findings on settings (259) and history (266). Also removes the banned `glow`/`shadow-primary` variant (part of 142). **This is the single highest-leverage fix in the audit.** NOTE: the CONNECT HEVY *contrast failure* P1s (hevy 247, hevy-data 253) and the retro-orange *washed-out-label* problems are fill/foreground-token issues that this font fix alone does NOT resolve — see item 2.
+2. **Primary-button fill + label-contrast tokens** — unblocks **~4 findings** including 2 P1s: the CONNECT HEVY illegible dark-brown fill (hevy 247, hevy-data 253) and the bevelled retro-orange washed-out-label instances (cross-screen 141, and the primary-fill clauses in workout-session 160, modal-substitution 181, setup-wizard NEXT/CREATE 202/226). Retune the primary variant to a flat on-token fill with a legible foreground token.
+3. **Dead `dark:` variant sweep** — unblocks **all 28 static P2 `dark:` findings** (lines 48-73) plus the off-token-blue day-badge and green-outcome instances that surface again on screens (setup-wizard-3 217, setup-wizard-4 green icon 225, programs green pill 235, exercises colour map 241). Mechanical removal per the contract ("remove on sight").
+4. **Shared `ReviewModal`/`DecisionListModal` primitive** — unblocks **~6 findings**: collapses the four near-identical modals (Missing/Pulled/WeightDiscrepancy/WeightConfirmation, Structure obs + their dead-`dark:` clusters) and the footer-overflow P1s stack correctly once (modal-progression 174, modal-substitution 180) if the shared footer stacks at ≤390px.
+5. **Shared `Badge`/day-number-badge primitive** — unblocks **~4 findings**: the "Per Side" pill P1 (workout-session 161), the triplicated blue day badge (Structure obs; DayColumnsView/SelectedExerciseCard/SimpleDayColumnsView), and setup-wizard-3 day badge (217). A single `<Badge>` with a min-width and token colours fixes the collapse and the off-token blue at once.
+6. **Shared `outcomeToStatus()` classifier + token status badge** — unblocks **~3 findings**: the fragile `.includes()` outcome-colour logic in CompletionSummary + SimulationPage (Structure obs) and the off-token green/status colours they emit.
+7. **Typography-scale application + spacing rhythm** — unblocks **~2 findings**: applies the token type scale so nav/headings stop using the display font (cross-screen 140 nav, dashboard headings 147) beyond what the button fix covers, and normalises `p-4`/`p-6` rhythm. Lowest-leverage Group A item; mostly reinforces items 1-2.
+
+#### Group B — screen-by-screen (remaining per-screen fixes)
+
+Ordered worst-first by severity count per screen. Findings already resolved by Group A are **excluded** here (noted per screen) to avoid double-fixing. Remaining items are the screen-specific defects Group A does not touch.
+
+1. **setup-wizard-3-exercises** (P1×1, P2×4, P3×1) — after A: exercise-name squeezed out of 2-up mobile cards (215, P1); step-indicator "Confirm" clipped at 390px (216); ~20-24px edit/delete touch targets (218); orange filter-chip vs orange Add-button state collision (220). (Day-badge 217 and BACK/NEXT 219 handled by A.)
+2. **workout-session** (P1 handled by A-5; remaining P2×2, P3×1) — ~24px edit/swap touch targets (162); floating palm avatar overlaps swap icon (163); LOG outline red vertical artifact (164). (Per-Side badge 161 by A-5; button 160 by A-1/A-2.)
+3. **modal-progression** (P1 by A-4; remaining P3×1) — mixed tag styles on header row / sparse empty state (176).
+4. **modal-substitution** (P1 by A-4; remaining P3×1) — heavy orange focus ring note (182, positive-leaning).
+5. **sign-up** (P1×1, P2×1, P3×1) — full-page light theme break (195, P1); Clerk light card + non-primary Continue (196); palm avatar overlap (197).
+6. **sign-in** (P2×2, P3×2) — Clerk light card on dark page (188); non-primary Continue button (189); empty-band framing (190); palm avatar clips footer (191).
+7. **setup-wizard-4-confirm** (P2×3→1 after A, P3×1) — step-indicator "Confirm" clipped (224); edge-gutter + palm overlap (227). (Green icon 225 by A-3; CREATE PROGRAM 226 by A-1/A-2.)
+8. **setup-wizard-2-template** (P2×2→1 after A, P3×2) — step-indicator overflow at 390px (208); no selected/checked affordance on template cards (210); palm avatar overlap (211). (BACK/NEXT 209 by A-1.)
+9. **setup-wizard-1-welcome** (P2×2→1 after A, P3×1) — three-node vs four-node step rail inconsistency (201); palm avatar overlap (203). (BACK/NEXT 202 by A-1/A-2.)
+10. **dashboard** (P2×2→1 after A, P3×2) — palm avatar obscures stat/progression cards at 390px (148); repetitive per-exercise empty-state wall (149); PR empty-state positive note (150). (Headings/CTA 147 by A-1/A-7.)
+11. **workout** (P2×1 by A-1, P3×2) — dense day-column exercise separation (155); blurred next-week-preview scroll length (156). (Meta chips/labels 154 by A-1.)
+12. **programs** (P2×1 by A-1, P3×2) — redundant dual status pills / off-token green (235); "FourDay-Day Split" data glitch (236). (Buttons 234 by A-1.)
+13. **exercises** (P2×1 by A-3, P3×1) — 444-tile long scroll / no sticky filters (242). (Muscle-group colour map 241 by A-3.)
+14. **nav-mobile** (P2×1 by A-1, P3×1) — active-item highlight reads as hover (169). (Menu ALL-CAPS 168 by A-1/A-7.)
+15. **settings** (P2×1 by A-1, P3×1) — palm avatar overlaps Export button (260). (Button-treatment inconsistency 259 by A-1.)
+16. **hevy** (P1 by A-2; remaining none screen-specific) — no residual Group B item (247 by A-2, 248 by A-1).
+17. **hevy-data** (P1 by A-2; remaining P2×1) — left-aligned unstyled empty state, inconsistent with other empty states (254). (Button 253 by A-2.)
+18. **simulate** (P2×1 by A-1; remaining none) — no residual Group B item (272 by A-1; results table/chart deferred, see Phase 2).
+19. **cross-screen** (all P2/P3 handled by A) — no residual Group B item (139-142 by A-1/A-2/A-3).
+20. **history** (P3×2) — off-token block legend dots (sanctioned file, polish only, 265); export/tab button-treatment inconsistency (266, by A-1).
+
+#### Group C — SRP / structure refactors (behavior-preserving only)
+
+File splits and extractions from the Structure/SRP observations and the over-500-line list. All are behavior-preserving; none change business logic.
+
+- **`EditExercisesModal.tsx` (730 lines)** — extract the Hevy delete/recreate/resync orchestration into `useSyncExerciseEditsToHevy`; extract the `ExerciseEditState` derivation; leave the component markup-only. Also replace its bespoke inline "Remove Exercise" confirm modal (707-727) with the shared confirm primitive (relates to A-4).
+- **`SetupWizard.tsx` (639 lines)** — move the template-to-`SelectedExercise` conversion (31-60+) into `lib/` as a unit-testable pure function.
+- **`ExerciseConfigDialog.tsx` (513 lines)** — split marginally-over-limit dialog (contract completeness).
+- **`ExerciseLibraryComponents.tsx`** — move `MUSCLE_GROUP_CONFIG`/`EQUIPMENT_CONFIG` styling half into a token-driven lookup (relates to A-3).
+- **`SimulationPage.tsx` (694 lines, P3)** — over-limit dev/debug tooling page; lower priority (internal tool). Its outcome-string-to-colour switch also relates to A-6.
+- **`types/workout.ts` (541 lines, P3)** and **`ExerciseConfigDialog.tsx` (513 lines, P3)** — marginal/low-risk over-limit; split for contract completeness.
+- **Lint toolchain (P3, static "Root causes & toolchain")** — `npm run lint` fails with 60 pre-existing errors across ~25 files (unused vars in `tests/e2e/*`, `rules-of-hooks`, setState-in-effect incl. `Navbar.tsx:25`). Out of the styling-fix path but recorded here as a structural/toolchain cleanup to schedule alongside Group C; none are on lines touched by the consolidation. This is the one finding that is neither cross-cutting styling (A) nor a per-screen visual fix (B).
+- Data/test/story files (`hevyExercises.ts` 3109, `workoutTemplates.ts` 1093, stories/test files) are out of scope for the component line-limit contract; `hevyExercises.ts` split is a maintainer-convenience note only, not required.
+
+### Phase 2 sequencing recommendation
+
+Execute **Group A first**, in the numbered order above — the `button.tsx` and dead-`dark:` fixes alone retire well over half the findings and remove the root causes that otherwise recur per-screen. **Then re-screenshot every audited screen at 1440px + 390px** and re-diff against `audit-screenshots/`: this is the primary re-verification point and confirms which Group B items genuinely remain versus which A silently resolved (the per-screen "handled by A" notes above are the checklist). **Next run Group B** worst-first, re-screenshotting each screen touched and confirming the 5 remaining P1-derived issues (name-squeeze 215, footer stacking 174/180 via A-4, full-page theme break 195) render correctly at 390px. **Finally Group C**, which is behavior-preserving: gate each refactor on `npm run build` + `npm test` staying green (246/249 baseline per Task 7) with no screenshot change expected. Re-verification points: (1) after A, full re-screenshot + build/test; (2) after each Group B screen, targeted re-screenshot; (3) after each Group C refactor, build/test parity with no visual diff.
+
+**Coverage gap:** the `modal-weight-confirm` screen was **not reached** in this audit (it requires a completed session with a pending weight bump; see the screen section at the end of the doc). It carries no findings yet and must be screenshotted and audited as part of Phase 2 verification before this audit can be considered complete. Two other screens were only partially exercised on the seeded Week-1 account (`hevy-data` table-overflow, `simulate` results table/chart, `history` "Exercise Progress" charts — all deferred to connected/post-run passes).
+
 ## Static findings
 
 ### Hardcoded colours in components
