@@ -601,7 +601,7 @@ export function SetupWizard() {
 
             {currentStep === "confirm" ? (
               <Button
-                variant="glow"
+                variant="default"
                 onClick={handleCreateWorkout}
                 disabled={!canProceed() || createWorkout.isPending}
                 className="gap-2"

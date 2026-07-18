@@ -88,7 +88,7 @@ export function ProgramsPage() {
             Manage your workout programs. Only one can be active at a time.
           </p>
         </div>
-        <Button onClick={() => navigate('/setup')} variant="glow">
+        <Button onClick={() => navigate('/setup')} variant="default">
           Create New Program
         </Button>
       </div>
@@ -104,7 +104,7 @@ export function ProgramsPage() {
             <p className="text-muted-foreground mb-6">
               Create your first workout program to get started.
             </p>
-            <Button onClick={() => navigate('/setup')} variant="glow">
+            <Button onClick={() => navigate('/setup')} variant="default">
               Create Your First Program
             </Button>
           </div>
