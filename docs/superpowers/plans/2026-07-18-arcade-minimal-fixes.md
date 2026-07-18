@@ -900,18 +900,27 @@ Findings addressed (quoted from doc):
 **Files:**
 - Modify: `src/A2S.Web/src/features/workout/ExerciseSelectionV2/SelectedExerciseCard.tsx` (P1 name-squeeze 215; touch targets 218)
 - Modify: `src/A2S.Web/src/features/workout/ExerciseSelectionV2/SimpleDayColumnsView.tsx` + `DayColumnsView.tsx` (2-up grid → single column at 390px, 215)
-- Modify: the step-indicator component used by `SetupWizard.tsx` (216) — locate in Step 2
+- Modify: `src/A2S.Web/src/features/workout/SetupWizard.tsx` (the inline step-indicator rail, lines 551-575; finding 216)
 - Modify: the equipment-filter chip / Add-button rendering (220) — locate in Step 4
 
 - [ ] **Step 1: Fix the exercise-name squeeze (P1 215)** — in `SelectedExerciseCard.tsx` the name is `<h4 className="font-medium text-sm flex-1 min-w-0 truncate">` (line 59). At 390px inside a 2-up grid the flex row leaves it no room. Two coordinated changes:
   (a) In `SimpleDayColumnsView.tsx` (line 116) and `DayColumnsView.tsx` (line 251) change the grid `grid grid-cols-2 lg:grid-cols-3 gap-4` → `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4` so mobile is single-column (each card gets full width).
   (b) In `SelectedExerciseCard.tsx`, keep `truncate` but ensure the name row does not drop the title: verify the `<h4>` keeps `flex-1 min-w-0` (it does) so with the wider single-column card the name renders. The name being *present but truncated* is acceptable; the P1 is that it vanished entirely — single-column restores it.
 
-- [ ] **Step 2: Fix the step-indicator overflow (P2 216)** — locate the wizard step indicator:
-```bash
-grep -rniE "step.?indicator|Start.*Template.*Exercises.*Confirm|stepper" src/A2S.Web/src/features/workout --include="*.tsx" -l
-```
-Read the matched component. The 4-node rail overflows at 390px. Make the rail horizontally scrollable/compact: wrap the node row in `<div className="overflow-x-auto">` and/or reduce per-node label size and connector width at the mobile breakpoint so the final "Confirm" node is not clipped. Do not change step logic.
+- [ ] **Step 2: Fix the step-indicator overflow (P2 216)** — the rail is rendered inline in `SetupWizard.tsx`. The steps come from `getVisibleSteps()` (lines 522-537) and render inside the container at line 553: `<div className="flex items-center justify-between max-w-md mx-auto">`. Each node is a fixed `h-12 w-12` box (line 558, 48px) plus a label and a connector segment (`index < steps.length - 1`, line 574+). Four 48px nodes + labels + connectors exceed 390px inside the `max-w-md` (448px) centred container, clipping the final "Confirm" node.
+
+  Make two concrete changes to that block:
+  (a) Wrap the rail in a horizontal scroll container so nothing is clipped: change line 553 from
+  ```tsx
+          <div className="flex items-center justify-between max-w-md mx-auto">
+  ```
+  to
+  ```tsx
+          <div className="flex items-center justify-between gap-1 max-w-md mx-auto overflow-x-auto px-1">
+  ```
+  (b) Shrink each node box at the mobile breakpoint so four nodes + connectors fit within 390px: change the node box class at line 558 from `flex h-12 w-12 items-center justify-center rounded-xl border-2 …` to `flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl border-2 …` and reduce the inner SVG at line 564 from `className="h-5 w-5"` to `className="h-4 w-4 sm:h-5 sm:w-5"`.
+
+  Do not change `getVisibleSteps()` or `currentStepIndex` — presentation only.
 
 - [ ] **Step 3: Fix touch targets (P2 218)** — in `SelectedExerciseCard.tsx` the edit/remove buttons are `className="p-1 rounded-md …"` (lines 66, 85) with `w-3.5 h-3.5` icons (~24px total). Increase the tappable area: change `p-1` → `p-2.5` and add `min-w-11 min-h-11 inline-flex items-center justify-center` so each button meets the 44px minimum. Keep the icon size and aria-labels.
 
@@ -948,22 +957,24 @@ git commit -m "setup-wizard-3: fix mobile name squeeze (P1), step overflow, touc
 
 Findings addressed (quoted):
 - 162 (P2): *"The per-exercise edit (pencil) and swap (arrows) icon buttons are ~24px targets, under the 44px minimum"*
-- 163 (P2): *"The floating island/palm avatar overlaps the swap icon on the Crucifix Tricep Pulldown card (390px) and floats mid-card on desktop, obscuring an interactive control."*
+- 163 (P2): *"The floating island/palm avatar overlaps the swap icon on the Crucifix Tricep Pulldown card (390px) and floats mid-card on desktop, obscuring an interactive control."* — **misattributed in the audit:** this "palm/island avatar" is the TanStack Query devtools floating toggle button (its logo is a palm-tree island), rendered by `<ReactQueryDevtools initialIsOpen={false} />` in `src/A2S.Web/src/main.tsx`. It is a dev-only overlay excluded from production bundles — it never ships to users. Reclassified as **not shipping UI; no app fix required** (see Step 2).
 - 164 (P3): *"LOG (outline variant) buttons show a thin red vertical artifact at the right of the label on desktop … a rendering/caret artifact from the outline border"*
 
 (Per-Side badge 161 resolved by Task 6; button 160 by Tasks 2/3.)
 
 **Files:**
 - Modify: `src/A2S.Web/src/features/workout/ExerciseCard.tsx` (edit/swap buttons 162; LOG artifact 164)
-- Modify: the floating palm/avatar widget component (163) — locate in Step 2
+- Modify: `src/A2S.Web/src/main.tsx` (~line 35 — optional dev-tooling one-liner on `ReactQueryDevtools`, Step 2)
 
 - [ ] **Step 1: Fix edit/swap touch targets (P2 162)** — in `ExerciseCard.tsx` the two header `<Button variant="ghost" size="sm">` (lines 127-148) hold `w-4 h-4` SVGs. `size="sm"` is `h-10` (40px), just under 44. Change both to `size="icon"` (which is `h-12 w-12`) or add `className="min-w-11 min-h-11"` merged with the existing `text-muted-foreground hover:text-foreground`. Keep aria-labels and onClick.
 
-- [ ] **Step 2: Fix the palm-avatar overlap (P2 163)** — locate the fixed decorative avatar widget:
-```bash
-grep -rniE "palm|island|avatar|fixed bottom" src/A2S.Web/src --include="*.tsx" -l
-```
-Read the widget. It is a `fixed`-positioned decorative overlay sitting over interactive controls. Per the contract ("no glows/decorative elements over real data") the lowest-risk behavior-preserving fix is to add `pointer-events-none` so it never intercepts taps, and give it a lower `z-index` and/or a safe-area offset (`bottom-4 right-4` reduced, or hidden below `sm`) so it does not visually cover the swap icon. Since the same widget causes overlaps on dashboard/sign-in/sign-up/settings/setup-wizard (findings 148, 197, 203, 211, 227, 260, 288, 296, 312, 345), fixing it once here resolves all of them — note this in the commit. Do not remove the widget (visual-identity element); reposition/`pointer-events-none` only.
+- [ ] **Step 2: Reclassify the "palm/island avatar" overlap findings — no app-source fix required (P2 163 + 11 chained P2/P3s).** The overlapping widget is **not app source**: it is the TanStack Query devtools floating toggle button (palm-tree-island logo), rendered by `<ReactQueryDevtools initialIsOpen={false} />` in `src/A2S.Web/src/main.tsx` (~line 35). `ReactQueryDevtools` is excluded from production bundles, so this overlay never ships to users and there is no shipping-UI defect to fix. Reclassify the full chain of "palm/island avatar overlaps X" findings — **163, 148, 191, 197, 203, 211, 227, 260, 288, 296, 312, 345** — as **"dev-only overlay (TanStack Query devtools), not shipping UI — no app fix required"**, to be recorded as such in the Phase 2 resolution log (Task 20).
+
+  Optional dev-tooling quality-of-life one-liner (not a business-logic change, not required): in `src/A2S.Web/src/main.tsx`, add `buttonPosition="bottom-left"` to the `ReactQueryDevtools` element so the toggle stops overlapping content during local development:
+  ```tsx
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+  ```
+  Do not otherwise touch the provider tree.
 
 - [ ] **Step 3: Fix the LOG red vertical artifact (P3 164)** — in `ExerciseCard.tsx` the LOG button (lines 247-255) uses `variant="outline"`. After Task 2 the outline variant is `border border-border` (no red). Re-screenshot in Step 5 to confirm the artifact is gone; if a stray artifact persists it comes from an adjacent element's border — inspect and remove any `border-r`/`border-destructive` on the set-row container. Token-only.
 
@@ -979,13 +990,13 @@ Expected: build succeeds; 250/253 (baseline).
 ```bash
 node tools/audit-capture.mjs /workout
 ```
-Open the session at 390px + 1440px: confirm edit/swap buttons ≥44px (162), the palm widget no longer covers the swap icon and does not intercept taps (163), and no red vertical artifact on LOG buttons (164).
+Open the session at 390px + 1440px: confirm edit/swap buttons ≥44px (162) and no red vertical artifact on LOG buttons (164). Finding 163 (and the chained overlap findings) needs no shipping-UI verification — it is the dev-only devtools toggle; if the optional `buttonPosition` one-liner was applied, confirm the devtools toggle now sits bottom-left in the dev build.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/A2S.Web/src
-git commit -m "workout-session: touch targets, palm-widget pointer-events, LOG artifact" -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "workout-session: touch targets, LOG artifact; devtools toggle position" -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -1032,7 +1043,7 @@ Findings addressed (quoted):
 - 195 (P1, sign-up): *"The ENTIRE page background is light/near-white … sign-up abandons the Arcade Minimal dark theme entirely — a full-page theme break, not just the embedded widget."*
 - 196 (P2, sign-up) / 188 (P2, sign-in): *"the Clerk card uses Clerk's default light appearance and a near-black 'Continue' button rather than the app's burnt-orange primary"*
 - 189 (P2, sign-in): non-primary Continue button.
-- 190 (P3, sign-in): empty-band framing; 191/197 (P3): palm overlap (resolved by Task 10 Step 2).
+- 190 (P3, sign-in): empty-band framing; 191/197 (P3): palm overlap — dev-only devtools toggle, not shipping UI (reclassified in Task 10 Step 2; recorded in Task 20).
 
 **Files:**
 - Modify: the sign-up page shell (P1 195) — locate in Step 1
@@ -1091,24 +1102,24 @@ git commit -m "sign-up: fix full-page theme break (P1); theme Clerk cards to Arc
 
 Each finding below is addressed by referencing the finding + file (Group A already resolved the heavy items on these screens). Batch-commit in logical groups.
 
-**sign-in (B-6):** 188/189 done in Task 12; 190 empty-band (P3, deferred or cheap centring per Task 12 Step 3); 191 palm overlap (resolved Task 10 Step 2). No residual code beyond Task 12.
+**sign-in (B-6):** 188/189 done in Task 12; 190 empty-band (P3, deferred or cheap centring per Task 12 Step 3); 191 palm overlap — dev-only devtools toggle, not shipping UI (reclassified Task 10 Step 2). No residual code beyond Task 12.
 
 **setup-wizard-4-confirm (B-7):**
 - 224 (P2): *"The step indicator's final 'Confirm' node/label is clipped at the right edge, same 4-node overflow as steps 2 and 3."* — resolved by the step-indicator scroll fix in Task 9 Step 2 (same shared component). Verify only.
-- 227 (P3): edge-gutter + palm overlap — palm resolved Task 10; add `pr-4`/gutter on the footer button container if it touches the edge at 390px. File: the confirm-step markup in `SetupWizard.tsx`.
+- 227 (P3): edge-gutter + palm overlap — palm is the dev-only devtools toggle (not shipping UI, reclassified Task 10); add `pr-4`/gutter on the footer button container if it touches the edge at 390px. File: the confirm-step markup in `SetupWizard.tsx`.
 - 225 (green icon) resolved by Task 4/Task 7 tokens; 226 (CREATE PROGRAM) by Tasks 2/3.
 
 **setup-wizard-2-template (B-8):**
 - 208 (P2): step-indicator overflow — resolved by Task 9 Step 2. Verify only.
 - 210 (P3): *"no selected/checked affordance on template cards"* — add a token selected-state ring on the chosen template card (`ring-2 ring-primary`) driven by the existing `selectedTemplate` state in `SetupWizard.tsx`. Token only, no logic change.
-- 211 (P3) palm overlap — resolved Task 10.
+- 211 (P3) palm overlap — dev-only devtools toggle, not shipping UI (reclassified Task 10).
 
 **setup-wizard-1-welcome (B-9):**
 - 201 (P2): *"The step indicator shows only THREE nodes here … but every subsequent step shows FOUR"* — make the rail fixed-length: render all four nodes (Start · Template · Exercises · Confirm) on the welcome step too, greying the not-yet-reached ones, in the step-indicator component. If the welcome step legitimately precedes the template/scratch choice, render the four-node rail with the "Template" node in a pending style rather than omitting it. File: step-indicator component + `SetupWizard.tsx` `getSteps`. Presentation only — do not change `getSteps` logic that drives navigation; only the indicator's displayed node set.
-- 203 (P3) palm overlap — resolved Task 10.
+- 203 (P3) palm overlap — dev-only devtools toggle, not shipping UI (reclassified Task 10).
 
 **dashboard (B-10):**
-- 148 (P2) palm overlap — resolved Task 10.
+- 148 (P2) palm overlap — dev-only devtools toggle, not shipping UI (reclassified Task 10).
 - 149 (P3): *"~20 near-identical cards each reading 'Not enough data yet' … a very long, low-information wall"* — collapse the per-exercise empty-state into a single aggregated empty state when all exercises lack data. File: `DashboardPage.tsx`. Behavior-preserving presentation change (render one card instead of N when data is uniformly empty).
 - 150 (P3) positive note (PR empty-state is correct) — no change.
 
@@ -1129,7 +1140,7 @@ Each finding below is addressed by referencing the finding + file (Group A alrea
 - 169 (P3): *"The active item … uses a full-width burnt-orange-tinted highlight bar; the tint is quite dark/muted and … reads more like a hover than a clear 'you are here'"* — strengthen the active state (e.g. `bg-primary/15 text-primary` + a left accent border) so it's distinct from hover. File: `Navbar.tsx` mobile menu. Token only.
 
 **settings (B-15):**
-- 259 (button treatment) by Task 2; 260 (palm overlap) by Task 10. Verify only — no residual code.
+- 259 (button treatment) by Task 2; 260 (palm overlap) — dev-only devtools toggle, not shipping UI (reclassified Task 10). Verify only — no residual code.
 
 **hevy (B-16):** 247 by Task 3, 248 by Task 2. No residual.
 
@@ -1351,9 +1362,9 @@ Structure obs / over-limit list: *"`ExerciseConfigDialog.tsx` (513 lines) — sp
 
 **Files:**
 - Modify: `src/A2S.Web/src/features/workout/ExerciseSelectionV2/ExerciseConfigDialog.tsx`
-- Create: a co-located extracted sub-component/helper file (name per the natural seam found when reading)
+- Create: `src/A2S.Web/src/features/workout/ExerciseSelectionV2/ExerciseConfigFields.tsx`
 
-- [ ] **Step 1: Read the dialog and find the natural seam** — identify a self-contained sub-form or field group (~50+ lines) that can move to a sibling file (e.g. `ExerciseConfigProgressionFields.tsx`). Extract it, importing back into the dialog. Behavior-preserving; props-passed only.
+- [ ] **Step 1: Read the dialog and extract the progression-config field group** — identify the self-contained progression/sets/reps/weight field group (~50+ lines) and move it into the new sibling file `ExerciseConfigFields.tsx`, exporting a `ExerciseConfigFields` component that receives the config value + change handlers as props. Import it back into `ExerciseConfigDialog.tsx`. Behavior-preserving; props-passed only.
 - [ ] **Step 2: Confirm under 500 lines**
 
 ```bash
@@ -1370,7 +1381,7 @@ Expected: build succeeds; 253/256 (baseline).
 
 ```bash
 git add src/A2S.Web/src
-git commit -m "Split ExerciseConfigDialog under 500-line limit" -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "Split ExerciseConfigDialog: extract ExerciseConfigFields under 500-line limit" -m "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -1411,9 +1422,9 @@ Structure obs: *"`ExerciseLibraryComponents.tsx` … `MUSCLE_GROUP_CONFIG`/`EQUI
 
 **Files:**
 - Modify: `src/A2S.Web/src/features/exercises/ExerciseLibraryComponents.tsx`
-- Create (optional): `src/A2S.Web/src/lib/muscleGroupPalette.ts`
+- Create: `src/A2S.Web/src/lib/muscleGroupStyles.ts`
 
-- [ ] **Step 1: Replace the per-muscle bespoke colour classes** (`text-{colour}-600` per group, lines 57-76) with a small token-driven lookup: map each muscle group / equipment type to one of a **fixed categorical palette** derived from `--color-neon-*` tokens (the contract permits `--color-neon-*` for categorical data identity; these badges are categorical labels, akin to chart series). Move the label/icon display data to stay in the component; move the colour mapping to `lib/muscleGroupPalette.ts` returning `var(--color-neon-*)`-based inline styles or a small set of token utility classes. Keep the same visual distinctness (each group still identifiable) but off the raw Tailwind colour ramp.
+- [ ] **Step 1: Replace the per-muscle bespoke colour classes** (`text-{colour}-600` per group, lines 57-76) with a small token-driven lookup: map each muscle group / equipment type to one of a **fixed categorical palette** derived from `--color-neon-*` tokens (the contract permits `--color-neon-*` for categorical data identity; these badges are categorical labels, akin to chart series). Move the label/icon display data to stay in the component; move the colour mapping to `src/A2S.Web/src/lib/muscleGroupStyles.ts`, exporting a `muscleGroupStyle(group)` / `equipmentStyle(equipment)` returning `var(--color-neon-*)`-based inline `style` objects (e.g. `{ color: 'var(--color-neon-cyan)' }`). Keep the same visual distinctness (each group still identifiable) but off the raw Tailwind colour ramp.
 - [ ] **Step 2: Confirm no raw `text-{colour}-600`/`bg-{colour}-100` map remains**
 
 ```bash
@@ -1473,7 +1484,7 @@ Expected: every default route captured at 1440 and 390; `done`. Also open the mo
 
 - [ ] **Step 2: Compare against the audit findings** — go through every P1 and P2 in the findings doc and confirm each is resolved (point to the task that fixed it) or explicitly deferred with a reason. The `modal-weight-confirm` screen (not reached in the audit) must be screenshotted now and audited; record any new findings or confirm clean.
 
-- [ ] **Step 3: Append `## Phase 2 resolution log` to the findings doc** with a table: each finding line number → status (`resolved by Task N` / `deferred: reason`). Every P1 (161, 174, 180, 195, 215, 247, 253) marked resolved. Every P2 mapped to its task. P3s batched or marked deferred (182 positive-leaning no-op; 156 optional; 265 sanctioned file; 190 optional centring; SimulationPage/hevyExercises splits deferred). Note the `modal-weight-confirm` audit result.
+- [ ] **Step 3: Append `## Phase 2 resolution log` to the findings doc** with a table: each finding line number → status (`resolved by Task N` / `dev-only overlay — not shipping UI` / `deferred: reason`). Every P1 (161, 174, 180, 195, 215, 247, 253) marked resolved. Every P2 mapped to its task. The "palm/island avatar" chain — **163, 148, 191, 197, 203, 211, 227, 260, 288, 296, 312, 345** — marked **"dev-only overlay (TanStack Query devtools `<ReactQueryDevtools>` in main.tsx), excluded from production bundles — not shipping UI, no app fix required"** (optional `buttonPosition="bottom-left"` dev tweak applied per Task 10 Step 2). P3s batched or marked deferred (182 positive-leaning no-op; 156 optional; 265 sanctioned file; 190 optional centring; SimulationPage/hevyExercises splits deferred). Note the `modal-weight-confirm` audit result.
 
 - [ ] **Step 4: Update `## Known debt` in `src/A2S.Web/src/AGENTS.md`** — replace the placeholder body with the concrete deferred items: SimulationPage 694-line split (internal tool), `hevyExercises.ts`/`workoutTemplates.ts` data-table sizes (out of scope), 60 pre-existing lint errors + `tests/e2e/*` unused-vars + `Navbar.tsx:25` setState-in-effect (toolchain cleanup, scheduled separately), `lib/blockColors.ts` categorical literals (sanctioned), and any P3 deferred above.
 
@@ -1501,9 +1512,11 @@ Every P1 and P2 finding maps to exactly one task (P3s batched or explicitly defe
 
 **P2 cross-cutting:** button root-cause (button.tsx:8, cross-screen 139/141/142) → Tasks 2/3 · nav caps 140/168/225 → Task 8 · all 28 static `dark:` (133-158) → Task 4 · CONNECT HEVY fill → Task 3.
 
-**P2 per-screen:** 147 → Task 8 · 148 → Task 10 · 154/155-context → Task 2 + Task 13 · 160 → Tasks 2/3 · 162 → Task 10 · 163 → Task 10 · 169 → Task 13 · 175/181 → Task 2 · 188/189/196 → Task 12 · 201 → Task 13 · 202/209/219/226/234/248/254(button)/259/266/272 → Task 2 · 208/216/224 → Task 9 · 210 → Task 13 · 217 → Task 6 · 218 → Task 9 · 225 → Tasks 4/7 · 235 → Task 13 · 236 → Task 13 · 241 → Tasks 4/18 · 242 → Task 13 · 254(empty-state) → Task 13.
+**P2 per-screen:** 147 → Task 8 · 148 → dev-only devtools overlay, reclassified Task 10 (not shipping UI) · 154/155-context → Task 2 + Task 13 · 160 → Tasks 2/3 · 162 → Task 10 · 163 → dev-only devtools overlay, reclassified Task 10 (not shipping UI) · 169 → Task 13 · 175/181 → Task 2 · 188/189/196 → Task 12 · 201 → Task 13 · 202/209/219/226/234/248/254(button)/259/266/272 → Task 2 · 208/216/224 → Task 9 · 210 → Task 13 · 217 → Task 6 · 218 → Task 9 · 225 → Tasks 4/7 · 235 → Task 13 · 236 → Task 13 · 241 → Tasks 4/18 · 242 → Task 13 · 254(empty-state) → Task 13.
 
-**P3:** 149/150/156/176/182/190/197/203/211/227/242/260/265 → batched into Tasks 10/11/12/13 or explicitly deferred in Task 20 with reason. Structure/over-limit → Tasks 14-19.
+**Dev-only overlay (not shipping UI, reclassified in Task 10 Step 2, recorded in Task 20):** 163, 148, 191, 197, 203, 211, 227, 260, 288, 296, 312, 345 — all "palm/island avatar overlap" findings are the TanStack Query devtools toggle (`<ReactQueryDevtools>` in main.tsx), excluded from production; no app fix required.
+
+**P3:** 149/150/156/176/182/190/242/265 → batched into Tasks 11/12/13 or explicitly deferred in Task 20 with reason (the palm-overlap P3s 197/203/211/227/288/296/312/345 are dev-only, listed above). Structure/over-limit → Tasks 14-19.
 
 No type/name mismatches: `Badge`/`DayBadge` (Task 6), `ReviewModal`/`ConfirmModal` (Tasks 5/15), `outcomeToStatus`/`statusBadgeClass`/`simOutcomeClass` (Task 7), `convertTemplateToSelectedExercises` (Task 14), `useSyncExerciseEditsToHevy` (Task 15) are referenced consistently across the tasks that consume them.
 
