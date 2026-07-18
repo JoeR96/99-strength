@@ -56,3 +56,4 @@ WORKBENCH.md
 .gitignore
 
 audit-screenshots/
+tools/.auth-state.json
