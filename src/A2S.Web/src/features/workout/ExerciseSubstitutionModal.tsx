@@ -352,13 +352,14 @@ export function ExerciseSubstitutionModal({
         )}
 
         {/* Actions */}
-        <div className="p-4 border-t flex justify-end gap-3">
-          <Button variant="outline" onClick={handleClose}>
+        <div className="p-4 border-t flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+          <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
             onClick={handleSubstitute}
             disabled={!selectedExercise || !substitutionType}
+            className="w-full sm:w-auto"
           >
             Substitute Exercise
           </Button>
