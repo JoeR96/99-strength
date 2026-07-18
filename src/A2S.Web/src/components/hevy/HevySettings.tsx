@@ -113,6 +113,7 @@ export function HevySettings() {
             <Button
               onClick={handleSave}
               disabled={!inputKey.trim() || isValidating}
+              variant="default"
               className="w-full"
             >
               {isValidating ? (
