@@ -215,3 +215,53 @@ _Auth + setup-wizard flows (Task 6b), 2026-07-18. Screenshots in `audit-screensh
 - **[P2]** `setup-wizard-4-confirm` — CREATE PROGRAM (and BACK) are ALL-CAPS Orbitron; CREATE PROGRAM shows the bevelled retro-orange fill with washed-out label — the primary commit action of the whole flow, so the low-contrast label is the most consequential instance here. Evidence: `setup-wizard-4-confirm--1440.png`, `setup-wizard-4-confirm--390.png`.
 - **[P3]** `setup-wizard-4-confirm` (390px) — The CREATE PROGRAM footer button runs to (and appears to touch/slightly exceed) the right viewport edge with minimal gutter, and the fixed palm avatar overlaps the Day 3 exercise list. Minor edge-gutter + decorative-overlap polish. Evidence: `setup-wizard-4-confirm--390.png`.
 - Note (positive): the Review step's "Program Details" (Name/Variant/Duration) and per-day "Selected Exercises" list use consistent `bg-card` surfaces, tokened orange day headers and the correct heading/caption scale; the review content itself is coherent and on-contract — the deviations are the button/step-indicator/green-icon items above.
+
+_Secondary pages (Task 6c), 2026-07-18. Screenshots in `audit-screenshots/` at desktop 1440px + mobile 390px, fullPage. AUDIT ONLY — no code changed. The seeded account is on Week 1 with no history, so empty states are exercised throughout. Retro-leftover button/nav findings share the `button.tsx`/`Navbar.tsx` roots already catalogued under Cross-screen; instances below are anchored to these screens' evidence per the format._
+
+### programs
+
+- **[P2]** `programs` — Retro leftover: CREATE NEW PROGRAM, VIEW WORKOUT and DELETE render ALL-CAPS in the blocky Orbitron display font with letterspacing; CREATE NEW PROGRAM and VIEW WORKOUT additionally show the bevelled/gradient retro-orange fill (with a faint outer glow on the CREATE button). Same `button.tsx` root as Cross-screen. Evidence: `programs--1440.png`, `programs--390.png`.
+- **[P3]** `programs` — Two differently-styled status pills sit side-by-side on the card header: "Active" is a green-tinted outline pill (off-token green) while "Active Program" is an orange-tinted outline pill; the pair is redundant (both say the program is active) and mixes two tint styles on one row. Evidence: `programs--1440.png`.
+- **[P3]** `programs` — Body copy reads "FourDay-Day Split" — a data/label glitch (double "Day") in the program meta line, visible on both breakpoints. Off-contract only as a polish/legibility nit, not a colour/spacing issue. Evidence: `programs--1440.png`, `programs--390.png`.
+- Note (positive): the program card uses the correct `bg-card` + 1px border + `rounded-lg` surface with a tokened orange progress bar and consistent caption scale; mobile stacks the action row cleanly with no horizontal overflow.
+
+### exercises
+
+- **[P2]** `exercises` — The entire muscle-group filter chip set (Chest/Shoulders/Triceps/Lats/Biceps/Quadriceps/Hamstrings/Glutes/…) and every per-card muscle/equipment badge render in off-token named Tailwind colours (orange/violet/blue/red/green/pink), driven by `MUSCLE_GROUP_CONFIG`/`EQUIPMENT_CONFIG` already catalogued in Static findings; on this page it is the dominant visual, filling the sidebar and ~444 cards with non-token colour. Visible on both breakpoints. Evidence: `exercises--1440.png`, `exercises--390.png`.
+- **[P3]** `exercises` — The grouped list renders 444 near-identical `bg-card` tiles in a very long fullPage scroll (13k px desktop, 36k px mobile) with only muscle-group section headers breaking it up; no sticky filter/section affordance means the sidebar filters scroll away immediately on mobile. Density/scannability note. Evidence: `exercises--390.png`.
+- Note (positive): the Grouped/Grid/List view toggle (active = orange), search input, and card surfaces are on-contract (`bg-card` + border + `rounded-lg`), and the mobile layout stacks filters above the list with no horizontal overflow.
+
+### hevy
+
+- **[P1]** `hevy` — The CONNECT HEVY primary button renders as a dark muted-brown fill with grey-on-brown label text (see crop) — the label is barely legible against the fill and the button reads as disabled despite being the page's primary CTA. This is a genuine contrast failure, distinct from (and worse than) the washed-out-label-on-orange retro bevel flagged elsewhere. Same on mobile. Evidence: `hevy--1440.png`, `hevy--390.png`.
+- **[P2]** `hevy` — CONNECT HEVY is ALL-CAPS Orbitron (retro leftover, `button.tsx` root). Evidence: `hevy--1440.png`.
+- Note (positive): the "Connect your Hevy account to view synced routines" empty state is centred with a link glyph and two-line copy — the correct empty-state pattern; the integration card and API-key input are on-contract `bg-card`/tokened surfaces with no overflow at 390px.
+
+### hevy-data
+
+- **[P1]** `hevy-data` — The CONNECT HEVY button carries the same dark muted-brown fill / illegible grey label as on the Hevy page (same button, same failure). Evidence: `hevy-data--1440.png`, `hevy-data--390.png`.
+- **[P2]** `hevy-data` — The "Connect your Hevy account to view workout data." empty state is a single left-aligned muted line in a tall `bg-card` panel — inconsistent with the centred glyph+copy empty states used on Hevy/History/Dashboard; reads as an unstyled placeholder rather than a designed empty state. Evidence: `hevy-data--1440.png`, `hevy-data--390.png`.
+- Not verified: because the account is not Hevy-connected, no data table renders, so the table-overflow-at-390 check could not be exercised on this page; deferred to a connected-account pass.
+
+### settings
+
+- **[P2]** `settings` — Button-treatment inconsistency: the Settings actions ("Seed 4-Day Template (Weeks 1-17)", "Export Current Program") render in SENTENCE-CASE system font (Seed = flat orange, Export = flat dark secondary), whereas nav and every other page's buttons are ALL-CAPS Orbitron with the retro bevel. Settings is closer to the contract, but the app now shows two conflicting button styles — the same primitive should be used everywhere. Evidence: `settings--1440.png`, `settings--390.png`.
+- **[P3]** `settings` (390px) — The fixed palm/island avatar overlaps the "Export Current Program" button, sitting on top of an interactive control (same decorative-overlay issue flagged across other screens). Evidence: `settings--390.png`.
+- Note (positive): both Settings cards use correct `bg-card` + 1px border + `rounded-lg` surfaces with the proper heading/body/caption scale and clean `p-6` spacing; sentence-case flat buttons here are the on-contract button target.
+
+### history
+
+- **[P3]** `history` — The Block legend dots (Block 1 = blue, Block 2 = violet, Block 3 = pink) use the off-token literal hex from `lib/blockColors.ts` already catalogued as P3 in Static findings; contract sanctions that file for categorical identity, so this is polish only. Evidence: `history--1440.png`, `history--390.png`.
+- **[P3]** `history` — "Export CSV" (secondary, icon + label) and the "Activity Calendar / Exercise Progress" tab toggle render in sentence-case system font, matching Settings but conflicting with the ALL-CAPS Orbitron buttons on Programs/Hevy/Simulator — same button-treatment inconsistency noted under Settings. Evidence: `history--1440.png`.
+- Not reached: only the default "Activity Calendar" tab is captured, so the "Exercise Progress" charts (theme-token/axis-legibility per the contract's chart rules) could not be judged; deferred to a chart-rendering pass.
+- Note (positive): the Activity Calendar card, the "Click on a workout day to see details" empty right-panel (centred glyph + copy), and today's tokened-orange highlighted cell are on-contract; the calendar grid wraps cleanly at 390px with no horizontal overflow.
+
+### simulate
+
+- **[P2]** `simulate` — Retro leftover: RUN SIMULATION and RUN PERSISTENT render ALL-CAPS Orbitron with the bevelled retro-orange fill (`button.tsx` root). Evidence: `simulate--1440.png`, `simulate--390.png`.
+- Not reached: no simulation has been run, so the results table (the primary table-overflow-at-390 risk for this page) and any projection chart do not render; the table-scroll-within-container and chart-styling checks could not be exercised and are deferred to a post-run pass.
+- Note (positive): the config card, "Persistent Run (dev)" panel, selects and number inputs are on-contract `bg-card`/tokened surfaces; the empty "Select a workout and click Run Simulation…" state is centred and clean, and the form stacks at 390px with no horizontal overflow.
+
+### modal-weight-confirm
+
+- Not reached: requires a completed session with a pending weight bump; deferred to Phase 2 verification.
