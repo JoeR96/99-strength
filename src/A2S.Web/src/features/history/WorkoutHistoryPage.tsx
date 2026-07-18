@@ -116,7 +116,7 @@ export function WorkoutHistoryPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container-apple py-8">
+        <div className="container-page py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -129,7 +129,7 @@ export function WorkoutHistoryPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container-apple py-8">
+        <div className="container-page py-8">
           <div className="text-center py-12">
             <h2 className="text-xl font-semibold text-foreground mb-2">No Workout History</h2>
             <p className="text-muted-foreground">
@@ -144,7 +144,7 @@ export function WorkoutHistoryPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container-apple py-8">
+      <main className="container-page py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

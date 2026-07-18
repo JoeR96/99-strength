@@ -51,7 +51,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card backdrop-blur">
-      <div className="container-apple">
+      <div className="container-page">
         <div className="flex h-16 justify-between items-center">
           {/* Logo */}
           <div className="flex items-center gap-8">

@@ -30,11 +30,11 @@ export function DashboardPage() {
   const thisWeekCompleted = completedDays.size;
 
   return (
-    <div className="min-h-screen bg-background theme-transition">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Main Content - Apple Layout with generous whitespace */}
-      <main className="container-apple py-16">
+      <main className="container-page py-16">
         {/* Welcome Header - Apple hero style */}
         <div className="mb-16 text-center">
           <h2 className="text-hero text-foreground mb-4">

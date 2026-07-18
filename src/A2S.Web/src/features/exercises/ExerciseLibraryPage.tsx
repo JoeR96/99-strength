@@ -135,10 +135,10 @@ export function ExerciseLibraryPage() {
   const standardCount = allExercises.length - customCount;
 
   return (
-    <div className="min-h-screen bg-background theme-transition">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container-apple py-8">
+      <main className="container-page py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Exercise Library</h1>
