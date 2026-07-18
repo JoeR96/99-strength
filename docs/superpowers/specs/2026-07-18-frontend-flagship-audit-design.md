@@ -47,7 +47,7 @@ Taken from the current `:root` Retro Arcade tokens in `index.css`:
 
 ### Live walkthrough (Playwright)
 
-- Run the app locally (backend + `npm run dev`). Authenticate via Clerk as **joeyrichardson96@gmail.com** (dev instance); seed/register the user locally if absent, and seed a workout so real data renders.
+- Run the app locally (backend + `npm run dev`). Authenticate via Clerk as the **e2e test user from `src/A2S.Web/.env.test`** (email/password login — automatable, unlike the owner's Google-OAuth account); seed a workout via the setup wizard if the account has none, so real data renders.
 - Drive all 12 routes: `/sign-in`, `/sign-up`, `/dashboard`, `/workout`, `/workout/session/:day`, `/setup`, `/programs`, `/exercises`, `/hevy`, `/hevy/data`, `/settings`, `/history`, `/simulate`.
 - Also drive major modal flows: setup wizard steps, session logging, weight confirmation, exercise substitution, Hevy sync/review, progression tables.
 - Screenshot every screen/state at **1440px (desktop)** and **390px (mobile)** — equal weight.
