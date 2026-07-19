@@ -1,15 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { convertTemplateToSelectedExercises } from "./templateConversion";
 import { WeightUnit, ExerciseCategory } from "@/types/workout";
+import type { ExerciseLibrary, CreateExerciseRequest } from "@/types/workout";
+import type { WorkoutTemplate } from "@/data/workoutTemplates";
 
-const library = {
+const library: ExerciseLibrary = {
   templates: [
     { name: "Squat Barbell", equipment: 0, description: "", defaultSets: 4, defaultRepRange: { minimum: 8, maximum: 12 } },
   ],
-} as any;
+};
 
-const template = {
+const template: WorkoutTemplate = {
+  id: "test-program",
   name: "Test Program",
+  description: "",
   variant: 4,
   totalWeeks: 21,
   blockSequence: [1, 2, 3],
@@ -36,12 +40,12 @@ const template = {
       targetSets: 5,
       startingWeight: 45,
     },
-  ],
-} as any;
+  ] as CreateExerciseRequest[],
+};
 
 describe("convertTemplateToSelectedExercises", () => {
   it("returns [] when library is null", () => {
-    expect(convertTemplateToSelectedExercises(template, null as any)).toEqual([]);
+    expect(convertTemplateToSelectedExercises(template, null as unknown as ExerciseLibrary)).toEqual([]);
   });
   it("maps a known Linear main lift with training max and Primary flag", () => {
     const [ex] = convertTemplateToSelectedExercises(template, library);
