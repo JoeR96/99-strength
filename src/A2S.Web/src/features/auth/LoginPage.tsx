@@ -1,4 +1,5 @@
 import { SignIn } from '@clerk/clerk-react';
+import { clerkAppearance } from './clerkAppearance';
 
 /**
  * Login page component that displays Clerk's pre-built sign-in UI with SSO options.
@@ -50,24 +51,7 @@ export function LoginPage() {
             path="/sign-in"
             signUpUrl="/sign-up"
             fallbackRedirectUrl="/dashboard"
-            appearance={{
-              elements: {
-                rootBox: "mx-auto w-full",
-                card: "bg-transparent shadow-none p-6",
-                headerTitle: "text-foreground font-bold",
-                headerSubtitle: "text-muted-foreground",
-                socialButtonsBlockButton:
-                  "bg-secondary/50 border-border/50 text-secondary-foreground hover:bg-secondary/70 transition-all",
-                formFieldLabel: "text-foreground font-medium",
-                formFieldInput:
-                  "bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20",
-                formButtonPrimary:
-                  "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all font-semibold",
-                footerActionLink: "text-primary hover:text-primary/80",
-                dividerLine: "bg-border/50",
-                dividerText: "text-muted-foreground",
-              },
-            }}
+            appearance={clerkAppearance}
           />
         </div>
 
