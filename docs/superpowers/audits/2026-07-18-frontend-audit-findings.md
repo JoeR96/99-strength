@@ -361,3 +361,115 @@ _Secondary pages (Task 6c), 2026-07-18. Screenshots in `audit-screenshots/` at d
 ### modal-weight-confirm
 
 - Not reached: requires a completed session with a pending weight bump; deferred to Phase 2 verification.
+
+## Phase 2 resolution log
+
+**Closed out:** 2026-07-19 · **Plan:** `docs/superpowers/plans/2026-07-18-arcade-minimal-fixes.md` · **Ledger:** `.superpowers/sdd/progress.md` · **Phase 2 base:** `a7d7e46` → **HEAD:** `c735ae5` (this closeout commit lands on top).
+
+**Verification (this closeout, `cd src/A2S.Web`):**
+- `npm run build` — ✅ succeeds (`tsc -b && vite build`, 1002 modules, no errors; only the pre-existing >500 kB chunk-size warning).
+- `npm test` — **256 / 259 passing** (1 test file / 3 tests failing). The 3 failures are the accepted baseline: `features/exercises/ExerciseLibraryPage.test.tsx` (`useHevy must be used within a HevyProvider` — test-harness provider-wrapper gap, failing on base, unrelated to any Phase 2 change). No new failures. Suite grew from the 246/249 audit baseline to 259 via the extracted unit tests added in Tasks 7/14.
+- `npm run lint` — **60 errors, 2 warnings** (unchanged baseline; not increased). Pre-existing across ~25 files: unused vars in `tests/e2e/*`, `react-hooks/rules-of-hooks` in `tests/e2e/fixtures/auth-fixture.ts`, setState-in-effect incl. `Navbar.tsx`.
+
+**Re-capture:** `node tools/audit-capture.mjs` (2026-07-19) captured all 10 default routes at 1440 + 390 (`dashboard, workout, programs, exercises, hevy, hevy-data, settings, history, simulate, setup`). Wizard steps and the modals (`modal-progression`, `modal-substitution`, `modal-weight-confirm`) and `nav-mobile` are **not route-reachable** by the tool; their evidence below is the **mid-phase capture refreshed during Tasks 5–13** (each Group A/B task re-screenshotted the routes it touched and eyeballed the modals it opened), not a final-pass capture. Screens whose evidence is mid-phase rather than this final re-capture: `modal-progression`, `modal-substitution`, `modal-weight-confirm`, `nav-mobile`, and the five `setup-wizard-*` steps (the tool captures the `/setup` entry only). All route-reachable screens carry a fresh 2026-07-19 capture.
+
+**Tallies:** **RESOLVED 66** · **DEFERRED 15** · **RECLASSIFIED 12 (dev-only devtools overlay)**. (7 P1 + 60 P2 + 30 P3 = 97 findings; the 12 reclassified are the palm/island-avatar chain, counted once each and drawn from the P2/P3 pools.)
+
+### P1 (7) — all RESOLVED
+
+| Finding (line) | Screen | Status |
+|---|---|---|
+| 161 (`246`) | workout-session "Per Side" pill collapse | **RESOLVED** — Task 6 (`3a78b75`): `Badge`/`DayBadge` primitive; `whitespace-nowrap` + min-width stops the two-line/oval collapse; token colour replaces `bg-blue-100`. |
+| 174 (`259`) | modal-progression footer overflow @390 | **RESOLVED** — Task 5 (`f37c39d`): footer stacks `flex-col-reverse … sm:flex-row`, buttons `w-full sm:w-auto`. |
+| 180 (`265`) | modal-substitution footer overflow @390 | **RESOLVED** — Task 5 (`f37c39d`): same footer-stacking fix. |
+| 195 (`280`) | sign-up full-page theme break | **RESOLVED** — Task 12 (`c7e084c`): dark shell wrapper aligned to sign-in; Clerk `appearance` themed to Arcade Minimal. |
+| 215 (`300`) | setup-wizard-3 exercise-name squeezed out @390 | **RESOLVED** — Task 9 (`5d404c7`): mobile grid `grid-cols-1 sm:grid-cols-2 …` restores full-width cards so the name renders. |
+| 247 (`332`) | hevy CONNECT HEVY dark-brown fill / illegible label | **RESOLVED** — Task 3 (`22043ce`→`216d4a8`→`f04b202`): real root cause was the disabled-button treatment, not a bespoke fill; disabled buttons now use a flat `bg-muted` treatment (controller-adjudicated). |
+| 253 (`338`) | hevy-data CONNECT HEVY (same button/failure) | **RESOLVED** — Task 3 (`f04b202`): same fix. |
+
+### P2 — RESOLVED (mapped to task)
+
+Cross-cutting root causes:
+- **`button.tsx:8` Orbitron + `uppercase tracking-wide` + banned `glow` variant** (static `207`; cross-screen `224`/`226`/`227` button clauses) → **RESOLVED** Task 2 (`5ec5db2`). Retires every "retro ALL-CAPS button" instance in one edit: dashboard 147(btn), workout 154(btn), workout-session 160, modal-progression 260, modal-substitution 266, setup-wizard 202/209/219/226(btn), programs 234, hevy 248, hevy-data 254(btn), simulate 357, settings 344, history 351.
+- **All 28 static `dark:` findings** (`133`–`158`) → **RESOLVED** Task 4 (`85f8f9e`): 125 `dark:` tokens removed across 19 files; only the `BlockSequenceEditor.tsx` doc-comment prose match remains. Also retires the off-token badge/green-outcome instances that resurfaced on screens: setup-wizard-3 day badge 217(`302`), setup-wizard-4 green icon 225(`310`), programs green pill 235(`320`), exercises colour map 241(`326`).
+
+Per-screen P2:
+| Finding (line) | Status |
+|---|---|
+| 140 nav ALL-CAPS (`225`), 147 dashboard headings (`232`), 168 nav-mobile ALL-CAPS (`253`) | **RESOLVED** — Task 8 (`8b0c800`): system-font type scale on Navbar + DashboardPage. |
+| 154 workout meta chips (`239`) | **RESOLVED** — Task 2 (button/type root) + Task 13 divider follow-up. |
+| 160 workout-session button (`245`) | **RESOLVED** — Tasks 2/3. |
+| 162 workout-session edit/swap 24px targets (`247`) | **RESOLVED** — Task 10 (`0a6da66`): `size="icon"` / min 44px. |
+| 175 modal-progression button (`260`) | **RESOLVED** — Task 2. |
+| 181 modal-substitution button (`266`) | **RESOLVED** — Tasks 2/3. |
+| 188 sign-in Clerk light card (`273`), 189 non-primary Continue (`274`) | **RESOLVED** — Task 12 (`c7e084c`): Clerk `appearance` themed. |
+| 196 sign-up Clerk light card (`281`) | **RESOLVED** — Task 12. |
+| 201 setup-wizard-1 three-vs-four-node rail (`286`) | **RESOLVED** — Task 13 (`9c0a04a`): fixed four-node rail with pending styling. |
+| 208 setup-wizard-2 step-rail overflow @390 (`293`) | **RESOLVED** — Task 9 (`5d404c7`): shared rail made scrollable + nodes shrink at mobile bp. |
+| 209 setup-wizard-2 BACK/NEXT (`294`) | **RESOLVED** — Task 2. |
+| 216 setup-wizard-3 "Confirm" clipped (`301`) | **RESOLVED** — Task 9. |
+| 218 setup-wizard-3 20–24px targets (`303`) | **RESOLVED** — Task 9. |
+| 219 setup-wizard-3 BACK/NEXT (`304`) | **RESOLVED** — Task 2. |
+| 224 setup-wizard-4 "Confirm" clipped (`309`) | **RESOLVED** — Task 9 (shared rail) + Task 13 gutter. |
+| 225 setup-wizard-4 green icon (`310`) | **RESOLVED** — Tasks 4/7 tokens. |
+| 226 setup-wizard-4 CREATE PROGRAM (`311`) | **RESOLVED** — Tasks 2/3. |
+| 234 programs buttons (`319`) | **RESOLVED** — Task 2. |
+| 241 exercises muscle-group colour map (`326`) | **RESOLVED** — Task 4 (`dark:` strip) + Task 18 (`c735ae5`) token-driven `muscleGroupStyle()` categorical lookup. |
+| 248 hevy CONNECT HEVY caps (`333`) | **RESOLVED** — Task 2. |
+| 254 hevy-data button (`338`) + empty-state (`339`) | **RESOLVED** — button Task 2; empty-state Task 13 (centred glyph+copy to match Hevy/History/Dashboard). |
+| 259 settings button treatment (`344`) | **RESOLVED** — Task 2 (single primitive everywhere). |
+| 266 history button treatment (`351`) | **RESOLVED** — Task 2. |
+| 272 simulate buttons (`357`) | **RESOLVED** — Task 2. |
+| Structure/SRP: ReviewModal (`197`), day-badge triplication (`198`), outcomeToStatus (`200`), ExerciseCard badges (`201`), muscle-group config (`199`) | **RESOLVED** — ReviewModal Task 5; Badge/DayBadge Task 6; `outcomeToStatus`/`statusBadgeClass`/`simOutcomeClass` Task 7 (`1d08aa2`, with unit tests); muscle-group lookup Task 18. |
+| Over-500-line: EditExercisesModal 730 (`184`), SetupWizard 639 (`186`), ExerciseConfigDialog 513 (`188`) | **RESOLVED** — SetupWizard conversion → `lib/templateConversion.ts` Task 14 (`338dd7d`); EditExercisesModal → `useSyncExerciseEditsToHevy` + `deriveExerciseEditStates` + `ConfirmModal` (730→258) Task 15 (`f99fa4c`); ExerciseConfigDialog → `ExerciseConfigFields` (513→306) Task 16 (`25fb543`); `types/workout.ts` 541 → re-export split Task 17 (`fbea30b`). |
+| `button.tsx` inline confirm dup / bespoke confirm modal (`195`) | **RESOLVED** — Task 15: shared `ConfirmModal` primitive. |
+
+### P3 — batched-resolved / deferred
+
+| Finding (line) | Status |
+|---|---|
+| 149 dashboard repetitive empty-state wall (`234`) | **RESOLVED** — Task 13: aggregated single empty-state when all exercises lack data. |
+| 155 workout day-column separation (`240`) | **RESOLVED** — Task 13: divider/heavier name weight. |
+| 169 nav-mobile weak active state (`254`) | **RESOLVED** — Task 13: `bg-primary/15 text-primary` + accent border. |
+| 176 modal-progression mixed header tags (`261`) | **RESOLVED** — Task 11 (`93ee2c1`): both tags migrated to `Badge` primitive. |
+| 210 setup-wizard-2 no selected affordance (`295`) | **RESOLVED** — Task 13: `ring-2 ring-primary` selected state. |
+| 220 setup-wizard-3 chip/Add colour collision (`305`) | **RESOLVED** — Task 9: active chip tinted-outline vs solid Add. |
+| 235 programs redundant dual status pills (`320`) | **RESOLVED** — Task 13: single token `Badge`. |
+| 236 programs "FourDay-Day Split" glitch (`321`) | **RESOLVED** — Task 13 (`e1aab54`): shared `formatVariantDays`, double-"Day" fixed. |
+| 242 exercises no sticky filters / long scroll (`327`) | **RESOLVED** — Task 13: sticky filter sidebar. |
+| 150 dashboard PR empty-state (`235`) | **DEFERRED — no-op**: positive note (correct pattern), no change intended. |
+| 182 modal-substitution orange focus ring (`267`) | **DEFERRED — no-op**: finding is positive-leaning ("heavy but on-brand"); no edit. |
+| 156 workout blurred next-week-preview scroll length (`241`) | **DEFERRED**: optional density cap, low priority; left as-is (per Task 13 report — not applied). |
+| 190 sign-in empty-band framing (`275`) | **DEFERRED**: optional vertical-centring polish; not applied (per Task 12 report — not cheap enough to include). |
+| 265 history block legend dots (`350`) | **DEFERRED — sanctioned**: uses `lib/blockColors.ts` literals, a file the contract explicitly permits for categorical block identity. Not a violation. |
+| 202 BlockSequenceEditor positive reference (`202`) | **DEFERRED — no-op**: cited as the *correct* pattern, not a defect. |
+| SimulationPage.tsx 694-line split (`185`) | **DEFERRED** — Task 19 (inline verify, no commit): internal dev/debug tool (P3); split carries no user-facing benefit and is off the styling-fix critical path. Its outcome-string→colour switch was already migrated to `simOutcomeClass`/`text-primary` in Task 7. |
+| `hevyExercises.ts` (3109) / `workoutTemplates.ts` (1093) sizes (`189`) | **DEFERRED — out of scope**: static data tables, not components; the 500-line contract targets component files. Maintainer-convenience note only. |
+| Static blockColors.ts hex (`98`–`100`) | **DEFERRED — sanctioned**: contract permits this file to hold literal categorical values. |
+| Lint toolchain 60 errors (`208`) | **DEFERRED — toolchain**: pre-existing, none on Phase 2-touched lines; scheduled as a separate cleanup (see Known debt). |
+
+### RECLASSIFIED — dev-only devtools overlay (not shipping UI, no app fix required)
+
+The "floating palm/island avatar" flagged across screens is **not app source**: it is the **TanStack Query devtools floating toggle** (its logo is a palm-tree island), rendered by `<ReactQueryDevtools initialIsOpen={false} …>` in `src/A2S.Web/src/main.tsx`. `ReactQueryDevtools` is **excluded from production bundles**, so the overlay never ships to users — there is no shipping-UI defect. An optional dev-quality-of-life tweak (`buttonPosition="bottom-left"`) was applied in Task 10 (`0a6da66`) so the toggle stops overlapping content during local development.
+
+Reclassified findings (12): **163** (`248`, workout-session), **148** (`233`, dashboard), **191** (`276`, sign-in), **197** (`282`, sign-up), **203** (`288`, setup-wizard-1), **211** (`296`, setup-wizard-2), **227** (`312`, setup-wizard-4), **260** (`345`, settings) — plus the chained palm-overlap P3s **288/296/312/345** already covered by their screen rows above. All identical root: TanStack Query devtools toggle.
+
+### `modal-weight-confirm` audit result
+
+**Still not reached** — it requires a completed session with a pending weight bump (the seeded account is on Week 1 with no completed session, so the modal has no trigger path and is not route-reachable). It carried no findings in the original audit and produced no new findings in Phase 2 because it could not be rendered. Its footer inherits the same `ReviewModal`/stacked-footer treatment applied to its sibling decision modals in Task 5, so the 390px footer-overflow class of P1 does not recur there by construction. **Recorded as an open verification gap**: a real completed-session walkthrough is still owed before this specific screen can be visually signed off. (Similarly deferred to connected/post-run passes: `hevy-data` data-table overflow, `simulate` results table/chart, `history` "Exercise Progress" charts — none render on the Week-1 seeded account.)
+
+### Residual known deferrals (carried to `src/AGENTS.md` Known debt)
+
+Genuinely outstanding after Phase 2, for a future dev touching styling:
+- **SimulationPage.tsx** 694-line split (internal dev tool) — over the 500-line limit; deferred.
+- **`hevyExercises.ts` (3109) / `workoutTemplates.ts` (1093)** — static data tables over the limit; out of scope for the component line contract.
+- **Lint baseline** — 60 pre-existing errors (`tests/e2e/*` unused vars, `rules-of-hooks`, `Navbar.tsx` setState-in-effect); toolchain cleanup, scheduled separately.
+- **modal-weight-confirm never reached** — needs a completed session to render; not visually signed off.
+- **Disabled-button thin orange border residual** — cosmetic; accepted in the Task 3 adjudication.
+- **Modal footer rail fix (216/174/180)** — stacking makes the Confirm/Close action *reachable by scroll* at 390px, not *always visible without scrolling*; accepted tradeoff.
+- **`equipmentStyle()`** — exported from `lib/muscleGroupStyles.ts` but currently has no call sites (unwired); `muscleGroupStyle()` is wired.
+- **8-token categorical cycling** — `muscleGroupStyle()` cycles a fixed 8-colour `--color-neon-*` palette by index, so muscle groups past index 7 share a colour (there are ~15 groups). Inherent to a fixed palette; distinctness is best-effort.
+- **Extracted `useSyncExerciseEditsToHevy` / `deriveExerciseEditStates`** — behavior-preserving extractions from EditExercisesModal (Task 15) with **no dedicated unit tests** yet.
+- **`CardTitle`** — retains `tracking-wide` (shared primitive; no ALL-CAPS pairing, so it reads as normal spaced text, not the banned letterspaced-caps).
+- **LoginPage dead gradient/scanline classes** — `bg-gradient-navy`, `text-gradient-gold`, and a scanline `linear-gradient` grid persist in `features/auth/LoginPage.tsx` (still routed in `App.tsx`); off-contract decorative classes not swept in Phase 2.
+- **`lib/blockColors.ts` categorical hex literals** — sanctioned by the contract for block identity.

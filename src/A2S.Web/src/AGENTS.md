@@ -4,7 +4,7 @@ Scope: everything under `src/`. Inherits `../AGENTS.md` (stack, structure, conve
 
 ## The theme
 
-One theme: **Arcade Minimal** — Apple-style minimal design language carrying the Retro Arcade palette. Dark near-black surfaces, burnt-orange primary, neon-yellow accent, system fonts, subtle 1px borders, soft shadows. There is no theme switcher and no `.dark`/`.apple-theme` class; a `dark:` Tailwind variant is always dead code. The ~126 existing occurrences are being removed by the Phase 2 sweep (see Known debt) — never add new ones, and don't hand-remove them ahead of that sweep.
+One theme: **Arcade Minimal** — Apple-style minimal design language carrying the Retro Arcade palette. Dark near-black surfaces, burnt-orange primary, neon-yellow accent, system fonts, subtle 1px borders, soft shadows. There is no theme switcher and no `.dark`/`.apple-theme` class; a `dark:` Tailwind variant is always dead code. The Phase 2 audit sweep removed all live occurrences (only a doc-comment prose match in `BlockSequenceEditor.tsx` remains) — never add new ones.
 
 ## The token contract
 
@@ -61,4 +61,14 @@ Recharts renders SVG and cannot consume Tailwind classes, so colours must be con
 
 ## Known debt (don't replicate; fix opportunistically)
 
-_Tracked in `docs/superpowers/audits/2026-07-18-frontend-audit-findings.md` during the flagship audit; migrate leftovers here when that effort closes._
+The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and P2. Genuinely outstanding items a future styling change should know about:
+
+- **`LoginPage.tsx` dead decorative classes** — `bg-gradient-navy`, `text-gradient-gold`, and a scanline `linear-gradient` grid persist (page is still routed). Off-contract retro leftovers; remove if you touch this file.
+- **`CardTitle` keeps `tracking-wide`** in `components/ui/card.tsx` — harmless (no ALL-CAPS pairing) but off the type scale; don't copy the letterspacing.
+- **`equipmentStyle()` in `lib/muscleGroupStyles.ts` is exported but unwired** (no call sites). `muscleGroupStyle()` is wired.
+- **Categorical badge colours cycle a fixed 8-token `--color-neon-*` palette** by index (`lib/muscleGroupStyles.ts`), so muscle groups past the 8th share a colour. Inherent to a fixed palette — don't "fix" by inventing raw colours.
+- **`lib/blockColors.ts` holds literal hex** for training-block identity — **sanctioned** by the token contract; leave it.
+- **Over-500-line files not split**: `features/workout/SimulationPage.tsx` (694, internal dev tool) and the static data tables `data/hevyExercises.ts` (3109) / `data/workoutTemplates.ts` (1093, out of scope for the component line limit).
+- **`useSyncExerciseEditsToHevy` / `deriveExerciseEditStates`** (extracted from `EditExercisesModal`) have no dedicated unit tests yet.
+- **Lint baseline: 60 pre-existing errors** (`tests/e2e/*` unused vars, `rules-of-hooks`, `Navbar.tsx` setState-in-effect) — toolchain cleanup scheduled separately; don't add to it.
+- **`modal-weight-confirm`** was never reachable (needs a completed session) — not visually signed off.
