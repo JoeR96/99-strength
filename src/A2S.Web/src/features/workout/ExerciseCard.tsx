@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import type { ExerciseEntry, ExerciseDto, RepsPerSetProgressionDto } from "./workoutSessionTypes";
 
 interface ExerciseCardProps {
@@ -70,9 +71,7 @@ export function ExerciseCard({
             </svg>
             <span className="font-semibold truncate">{entry.exercise.name}</span>
             {repsPerSetProg?.isUnilateral && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">
-                Per Side
-              </span>
+              <Badge variant="info" className="shrink-0">Per Side</Badge>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -98,19 +97,13 @@ export function ExerciseCard({
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-lg">{entry.exercise.name}</h3>
             {isTemporarilySubstituted && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-                Temp Sub
-              </span>
+              <Badge variant="warning">Temp Sub</Badge>
             )}
             {repsPerSetProg?.isUnilateral && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                Per Side
-              </span>
+              <Badge variant="info">Per Side</Badge>
             )}
             {repsPerSetProg?.pendingWeightConfirmation && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                New weight — match your stack
-              </span>
+              <Badge variant="warning">New weight — match your stack</Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground">

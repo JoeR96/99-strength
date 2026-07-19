@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import type { SelectedExercise, DayNumber, ProgramVariant } from "@/types/workout";
 import { SelectedExerciseCard } from "./SelectedExerciseCard";
+import { DayBadge } from "@/components/ui/badge";
 
 interface DayColumnsViewProps {
   exercises: SelectedExercise[];
@@ -73,9 +74,7 @@ function DayColumn({
       {/* Day header */}
       <div className="mb-3 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">
-            {day}
-          </span>
+          <DayBadge value={day} />
           <h3 className="text-base font-semibold text-foreground">Day {day}</h3>
         </div>
         <p className="text-xs text-muted-foreground mt-1">

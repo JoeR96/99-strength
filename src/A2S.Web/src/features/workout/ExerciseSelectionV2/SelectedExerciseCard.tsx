@@ -1,5 +1,6 @@
 import type { SelectedExercise } from "@/types/workout";
 import { WeightUnit } from "@/types/workout";
+import { Badge, DayBadge } from "@/components/ui/badge";
 
 interface SelectedExerciseCardProps {
   exercise: SelectedExercise;
@@ -31,9 +32,7 @@ export function SelectedExerciseCard({
       <div className="flex items-center gap-2 mb-1.5">
         {/* Order number */}
         {showOrder && (
-          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
-            {exercise.orderInDay}
-          </div>
+          <DayBadge value={exercise.orderInDay} className="min-w-5 w-5 h-5 text-xs" />
         )}
 
         {/* Drag handle indicator */}
@@ -137,9 +136,7 @@ export function SelectedExerciseCard({
         {!showOrder && (
           <>
             <span className="text-muted-foreground/50">•</span>
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 font-medium">
-              Day {exercise.assignedDay}
-            </span>
+            <Badge variant="primary">Day {exercise.assignedDay}</Badge>
           </>
         )}
       </div>
