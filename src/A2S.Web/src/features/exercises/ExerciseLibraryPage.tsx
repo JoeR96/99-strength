@@ -11,6 +11,7 @@ import {
   ExerciseCard,
   ExerciseListItem,
 } from './ExerciseLibraryComponents';
+import { muscleGroupStyle } from '@/lib/muscleGroupStyles';
 import { HevyExerciseModal } from '@/features/hevy/HevyExerciseModal';
 import { useHevy } from '@/contexts/HevyContext';
 
@@ -243,7 +244,7 @@ export function ExerciseLibraryPage() {
                       <h4 className="text-xs font-medium text-muted-foreground mb-2">{category}</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {availableMuscles.map(muscle => {
-                          const config = MUSCLE_GROUP_CONFIG[muscle] || { label: muscle, icon: '📦', color: 'bg-gray-500/10' };
+                          const config = MUSCLE_GROUP_CONFIG[muscle] || { label: muscle, icon: '📦' };
                           const isSelected = selectedMuscleGroups.has(muscle);
                           const count = allExercises.filter(e => e.muscle_group === muscle).length;
 
@@ -254,8 +255,9 @@ export function ExerciseLibraryPage() {
                               className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                                 isSelected
                                   ? 'bg-primary text-primary-foreground'
-                                  : `${config.color} border hover:opacity-80`
+                                  : 'border hover:opacity-80'
                               }`}
+                              style={isSelected ? undefined : muscleGroupStyle(muscle)}
                             >
                               {config.icon} {config.label} ({count})
                             </button>
@@ -329,7 +331,7 @@ export function ExerciseLibraryPage() {
                       {muscles.map(muscle => {
                         const exercises = groupedExercises[muscle];
                         if (!exercises || exercises.length === 0) return null;
-                        const config = MUSCLE_GROUP_CONFIG[muscle] || { label: muscle, icon: '📦', color: '' };
+                        const config = MUSCLE_GROUP_CONFIG[muscle] || { label: muscle, icon: '📦' };
 
                         return (
                           <div key={muscle} className="mb-6">

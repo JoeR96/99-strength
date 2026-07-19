@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { apiClient } from '@/api';
 import { ExerciseHistoryChart } from './ExerciseHistoryChart';
+import { muscleGroupStyle } from '@/lib/muscleGroupStyles';
 
 /**
  * Exercise data structure
@@ -51,29 +52,30 @@ interface AggregatedExerciseHistoryDto {
 }
 
 /**
- * Muscle group display configuration
+ * Muscle group display configuration (label + icon only — colour identity lives in
+ * `lib/muscleGroupStyles.ts` as a token-driven categorical lookup, `muscleGroupStyle()`).
  */
-export const MUSCLE_GROUP_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  abdominals: { label: 'Abdominals', icon: '🎯', color: 'bg-orange-500/10 border-orange-500/30 text-orange-600' },
-  adductors: { label: 'Adductors', icon: '🦵', color: 'bg-pink-500/10 border-pink-500/30 text-pink-600' },
-  back: { label: 'Back', icon: '🔙', color: 'bg-blue-500/10 border-blue-500/30 text-blue-600' },
-  biceps: { label: 'Biceps', icon: '💪', color: 'bg-red-500/10 border-red-500/30 text-red-600' },
-  calves: { label: 'Calves', icon: '🦶', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' },
-  cardio: { label: 'Cardio', icon: '❤️', color: 'bg-rose-500/10 border-rose-500/30 text-rose-600' },
-  chest: { label: 'Chest', icon: '🫁', color: 'bg-purple-500/10 border-purple-500/30 text-purple-600' },
-  forearms: { label: 'Forearms', icon: '🤜', color: 'bg-amber-500/10 border-amber-500/30 text-amber-600' },
-  full_body: { label: 'Full Body', icon: '🏋️', color: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600' },
-  glutes: { label: 'Glutes', icon: '🍑', color: 'bg-pink-500/10 border-pink-500/30 text-pink-600' },
-  hamstrings: { label: 'Hamstrings', icon: '🦵', color: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-600' },
-  lats: { label: 'Lats', icon: '🦅', color: 'bg-sky-500/10 border-sky-500/30 text-sky-600' },
-  lower_back: { label: 'Lower Back', icon: '⬇️', color: 'bg-teal-500/10 border-teal-500/30 text-teal-600' },
-  neck: { label: 'Neck', icon: '🦒', color: 'bg-lime-500/10 border-lime-500/30 text-lime-600' },
-  obliques: { label: 'Obliques', icon: '↔️', color: 'bg-orange-500/10 border-orange-500/30 text-orange-600' },
-  other: { label: 'Other', icon: '📦', color: 'bg-gray-500/10 border-gray-500/30 text-gray-600' },
-  quadriceps: { label: 'Quadriceps', icon: '🦵', color: 'bg-green-500/10 border-green-500/30 text-green-600' },
-  shoulders: { label: 'Shoulders', icon: '🔝', color: 'bg-violet-500/10 border-violet-500/30 text-violet-600' },
-  traps: { label: 'Traps', icon: '⬆️', color: 'bg-fuchsia-500/10 border-fuchsia-500/30 text-fuchsia-600' },
-  triceps: { label: 'Triceps', icon: '💪', color: 'bg-red-500/10 border-red-500/30 text-red-600' },
+export const MUSCLE_GROUP_CONFIG: Record<string, { label: string; icon: string }> = {
+  abdominals: { label: 'Abdominals', icon: '🎯' },
+  adductors: { label: 'Adductors', icon: '🦵' },
+  back: { label: 'Back', icon: '🔙' },
+  biceps: { label: 'Biceps', icon: '💪' },
+  calves: { label: 'Calves', icon: '🦶' },
+  cardio: { label: 'Cardio', icon: '❤️' },
+  chest: { label: 'Chest', icon: '🫁' },
+  forearms: { label: 'Forearms', icon: '🤜' },
+  full_body: { label: 'Full Body', icon: '🏋️' },
+  glutes: { label: 'Glutes', icon: '🍑' },
+  hamstrings: { label: 'Hamstrings', icon: '🦵' },
+  lats: { label: 'Lats', icon: '🦅' },
+  lower_back: { label: 'Lower Back', icon: '⬇️' },
+  neck: { label: 'Neck', icon: '🦒' },
+  obliques: { label: 'Obliques', icon: '↔️' },
+  other: { label: 'Other', icon: '📦' },
+  quadriceps: { label: 'Quadriceps', icon: '🦵' },
+  shoulders: { label: 'Shoulders', icon: '🔝' },
+  traps: { label: 'Traps', icon: '⬆️' },
+  triceps: { label: 'Triceps', icon: '💪' },
 };
 
 /**
@@ -111,7 +113,7 @@ export const MUSCLE_CATEGORIES = {
  * Exercise Card Component
  */
 export function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClick?: () => void }) {
-  const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦', color: 'bg-gray-500/10' };
+  const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦' };
   const equipmentConfig = EQUIPMENT_CONFIG[exercise.equipment] || { label: exercise.equipment, icon: '📦' };
 
   return (
@@ -128,7 +130,7 @@ export function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClic
         )}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span className={`px-1.5 py-0.5 rounded ${muscleConfig.color}`}>
+        <span className="px-1.5 py-0.5 rounded" style={muscleGroupStyle(exercise.muscle_group)}>
           {muscleConfig.icon} {muscleConfig.label}
         </span>
         <span className="px-1.5 py-0.5 rounded bg-muted">
@@ -143,7 +145,7 @@ export function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClic
  * Exercise List Item Component
  */
 export function ExerciseListItem({ exercise, onClick }: { exercise: Exercise; onClick?: () => void }) {
-  const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦', color: 'bg-gray-500/10' };
+  const muscleConfig = MUSCLE_GROUP_CONFIG[exercise.muscle_group] || { label: exercise.muscle_group, icon: '📦' };
   const equipmentConfig = EQUIPMENT_CONFIG[exercise.equipment] || { label: exercise.equipment, icon: '📦' };
 
   return (
@@ -155,7 +157,7 @@ export function ExerciseListItem({ exercise, onClick }: { exercise: Exercise; on
         <h3 className="font-medium text-sm text-foreground truncate">{exercise.title}</h3>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <span className={`px-1.5 py-0.5 rounded text-xs ${muscleConfig.color}`}>
+        <span className="px-1.5 py-0.5 rounded text-xs" style={muscleGroupStyle(exercise.muscle_group)}>
           {muscleConfig.label}
         </span>
         <span className="px-1.5 py-0.5 rounded bg-muted text-xs text-muted-foreground">
