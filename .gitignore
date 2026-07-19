@@ -57,3 +57,4 @@ WORKBENCH.md
 
 audit-screenshots/
 tools/.auth-state.json
+tools/a11y/results*.json
