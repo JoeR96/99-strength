@@ -10,7 +10,7 @@
  */
 export const clerkAppearance = {
   variables: {
-    colorPrimary: 'hsl(25 80% 45%)', // --color-primary (burnt orange)
+    colorPrimary: 'hsl(25 80% 50%)', // --color-primary (burnt orange)
     colorBackground: 'hsl(240 10% 10%)', // --color-card
     colorText: 'hsl(0 0% 95%)', // --color-foreground
     colorInputBackground: 'hsl(0 0% 20%)', // --color-input
