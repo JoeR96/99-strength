@@ -119,7 +119,7 @@ export function ExerciseCard({
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => onEdit(entry.exercise)}
             className="text-muted-foreground hover:text-foreground"
             aria-label="Edit exercise configuration"
@@ -130,7 +130,7 @@ export function ExerciseCard({
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => onSubstitute(entry.exercise)}
             className="text-muted-foreground hover:text-foreground"
             aria-label="Substitute exercise"
