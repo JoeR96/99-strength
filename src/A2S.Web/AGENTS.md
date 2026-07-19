@@ -33,7 +33,7 @@ src/
 │   ├── shared/       # App-wide shared components (ErrorBoundary, ProtectedRoute, modals)
 │   ├── layout/       # Navbar, page layout
 │   └── hevy/         # Hevy-specific components
-├── contexts/         # React contexts (ThemeContext, HevyContext)
+├── contexts/         # React contexts (HevyContext)
 ├── features/         # Feature-folder organized pages
 │   ├── auth/         # Login, SignUp, Dashboard pages
 │   ├── exercises/    # Exercise library page
@@ -80,17 +80,9 @@ src/
 
 ### Theming
 
-**Three** themes, driven by CSS custom properties in `index.css` and a root-level class set by `ThemeContext` (`contexts/ThemeContext.tsx`):
+**One theme: "Arcade Minimal"** — Apple-style minimal design language with the Retro Arcade palette (near-black background, burnt-orange primary, neon-yellow accent, system fonts). All tokens live in `src/index.css` (`@theme`). There is no theme switcher.
 
-| Theme | Root class | Style |
-|-------|-----------|-------|
-| **Retro Arcade** | _(none — `:root` default)_ | Dark bg, olive/yellow accents, pixel/display fonts, scanline overlay |
-| **OSRS** | `.dark` | Brown parchment, gold text, RuneScape UF font |
-| **Apple** | `.apple-theme` | Light minimalist, blue accent, SF Pro / system font |
-
-`ThemeContext` cycles `retro → osrs → apple` and toggles the root class. See **`src/AGENTS.md` (styling rules)** below for the token contract — read it before touching any colour.
-
-> ⚠️ The colour CSS variables are named `--color-*` (Tailwind v4 `@theme`) and **already contain a full `hsl(...)` value**. Reference them as `var(--color-primary)` (or the `bg-primary` / `text-foreground` utilities) — **never** `hsl(var(--primary))`, which resolves to `hsl(undefined)` and renders black/illegible. This bit every Recharts chart until fixed; charts now use `src/lib/chartTheme.ts`.
+> ⚠️ The colour CSS variables are named `--color-*` (Tailwind v4 `@theme`) and **already contain a full `hsl(...)` value**. Reference them as `var(--color-primary)` (or the `bg-primary` / `text-foreground` utilities) — **never** `hsl(var(--primary))`, which resolves to `hsl(undefined)` and renders black/illegible. Charts use `src/lib/chartTheme.ts`. See **`src/AGENTS.md`** for the full styling contract — read it before touching any colour.
 
 ### Storybook
 

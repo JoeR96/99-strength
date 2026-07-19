@@ -22,6 +22,7 @@ import {
   Legend,
 } from 'recharts';
 import { chartColors, chartSeriesPalette, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { simOutcomeClass } from '@/lib/outcomeStatus';
 
 interface SimulationDataPoint {
   session: number;
@@ -334,18 +335,10 @@ export function SimulationPage() {
                   <div key={idx} className="flex gap-3">
                     <span className="text-muted-foreground">#{idx + 1}</span>
                     <span>W{e.weekNumber} D{e.day} B{e.blockNumber}</span>
-                    <span
-                      className={
-                        e.outcome === 'Success'
-                          ? 'text-green-600'
-                          : e.outcome === 'Fail'
-                            ? 'text-destructive'
-                            : 'text-yellow-600'
-                      }
-                    >
+                    <span className={simOutcomeClass(e.outcome)}>
                       {e.outcome}
                     </span>
-                    {e.isDeloadWeek && <span className="text-blue-500">deload</span>}
+                    {e.isDeloadWeek && <span className="text-primary">deload</span>}
                     {e.programComplete && <span className="font-semibold">PROGRAM COMPLETE</span>}
                     <span className="text-muted-foreground">
                       → W{e.newCurrentWeek} D{e.newCurrentDay}

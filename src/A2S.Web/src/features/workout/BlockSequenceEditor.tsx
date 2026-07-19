@@ -118,7 +118,7 @@ export function BlockSequenceEditor({ workout, isOpen, onClose, onUpdated }: Blo
                   {canRemove && (
                     <button
                       onClick={() => handleRemoveBlock(idx)}
-                      className="ml-1 p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                      className="ml-1 p-0.5 rounded-full hover:bg-black/10 transition-colors"
                       title="Remove block"
                     >
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

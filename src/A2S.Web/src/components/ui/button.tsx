@@ -5,29 +5,29 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold uppercase tracking-wide transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 font-[Orbitron,sans-serif]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:bg-muted disabled:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary button - dark orange with subtle shadow
+        // Primary button - flat burnt-orange fill, legible foreground
         default:
-          "bg-primary text-white border border-primary shadow-md hover:bg-primary/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
+          "bg-primary text-primary-foreground border border-primary hover:bg-primary/90 active:translate-y-0.5 transition-all duration-150",
 
         // Destructive button - red
         destructive:
-          "bg-destructive text-white border border-destructive shadow-md hover:bg-destructive/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
+          "bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90 active:translate-y-0.5 transition-all duration-150",
 
         // Outlined button - clean border
         outline:
-          "border border-gray-500 bg-transparent text-white hover:bg-white/5 hover:border-gray-400 transition-all duration-150",
+          "border border-border bg-transparent text-foreground hover:bg-foreground/5 hover:border-foreground/40 transition-all duration-150",
 
         // Secondary button - subtle dark
         secondary:
-          "bg-secondary text-white border border-secondary shadow-md hover:bg-secondary/80 active:translate-y-0.5 transition-all duration-150",
+          "bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/80 active:translate-y-0.5 transition-all duration-150",
 
         // Ghost button - minimal
         ghost:
-          "text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-150",
+          "text-muted-foreground hover:bg-foreground/10 hover:text-foreground transition-all duration-150",
 
         // Link button
         link:
@@ -35,15 +35,11 @@ const buttonVariants = cva(
 
         // Success button - green
         success:
-          "bg-success text-white border border-success shadow-md hover:bg-success/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
+          "bg-success text-success-foreground border border-success hover:bg-success/90 active:translate-y-0.5 transition-all duration-150",
 
         // Accent button - yellow
         accent:
-          "bg-accent text-black border border-accent shadow-md hover:bg-accent/90 hover:shadow-lg active:translate-y-0.5 transition-all duration-150",
-
-        // Glow button - primary with glow effect
-        glow:
-          "bg-primary text-white border border-primary shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:bg-primary/90 active:translate-y-0.5 transition-all duration-150",
+          "bg-accent text-accent-foreground border border-accent hover:bg-accent/90 active:translate-y-0.5 transition-all duration-150",
       },
       size: {
         default: "h-12 px-6 py-3 text-base rounded-md",

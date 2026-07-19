@@ -29,6 +29,27 @@ public sealed record CompleteDayResult
     public required bool ProgramComplete { get; init; }
     public bool IsDeloadWeek { get; init; }
     public IReadOnlyList<PendingWeightExerciseDto> ExercisesPendingWeightConfirmation { get; init; } = [];
+
+    /// <summary>
+    /// The planned sets for this day's next occurrence (next program week), computed
+    /// after progression was applied. Empty when the program has no further week.
+    /// </summary>
+    public IReadOnlyList<NextSessionExerciseDto> NextSessionExercises { get; init; } = [];
+}
+
+/// <summary>
+/// Planned parameters for one exercise at its next session.
+/// Weights are in the exercise's native unit.
+/// </summary>
+public sealed record NextSessionExerciseDto
+{
+    public required Guid ExerciseId { get; init; }
+    public required string ExerciseName { get; init; }
+    public required int SetCount { get; init; }
+    public required int TargetReps { get; init; }
+    public required decimal Weight { get; init; }
+    public required string WeightUnit { get; init; }
+    public bool HasAmrap { get; init; }
 }
 
 /// <summary>

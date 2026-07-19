@@ -6,6 +6,7 @@ import { useHevy } from "@/contexts/HevyContext";
 import { createCompletedWorkoutInHevy, handleRoutineLifecycle, type CompletedExerciseData } from "@/services/hevySyncService";
 import toast from "react-hot-toast";
 import type { CompleteDayResult, WorkoutDto, DayNumber, ExerciseEntry } from "./workoutSessionTypes";
+import { outcomeToStatus, outcomeLabel, statusBadgeClass } from "@/lib/outcomeStatus";
 
 interface CompletionSummaryProps {
   result: CompleteDayResult;
@@ -108,38 +109,12 @@ export function CompletionSummary({
     }
   };
 
-  const getOutcomeStyle = (change: string) => {
-    if (change.toLowerCase().includes("increased") || change.toLowerCase().includes("added")) {
-      return "text-green-600 bg-green-100 dark:bg-green-900/30";
-    }
-    if (change.toLowerCase().includes("decreased") || change.toLowerCase().includes("reduced")) {
-      return "text-red-600 bg-red-100 dark:bg-red-900/30";
-    }
-    if (change.toLowerCase().includes("deload")) {
-      return "text-blue-600 bg-blue-100 dark:bg-blue-900/30";
-    }
-    return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30";
-  };
-
-  const getOutcomeLabel = (change: string): string => {
-    if (change.toLowerCase().includes("increased") || change.toLowerCase().includes("added")) {
-      return "SUCCESS";
-    }
-    if (change.toLowerCase().includes("decreased") || change.toLowerCase().includes("reduced")) {
-      return "FAILED";
-    }
-    if (change.toLowerCase().includes("deload")) {
-      return "DELOAD";
-    }
-    return "MAINTAINED";
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Completion Header */}
-        <Card className="p-6 mb-6 text-center border-green-500 bg-green-50 dark:bg-green-950/20">
+        <Card className="p-6 mb-6 text-center border-green-500 bg-green-50">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -147,7 +122,7 @@ export function CompletionSummary({
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-green-700 dark:text-green-400" data-testid="completion-title">
+          <h1 className="text-2xl font-bold text-green-700" data-testid="completion-title">
             {result.programComplete ? "Program Complete!" : "Workout Complete!"}
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -184,14 +159,13 @@ export function CompletionSummary({
           <h2 className="text-xl font-bold mb-4" data-testid="progression-changes-title">Progression Results</h2>
           <div className="space-y-3">
             {result.progressionChanges.map((change, index) => (
-              <div key={index} className={`p-3 rounded-lg ${getOutcomeStyle(change.change)}`} data-testid={`progression-change-${index}`}>
+              <div key={index} className={`p-3 rounded-lg ${statusBadgeClass(outcomeToStatus(change.change))}`} data-testid={`progression-change-${index}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-semibold">{change.exerciseName}</span>
-                    <span className="text-sm ml-2">({change.progressionType})</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 rounded" data-testid={`outcome-label-${index}`}>
-                    {getOutcomeLabel(change.change)}
+                    {outcomeLabel(outcomeToStatus(change.change))}
                   </span>
                 </div>
                 <p className="text-sm mt-1" data-testid={`change-description-${index}`}>{change.change}</p>
@@ -200,45 +174,63 @@ export function CompletionSummary({
           </div>
         </Card>
 
-        {/* Next Session Preview */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4" data-testid="next-session-title">
-            {result.programComplete
-              ? "Final Session Summary"
-              : `Next ${dayName} Session (Week ${result.weekProgressed ? result.newCurrentWeek : result.weekNumber + 1})`}
-          </h2>
-          <div className="space-y-4">
-            {exerciseEntries.map((entry, index) => {
-              const change = result.progressionChanges.find((c) => c.exerciseId === entry.exercise.id);
-              return (
-                <div key={entry.exercise.id} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
-                  <div className="font-semibold">{entry.exercise.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    <span data-testid={`next-sets-${index}`}>{change?.newValue || `${entry.targetSets} sets`}</span>
-                    {" x "}
-                    <span data-testid={`next-reps-${index}`}>{entry.targetReps} reps</span>
-                    {" @ "}
-                    <span data-testid={`next-weight-${index}`}>{entry.targetWeight.toFixed(1)} {entry.weightUnit}</span>
-                  </div>
-                  {change && (
-                    <div className={`text-xs mt-1 ${
-                      getOutcomeLabel(change.change) === "SUCCESS" ? "text-green-600"
-                        : getOutcomeLabel(change.change) === "FAILED" ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}>
-                      {change.change}
+        {/* Next Session Preview (plan computed server-side after progression) */}
+        {(result.programComplete || result.nextSessionExercises?.length > 0) && (
+          <Card className="p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4" data-testid="next-session-title">
+              {result.programComplete
+                ? "Final Session Summary"
+                : `Next ${dayName} Session (Week ${result.weekNumber + 1})`}
+            </h2>
+            <div className="space-y-4">
+              {result.programComplete
+                ? exerciseEntries.map((entry, index) => (
+                    <div key={entry.exercise.id} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
+                      <div className="font-semibold">{entry.exercise.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        <span data-testid={`next-sets-${index}`}>{entry.targetSets} sets</span>
+                        {" x "}
+                        <span data-testid={`next-reps-${index}`}>{entry.targetReps} reps</span>
+                        {" @ "}
+                        <span data-testid={`next-weight-${index}`}>{entry.targetWeight.toFixed(1)} {entry.weightUnit}</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                  ))
+                : result.nextSessionExercises.map((next, index) => {
+                    const change = result.progressionChanges.find((c) => c.exerciseId === next.exerciseId);
+                    return (
+                      <div key={next.exerciseId} className="border-l-4 border-primary pl-4 py-2" data-testid={`next-session-exercise-${index}`}>
+                        <div className="font-semibold">{next.exerciseName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          <span data-testid={`next-sets-${index}`}>{next.setCount} sets</span>
+                          {" x "}
+                          <span data-testid={`next-reps-${index}`}>{next.targetReps} reps</span>
+                          {" @ "}
+                          <span data-testid={`next-weight-${index}`}>
+                            {next.weight.toFixed(1)} {next.weightUnit === "Pounds" ? "lbs" : "kg"}
+                          </span>
+                          {next.hasAmrap && <span className="ml-1">(last set AMRAP)</span>}
+                        </div>
+                        {change && (
+                          <div className={`text-xs mt-1 ${
+                            outcomeLabel(outcomeToStatus(change.change)) === "SUCCESS" ? "text-success"
+                              : outcomeLabel(outcomeToStatus(change.change)) === "FAILED" ? "text-destructive"
+                              : "text-warning"
+                          }`}>
+                            {change.change}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+            </div>
+          </Card>
+        )}
 
         {/* New working weights to confirm next session */}
         {result.exercisesPendingWeightConfirmation?.length > 0 && (
-          <Card className="p-6 mb-6 border-amber-400 bg-amber-50 dark:bg-amber-950/20" data-testid="new-weights-card">
-            <h2 className="text-xl font-bold mb-1 text-amber-700 dark:text-amber-400">New Weights Next Session</h2>
+          <Card className="p-6 mb-6 border-amber-400 bg-amber-50" data-testid="new-weights-card">
+            <h2 className="text-xl font-bold mb-1 text-amber-700">New Weights Next Session</h2>
             <p className="text-sm text-muted-foreground mb-4">
               These exercises progressed. Cable/machine stacks vary between gyms, so use the closest
               weight your gym has and log what you actually lift — the app will adopt it automatically.
@@ -247,7 +239,7 @@ export function CompletionSummary({
               {result.exercisesPendingWeightConfirmation.map((ex) => (
                 <div key={ex.exerciseId} className="flex items-center justify-between p-2 rounded bg-card border">
                   <span className="font-medium">{ex.exerciseName}</span>
-                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  <span className="text-sm font-semibold text-amber-700">
                     try {ex.suggestedWeight} {ex.weightUnit === "Pounds" ? "lbs" : "kg"}
                   </span>
                 </div>
@@ -308,7 +300,7 @@ export function CompletionSummary({
                 Next Week: Week {result.newCurrentWeek}
               </h2>
               {result.isDeloadWeek && (
-                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded">Deload Week</span>
+                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Deload Week</span>
               )}
             </div>
             <p className="text-sm text-muted-foreground mb-4">You've completed the week! Here's what's coming up next.</p>

@@ -1,5 +1,6 @@
 import type { SelectedExercise, DayNumber, ProgramVariant } from "@/types/workout";
 import { SelectedExerciseCard } from "./SelectedExerciseCard";
+import { DayBadge } from "@/components/ui/badge";
 
 interface SimpleDayColumnsViewProps {
   exercises: SelectedExercise[];
@@ -29,9 +30,7 @@ function DayColumn({
       {/* Day header */}
       <div className="mb-3 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-bold">
-            {day}
-          </span>
+          <DayBadge value={day} />
           <h3 className="text-base font-semibold text-foreground">Day {day}</h3>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
@@ -113,7 +112,7 @@ export function SimpleDayColumnsView({
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {availableDays.map((day) => (
         <div key={day} className="bg-muted/30 rounded-lg p-4 border border-border">
           <DayColumn

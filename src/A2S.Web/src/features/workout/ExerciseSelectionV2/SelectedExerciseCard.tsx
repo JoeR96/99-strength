@@ -1,5 +1,6 @@
 import type { SelectedExercise } from "@/types/workout";
 import { WeightUnit } from "@/types/workout";
+import { Badge, DayBadge } from "@/components/ui/badge";
 
 interface SelectedExerciseCardProps {
   exercise: SelectedExercise;
@@ -31,9 +32,7 @@ export function SelectedExerciseCard({
       <div className="flex items-center gap-2 mb-1.5">
         {/* Order number */}
         {showOrder && (
-          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold shrink-0">
-            {exercise.orderInDay}
-          </div>
+          <DayBadge value={exercise.orderInDay} className="min-w-5 w-5 h-5 text-xs" />
         )}
 
         {/* Drag handle indicator */}
@@ -63,7 +62,7 @@ export function SelectedExerciseCard({
           <button
             type="button"
             onClick={() => onEdit(exercise)}
-            className="p-1 rounded-md hover:bg-muted transition-colors"
+            className="p-2.5 min-w-11 min-h-11 inline-flex items-center justify-center rounded-md hover:bg-muted transition-colors"
             aria-label={`Edit ${exercise.template.name}`}
           >
             <svg
@@ -82,7 +81,7 @@ export function SelectedExerciseCard({
           <button
             type="button"
             onClick={() => onRemove(exercise.id)}
-            className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
+            className="p-2.5 min-w-11 min-h-11 inline-flex items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
             aria-label={`Remove ${exercise.template.name}`}
           >
             <svg
@@ -137,9 +136,7 @@ export function SelectedExerciseCard({
         {!showOrder && (
           <>
             <span className="text-muted-foreground/50">•</span>
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium">
-              Day {exercise.assignedDay}
-            </span>
+            <Badge variant="primary">Day {exercise.assignedDay}</Badge>
           </>
         )}
       </div>

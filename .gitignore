@@ -54,3 +54,6 @@ src/A2S.Web/.env.test.example
 docker-compose.override.yml
 WORKBENCH.md
 .gitignore
+
+audit-screenshots/
+tools/.auth-state.json

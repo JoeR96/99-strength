@@ -53,7 +53,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
   return (
     <div className="border-l-2 border-primary/30 pl-3 py-1 group">
       <div className="flex items-center justify-between">
-        <div className="font-medium text-sm">{exercise.name}</div>
+        <div className="font-semibold text-sm">{exercise.name}</div>
         <button
           onClick={onSubstitute}
           className="p-1 opacity-0 group-hover:opacity-100 hover:bg-muted rounded transition-all"
@@ -183,7 +183,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
     <div
       className={`p-4 border rounded-lg transition-all ${
         isCompleted
-          ? "border-green-500 bg-green-50 dark:bg-green-950"
+          ? "border-green-500 bg-green-50"
           : isCurrent
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
           : isUpcoming
@@ -225,18 +225,19 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
         </div>
       </div>
 
-      <div className="space-y-3 mb-4">
+      <div className="divide-y divide-border/40 mb-4">
         {exercises.length > 0 ? (
           exercises
             .sort((a, b) => a.orderInDay - b.orderInDay)
             .map((exercise) => (
-              <ExerciseDetailCard
-                key={exercise.id}
-                exercise={exercise}
-                weekNumber={weekNumber}
-                blockSequence={blockSequence}
-                onSubstitute={() => onSubstituteExercise(exercise)}
-              />
+              <div key={exercise.id} className="py-2 first:pt-0 last:pb-0">
+                <ExerciseDetailCard
+                  exercise={exercise}
+                  weekNumber={weekNumber}
+                  blockSequence={blockSequence}
+                  onSubstitute={() => onSubstituteExercise(exercise)}
+                />
+              </div>
             ))
         ) : (
           <p className="text-sm text-muted-foreground">No exercises assigned</p>

@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Navbar } from '@/components/layout/Navbar';
 import { useAllWorkouts, useSetActiveWorkout, useDeleteWorkout } from '@/hooks/useWorkouts';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { WorkoutSummaryDto } from '@/types/workout';
 import toast from 'react-hot-toast';
+import { formatVariantDays } from '@/utils/formatVariant';
 
 export function ProgramsPage() {
   const navigate = useNavigate();
@@ -88,7 +90,7 @@ export function ProgramsPage() {
             Manage your workout programs. Only one can be active at a time.
           </p>
         </div>
-        <Button onClick={() => navigate('/setup')} variant="glow">
+        <Button onClick={() => navigate('/setup')} variant="default">
           Create New Program
         </Button>
       </div>
@@ -104,7 +106,7 @@ export function ProgramsPage() {
             <p className="text-muted-foreground mb-6">
               Create your first workout program to get started.
             </p>
-            <Button onClick={() => navigate('/setup')} variant="glow">
+            <Button onClick={() => navigate('/setup')} variant="default">
               Create Your First Program
             </Button>
           </div>
@@ -141,11 +143,13 @@ function ProgramCard({ workout, onSetActive, onDelete, isSettingActive, isDeleti
   const progressPercent = Math.round((workout.currentWeek / workout.totalWeeks) * 100);
   const currentBlock = Math.ceil(workout.currentWeek / 7);
 
-  const statusColors: Record<string, string> = {
-    Active: 'bg-green-500/10 text-green-500 border-green-500/30',
-    NotStarted: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30',
-    Paused: 'bg-orange-500/10 text-orange-500 border-orange-500/30',
-    Completed: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
+  // Single token-coloured status pill (Badge) — previously duplicated by a separate
+  // "Active Program" pill; isActive is already conveyed by the card's primary ring.
+  const statusBadgeVariant: Record<string, BadgeProps['variant']> = {
+    Active: 'success',
+    NotStarted: 'warning',
+    Paused: 'accent',
+    Completed: 'info',
   };
 
   return (
@@ -157,17 +161,12 @@ function ProgramCard({ workout, onSetActive, onDelete, isSettingActive, isDeleti
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-xl font-bold">{workout.name}</h3>
-                <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${statusColors[workout.status] || statusColors.NotStarted}`}>
+                <Badge variant={statusBadgeVariant[workout.status] ?? 'warning'}>
                   {workout.status}
-                </span>
-                {workout.isActive && (
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/30">
-                    Active Program
-                  </span>
-                )}
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {workout.variant}-Day Split | {workout.exerciseCount} exercises | {workout.totalWeeks} weeks
+                {formatVariantDays(workout.variant)}-Day Split | {workout.exerciseCount} exercises | {workout.totalWeeks} weeks
               </p>
             </div>
           </div>

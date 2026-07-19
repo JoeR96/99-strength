@@ -139,6 +139,11 @@ function ExerciseProgressionChart({
   );
 }
 
+/** Mirrors ExerciseProgressionChart's own "not enough data" threshold. */
+function hasEnoughData(history: ExerciseHistoryDto): boolean {
+  return history.weeklyHistory.filter((w) => w.completedAt).length >= 2;
+}
+
 export function DashboardExerciseTracking({ workout }: DashboardExerciseTrackingProps) {
   const { data: history, isLoading } = useWorkoutHistory(workout.id, true);
 
@@ -174,6 +179,38 @@ export function DashboardExerciseTracking({ workout }: DashboardExerciseTracking
 
   if (linearExercises.length === 0 && volumeExercises.length === 0) {
     return null;
+  }
+
+  // Collapse the per-exercise empty state into a single aggregated card when every
+  // tracked exercise uniformly lacks enough data — avoids a wall of ~20 near-identical
+  // "Not enough data yet" cards. Falls through to the normal per-exercise grid as soon
+  // as any exercise has 2+ completed sessions.
+  const allExercises = [...linearExercises, ...volumeExercises];
+  const allLackData = allExercises.every((e) => !hasEnoughData(e));
+
+  if (allLackData) {
+    return (
+      <Card className="md:col-span-2 lg:col-span-3 overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            Exercise Progression
+          </CardTitle>
+          <CardDescription>Training Max and volume trends from program start</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-muted/10 py-12">
+            <svg className="h-12 w-12 text-muted-foreground/30 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <p className="text-sm font-medium text-muted-foreground">Not enough data yet</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Complete 2+ sessions per exercise to see progression charts</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

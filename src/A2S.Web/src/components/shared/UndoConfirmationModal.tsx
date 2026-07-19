@@ -43,7 +43,7 @@ export function UndoConfirmationModal({
       <div className="absolute inset-0 bg-black/80" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-2xl w-full max-w-md mx-4 border border-border">
+      <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 border border-border">
         {/* Header */}
         <div className="p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Undo Last Workout?</h2>
@@ -57,16 +57,16 @@ export function UndoConfirmationModal({
           </p>
 
           {wouldRollbackWeek && (
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <div className="p-3 bg-yellow-100 rounded-lg border border-yellow-200">
               <div className="flex items-start gap-2">
-                <svg className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  <p className="text-sm font-medium text-yellow-800">
                     Week Rollback
                   </p>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                  <p className="text-xs text-yellow-700 mt-1">
                     This will also roll back to Week {weekNumber} since you've already progressed to the next week.
                   </p>
                 </div>

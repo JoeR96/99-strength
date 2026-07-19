@@ -225,7 +225,7 @@ export function SettingsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       {ConfirmDialog}
-      <main className="container-apple py-8">
+      <main className="container-page py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
           <p className="text-muted-foreground mt-2">Manage your application settings and data</p>

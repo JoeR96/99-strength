@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useWorkoutHistory } from "@/hooks/useWorkouts";
 import { EditExerciseConfigModal, type ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import {
@@ -70,12 +71,8 @@ export function ExerciseProgressionModal({
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-bold">{exercise.name}</h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                {progressionLabel}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                Day {exercise.assignedDay}
-              </span>
+              <Badge variant="primary">{progressionLabel}</Badge>
+              <Badge variant="neutral">Day {exercise.assignedDay}</Badge>
             </div>
           </div>
           <CurrentStateSummary exercise={exercise} />
@@ -150,14 +147,14 @@ export function ExerciseProgressionModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t flex justify-between items-center">
+        <div className="p-4 border-t flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center">
           <div>
             {onChangeProgression && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowEditConfig(true)}
-                className="text-sm"
+                className="text-sm w-full sm:w-auto"
               >
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -166,7 +163,7 @@ export function ExerciseProgressionModal({
               </Button>
             )}
           </div>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
         </div>
