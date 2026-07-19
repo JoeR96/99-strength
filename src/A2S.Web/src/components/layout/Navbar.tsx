@@ -57,7 +57,7 @@ export function Navbar() {
               <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
                 <span className="text-lg font-bold font-display text-primary-foreground">99</span>
               </div>
-              <h1 className="text-xl font-bold font-display tracking-wide uppercase hidden sm:block text-foreground">
+              <h1 className="text-xl font-bold hidden sm:block text-foreground">
                 Strength
               </h1>
             </Link>
@@ -70,7 +70,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className={`px-4 py-2 rounded text-base font-medium font-display uppercase tracking-wide transition-all duration-150 ${
+                    className={`px-4 py-2 rounded text-sm font-medium transition-all duration-150 ${
                       isActive
                         ? 'bg-primary/20 text-primary'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -105,7 +105,7 @@ export function Navbar() {
 
             {/* Player Name */}
             <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded border border-border bg-muted">
-              <span className="text-sm font-medium font-display uppercase tracking-wide text-muted-foreground">
+              <span className="text-sm font-medium text-muted-foreground">
                 Player:
               </span>
               <span className="text-lg font-semibold text-foreground">
@@ -142,7 +142,7 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       to={link.href}
-                      className={`block px-4 py-3 rounded text-base font-medium font-display uppercase tracking-wide transition-all duration-150 ${
+                      className={`block px-4 py-3 rounded text-base font-medium transition-all duration-150 ${
                         isActive
                           ? 'bg-primary/20 text-primary'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -157,7 +157,7 @@ export function Navbar() {
               {/* Player name — visible on small screens in menu */}
               <div className="sm:hidden px-4 py-3 border-t border-border">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium font-display uppercase tracking-wide text-muted-foreground">Player:</span>
+                  <span className="text-sm font-medium text-muted-foreground">Player:</span>
                   <span className="text-lg font-semibold text-foreground">{user?.firstName || 'Guest'}</span>
                 </div>
               </div>

@@ -34,9 +34,9 @@ export function DashboardPage() {
       <Navbar />
 
       {/* Main Content - Apple Layout with generous whitespace */}
-      <main className="container-page py-16">
+      <main className="container-page py-8 space-y-6">
         {/* Welcome Header - Apple hero style */}
-        <div className="mb-16 text-center">
+        <div className="text-center">
           <h2 className="text-hero text-foreground mb-4">
             Welcome back, {user?.firstName || 'User'}
           </h2>
@@ -46,7 +46,7 @@ export function DashboardPage() {
         </div>
 
         {/* Apple Grid Layout - clean and spacious */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Quick Stats Card - Spans 2 columns on larger screens */}
           <Card className="md:col-span-2 lg:col-span-2 overflow-hidden">
             <CardHeader className="pb-4">
