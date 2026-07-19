@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useWorkoutHistory } from "@/hooks/useWorkouts";
 import { EditExerciseConfigModal, type ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import {
@@ -70,12 +71,8 @@ export function ExerciseProgressionModal({
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-bold">{exercise.name}</h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                {progressionLabel}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                Day {exercise.assignedDay}
-              </span>
+              <Badge variant="primary">{progressionLabel}</Badge>
+              <Badge variant="neutral">Day {exercise.assignedDay}</Badge>
             </div>
           </div>
           <CurrentStateSummary exercise={exercise} />
