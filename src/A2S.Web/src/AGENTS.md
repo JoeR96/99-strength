@@ -61,14 +61,14 @@ Recharts renders SVG and cannot consume Tailwind classes, so colours must be con
 
 ## Known debt (don't replicate; fix opportunistically)
 
-The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and P2. Genuinely outstanding items a future styling change should know about:
+The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and all but one P2 (`SetupWizard.tsx` over-500-line split, deferred — see below). Genuinely outstanding items a future styling change should know about:
 
 - **`LoginPage.tsx` dead decorative classes** — `bg-gradient-navy`, `text-gradient-gold`, and a scanline `linear-gradient` grid persist (page is still routed). Off-contract retro leftovers; remove if you touch this file.
 - **`CardTitle` keeps `tracking-wide`** in `components/ui/card.tsx` — harmless (no ALL-CAPS pairing) but off the type scale; don't copy the letterspacing.
 - **`equipmentStyle()` in `lib/muscleGroupStyles.ts` is exported but unwired** (no call sites). `muscleGroupStyle()` is wired.
 - **Categorical badge colours cycle a fixed 8-token `--color-neon-*` palette** by index (`lib/muscleGroupStyles.ts`), so muscle groups past the 8th share a colour. Inherent to a fixed palette — don't "fix" by inventing raw colours.
 - **`lib/blockColors.ts` holds literal hex** for training-block identity — **sanctioned** by the token contract; leave it.
-- **Over-500-line files not split**: `features/workout/SimulationPage.tsx` (694, internal dev tool) and the static data tables `data/hevyExercises.ts` (3109) / `data/workoutTemplates.ts` (1093, out of scope for the component line limit).
+- **Over-500-line files not split**: `features/workout/SetupWizard.tsx` (608 — Task 14 extracted the template-conversion function to `lib/templateConversion.ts`, but the component itself remains over the cap; step-render blocks are the natural seam for a future split), `features/workout/SimulationPage.tsx` (694, internal dev tool) and the static data tables `data/hevyExercises.ts` (3109) / `data/workoutTemplates.ts` (1093, out of scope for the component line limit).
 - **`useSyncExerciseEditsToHevy` / `deriveExerciseEditStates`** (extracted from `EditExercisesModal`) have no dedicated unit tests yet.
 - **Lint baseline: 60 pre-existing errors** (`tests/e2e/*` unused vars, `rules-of-hooks`, `Navbar.tsx` setState-in-effect) — toolchain cleanup scheduled separately; don't add to it.
 - **`modal-weight-confirm`** was never reachable (needs a completed session) — not visually signed off.

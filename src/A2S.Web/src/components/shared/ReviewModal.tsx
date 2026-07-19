@@ -54,9 +54,9 @@ export function ReviewModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-card">{children}</div>
 
         <div className="p-4 border-t border-border flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          {actions.map((action) => (
+          {actions.map((action, i) => (
             <Button
-              key={action.label}
+              key={i}
               variant={action.variant}
               onClick={action.onClick}
               disabled={action.disabled}

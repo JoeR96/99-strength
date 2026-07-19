@@ -373,7 +373,7 @@ _Secondary pages (Task 6c), 2026-07-18. Screenshots in `audit-screenshots/` at d
 
 **Re-capture:** `node tools/audit-capture.mjs` (2026-07-19) captured all 10 default routes at 1440 + 390 (`dashboard, workout, programs, exercises, hevy, hevy-data, settings, history, simulate, setup`). Wizard steps and the modals (`modal-progression`, `modal-substitution`, `modal-weight-confirm`) and `nav-mobile` are **not route-reachable** by the tool; their evidence below is the **mid-phase capture refreshed during Tasks 5–13** (each Group A/B task re-screenshotted the routes it touched and eyeballed the modals it opened), not a final-pass capture. Screens whose evidence is mid-phase rather than this final re-capture: `modal-progression`, `modal-substitution`, `modal-weight-confirm`, `nav-mobile`, and the five `setup-wizard-*` steps (the tool captures the `/setup` entry only). All route-reachable screens carry a fresh 2026-07-19 capture.
 
-**Tallies:** **RESOLVED 66** · **DEFERRED 15** · **RECLASSIFIED 12 (dev-only devtools overlay)**. (7 P1 + 60 P2 + 30 P3 = 97 findings; the 12 reclassified are the palm/island-avatar chain, counted once each and drawn from the P2/P3 pools.)
+**Tallies:** **RESOLVED 65** · **DEFERRED 16** · **RECLASSIFIED 12 (dev-only devtools overlay)**. (7 P1 + 60 P2 + 30 P3 = 97 findings; the 12 reclassified are the palm/island-avatar chain, counted once each and drawn from the P2/P3 pools.)
 
 ### P1 (7) — all RESOLVED
 
@@ -421,7 +421,8 @@ Per-screen P2:
 | 266 history button treatment (`351`) | **RESOLVED** — Task 2. |
 | 272 simulate buttons (`357`) | **RESOLVED** — Task 2. |
 | Structure/SRP: ReviewModal (`197`), day-badge triplication (`198`), outcomeToStatus (`200`), ExerciseCard badges (`201`), muscle-group config (`199`) | **RESOLVED** — ReviewModal Task 5; Badge/DayBadge Task 6; `outcomeToStatus`/`statusBadgeClass`/`simOutcomeClass` Task 7 (`1d08aa2`, with unit tests); muscle-group lookup Task 18. |
-| Over-500-line: EditExercisesModal 730 (`184`), SetupWizard 639 (`186`), ExerciseConfigDialog 513 (`188`) | **RESOLVED** — SetupWizard conversion → `lib/templateConversion.ts` Task 14 (`338dd7d`); EditExercisesModal → `useSyncExerciseEditsToHevy` + `deriveExerciseEditStates` + `ConfirmModal` (730→258) Task 15 (`f99fa4c`); ExerciseConfigDialog → `ExerciseConfigFields` (513→306) Task 16 (`25fb543`); `types/workout.ts` 541 → re-export split Task 17 (`fbea30b`). |
+| Over-500-line: EditExercisesModal 730 (`184`), ExerciseConfigDialog 513 (`188`) | **RESOLVED** — EditExercisesModal → `useSyncExerciseEditsToHevy` + `deriveExerciseEditStates` + `ConfirmModal` (730→258) Task 15 (`f99fa4c`); ExerciseConfigDialog → `ExerciseConfigFields` (513→306) Task 16 (`25fb543`); `types/workout.ts` 541 → re-export split Task 17 (`fbea30b`). |
+| Over-500-line: SetupWizard 639 (`186`) | **DEFERRED** — Task 14 (`338dd7d`) extracted the template-conversion function to `lib/templateConversion.ts`, but the component is still 608 lines after that extraction, over the 500-line cap. The step-render blocks (one per wizard step) are the natural seam for a future split; not done this phase. |
 | `button.tsx` inline confirm dup / bespoke confirm modal (`195`) | **RESOLVED** — Task 15: shared `ConfirmModal` primitive. |
 
 ### P3 — batched-resolved / deferred
@@ -461,6 +462,7 @@ Reclassified findings (12): **163** (`248`, workout-session), **148** (`233`, da
 ### Residual known deferrals (carried to `src/AGENTS.md` Known debt)
 
 Genuinely outstanding after Phase 2, for a future dev touching styling:
+- **SetupWizard.tsx** 608-line split — Task 14 extracted the template-conversion function to `lib/templateConversion.ts`, but the component remains over the 500-line cap; the step-render blocks are the natural seam for a future split. Deferred.
 - **SimulationPage.tsx** 694-line split (internal dev tool) — over the 500-line limit; deferred.
 - **`hevyExercises.ts` (3109) / `workoutTemplates.ts` (1093)** — static data tables over the limit; out of scope for the component line contract.
 - **Lint baseline** — 60 pre-existing errors (`tests/e2e/*` unused vars, `rules-of-hooks`, `Navbar.tsx` setState-in-effect); toolchain cleanup, scheduled separately.
