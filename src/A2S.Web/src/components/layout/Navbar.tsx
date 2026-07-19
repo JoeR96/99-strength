@@ -142,10 +142,10 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       to={link.href}
-                      className={`block px-4 py-3 rounded text-base font-medium transition-all duration-150 ${
+                      className={`block px-4 py-3 rounded text-base font-medium transition-all duration-150 border-l-4 ${
                         isActive
-                          ? 'bg-primary/20 text-primary'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                          ? 'bg-primary/15 text-primary border-primary'
+                          : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >
                       {link.label}

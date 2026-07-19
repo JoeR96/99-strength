@@ -193,8 +193,10 @@ export function ExerciseLibraryPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Filters Sidebar — sticky on large screens so filters stay reachable while
+              scrolling the (potentially very long) exercise list. top-20 clears the
+              sticky Navbar (h-16 + border). */}
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
             {/* Filter Header */}
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-foreground">Filters</h2>

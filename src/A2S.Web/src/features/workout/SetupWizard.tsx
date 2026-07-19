@@ -301,7 +301,7 @@ export function SetupWizard() {
                   onClick={() => handleSelectTemplate(template)}
                   className={`w-full p-6 rounded-xl border-2 text-left transition-all duration-200 ${
                     selectedTemplate?.id === template.id
-                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      ? "border-primary bg-primary/5 ring-2 ring-primary"
                       : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
                   }`}
                 >
@@ -519,21 +519,16 @@ export function SetupWizard() {
     }
   };
 
+  // Fixed-length rail: always render all four nodes so the indicator doesn't shift step
+  // count on the welcome step. "Template" is `pending` when not on the template path —
+  // navigation itself (getSteps) is unchanged, this only affects the indicator's display.
   const getVisibleSteps = () => {
-    const baseSteps = [
+    return [
       { id: "welcome", label: "Start", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-    ];
-
-    if (setupMode === "template") {
-      baseSteps.push({ id: "template", label: "Template", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" });
-    }
-
-    baseSteps.push(
+      { id: "template", label: "Template", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01", pending: setupMode !== "template" },
       { id: "exercises", label: "Exercises", icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
-      { id: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" }
-    );
-
-    return baseSteps;
+      { id: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+    ];
   };
 
   const steps = getVisibleSteps();
@@ -551,33 +546,38 @@ export function SetupWizard() {
         {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between gap-1 max-w-md mx-auto overflow-x-auto px-1">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300 ${
-                      index <= currentStepIndex
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/50 bg-muted/20 text-muted-foreground"
-                    }`}
-                  >
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
-                    </svg>
+            {steps.map((step, index) => {
+              const isReached = !step.pending && index <= currentStepIndex;
+              const nextStep = steps[index + 1];
+              const connectorReached = index < currentStepIndex && !step.pending && !nextStep?.pending;
+              return (
+                <div key={step.id} className="flex items-center">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300 ${
+                        isReached
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/50 bg-muted/20 text-muted-foreground"
+                      }`}
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
+                      </svg>
+                    </div>
+                    <span className={`mt-2 text-xs font-medium ${
+                      isReached ? "text-primary" : "text-muted-foreground"
+                    }`}>
+                      {step.label}
+                    </span>
                   </div>
-                  <span className={`mt-2 text-xs font-medium ${
-                    index <= currentStepIndex ? "text-primary" : "text-muted-foreground"
-                  }`}>
-                    {step.label}
-                  </span>
+                  {index < steps.length - 1 && (
+                    <div className={`h-0.5 w-16 sm:w-24 mx-2 transition-colors duration-300 ${
+                      connectorReached ? "bg-primary" : "bg-border/50"
+                    }`} />
+                  )}
                 </div>
-                {index < steps.length - 1 && (
-                  <div className={`h-0.5 w-16 sm:w-24 mx-2 transition-colors duration-300 ${
-                    index < currentStepIndex ? "bg-primary" : "bg-border/50"
-                  }`} />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
