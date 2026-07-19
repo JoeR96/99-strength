@@ -78,7 +78,7 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
               aria-pressed={decisions[exercise.exerciseId] === 'skip'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[exercise.exerciseId] === 'skip'
-                  ? 'bg-neon-blue text-white border-neon-blue'
+                  ? 'bg-neon-blue text-background border-neon-blue'
                   : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
@@ -89,7 +89,7 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
               aria-pressed={decisions[exercise.exerciseId] === 'delete'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[exercise.exerciseId] === 'delete'
-                  ? 'bg-destructive text-white border-destructive'
+                  ? 'bg-destructive text-background border-destructive'
                   : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >

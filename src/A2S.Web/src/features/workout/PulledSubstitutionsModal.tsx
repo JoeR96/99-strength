@@ -76,7 +76,7 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'temporary'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'temporary'
-                  ? 'bg-neon-blue text-white border-neon-blue'
+                  ? 'bg-neon-blue text-background border-neon-blue'
                   : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
@@ -87,7 +87,7 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'permanent'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'permanent'
-                  ? 'bg-success text-white border-success'
+                  ? 'bg-success text-success-foreground border-success'
                   : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
@@ -98,7 +98,7 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'remove'}
               className={`px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'remove'
-                  ? 'bg-destructive text-white border-destructive'
+                  ? 'bg-destructive text-background border-destructive'
                   : 'bg-card hover:bg-destructive/10 border-border text-foreground'
               }`}
             >

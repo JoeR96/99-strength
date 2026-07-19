@@ -101,7 +101,7 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
                 aria-pressed={decisions[disc.exerciseId]?.decision === 'skip'}
                 className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                   decisions[disc.exerciseId]?.decision === 'skip'
-                    ? 'bg-neon-blue text-white border-neon-blue'
+                    ? 'bg-neon-blue text-background border-neon-blue'
                     : 'bg-card hover:bg-muted border-border text-foreground'
                 }`}
               >
@@ -115,7 +115,7 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
                 aria-pressed={decisions[disc.exerciseId]?.decision === 'update'}
                 className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                   decisions[disc.exerciseId]?.decision === 'update'
-                    ? 'bg-success text-white border-success'
+                    ? 'bg-success text-success-foreground border-success'
                     : 'bg-card hover:bg-muted border-border text-foreground'
                 }`}
               >
