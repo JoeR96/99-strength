@@ -314,8 +314,8 @@ export function EditExerciseConfigModal({
           {/* ===================== */}
           {isLinear && wantSwap && (
             <div className="space-y-4">
-              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700">
+              <div className="p-3 bg-neon-blue/15 rounded-lg border border-neon-blue/30">
+                <p className="text-sm text-neon-blue">
                   This will replace the Linear (Hypertrophy) progression with Reps Per Set.
                 </p>
               </div>
@@ -396,8 +396,8 @@ export function EditExerciseConfigModal({
           {/* ===================== */}
           {isRepsPerSet && wantSwap && (
             <div className="space-y-4">
-              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700">
+              <div className="p-3 bg-neon-blue/15 rounded-lg border border-neon-blue/30">
+                <p className="text-sm text-neon-blue">
                   This will replace Reps Per Set with Linear (Hypertrophy) progression.
                 </p>
               </div>
@@ -443,7 +443,7 @@ export function EditExerciseConfigModal({
               onClick={() => setWantSwap(!wantSwap)}
               className={`w-full px-4 py-3 text-sm font-medium rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
                 wantSwap
-                  ? "border-orange-400 bg-orange-50 text-orange-700"
+                  ? "border-primary bg-primary/10 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50 text-muted-foreground"
               }`}
             >

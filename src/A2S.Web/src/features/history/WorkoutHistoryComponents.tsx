@@ -345,9 +345,9 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {exercise.category} · {exercise.equipment}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            exercise.progressionType === 'Linear' ? 'bg-blue-500/10 text-blue-500'
-            : exercise.progressionType === 'RepsPerSet' ? 'bg-purple-500/10 text-purple-500'
-            : 'bg-amber-500/10 text-amber-500'
+            exercise.progressionType === 'Linear' ? 'bg-neon-blue/15 text-neon-blue'
+            : exercise.progressionType === 'RepsPerSet' ? 'bg-neon-purple/15 text-neon-purple'
+            : 'bg-warning/10 text-warning'
           }`}>{exercise.progressionType}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">

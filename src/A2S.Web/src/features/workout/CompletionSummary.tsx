@@ -114,15 +114,15 @@ export function CompletionSummary({
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Completion Header */}
-        <Card className="p-6 mb-6 text-center border-green-500 bg-green-50">
+        <Card className="p-6 mb-6 text-center border-success bg-success/10">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-green-700" data-testid="completion-title">
+          <h1 className="text-2xl font-bold text-success" data-testid="completion-title">
             {result.programComplete ? "Program Complete!" : "Workout Complete!"}
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -229,8 +229,8 @@ export function CompletionSummary({
 
         {/* New working weights to confirm next session */}
         {result.exercisesPendingWeightConfirmation?.length > 0 && (
-          <Card className="p-6 mb-6 border-amber-400 bg-amber-50" data-testid="new-weights-card">
-            <h2 className="text-xl font-bold mb-1 text-amber-700">New Weights Next Session</h2>
+          <Card className="p-6 mb-6 border-warning bg-warning/10" data-testid="new-weights-card">
+            <h2 className="text-xl font-bold mb-1 text-warning">New Weights Next Session</h2>
             <p className="text-sm text-muted-foreground mb-4">
               These exercises progressed. Cable/machine stacks vary between gyms, so use the closest
               weight your gym has and log what you actually lift — the app will adopt it automatically.
@@ -239,7 +239,7 @@ export function CompletionSummary({
               {result.exercisesPendingWeightConfirmation.map((ex) => (
                 <div key={ex.exerciseId} className="flex items-center justify-between p-2 rounded bg-card border">
                   <span className="font-medium">{ex.exerciseName}</span>
-                  <span className="text-sm font-semibold text-amber-700">
+                  <span className="text-sm font-semibold text-warning">
                     try {ex.suggestedWeight} {ex.weightUnit === "Pounds" ? "lbs" : "kg"}
                   </span>
                 </div>
@@ -300,7 +300,7 @@ export function CompletionSummary({
                 Next Week: Week {result.newCurrentWeek}
               </h2>
               {result.isDeloadWeek && (
-                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Deload Week</span>
+                <span className="text-sm px-2 py-1 bg-warning/10 text-warning rounded">Deload Week</span>
               )}
             </div>
             <p className="text-sm text-muted-foreground mb-4">You've completed the week! Here's what's coming up next.</p>

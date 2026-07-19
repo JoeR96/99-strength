@@ -46,7 +46,7 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
       onOpenChange={(open) => { if (!open) onComplete(); }}
       title="Exercises Not Found in Hevy"
       description="These exercises were not completed in Hevy. How would you like to proceed?"
-      headerClassName="bg-blue-100 text-blue-800"
+      headerClassName="bg-neon-blue/15 text-neon-blue"
       icon={
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -61,13 +61,13 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
       ]}
     >
       {missingExercises.map((exercise) => (
-        <div key={exercise.exerciseId} className="border border-border rounded-lg p-3 bg-zinc-50">
+        <div key={exercise.exerciseId} className="border border-border rounded-lg p-3 bg-muted/30">
           <div className="mb-3">
             <div className="font-medium text-base mb-2">{exercise.exerciseName}</div>
-            <div className="text-sm text-zinc-600">
+            <div className="text-sm text-muted-foreground">
               Prescribed: {exercise.prescribedSets} sets of {exercise.prescribedReps} @ {convertWeight(exercise.prescribedWeight)} {exerciseUnit === 'Kilograms' ? 'kg' : 'lbs'}
             </div>
-            <div className="text-xs text-zinc-500 mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               This exercise was not found in your Hevy workout
             </div>
           </div>
@@ -78,8 +78,8 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
               aria-pressed={decisions[exercise.exerciseId] === 'skip'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[exercise.exerciseId] === 'skip'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                  ? 'bg-neon-blue text-white border-neon-blue'
+                  : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
               Skip This Week
@@ -89,8 +89,8 @@ export function MissingExercisesModal({ missingExercises, exerciseUnit, onApply,
               aria-pressed={decisions[exercise.exerciseId] === 'delete'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[exercise.exerciseId] === 'delete'
-                  ? 'bg-red-600 text-white border-red-600'
-                  : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                  ? 'bg-destructive text-white border-destructive'
+                  : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
               Remove from Program

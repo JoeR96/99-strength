@@ -53,7 +53,7 @@ export function ExerciseCard({
       : entry.sets.map((s) => `${s.reps}×${s.weight}${entry.weightUnit}`).join(", ");
     return (
       <Card
-        className="p-3 border-green-500 bg-green-50 cursor-pointer"
+        className="p-3 border-success bg-success/10 cursor-pointer"
         data-testid={`exercise-card-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
         onClick={() => setCollapsed(false)}
         role="button"
@@ -62,7 +62,7 @@ export function ExerciseCard({
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <svg className="w-5 h-5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 text-success shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -89,7 +89,7 @@ export function ExerciseCard({
 
   return (
     <Card
-      className={`p-4 ${allCompleted ? "border-green-500 bg-green-50" : ""}`}
+      className={`p-4 ${allCompleted ? "border-success bg-success/10" : ""}`}
       data-testid={`exercise-card-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
     >
       <div className="flex items-center justify-between mb-4">
@@ -140,7 +140,7 @@ export function ExerciseCard({
             </svg>
           </Button>
           {allCompleted && (
-            <div className="text-green-500">
+            <div className="text-success">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -191,7 +191,7 @@ export function ExerciseCard({
               <div
                 className={`grid grid-cols-12 gap-2 items-center ${
                   set.completed ? "opacity-60" : ""
-                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-orange-50/50 border border-orange-100" : ""}`}
+                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
                 data-testid={`set-row-${set.setNumber}`}
               >
                 <div className="col-span-1 font-medium">

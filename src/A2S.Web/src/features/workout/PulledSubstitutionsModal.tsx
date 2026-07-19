@@ -40,7 +40,7 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
       onOpenChange={(open) => { if (!open) onComplete(); }}
       title="Exercise Substitutions Detected"
       description="You used different exercises in Hevy. Choose how to handle each:"
-      headerClassName="bg-yellow-100 text-yellow-800"
+      headerClassName="bg-warning/15 text-warning"
       icon={
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -55,17 +55,17 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
       ]}
     >
       {substitutions.map((sub) => (
-        <div key={sub.originalExerciseId} className="border border-border rounded-lg p-3 bg-zinc-50">
+        <div key={sub.originalExerciseId} className="border border-border rounded-lg p-3 bg-muted/30">
           <div className="mb-3">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-zinc-500">Program:</span>
-              <span className="font-medium line-through text-red-600">{sub.originalExerciseName}</span>
+              <span className="text-muted-foreground">Program:</span>
+              <span className="font-medium line-through text-destructive">{sub.originalExerciseName}</span>
             </div>
             <div className="flex items-center gap-2 text-sm mt-1">
-              <span className="text-zinc-500">Hevy:</span>
-              <span className="font-medium text-green-600">{sub.hevyExerciseName}</span>
+              <span className="text-muted-foreground">Hevy:</span>
+              <span className="font-medium text-success">{sub.hevyExerciseName}</span>
             </div>
-            <div className="text-xs text-zinc-500 mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {sub.sets.length} sets: {sub.sets.map(s => `${s.weight}kg × ${s.reps}`).join(', ')}
             </div>
           </div>
@@ -76,8 +76,8 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'temporary'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'temporary'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                  ? 'bg-neon-blue text-white border-neon-blue'
+                  : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
               This Session Only
@@ -87,8 +87,8 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'permanent'}
               className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'permanent'
-                  ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                  ? 'bg-success text-white border-success'
+                  : 'bg-card hover:bg-muted border-border text-foreground'
               }`}
             >
               Permanent Change
@@ -98,8 +98,8 @@ export function PulledSubstitutionsModal({ substitutions, onApply, onRemove, onC
               aria-pressed={decisions[sub.originalExerciseId] === 'remove'}
               className={`px-3 py-2 text-sm rounded border transition-colors font-medium ${
                 decisions[sub.originalExerciseId] === 'remove'
-                  ? 'bg-red-600 text-white border-red-600'
-                  : 'bg-white hover:bg-red-50 border-zinc-300 text-zinc-700'
+                  ? 'bg-destructive text-white border-destructive'
+                  : 'bg-card hover:bg-destructive/10 border-border text-foreground'
               }`}
             >
               Remove
