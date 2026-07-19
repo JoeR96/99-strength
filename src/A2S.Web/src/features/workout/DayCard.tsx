@@ -58,6 +58,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
           onClick={onSubstitute}
           className="p-1 opacity-0 group-hover:opacity-100 hover:bg-muted rounded transition-all"
           title="Substitute exercise"
+          aria-label={`Substitute ${exercise.name}`}
         >
           <svg className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -187,7 +188,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
           : isCurrent
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
           : isUpcoming
-          ? "border-border bg-muted/30 opacity-60"
+          ? "border-border bg-muted/30"
           : "border-border"
       }`}
       data-testid={`day-card-${dayNumber}`}
@@ -207,6 +208,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
             onClick={onEdit}
             className="p-1 hover:bg-muted rounded transition-colors"
             title="Edit exercises"
+            aria-label={`Edit exercises for ${dayLabel}`}
           >
             <svg className="w-4 h-4 text-muted-foreground hover:text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

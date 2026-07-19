@@ -35,7 +35,10 @@ export interface CategoricalBadgeStyle {
 
 function badgeStyleFor(colour: string): CategoricalBadgeStyle {
   return {
-    color: colour,
+    // Text is the identity hue lightened toward the light foreground so small-badge
+    // text clears WCAG AA on the dark tint (pure neon-purple was 3.36:1 → fails). The
+    // pure hue stays on the border/background tint, so categorical identity is intact.
+    color: `color-mix(in srgb, ${colour} 60%, var(--color-foreground))`,
     backgroundColor: `color-mix(in srgb, ${colour} 10%, transparent)`,
     borderColor: `color-mix(in srgb, ${colour} 30%, transparent)`,
   };

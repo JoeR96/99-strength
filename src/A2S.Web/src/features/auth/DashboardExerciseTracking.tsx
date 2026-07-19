@@ -206,7 +206,7 @@ export function DashboardExerciseTracking({ workout }: DashboardExerciseTracking
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
             <p className="text-sm font-medium text-muted-foreground">Not enough data yet</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">Complete 2+ sessions per exercise to see progression charts</p>
+            <p className="text-xs text-muted-foreground mt-1">Complete 2+ sessions per exercise to see progression charts</p>
           </div>
         </CardContent>
       </Card>

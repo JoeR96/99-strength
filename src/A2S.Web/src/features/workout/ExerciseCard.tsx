@@ -110,7 +110,7 @@ export function ExerciseCard({
             {entry.exercise.progression.type} Progression
             {entry.isAmrapExercise && " - AMRAP on last set"}
             {isTemporarilySubstituted && originalName && (
-              <span className="ml-2 text-yellow-600">
+              <span className="ml-2 text-warning">
                 (replacing {originalName})
               </span>
             )}
@@ -188,12 +188,12 @@ export function ExerciseCard({
           return (
             <div key={set.setNumber}>
               {set.isAmrap && !set.completed && (
-                <div className="mb-2 p-3 rounded-lg bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-200">
-                  <div className="flex items-center gap-2 text-orange-700 font-semibold">
+                <div className="mb-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
                     <span className="text-lg">🔥</span>
                     <span>FINAL SET - AMRAP</span>
                   </div>
-                  <p className="text-sm text-orange-600 mt-1">
+                  <p className="text-sm text-foreground mt-1">
                     As Many Reps As Possible!
                     {amrapHint && (
                       <span className="ml-2 font-medium">
@@ -212,7 +212,7 @@ export function ExerciseCard({
                 <div className="col-span-1 font-medium">
                   {set.setNumber}
                   {set.isAmrap && (
-                    <span className="text-xs text-orange-500 ml-1">🔥</span>
+                    <span className="text-xs ml-1">🔥</span>
                   )}
                 </div>
                 <div className="col-span-4">
@@ -227,7 +227,7 @@ export function ExerciseCard({
                         parseFloat(e.target.value) || 0
                       )
                     }
-                    className={`h-8 ${set.isAmrap && !set.completed ? "border-orange-300 focus:border-orange-500 focus:ring-orange-500" : ""}`}
+                    className={`h-8 ${set.isAmrap && !set.completed ? "border-primary/50 focus:border-primary focus:ring-primary" : ""}`}
                     data-testid={`weight-input-${set.setNumber}`}
                     disabled={set.completed}
                     aria-label={`Weight for set ${set.setNumber}`}
@@ -245,7 +245,7 @@ export function ExerciseCard({
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className={`h-8 ${set.isAmrap && !set.completed ? "border-orange-300 focus:border-orange-500 focus:ring-orange-500" : ""}`}
+                    className={`h-8 ${set.isAmrap && !set.completed ? "border-primary/50 focus:border-primary focus:ring-primary" : ""}`}
                     data-testid={`reps-input-${set.setNumber}`}
                     disabled={set.completed}
                     aria-label={`Reps for set ${set.setNumber}`}
@@ -255,7 +255,7 @@ export function ExerciseCard({
                   <Button
                     variant={set.completed ? "default" : set.isAmrap ? "default" : "outline"}
                     size="sm"
-                    className={`w-full h-8 ${set.isAmrap && !set.completed ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
+                    className={`w-full h-8 ${set.isAmrap && !set.completed ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
                     onClick={() => onSetComplete(exerciseIndex, setIndex)}
                     data-testid={`complete-set-${set.setNumber}`}
                   >

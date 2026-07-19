@@ -103,6 +103,7 @@ export function ExerciseEditRow({
               });
             }}
             className="w-24 text-base font-medium"
+            aria-label={`${isLinear ? "Training max" : "Weight"} for ${state.name}`}
           />
           <span className="text-sm text-muted-foreground">{state.unit}</span>
           {state.newValue !== state.originalValue && (

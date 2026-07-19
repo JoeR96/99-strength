@@ -72,7 +72,7 @@ export function Navbar() {
                     to={link.href}
                     className={`px-4 py-2 rounded text-sm font-medium transition-all duration-150 ${
                       isActive
-                        ? 'bg-primary/20 text-primary'
+                        ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
@@ -144,7 +144,7 @@ export function Navbar() {
                       to={link.href}
                       className={`block px-4 py-3 rounded text-base font-medium transition-all duration-150 border-l-4 ${
                         isActive
-                          ? 'bg-primary/15 text-primary border-primary'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >

@@ -45,7 +45,7 @@ export function HevySettings() {
             href="https://hevy.com/settings?developer"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline"
+            className="text-primary underline"
           >
             Hevy Pro subscription
           </a>
@@ -70,6 +70,7 @@ export function HevySettings() {
                 size="sm"
                 onClick={() => setShowKey(!showKey)}
                 className="h-8 w-8 p-0"
+                aria-label={showKey ? 'Hide API key' : 'Show API key'}
               >
                 {showKey ? (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +105,7 @@ export function HevySettings() {
                   href="https://hevy.com/settings?developer"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary underline"
                 >
                   Hevy Settings
                 </a>
