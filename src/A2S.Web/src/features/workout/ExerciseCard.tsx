@@ -140,15 +140,30 @@ export function ExerciseCard({
             </svg>
           </Button>
           {allCompleted && (
-            <div className="text-success">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+            <>
+              <div className="text-success">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(true)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Collapse ${entry.exercise.name}`}
+                aria-expanded={true}
+                data-testid={`collapse-exercise-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </Button>
+            </>
           )}
         </div>
       </div>
