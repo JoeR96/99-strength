@@ -6,6 +6,7 @@ import { useHevy } from "@/contexts/HevyContext";
 import { createCompletedWorkoutInHevy, handleRoutineLifecycle, type CompletedExerciseData } from "@/services/hevySyncService";
 import toast from "react-hot-toast";
 import type { CompleteDayResult, WorkoutDto, DayNumber, ExerciseEntry } from "./workoutSessionTypes";
+import { outcomeToStatus, outcomeLabel, statusBadgeClass } from "@/lib/outcomeStatus";
 
 interface CompletionSummaryProps {
   result: CompleteDayResult;
@@ -108,32 +109,6 @@ export function CompletionSummary({
     }
   };
 
-  const getOutcomeStyle = (change: string) => {
-    if (change.toLowerCase().includes("increased") || change.toLowerCase().includes("added")) {
-      return "text-green-600 bg-green-100";
-    }
-    if (change.toLowerCase().includes("decreased") || change.toLowerCase().includes("reduced")) {
-      return "text-red-600 bg-red-100";
-    }
-    if (change.toLowerCase().includes("deload")) {
-      return "text-blue-600 bg-blue-100";
-    }
-    return "text-yellow-600 bg-yellow-100";
-  };
-
-  const getOutcomeLabel = (change: string): string => {
-    if (change.toLowerCase().includes("increased") || change.toLowerCase().includes("added")) {
-      return "SUCCESS";
-    }
-    if (change.toLowerCase().includes("decreased") || change.toLowerCase().includes("reduced")) {
-      return "FAILED";
-    }
-    if (change.toLowerCase().includes("deload")) {
-      return "DELOAD";
-    }
-    return "MAINTAINED";
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -184,13 +159,13 @@ export function CompletionSummary({
           <h2 className="text-xl font-bold mb-4" data-testid="progression-changes-title">Progression Results</h2>
           <div className="space-y-3">
             {result.progressionChanges.map((change, index) => (
-              <div key={index} className={`p-3 rounded-lg ${getOutcomeStyle(change.change)}`} data-testid={`progression-change-${index}`}>
+              <div key={index} className={`p-3 rounded-lg ${statusBadgeClass(outcomeToStatus(change.change))}`} data-testid={`progression-change-${index}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-semibold">{change.exerciseName}</span>
                   </div>
                   <span className="text-xs font-bold px-2 py-1 rounded" data-testid={`outcome-label-${index}`}>
-                    {getOutcomeLabel(change.change)}
+                    {outcomeLabel(outcomeToStatus(change.change))}
                   </span>
                 </div>
                 <p className="text-sm mt-1" data-testid={`change-description-${index}`}>{change.change}</p>
@@ -238,9 +213,9 @@ export function CompletionSummary({
                         </div>
                         {change && (
                           <div className={`text-xs mt-1 ${
-                            getOutcomeLabel(change.change) === "SUCCESS" ? "text-green-600"
-                              : getOutcomeLabel(change.change) === "FAILED" ? "text-red-600"
-                              : "text-yellow-600"
+                            outcomeLabel(outcomeToStatus(change.change)) === "SUCCESS" ? "text-success"
+                              : outcomeLabel(outcomeToStatus(change.change)) === "FAILED" ? "text-destructive"
+                              : "text-warning"
                           }`}>
                             {change.change}
                           </div>
