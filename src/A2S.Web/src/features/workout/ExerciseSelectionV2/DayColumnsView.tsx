@@ -247,7 +247,7 @@ export function DayColumnsView({
       onDragCancel={handleDragCancel}
     >
       {/* Day columns grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {availableDays.map((day) => (
           <div key={day} className="bg-muted/30 rounded-lg p-4 border border-border">
             <DayColumn

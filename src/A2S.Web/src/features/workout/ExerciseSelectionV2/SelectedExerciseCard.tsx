@@ -62,7 +62,7 @@ export function SelectedExerciseCard({
           <button
             type="button"
             onClick={() => onEdit(exercise)}
-            className="p-1 rounded-md hover:bg-muted transition-colors"
+            className="p-2.5 min-w-11 min-h-11 inline-flex items-center justify-center rounded-md hover:bg-muted transition-colors"
             aria-label={`Edit ${exercise.template.name}`}
           >
             <svg
@@ -81,7 +81,7 @@ export function SelectedExerciseCard({
           <button
             type="button"
             onClick={() => onRemove(exercise.id)}
-            className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
+            className="p-2.5 min-w-11 min-h-11 inline-flex items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
             aria-label={`Remove ${exercise.template.name}`}
           >
             <svg

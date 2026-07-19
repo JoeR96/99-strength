@@ -550,18 +550,18 @@ export function SetupWizard() {
 
         {/* Progress indicator */}
         <div className="mb-8">
-          <div className="flex items-center justify-between max-w-md mx-auto">
+          <div className="flex items-center justify-between gap-1 max-w-md mx-auto overflow-x-auto px-1">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 transition-all duration-300 ${
+                    className={`flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300 ${
                       index <= currentStepIndex
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border/50 bg-muted/20 text-muted-foreground"
                     }`}
                   >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={step.icon} />
                     </svg>
                   </div>
