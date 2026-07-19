@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { ExerciseSelectionV2 } from "./ExerciseSelectionV2/ExerciseSelectionV2";
 import { useCreateWorkout, useExerciseLibrary } from "@/hooks/useWorkouts";
 import { ProgramVariant, WeightUnit, ExerciseCategory } from "@/types/workout";
-import type { SelectedExercise, CreateExerciseRequest, DayNumber, ExerciseTemplate } from "@/types/workout";
+import type { SelectedExercise, CreateExerciseRequest, DayNumber } from "@/types/workout";
 import toast from "react-hot-toast";
 import { workoutTemplates, type WorkoutTemplate } from "@/data/workoutTemplates";
+import { convertTemplateToSelectedExercises } from "@/lib/templateConversion";
 
 type WizardStep = "welcome" | "template" | "exercises" | "confirm";
 type SetupMode = "template" | "scratch";
@@ -30,39 +31,7 @@ export function SetupWizard() {
   // Convert template exercises to SelectedExercise format
   const applyTemplate = (template: WorkoutTemplate) => {
     if (!exerciseLibrary) return;
-
-    const converted: SelectedExercise[] = template.exercises.map((ex, index) => {
-      const templateData = exerciseLibrary.templates.find(t => t.name === ex.templateName);
-      return {
-        id: `template-${index}`,
-        hevyExerciseTemplateId: ex.externalTemplateId || '', // Use template's ID or empty string
-        template: templateData || {
-          name: ex.templateName,
-          equipment: 0,
-          description: '',
-        } as ExerciseTemplate,
-        category: ex.category,
-        progressionType: ex.progressionType as 'Linear' | 'RepsPerSet' | 'MinimalSets',
-        assignedDay: ex.assignedDay as DayNumber,
-        orderInDay: ex.orderInDay,
-        trainingMax: ex.trainingMaxValue ? {
-          value: ex.trainingMaxValue,
-          unit: ex.trainingMaxUnit || WeightUnit.Kilograms,
-        } : undefined,
-        isPrimary: ex.category === ExerciseCategory.MainLift,
-        baseSetsPerExercise: templateData?.defaultSets || 4,
-        repRange: (ex.repRangeMinimum != null && ex.repRangeMaximum != null)
-          ? { minimum: ex.repRangeMinimum, maximum: ex.repRangeMaximum }
-          : templateData?.defaultRepRange,
-        currentSets: ex.startingSets ?? templateData?.defaultSets ?? 3,
-        targetSets: ex.targetSets ?? (templateData?.defaultSets ?? 3) + 2,
-        startingWeight: ex.startingWeight,
-        weightUnit: ex.weightUnit || WeightUnit.Kilograms,
-        isUnilateral: ex.isUnilateral,
-        targetTotalReps: ex.targetTotalReps,
-      };
-    });
-
+    const converted = convertTemplateToSelectedExercises(template, exerciseLibrary);
     setSelectedExercises(converted);
     setWorkoutName(template.name);
     setVariant(template.variant as ProgramVariant);
