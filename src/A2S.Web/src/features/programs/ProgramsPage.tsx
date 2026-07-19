@@ -8,21 +8,7 @@ import { useAllWorkouts, useSetActiveWorkout, useDeleteWorkout } from '@/hooks/u
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { WorkoutSummaryDto } from '@/types/workout';
 import toast from 'react-hot-toast';
-
-/**
- * The API serializes variant as the C# enum member name (e.g. "FourDay"), not a
- * number, so concatenating it directly produced "FourDay-Day Split". Map known
- * variant names to their day count for display; fall back to the raw value.
- */
-const VARIANT_DAY_LABEL: Record<string, string> = {
-  FourDay: '4',
-  FiveDay: '5',
-  SixDay: '6',
-};
-
-function formatVariantDays(variant: string): string {
-  return VARIANT_DAY_LABEL[variant] ?? variant;
-}
+import { formatVariantDays } from '@/utils/formatVariant';
 
 export function ProgramsPage() {
   const navigate = useNavigate();

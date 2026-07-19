@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
 import { getBlockType } from "@/utils/weekParameters";
+import { formatVariantDays } from "@/utils/formatVariant";
 import toast from "react-hot-toast";
 
 export function WorkoutDashboard() {
@@ -129,7 +130,7 @@ export function WorkoutDashboard() {
               Block {blockIndex + 1}/{blockSequence.length} (Type {currentBlockType}), Week {weekInBlock}
             </span>
             <span>-</span>
-            <span>{workout.variant}-Day Program</span>
+            <span>{formatVariantDays(workout.variant)}-Day Program</span>
             <Button
               variant="ghost"
               size="sm"
