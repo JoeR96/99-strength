@@ -155,7 +155,7 @@ export function WorkoutDashboard() {
                     isCurrentBlock
                       ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
                       : idx < blockIndex
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-success/10 text-success"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >

@@ -304,7 +304,7 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
           <div className="text-sm text-muted-foreground">
             Week {workout.currentWeek} of {workout.totalWeeks}
             {workout.isWeekComplete && (
-              <span className="ml-2 text-green-500 font-medium">✓ Week Complete</span>
+              <span className="ml-2 text-success font-medium">✓ Week Complete</span>
             )}
           </div>
           {/* Undo Last Workout Button - only show if there are completed days */}
@@ -372,7 +372,7 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
               key={day}
               className={`h-2 flex-1 rounded ${
                 completedDays.has(day)
-                  ? "bg-green-500"
+                  ? "bg-success"
                   : day === currentDay
                   ? "bg-primary"
                   : "bg-muted"

@@ -102,7 +102,7 @@ export function ExerciseSelectionV2({
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-900 rounded-md">
+      <div className="p-4 bg-destructive/10 text-destructive rounded-md">
         Failed to load exercise library. Please try again.
       </div>
     );
@@ -110,7 +110,7 @@ export function ExerciseSelectionV2({
 
   if (!library) {
     return (
-      <div className="p-4 bg-yellow-50 text-yellow-900 rounded-md">
+      <div className="p-4 bg-warning/10 text-warning rounded-md">
         No exercise library available.
       </div>
     );

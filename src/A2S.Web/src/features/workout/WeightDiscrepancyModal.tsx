@@ -51,7 +51,7 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
       onOpenChange={(open) => { if (!open) onComplete(); }}
       title="Weight Discrepancies"
       description="Hevy weights differ from your program. Choose how to handle each:"
-      headerClassName="bg-orange-100 text-orange-800"
+      headerClassName="bg-warning/15 text-warning"
       icon={
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -75,17 +75,17 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
           : convertWeight(disc.prescribedWeight);
 
         return (
-          <div key={disc.exerciseId} className="border border-border rounded-lg p-3 bg-zinc-50">
+          <div key={disc.exerciseId} className="border border-border rounded-lg p-3 bg-muted/30">
             <div className="mb-3">
               <div className="font-medium text-base mb-2">{disc.exerciseName}</div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-zinc-500">Expected:</span>
+                  <span className="text-muted-foreground">Expected:</span>
                   <span className="font-medium ml-1">{expectedWeight} {exerciseUnit === 'Kilograms' ? 'kg' : 'lbs'}</span>
                 </div>
                 <div>
-                  <span className="text-zinc-500">Hevy:</span>
-                  <span className="font-bold text-orange-600 ml-1">
+                  <span className="text-muted-foreground">Hevy:</span>
+                  <span className="font-bold text-warning ml-1">
                     {convertWeight(disc.actualWeights[0])} {exerciseUnit === 'Kilograms' ? 'kg' : 'lbs'}
                   </span>
                 </div>
@@ -101,8 +101,8 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
                 aria-pressed={decisions[disc.exerciseId]?.decision === 'skip'}
                 className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                   decisions[disc.exerciseId]?.decision === 'skip'
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                    ? 'bg-neon-blue text-background border-neon-blue'
+                    : 'bg-card hover:bg-muted border-border text-foreground'
                 }`}
               >
                 Skip This Week
@@ -115,8 +115,8 @@ export function WeightDiscrepancyModal({ discrepancies, exerciseUnit, currentWee
                 aria-pressed={decisions[disc.exerciseId]?.decision === 'update'}
                 className={`flex-1 px-3 py-2 text-sm rounded border transition-colors font-medium ${
                   decisions[disc.exerciseId]?.decision === 'update'
-                    ? 'bg-green-600 text-white border-green-600'
-                    : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-700'
+                    ? 'bg-success text-success-foreground border-success'
+                    : 'bg-card hover:bg-muted border-border text-foreground'
                 }`}
               >
                 Update Weight

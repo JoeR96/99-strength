@@ -8,7 +8,7 @@ One theme: **Arcade Minimal** — Apple-style minimal design language carrying t
 
 ## The token contract
 
-All design tokens live in `index.css` as Tailwind v4 `@theme` custom properties. Each `--color-*` already holds a complete colour value (`--color-primary: hsl(25 80% 45%)`), so the **only** correct references are:
+All design tokens live in `index.css` as Tailwind v4 `@theme` custom properties. Each `--color-*` already holds a complete colour value (`--color-primary: hsl(25 80% 50%)`), so the **only** correct references are:
 
 - ✅ Tailwind utilities: `bg-primary`, `text-foreground`, `border-border`, `text-muted-foreground`, `bg-card`, `text-destructive`, …
 - ✅ Raw CSS var when a utility can't be used (SVG, inline style): `var(--color-primary)`

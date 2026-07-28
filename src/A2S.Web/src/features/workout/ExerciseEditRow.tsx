@@ -43,7 +43,7 @@ export function ExerciseEditRow({
               </span>
             )}
             {state.wantSwap && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-700">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
                 Swapping
               </span>
             )}
@@ -103,6 +103,7 @@ export function ExerciseEditRow({
               });
             }}
             className="w-24 text-base font-medium"
+            aria-label={`${isLinear ? "Training max" : "Weight"} for ${state.name}`}
           />
           <span className="text-sm text-muted-foreground">{state.unit}</span>
           {state.newValue !== state.originalValue && (
@@ -213,8 +214,8 @@ export function ExerciseEditRow({
 
           {/* Swap to RPS form (when Linear exercise wants to swap) */}
           {state.wantSwap && state.progressionType === "Linear" && (
-            <div className="space-y-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-              <p className="text-sm text-orange-700 font-medium">
+            <div className="space-y-3 p-3 bg-primary/10 rounded-lg border border-primary/30">
+              <p className="text-sm text-primary font-medium">
                 Configure Reps Per Set
               </p>
               <div>
@@ -274,8 +275,8 @@ export function ExerciseEditRow({
 
           {/* Swap to Linear form (when RPS exercise wants to swap) */}
           {state.wantSwap && state.progressionType === "RepsPerSet" && (
-            <div className="space-y-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-              <p className="text-sm text-orange-700 font-medium">
+            <div className="space-y-3 p-3 bg-primary/10 rounded-lg border border-primary/30">
+              <p className="text-sm text-primary font-medium">
                 Configure Linear (Hypertrophy)
               </p>
               <div>
@@ -307,7 +308,7 @@ export function ExerciseEditRow({
               }
               className={`w-full px-3 py-2.5 text-sm font-medium rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
                 state.wantSwap
-                  ? "border-orange-400 bg-orange-50 text-orange-700"
+                  ? "border-primary bg-primary/10 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/50 text-muted-foreground"
               }`}
             >

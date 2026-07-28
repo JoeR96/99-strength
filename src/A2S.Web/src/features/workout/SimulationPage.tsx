@@ -217,6 +217,7 @@ export function SimulationPage() {
                   Workout
                 </label>
                 <select
+                  aria-label="Workout"
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   value={selectedWorkoutId ?? ''}
                   onChange={(e) => {
@@ -242,6 +243,7 @@ export function SimulationPage() {
                   Sessions
                 </label>
                 <input
+                  aria-label="Sessions"
                   type="number"
                   min={1}
                   max={500}
@@ -281,6 +283,7 @@ export function SimulationPage() {
               <div className="w-24">
                 <label className="block text-xs text-muted-foreground mb-1">Days</label>
                 <input
+                  aria-label="Days"
                   type="number"
                   min={1}
                   max={200}
@@ -292,6 +295,7 @@ export function SimulationPage() {
               <div className="w-28">
                 <label className="block text-xs text-muted-foreground mb-1">Success %</label>
                 <input
+                  aria-label="Success %"
                   type="number"
                   min={0}
                   max={100}
@@ -303,6 +307,7 @@ export function SimulationPage() {
               <div className="w-28">
                 <label className="block text-xs text-muted-foreground mb-1">Maintain %</label>
                 <input
+                  aria-label="Maintain %"
                   type="number"
                   min={0}
                   max={100}

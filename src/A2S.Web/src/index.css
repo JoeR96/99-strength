@@ -24,8 +24,8 @@
   --color-popover: hsl(240 10% 10%);
   --color-popover-foreground: hsl(0 0% 95%);
 
-  --color-primary: hsl(25 80% 45%); /* burnt orange */
-  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary: hsl(25 80% 50%); /* burnt orange — L bumped 45→50 so text-primary clears AA (4.5:1) on dark/card surfaces */
+  --color-primary-foreground: hsl(240 10% 8%); /* near-black on primary: white-on-orange only reached 3.85:1; dark text clears AA (~5.9:1) while keeping the burnt-orange brand */
 
   --color-secondary: hsl(240 10% 20%);
   --color-secondary-foreground: hsl(0 0% 95%);
@@ -36,7 +36,7 @@
   --color-accent: hsl(50 100% 50%); /* neon yellow */
   --color-accent-foreground: hsl(240 10% 4%);
 
-  --color-destructive: hsl(0 100% 55%);
+  --color-destructive: hsl(0 100% 62%); /* L bumped 55→62 so text-destructive clears AA (4.5:1) on card/dark surfaces */
   --color-destructive-foreground: hsl(0 0% 100%);
 
   --color-success: hsl(120 100% 45%);
@@ -47,7 +47,7 @@
 
   --color-border: hsl(0 0% 25%);
   --color-input: hsl(0 0% 20%);
-  --color-ring: hsl(25 80% 45%);
+  --color-ring: hsl(25 80% 50%); /* tracks --color-primary */
 
   /* Radius — Apple-style rounding */
   --radius-sm: 0.5rem;

@@ -208,7 +208,7 @@ export function ExerciseSubstitutionModal({
                           {getEquipmentLabel(template.equipment)}
                         </span>
                         {needsProgressionSwitch && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">
+                          <span className="text-xs px-2 py-0.5 rounded bg-warning/10 text-warning">
                             Reps-based
                           </span>
                         )}
@@ -228,16 +228,16 @@ export function ExerciseSubstitutionModal({
 
         {/* Progression Change Warning */}
         {selectedExercise && requiresProgressionChange && (
-          <div className="p-4 border-t bg-yellow-50">
+          <div className="p-4 border-t bg-warning/10">
             <div className="flex items-start gap-3">
-              <svg className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div className="flex-1">
-                <p className="font-medium text-yellow-800">
+                <p className="font-medium text-warning">
                   Progression Type Change Required
                 </p>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-sm text-warning mt-1">
                   {getEquipmentLabel(selectedExercise.equipment)} exercises don't work well with AMRAP progression.
                   This exercise will use <strong>Reps Per Set</strong> progression instead.
                 </p>
@@ -245,51 +245,51 @@ export function ExerciseSubstitutionModal({
                 {/* Reps Configuration */}
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-yellow-700">Sets</label>
+                    <label className="text-xs font-medium text-warning">Sets</label>
                     <Input
                       type="number"
                       value={repsConfig.sets}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, sets: parseInt(e.target.value) || 3 }))}
-                      className="mt-1 h-8 bg-white"
+                      className="mt-1 h-8 bg-card"
                       min={1}
                       max={10}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-yellow-700">Min Reps</label>
+                    <label className="text-xs font-medium text-warning">Min Reps</label>
                     <Input
                       type="number"
                       value={repsConfig.minReps}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, minReps: parseInt(e.target.value) || 8 }))}
-                      className="mt-1 h-8 bg-white"
+                      className="mt-1 h-8 bg-card"
                       min={1}
                       max={repsConfig.maxReps}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-yellow-700">Max Reps</label>
+                    <label className="text-xs font-medium text-warning">Max Reps</label>
                     <Input
                       type="number"
                       value={repsConfig.maxReps}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, maxReps: parseInt(e.target.value) || 12 }))}
-                      className="mt-1 h-8 bg-white"
+                      className="mt-1 h-8 bg-card"
                       min={repsConfig.minReps}
                       max={50}
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-xs font-medium text-yellow-700">
+                    <label className="text-xs font-medium text-warning">
                       Starting Weight ({originalLinearProg?.trainingMax.unit === 1 ? 'kg' : 'lbs'})
                     </label>
                     <Input
                       type="number"
                       value={repsConfig.startingWeight}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, startingWeight: parseFloat(e.target.value) || 20 }))}
-                      className="mt-1 h-8 bg-white"
+                      className="mt-1 h-8 bg-card"
                       min={0}
                       step={2.5}
                     />
-                    <p className="text-xs text-yellow-600 mt-1">
+                    <p className="text-xs text-warning mt-1">
                       Suggested: ~60% of your Training Max ({originalLinearProg?.trainingMax.value ?? 0} {originalLinearProg?.trainingMax.unit === 1 ? 'kg' : 'lbs'})
                     </p>
                   </div>
@@ -305,7 +305,7 @@ export function ExerciseSubstitutionModal({
             <p className="text-sm font-medium mb-3">
               Replacing with: <span className="text-primary">{selectedExercise.name}</span>
               {requiresProgressionChange && (
-                <span className="ml-2 text-xs text-yellow-600">
+                <span className="ml-2 text-xs text-warning">
                   (Reps Per Set: {repsConfig.sets} × {repsConfig.minReps}-{repsConfig.maxReps} @ {repsConfig.startingWeight}{originalLinearProg?.trainingMax.unit === 1 ? 'kg' : 'lbs'})
                 </span>
               )}

@@ -45,7 +45,7 @@ export function HevySettings() {
             href="https://hevy.com/settings?developer"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline"
+            className="text-primary underline"
           >
             Hevy Pro subscription
           </a>
@@ -56,7 +56,7 @@ export function HevySettings() {
         {isConfigured ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
-              <div className={`h-3 w-3 rounded-full ${isValid ? 'bg-green-500' : isValid === false ? 'bg-red-500' : 'bg-yellow-500'}`} />
+              <div className={`h-3 w-3 rounded-full ${isValid ? 'bg-success' : isValid === false ? 'bg-destructive' : 'bg-warning'}`} />
               <div className="flex-1">
                 <p className="text-sm font-medium">
                   {isValidating ? 'Validating...' : isValid ? 'Connected' : isValid === false ? 'Invalid API Key' : 'Checking...'}
@@ -70,6 +70,7 @@ export function HevySettings() {
                 size="sm"
                 onClick={() => setShowKey(!showKey)}
                 className="h-8 w-8 p-0"
+                aria-label={showKey ? 'Hide API key' : 'Show API key'}
               >
                 {showKey ? (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +105,7 @@ export function HevySettings() {
                   href="https://hevy.com/settings?developer"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary underline"
                 >
                   Hevy Settings
                 </a>

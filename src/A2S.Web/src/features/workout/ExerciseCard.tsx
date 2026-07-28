@@ -53,7 +53,7 @@ export function ExerciseCard({
       : entry.sets.map((s) => `${s.reps}×${s.weight}${entry.weightUnit}`).join(", ");
     return (
       <Card
-        className="p-3 border-green-500 bg-green-50 cursor-pointer"
+        className="p-3 border-success bg-success/10 cursor-pointer"
         data-testid={`exercise-card-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
         onClick={() => setCollapsed(false)}
         role="button"
@@ -62,7 +62,7 @@ export function ExerciseCard({
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <svg className="w-5 h-5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5 text-success shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -89,7 +89,7 @@ export function ExerciseCard({
 
   return (
     <Card
-      className={`p-4 ${allCompleted ? "border-green-500 bg-green-50" : ""}`}
+      className={`p-4 ${allCompleted ? "border-success bg-success/10" : ""}`}
       data-testid={`exercise-card-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
     >
       <div className="flex items-center justify-between mb-4">
@@ -110,7 +110,7 @@ export function ExerciseCard({
             {entry.exercise.progression.type} Progression
             {entry.isAmrapExercise && " - AMRAP on last set"}
             {isTemporarilySubstituted && originalName && (
-              <span className="ml-2 text-yellow-600">
+              <span className="ml-2 text-warning">
                 (replacing {originalName})
               </span>
             )}
@@ -140,15 +140,30 @@ export function ExerciseCard({
             </svg>
           </Button>
           {allCompleted && (
-            <div className="text-green-500">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+            <>
+              <div className="text-success">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(true)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Collapse ${entry.exercise.name}`}
+                aria-expanded={true}
+                data-testid={`collapse-exercise-${entry.exercise.name.replace(/\s+/g, "-").toLowerCase()}`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -173,12 +188,12 @@ export function ExerciseCard({
           return (
             <div key={set.setNumber}>
               {set.isAmrap && !set.completed && (
-                <div className="mb-2 p-3 rounded-lg bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-200">
-                  <div className="flex items-center gap-2 text-orange-700 font-semibold">
+                <div className="mb-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
                     <span className="text-lg">🔥</span>
                     <span>FINAL SET - AMRAP</span>
                   </div>
-                  <p className="text-sm text-orange-600 mt-1">
+                  <p className="text-sm text-foreground mt-1">
                     As Many Reps As Possible!
                     {amrapHint && (
                       <span className="ml-2 font-medium">
@@ -191,13 +206,13 @@ export function ExerciseCard({
               <div
                 className={`grid grid-cols-12 gap-2 items-center ${
                   set.completed ? "opacity-60" : ""
-                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-orange-50/50 border border-orange-100" : ""}`}
+                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
                 data-testid={`set-row-${set.setNumber}`}
               >
                 <div className="col-span-1 font-medium">
                   {set.setNumber}
                   {set.isAmrap && (
-                    <span className="text-xs text-orange-500 ml-1">🔥</span>
+                    <span className="text-xs ml-1">🔥</span>
                   )}
                 </div>
                 <div className="col-span-4">
@@ -212,7 +227,7 @@ export function ExerciseCard({
                         parseFloat(e.target.value) || 0
                       )
                     }
-                    className={`h-8 ${set.isAmrap && !set.completed ? "border-orange-300 focus:border-orange-500 focus:ring-orange-500" : ""}`}
+                    className={`h-8 ${set.isAmrap && !set.completed ? "border-primary/50 focus:border-primary focus:ring-primary" : ""}`}
                     data-testid={`weight-input-${set.setNumber}`}
                     disabled={set.completed}
                     aria-label={`Weight for set ${set.setNumber}`}
@@ -230,7 +245,7 @@ export function ExerciseCard({
                         parseInt(e.target.value) || 0
                       )
                     }
-                    className={`h-8 ${set.isAmrap && !set.completed ? "border-orange-300 focus:border-orange-500 focus:ring-orange-500" : ""}`}
+                    className={`h-8 ${set.isAmrap && !set.completed ? "border-primary/50 focus:border-primary focus:ring-primary" : ""}`}
                     data-testid={`reps-input-${set.setNumber}`}
                     disabled={set.completed}
                     aria-label={`Reps for set ${set.setNumber}`}
@@ -240,7 +255,7 @@ export function ExerciseCard({
                   <Button
                     variant={set.completed ? "default" : set.isAmrap ? "default" : "outline"}
                     size="sm"
-                    className={`w-full h-8 ${set.isAmrap && !set.completed ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
+                    className={`w-full h-8 ${set.isAmrap && !set.completed ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
                     onClick={() => onSetComplete(exerciseIndex, setIndex)}
                     data-testid={`complete-set-${set.setNumber}`}
                   >

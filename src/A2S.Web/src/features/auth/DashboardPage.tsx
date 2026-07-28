@@ -171,7 +171,7 @@ export function DashboardPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <p className="text-sm font-medium text-muted-foreground">No scheduled workouts</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Create a program to see your weekly schedule</p>
+                  <p className="text-xs text-muted-foreground mt-1">Create a program to see your weekly schedule</p>
                 </div>
               </CardContent>
             </Card>
@@ -206,7 +206,7 @@ export function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
                 <p className="text-sm font-medium text-muted-foreground">No personal records yet</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Complete workouts to track your PRs</p>
+                <p className="text-xs text-muted-foreground mt-1">Complete workouts to track your PRs</p>
               </div>
             </CardContent>
           </Card>
