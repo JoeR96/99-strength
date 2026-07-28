@@ -110,7 +110,10 @@ async function main() {
 
   const argRoutes = process.argv.slice(2);
   const routes = argRoutes.length
-    ? argRoutes.map((r) => [slugFor(r), r])
+    ? argRoutes.map((r) => {
+        const route = r.startsWith('/') ? r : `/${r}`;
+        return [slugFor(route), route];
+      })
     : DEFAULT_ROUTES;
 
   const browser = await chromium.launch();
