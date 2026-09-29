@@ -140,7 +140,7 @@ export function SetupWizard() {
                   </svg>
                 </div>
               </div>
-              <h2 className="text-3xl font-bold mb-3">Welcome to Average to Savage 2.0</h2>
+              <h2 className="text-2xl font-semibold mb-3">Welcome to Average to Savage 2.0</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Let's set up your personalized training program. Choose how you'd like to start.
               </p>
@@ -259,7 +259,7 @@ export function SetupWizard() {
                   </svg>
                 </div>
               </div>
-              <h2 className="text-3xl font-bold mb-3">Choose a Template</h2>
+              <h2 className="text-2xl font-semibold mb-3">Choose a Template</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Select a pre-configured workout template. You can customize the exercises in the next step.
               </p>
@@ -371,7 +371,7 @@ export function SetupWizard() {
                   </svg>
                 </div>
               </div>
-              <h2 className="text-3xl font-bold mb-3">Review Your Program</h2>
+              <h2 className="text-2xl font-semibold mb-3">Review Your Program</h2>
               <p className="text-muted-foreground">
                 Please review your selections before creating your workout program.
               </p>

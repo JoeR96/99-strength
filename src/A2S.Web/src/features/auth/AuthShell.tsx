@@ -28,7 +28,7 @@ export function AuthShell({ subtitle, children }: { subtitle: string; children: 
           <h1 id="auth-title" className="text-hero mt-6">
             99 Strength
           </h1>
-          <p className="text-body mt-3 text-muted-foreground">{subtitle}</p>
+          <p className="mt-3 text-base text-muted-foreground">{subtitle}</p>
           <ul className="mt-8 hidden space-y-3 lg:block">
             {FEATURES.map((feature) => (
               <li key={feature} className="flex gap-3 text-sm text-muted-foreground">
@@ -40,7 +40,7 @@ export function AuthShell({ subtitle, children }: { subtitle: string; children: 
         </section>
 
         <div className="mx-auto w-full max-w-md">
-          <div className="rounded-xl border border-border bg-card p-2">{children}</div>
+          {children}
           <p className="text-caption mt-6 text-center">Built for strength athletes. Runs the A2S 2.0 program.</p>
         </div>
       </main>

@@ -143,7 +143,7 @@ const mockExercises: SelectedExercise[] = [
  * - Edit and remove actions for each exercise
  */
 const meta = {
-  title: 'Workout/ExerciseSelectionV2/SelectedExercisesList',
+  title: 'Features/Setup/SelectedExercisesList',
   component: SelectedExercisesList,
   parameters: {
     layout: 'centered',

@@ -18,7 +18,7 @@ export function WorkoutHeader({ dayName, dayNumber, currentWeek, workoutName, is
   return (
     <>
       {/* Sticky Progress Bar */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -37,14 +37,14 @@ export function WorkoutHeader({ dayName, dayNumber, currentWeek, workoutName, is
         </div>
       </div>
 
-      {/* Session Info */}
-      <div className="mb-6">
+      {/* Session Info — same column as the exercise cards below */}
+      <div className="max-w-4xl mx-auto px-4 pt-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold" data-testid="session-title">
+            <h1 className="text-hero" data-testid="session-title">
               {dayName} - Week {currentWeek}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-caption mt-1">
               {workoutName} - Block {Math.ceil(currentWeek / 7)}
             </p>
           </div>

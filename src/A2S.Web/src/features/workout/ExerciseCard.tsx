@@ -204,9 +204,7 @@ export function ExerciseCard({
                 </div>
               )}
               <div
-                className={`grid grid-cols-12 gap-2 items-center ${
-                  set.completed ? "opacity-60" : ""
-                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
+                className={`grid grid-cols-12 gap-2 items-center ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
                 data-testid={`set-row-${set.setNumber}`}
               >
                 <div className="col-span-1 font-medium">

@@ -42,8 +42,11 @@ export const clerkAppearance = {
   },
   elements: {
     rootBox: 'mx-auto w-full',
-    cardBox: 'w-full shadow-none border-0',
-    card: 'bg-card shadow-none',
+    cardBox: 'w-full max-w-none',
     formButtonPrimary: 'font-semibold',
+    // Clerk's social buttons draw a faint hairline on dark cards; give them the
+    // same 3:1 outline as the inputs, and flip GitHub's black mark to white.
+    socialButtonsIconButton: 'border-muted-foreground/60!',
+    socialButtonsProviderIcon__github: 'invert',
   },
 };

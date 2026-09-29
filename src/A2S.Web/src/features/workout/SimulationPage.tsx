@@ -21,40 +21,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
-import { chartColors, chartSeriesPalette, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { TrainingMaxProjectionChart, AccessoryWeightProjectionChart } from './SimulationCharts';
+import type { SimulationResult } from './simulationTypes';
 import { simOutcomeClass } from '@/lib/outcomeStatus';
 
-interface SimulationDataPoint {
-  session: number;
-  week: number;
-  block: number;
-  trainingMax: number | null;
-  trainingMaxUnit: string | null;
-  currentWeight: number | null;
-  currentWeightUnit: string | null;
-  summary: {
-    type: string;
-    details: Record<string, string>;
-  };
-}
-
-interface ExerciseSimulationSeries {
-  exerciseId: string;
-  exerciseName: string;
-  progressionType: string;
-  dataPoints: SimulationDataPoint[];
-}
-
-interface SimulationResult {
-  workoutName: string;
-  variant: string;
-  startWeek: number;
-  endWeek: number;
-  totalWeeks: number;
-  exerciseTimeSeries: ExerciseSimulationSeries[];
-}
 
 function useSimulation(workoutId: string | null, sessions: number, enabled: boolean) {
   return useQuery({
@@ -69,10 +41,6 @@ function useSimulation(workoutId: string | null, sessions: number, enabled: bool
     staleTime: 1000 * 60 * 5,
   });
 }
-
-// Multi-series simulation charts need distinct colours per exercise; use the shared
-// theme-token palette so every series stays on-theme. See lib/chartTheme.ts.
-const CHART_COLORS = chartSeriesPalette;
 
 interface StreamDayEvent {
   type: 'day';
@@ -395,122 +363,9 @@ export function SimulationPage() {
               </CardContent>
             </Card>
 
-            {/* Training Max Chart (Linear exercises) */}
-            {linearExercises.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Training Max Progression</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={linearExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
-                        <XAxis
-                          dataKey="session"
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
-                        />
-                        <YAxis
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{
-                            value: 'TM (kg)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            offset: 10,
-                          }}
-                        />
-                        <Tooltip
-                          contentStyle={chartTooltipContentStyle}
-                          formatter={(value, name) => [
-                            `${Math.round(Number(value) * 100) / 100}kg`,
-                            name,
-                          ]}
-                          labelFormatter={(label) => `Session ${label}`}
-                        />
-                        <Legend />
-                        {linearExercises.map((series, idx) => (
-                          <Line
-                            key={series.exerciseId}
-                            data={series.dataPoints}
-                            type="monotone"
-                            dataKey="trainingMax"
-                            name={series.exerciseName}
-                            stroke={CHART_COLORS[idx % CHART_COLORS.length]}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                          />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <TrainingMaxProjectionChart series={linearExercises} />
 
-            {/* Weight progression for RPS exercises */}
-            {rpsExercises.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Accessory Weight Progression</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={rpsExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
-                        <XAxis
-                          dataKey="session"
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
-                        />
-                        <YAxis
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{
-                            value: 'Weight (kg)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            offset: 10,
-                          }}
-                        />
-                        <Tooltip
-                          contentStyle={chartTooltipContentStyle}
-                          formatter={(value, name) => [
-                            value != null ? `${value}kg` : 'Pending',
-                            name,
-                          ]}
-                          labelFormatter={(label) => `Session ${label}`}
-                        />
-                        <Legend />
-                        {rpsExercises.map((series, idx) => (
-                          <Line
-                            key={series.exerciseId}
-                            data={series.dataPoints}
-                            type="monotone"
-                            dataKey="currentWeight"
-                            name={series.exerciseName}
-                            stroke={CHART_COLORS[(idx + 3) % CHART_COLORS.length]}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                            connectNulls
-                          />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AccessoryWeightProjectionChart series={rpsExercises} />
 
             {/* MinimalSets exercises info */}
             {minimalSetsExercises.length > 0 && (

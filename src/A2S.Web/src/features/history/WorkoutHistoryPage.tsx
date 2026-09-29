@@ -12,6 +12,7 @@ import {
   type WorkoutHistoryDto,
   type ExerciseHistoryDto,
 } from './WorkoutHistoryComponents';
+import { buildCalendarMonths } from './calendarData';
 
 export function WorkoutHistoryPage() {
   const [selectedExercise, setSelectedExercise] = useState<ExerciseHistoryDto | null>(null);
@@ -27,50 +28,7 @@ export function WorkoutHistoryPage() {
   });
 
   // Build calendar data grouped by month
-  const calendarData = useMemo(() => {
-    if (!history || !history.startedAt) return [];
-
-    const startDate = new Date(history.startedAt);
-    const now = new Date();
-    const months: { month: number; year: number; days: { date: Date; activity: WorkoutActivityDto | null }[] }[] = [];
-
-    // Create a map of activities by date (use local date to match calendar display)
-    const activityMap = new Map<string, WorkoutActivityDto>();
-    history.completedActivities.forEach(activity => {
-      // Parse the UTC date and convert to local date string for matching
-      const completedDate = new Date(activity.completedAt);
-      const dateKey = completedDate.toDateString();
-      activityMap.set(dateKey, activity);
-    });
-
-    // Generate months from start to now
-    let currentMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    while (currentMonth <= now) {
-      const month = currentMonth.getMonth();
-      const year = currentMonth.getFullYear();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDayOfWeek = new Date(year, month, 1).getDay();
-
-      const days: { date: Date; activity: WorkoutActivityDto | null }[] = [];
-
-      // Add empty cells for days before the 1st
-      for (let i = 0; i < firstDayOfWeek; i++) {
-        days.push({ date: new Date(0), activity: null });
-      }
-
-      // Add days of the month
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const activity = activityMap.get(date.toDateString()) || null;
-        days.push({ date, activity });
-      }
-
-      months.push({ month, year, days });
-      currentMonth = new Date(year, month + 1, 1);
-    }
-
-    return months;
-  }, [history]);
+  const calendarData = useMemo(() => buildCalendarMonths(history), [history]);
 
   const handleExportCSV = () => {
     if (!history) return;
