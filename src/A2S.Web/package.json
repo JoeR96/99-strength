@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "showcase": "storybook build --quiet -o storybook-static && node scripts/showcase.mjs",
+    "a11y:stories": "storybook build --quiet -o storybook-static && node scripts/a11y-stories.mjs"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.59.3",
