@@ -6,8 +6,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ToggleButton } from '@/components/ui/toggle-button';
 import { apiClient, getAuthToken } from '@/api/apiClient';
 import { useAllWorkouts } from '@/hooks/useWorkouts';
 import { readNdjsonStream } from '@/lib/ndjson';
@@ -200,13 +202,11 @@ export function SimulationPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Workout Simulator</h1>
-          <p className="text-muted-foreground">
-            Project your progression using real training algorithms with simulated AMRAP results
-          </p>
-        </div>
+      <main className="container-page py-8">
+        <PageHeader
+          title="Workout Simulator"
+          description="Project your progression using real training algorithms with simulated AMRAP results"
+        />
 
         {/* Controls */}
         <Card className="mb-6">
@@ -218,7 +218,7 @@ export function SimulationPage() {
                 </label>
                 <select
                   aria-label="Workout"
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                   value={selectedWorkoutId ?? ''}
                   onChange={(e) => {
                     setSelectedWorkoutId(e.target.value || null);
@@ -252,7 +252,7 @@ export function SimulationPage() {
                     setSessionCount(Math.max(1, Math.min(500, parseInt(e.target.value) || 1)));
                     setRunSimulation(false);
                   }}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
 
@@ -289,7 +289,7 @@ export function SimulationPage() {
                   max={200}
                   value={runDays}
                   onChange={(e) => setRunDays(Math.max(1, Math.min(200, parseInt(e.target.value) || 1)))}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               <div className="w-28">
@@ -301,7 +301,7 @@ export function SimulationPage() {
                   max={100}
                   value={Math.round(runSuccessRate * 100)}
                   onChange={(e) => setRunSuccessRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               <div className="w-28">
@@ -313,7 +313,7 @@ export function SimulationPage() {
                   max={100}
                   value={Math.round(runMaintainRate * 100)}
                   onChange={(e) => setRunMaintainRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               {streaming ? (
@@ -552,23 +552,19 @@ export function SimulationPage() {
                 <CardTitle className="text-lg">Exercise Detail</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Exercise">
                   {simulation.exerciseTimeSeries.map((series) => (
-                    <button
+                    <ToggleButton
                       key={series.exerciseId}
+                      pressed={selectedExercise === series.exerciseId}
                       onClick={() =>
                         setSelectedExercise(
                           selectedExercise === series.exerciseId ? null : series.exerciseId
                         )
                       }
-                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        selectedExercise === series.exerciseId
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                      }`}
                     >
                       {series.exerciseName}
-                    </button>
+                    </ToggleButton>
                   ))}
                 </div>
 
@@ -686,7 +682,7 @@ export function SimulationPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
     </div>
   );
 }

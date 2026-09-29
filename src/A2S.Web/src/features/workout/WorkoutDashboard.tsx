@@ -9,6 +9,7 @@ import { ExerciseProgressionModal } from "./ExerciseProgressionModal";
 import type { ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
 import { getBlockType } from "@/utils/weekParameters";
 import { formatVariantDays } from "@/utils/formatVariant";
@@ -63,12 +64,12 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <main className="container-page py-8">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <p className="mt-4 text-muted-foreground">Loading your workout...</p>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -77,14 +78,14 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <main className="container-page py-8">
           <Card className="p-8 text-center">
             <p className="text-destructive">Failed to load workout</p>
             <Button className="mt-4" onClick={() => window.location.reload()}>
               Retry
             </Button>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -93,7 +94,7 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <main className="container-page py-8">
           <Card className="p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">No Active Workout</h2>
             <p className="text-muted-foreground mb-6">
@@ -104,7 +105,7 @@ export function WorkoutDashboard() {
               <Button variant="outline" onClick={() => navigate("/programs")}>View All Programs</Button>
             </div>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -117,11 +118,12 @@ export function WorkoutDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-6xl mx-auto p-6">
+      <main className="container-page py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{workout.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <PageHeader
+          title={workout.name}
+          description={
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>
               Week {workout.currentWeek} of {workout.totalWeeks}
             </span>
@@ -139,8 +141,9 @@ export function WorkoutDashboard() {
             >
               Manage Blocks
             </Button>
-          </div>
-        </div>
+          </span>
+          }
+        />
 
         {/* Block Sequence Visual */}
         <Card className="p-4 mb-6">
@@ -344,7 +347,7 @@ export function WorkoutDashboard() {
           onClose={() => setShowBlockEditor(false)}
           onUpdated={refetch}
         />
-      </div>
+      </main>
     </div>
   );
 }

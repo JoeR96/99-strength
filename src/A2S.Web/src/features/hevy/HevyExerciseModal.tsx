@@ -17,6 +17,7 @@ import {
   Legend,
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { ToggleButton } from '@/components/ui/toggle-button';
 
 interface SetDetail {
   weightKg: number;
@@ -146,7 +147,7 @@ export function HevyExerciseModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -163,7 +164,8 @@ export function HevyExerciseModal({
           <h2 className="text-xl font-bold text-foreground">{exerciseTitle}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted"
+            aria-label="Close exercise history"
+            className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />
@@ -221,36 +223,20 @@ export function HevyExerciseModal({
             {/* Controls */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Time period filter */}
-              <div className="flex gap-1 rounded-lg border border-border p-1">
+              <div className="flex gap-1" role="group" aria-label="Time period">
                 {periods.map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => setTimePeriod(period)}
-                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                      timePeriod === period
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
+                  <ToggleButton key={period} pressed={timePeriod === period} onClick={() => setTimePeriod(period)}>
                     {period}
-                  </button>
+                  </ToggleButton>
                 ))}
               </div>
 
               {/* Metric selector */}
-              <div className="flex gap-1 rounded-lg border border-border p-1">
+              <div className="flex gap-1" role="group" aria-label="Metric">
                 {metrics.map((metric) => (
-                  <button
-                    key={metric.key}
-                    onClick={() => setChartMetric(metric.key)}
-                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                      chartMetric === metric.key
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
+                  <ToggleButton key={metric.key} pressed={chartMetric === metric.key} onClick={() => setChartMetric(metric.key)}>
                     {metric.label}
-                  </button>
+                  </ToggleButton>
                 ))}
               </div>
             </div>

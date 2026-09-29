@@ -5,8 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { HevySettings } from '@/components/hevy/HevySettings';
 import { useHevy } from '@/contexts/HevyContext';
 import { hevyApi } from '@/services/hevyApi';
@@ -121,15 +123,13 @@ export function HevyManagementPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       {ConfirmDialog}
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Hevy Integration</h1>
-          <p className="text-muted-foreground">
-            Manage your Hevy API connection and synced routines
-          </p>
-        </div>
+      <main className="container-page py-8">
+        <PageHeader
+          title="Hevy Integration"
+          description="Manage your Hevy API connection and synced routines"
+        />
 
-        <div className="space-y-6">
+        <div className="max-w-4xl space-y-6">
           {/* API Key Configuration */}
           <HevySettings />
 
@@ -188,9 +188,7 @@ export function HevyManagementPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-lg">{programName}</h3>
                           {knownProgramNames.has(programName) && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                              Active Program
-                            </span>
+                            <Badge variant="primary">Active Program</Badge>
                           )}
                           <span className="text-sm text-muted-foreground">
                             ({programRoutines.length} routine{programRoutines.length !== 1 ? 's' : ''})
@@ -215,6 +213,7 @@ export function HevyManagementPage() {
                                 onClick={() => handleDeleteRoutine(routine.id)}
                                 disabled={deletingRoutine === routine.id}
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                aria-label={`Delete ${routine.title}`}
                               >
                                 {deletingRoutine === routine.id ? (
                                   <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -253,7 +252,7 @@ export function HevyManagementPage() {
             </Card>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

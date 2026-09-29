@@ -28,6 +28,10 @@ vi.mock('@/features/auth/DashboardExerciseTracking', () => ({
   DashboardExerciseTracking: () => <div data-testid="exercise-tracking">ExerciseTracking</div>,
 }));
 
+vi.mock('@/features/auth/DashboardPersonalRecords', () => ({
+  DashboardPersonalRecords: () => <div data-testid="personal-records">PersonalRecords</div>,
+}));
+
 vi.mock('@/components/layout/Navbar', () => ({
   Navbar: () => <nav data-testid="navbar">Navbar</nav>,
 }));

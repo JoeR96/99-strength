@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
 import { apiClient } from '@/api';
 import {
   GitHubStyleCalendar,
@@ -116,11 +118,11 @@ export function WorkoutHistoryPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container-page py-8">
+        <main className="container-page py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -129,14 +131,14 @@ export function WorkoutHistoryPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container-page py-8">
+        <main className="container-page py-8">
           <div className="text-center py-12">
             <h2 className="text-xl font-semibold text-foreground mb-2">No Workout History</h2>
             <p className="text-muted-foreground">
               Complete some workouts to see your history and progress here.
             </p>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -146,46 +148,37 @@ export function WorkoutHistoryPage() {
       <Navbar />
       <main className="container-page py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{history.workoutName}</h1>
-            <p className="text-muted-foreground mt-1">
-              Week {history.currentWeek} of {history.totalWeeks} · Block {history.currentBlock} · {history.totalWorkoutsCompleted} workouts completed
-            </p>
-          </div>
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Export CSV
-          </button>
-        </div>
+        <PageHeader
+          title={history.workoutName}
+          description={`Week ${history.currentWeek} of ${history.totalWeeks} · Block ${history.currentBlock} · ${history.totalWorkoutsCompleted} workouts completed`}
+          actions={
+            <Button variant="secondary" size="sm" onClick={handleExportCSV}>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export CSV
+            </Button>
+          }
+        />
 
         {/* View Mode Toggle */}
-        <div className="flex gap-2 mb-6">
-          <button
+        <div className="flex gap-2 mb-6" role="group" aria-label="History view">
+          <Button
+            size="sm"
+            variant={viewMode === 'calendar' ? 'default' : 'secondary'}
+            aria-pressed={viewMode === 'calendar'}
             onClick={() => { setViewMode('calendar'); setSelectedExercise(null); }}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              viewMode === 'calendar'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
           >
             Activity Calendar
-          </button>
-          <button
+          </Button>
+          <Button
+            size="sm"
+            variant={viewMode === 'exercise' ? 'default' : 'secondary'}
+            aria-pressed={viewMode === 'exercise'}
             onClick={() => setViewMode('exercise')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              viewMode === 'exercise'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
           >
             Exercise Progress
-          </button>
+          </Button>
         </div>
 
         {viewMode === 'calendar' ? (

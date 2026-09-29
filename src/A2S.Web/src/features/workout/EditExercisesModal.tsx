@@ -201,7 +201,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <Card className="w-full max-w-2xl max-h-[80vh] overflow-y-auto m-4 p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Edit Day {day} Exercises</h2>

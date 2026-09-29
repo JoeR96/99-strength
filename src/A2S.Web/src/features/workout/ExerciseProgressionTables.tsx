@@ -21,9 +21,9 @@ export function getOutcome(
   reps: number[],
   repRange: { minimum: number; maximum: number },
 ): { label: string; color: string } {
-  if (reps.every((r) => r >= repRange.maximum)) return { label: "SUCCESS", color: "text-green-500" };
-  if (reps.some((r) => r < repRange.minimum)) return { label: "FAILED", color: "text-red-500" };
-  return { label: "MAINTAINED", color: "text-yellow-500" };
+  if (reps.every((r) => r >= repRange.maximum)) return { label: "SUCCESS", color: "text-success" };
+  if (reps.some((r) => r < repRange.minimum)) return { label: "FAILED", color: "text-destructive" };
+  return { label: "MAINTAINED", color: "text-warning" };
 }
 
 export function getProgressionLabel(type: string): string {
@@ -192,9 +192,9 @@ export function LinearTable({
                       <span
                         className={
                           tmDelta > 0
-                            ? "text-green-500 font-medium"
+                            ? "text-success font-medium"
                             : tmDelta < 0
-                            ? "text-red-500 font-medium"
+                            ? "text-destructive font-medium"
                             : "text-muted-foreground"
                         }
                       >
@@ -304,7 +304,7 @@ export function RepsPerSetTable({
                 </td>
                 <td className="py-2 px-2">
                   {changes.length > 0 ? (
-                    <span className="text-green-500 font-medium">
+                    <span className="text-success font-medium">
                       {changes.join(", ")}
                     </span>
                   ) : (

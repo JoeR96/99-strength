@@ -96,7 +96,7 @@ export function GitHubStyleCalendar({
   return (
     <div className="space-y-8">
       {months.map((monthData, idx) => (
-        <div key={idx} className="rounded-xl border border-border bg-card p-6">
+        <div key={idx} className="rounded-lg border border-border bg-card p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             {MONTHS[monthData.month]} {monthData.year}
           </h3>
@@ -133,11 +133,11 @@ export function GitHubStyleCalendar({
                   }
                   className={`aspect-square rounded-md flex items-center justify-center text-xs font-medium transition-all ${
                     activity
-                      ? 'text-white cursor-pointer hover:ring-2 hover:ring-white/50'
+                      ? 'text-background cursor-pointer hover:ring-2 hover:ring-foreground/50'
                       : isToday
                       ? 'bg-primary/20 text-primary ring-2 ring-primary cursor-default'
                       : 'bg-muted/30 text-muted-foreground cursor-default'
-                  } ${isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
+                  } ${isSelected ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background' : ''}`}
                   style={activity ? { backgroundColor: blockColor } : undefined}
                   title={activity
                     ? `Week ${activity.weekNumber}, Day ${activity.dayNumber}${activity.isDeloadWeek ? ' (Deload)' : ''} - Click for details`
@@ -176,7 +176,7 @@ export function WorkoutActivityDetail({
 }) {
   if (!activity || !date) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6 h-full flex items-center justify-center">
+      <div className="rounded-lg border border-border bg-card p-6 h-full flex items-center justify-center">
         <div className="text-center">
           <svg className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -199,7 +199,7 @@ export function WorkoutActivityDetail({
   const totalSets = activity.performances.reduce((sum, perf) => sum + perf.completedSets.length, 0);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+    <div className="rounded-lg border border-border bg-card p-6 space-y-4">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
@@ -207,10 +207,10 @@ export function WorkoutActivityDetail({
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
             Week {activity.weekNumber}, Day {activity.dayNumber}
-            {activity.isDeloadWeek && <span className="ml-2 text-amber-500">(Deload)</span>}
+            {activity.isDeloadWeek && <span className="ml-2 text-warning">(Deload)</span>}
           </p>
         </div>
-        <button onClick={onClose} className="p-1 rounded-md hover:bg-muted transition-colors" title="Close">
+        <button onClick={onClose} className="-m-2 flex h-11 w-11 items-center justify-center rounded-md hover:bg-muted transition-colors" title="Close" aria-label="Close workout details">
           <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -269,7 +269,7 @@ export function ExerciseProgressView({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1 rounded-xl border border-border bg-card p-4">
+      <div className="lg:col-span-1 rounded-lg border border-border bg-card p-4">
         <h3 className="text-lg font-semibold text-foreground mb-4">Exercises</h3>
         <div className="space-y-4">
           {Object.entries(exercisesByDay).map(([day, dayExercises]) => (
@@ -301,7 +301,7 @@ export function ExerciseProgressView({
         {selectedExercise ? (
           <ExerciseDetailView exercise={selectedExercise} />
         ) : (
-          <div className="rounded-xl border border-border bg-card p-8 text-center h-full flex items-center justify-center">
+          <div className="rounded-lg border border-border bg-card p-8 text-center h-full flex items-center justify-center">
             <div>
               <svg className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -338,7 +338,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-xl font-semibold text-foreground">{exercise.name}</h3>
@@ -374,7 +374,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
 
       {hasHistory ? (
         <>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">
               {exercise.progressionType === 'Linear' ? 'Training Volume Over Time' : 'Set Volume Over Time'}
             </h4>
@@ -392,7 +392,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">Weight Progression</h4>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -408,7 +408,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">Week-by-Week History</h4>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -434,7 +434,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
                         {week.isDeloadWeek && <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Deload</span>}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-medium text-white"
+                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-medium text-background"
                           style={{ backgroundColor: getBlockColor(week.blockNumber) }}>{week.blockNumber}</span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{week.completedAt ? new Date(week.completedAt).toLocaleDateString() : '-'}</td>
@@ -454,7 +454,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-lg border border-border bg-card p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">Set Details</h4>
             <div className="space-y-4">
               {exercise.weeklyHistory.map(week => (
@@ -477,7 +477,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
           </div>
         </>
       ) : (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
           <p className="text-muted-foreground">No history data available yet. Complete workouts to see progress tracking.</p>
           <p className="text-sm text-muted-foreground mt-2">Note: If you seeded data before the history tracking update, you may need to re-seed to see detailed history.</p>
         </div>

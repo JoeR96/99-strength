@@ -86,7 +86,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
                 <span className="font-medium text-primary">{weekParams.repOutTarget}+</span>
               </div>
             )}
-            <div className="flex justify-between text-[10px]">
+            <div className="flex justify-between text-xs">
               <span>TM:</span>
               <span>{linearProg.trainingMax.value} {unitLabel} @ {Math.round(weekParams.intensity * 100)}%</span>
             </div>
@@ -119,13 +119,13 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
           {repsPerSetProg.isUnilateral && (
             <div className="flex justify-between items-center pt-1 mt-1 border-t border-border/50">
               <span>Unilateral:</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary text-primary-foreground">
+              <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary text-primary-foreground">
                 Per Side
               </span>
             </div>
           )}
           {repsPerSetProg.isUnilateral && (
-            <div className="text-primary text-[10px] font-medium">
+            <div className="text-primary text-xs font-medium">
               {repsPerSetProg.currentSetCount} sets × 2 sides = {repsPerSetProg.currentSetCount * 2} total
             </div>
           )}

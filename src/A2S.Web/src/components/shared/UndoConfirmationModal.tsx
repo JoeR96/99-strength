@@ -40,7 +40,7 @@ export function UndoConfirmationModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden">
       {/* Backdrop - fully opaque dark background */}
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/80" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative bg-card rounded-lg shadow-2xl w-full max-w-md mx-4 border border-border">

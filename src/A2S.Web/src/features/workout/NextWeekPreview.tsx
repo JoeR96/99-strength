@@ -159,7 +159,7 @@ export function NextWeekPreview({ workout, onWorkoutUpdated }: NextWeekPreviewPr
           <div className="text-sm text-muted-foreground">
             Week {nextWeek} of {workout.totalWeeks}
             {nextWeekParams.isDeload && (
-              <span className="ml-2 text-yellow-500 font-medium">Deload Week</span>
+              <span className="ml-2 text-warning font-medium">Deload Week</span>
             )}
           </div>
           {hevyEnabled && (
