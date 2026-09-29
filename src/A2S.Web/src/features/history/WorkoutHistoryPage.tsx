@@ -149,7 +149,8 @@ export function WorkoutHistoryPage() {
                 selectedDate={selectedActivity?.date}
               />
             </div>
-            <div className="lg:col-span-1">
+            {/* Sticky so the detail stays beside the day you clicked further down. */}
+            <div className="lg:col-span-1 lg:sticky lg:top-20 lg:self-start">
               <WorkoutActivityDetail
                 activity={selectedActivity?.activity}
                 date={selectedActivity?.date}

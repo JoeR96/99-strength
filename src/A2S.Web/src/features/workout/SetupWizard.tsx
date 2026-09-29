@@ -318,7 +318,7 @@ export function SetupWizard() {
                                   <li key={i} className="truncate">{ex.templateName}</li>
                                 ))}
                                 {dayExercises.length > 3 && (
-                                  <li className="text-muted-foreground/60">+{dayExercises.length - 3} more</li>
+                                  <li className="text-muted-foreground">+{dayExercises.length - 3} more</li>
                                 )}
                               </ul>
                             </div>

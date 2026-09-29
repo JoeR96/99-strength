@@ -292,7 +292,7 @@ export function HevyExerciseModal({
 
             {/* Session Table */}
             <div className="rounded-xl border border-border">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Session table">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">

@@ -87,6 +87,7 @@ export function ExerciseConfigFields({
             <label className="block text-sm font-medium mb-2 text-foreground">Training Max</label>
             <div className="flex gap-2">
               <input
+                aria-label="Training Max"
                 type="number"
                 value={trainingMaxValue}
                 onChange={(e) => setTrainingMaxValue(Number(e.target.value))}
@@ -95,6 +96,7 @@ export function ExerciseConfigFields({
                 step="2.5"
               />
               <select
+                aria-label="Training Max unit"
                 value={weightUnit}
                 onChange={(e) => setWeightUnit(Number(e.target.value) as WeightUnit)}
                 className="px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -159,6 +161,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Min</label>
                 <input
+                  aria-label="Minimum reps"
                   type="number"
                   value={repRangeMin}
                   onChange={(e) => setRepRangeMin(Number(e.target.value))}
@@ -170,6 +173,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Max</label>
                 <input
+                  aria-label="Maximum reps"
                   type="number"
                   value={repRangeMax}
                   onChange={(e) => setRepRangeMax(Number(e.target.value))}
@@ -198,6 +202,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Starting Sets</label>
                 <input
+                  aria-label="Starting Sets"
                   type="number"
                   value={currentSets}
                   onChange={(e) => setCurrentSets(Number(e.target.value))}
@@ -209,6 +214,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Target Sets</label>
                 <input
+                  aria-label="Target Sets"
                   type="number"
                   value={targetSets}
                   onChange={(e) => setTargetSets(Number(e.target.value))}
@@ -251,6 +257,7 @@ export function ExerciseConfigFields({
           <div>
             <label className="block text-sm font-medium mb-2 text-foreground">Target Total Reps</label>
             <input
+              aria-label="Target Total Reps"
               type="number"
               value={targetTotalReps}
               onChange={(e) => setTargetTotalReps(Number(e.target.value))}
@@ -270,6 +277,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Min Sets</label>
                 <input
+                  aria-label="Min Sets"
                   type="number"
                   value={minSets}
                   onChange={(e) => setMinSets(Number(e.target.value))}
@@ -281,6 +289,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Starting Sets</label>
                 <input
+                  aria-label="Starting Sets"
                   type="number"
                   value={minimalCurrentSets}
                   onChange={(e) => setMinimalCurrentSets(Number(e.target.value))}
@@ -292,6 +301,7 @@ export function ExerciseConfigFields({
               <div>
                 <label className="text-xs text-muted-foreground">Max Sets</label>
                 <input
+                  aria-label="Max Sets"
                   type="number"
                   value={maxSets}
                   onChange={(e) => setMaxSets(Number(e.target.value))}

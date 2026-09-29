@@ -125,8 +125,8 @@ export function GitHubStyleCalendar({
                       onActivityClick?.(activity, day.date);
                     }
                   }}
-                  role="gridcell"
-                  tabIndex={activity ? 0 : -1}
+                  role={activity ? 'button' : undefined}
+                  tabIndex={activity ? 0 : undefined}
                   aria-label={activity
                     ? `Week ${activity.weekNumber}, Day ${activity.dayNumber}${activity.isDeloadWeek ? ' (Deload)' : ''}`
                     : day.date.toLocaleDateString()
@@ -135,7 +135,7 @@ export function GitHubStyleCalendar({
                     activity
                       ? 'text-background cursor-pointer hover:ring-2 hover:ring-foreground/50'
                       : isToday
-                      ? 'bg-primary/20 text-primary ring-2 ring-primary cursor-default'
+                      ? 'bg-muted/30 text-foreground ring-2 ring-primary cursor-default'
                       : 'bg-muted/30 text-muted-foreground cursor-default'
                   } ${isSelected ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background' : ''}`}
                   style={activity ? { backgroundColor: blockColor } : undefined}
@@ -238,7 +238,7 @@ export function WorkoutActivityDetail({
               {perf.completedSets.map((set) => (
                 <div key={set.setNumber} className={`px-2 py-1 rounded text-xs ${set.wasAmrap ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-muted/50 text-foreground'}`}>
                   <span className="font-mono">{set.weight}{set.weightUnit === 'Kilograms' ? 'kg' : 'lbs'} × {set.actualReps}</span>
-                  {set.wasAmrap && <span className="ml-1 opacity-70">(AMRAP)</span>}
+                  {set.wasAmrap && <span className="ml-1">(AMRAP)</span>}
                 </div>
               ))}
             </div>
@@ -287,7 +287,7 @@ export function ExerciseProgressView({
                     }`}
                   >
                     <div className="font-medium text-sm">{exercise.name}</div>
-                    <div className={`text-xs ${selectedExercise?.exerciseId === exercise.exerciseId ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    <div className={`text-xs ${selectedExercise?.exerciseId === exercise.exerciseId ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
                       {exercise.progressionType} · {exercise.currentWeight} {exercise.weightUnit.toLowerCase()}
                     </div>
                   </button>
@@ -345,8 +345,8 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
             <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {exercise.category} · {exercise.equipment}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            exercise.progressionType === 'Linear' ? 'bg-neon-blue/15 text-neon-blue'
-            : exercise.progressionType === 'RepsPerSet' ? 'bg-neon-purple/15 text-neon-purple'
+            exercise.progressionType === 'Linear' ? 'bg-neon-blue/15 text-[color-mix(in_srgb,var(--color-neon-blue)_60%,var(--color-foreground))]'
+            : exercise.progressionType === 'RepsPerSet' ? 'bg-neon-purple/15 text-[color-mix(in_srgb,var(--color-neon-purple)_60%,var(--color-foreground))]'
             : 'bg-warning/10 text-warning'
           }`}>{exercise.progressionType}</span>
         </div>
@@ -410,7 +410,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
 
           <div className="rounded-lg border border-border bg-card p-6">
             <h4 className="text-lg font-semibold text-foreground mb-4">Week-by-Week History</h4>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={`${exercise.name} weekly history`}>
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">

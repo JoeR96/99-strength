@@ -257,7 +257,10 @@ export function ExerciseCard({
                     onClick={() => onSetComplete(exerciseIndex, setIndex)}
                     data-testid={`complete-set-${set.setNumber}`}
                   >
-                    {set.completed ? "Done" : set.isAmrap ? "Log AMRAP" : "Log"}
+                    {set.completed ? "Done" : set.isAmrap ? (
+                      // Short label on phones: "Log AMRAP" overflowed the 3-column cell at 390px.
+                      <><span className="sm:hidden">Log</span><span className="hidden sm:inline">Log AMRAP</span></>
+                    ) : "Log"}
                   </Button>
                 </div>
               </div>

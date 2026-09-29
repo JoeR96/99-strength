@@ -18,7 +18,7 @@ export const Calendar: Story = {};
 export const SessionDetail: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(await canvas.findByRole('gridcell', { name: 'Week 10, Day 4' }));
+    await userEvent.click(await canvas.findByRole('button', { name: 'Week 10, Day 4' }));
   },
 };
 

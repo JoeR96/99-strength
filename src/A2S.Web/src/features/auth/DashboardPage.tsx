@@ -48,7 +48,7 @@ export function DashboardPage() {
         </div>
 
         {/* Apple Grid Layout - clean and spacious */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
           {/* Quick Stats Card - Spans 2 columns on larger screens */}
           <Card className="md:col-span-2 lg:col-span-2 overflow-hidden">
             <CardHeader className="pb-4">

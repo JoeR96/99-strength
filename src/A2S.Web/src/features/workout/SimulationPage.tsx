@@ -303,7 +303,7 @@ export function SimulationPage() {
             )}
 
             {streamEvents.length > 0 && (
-              <div className="max-h-80 overflow-y-auto space-y-1 rounded border border-border bg-muted/20 p-2 text-xs font-mono">
+              <div tabIndex={0} role="log" aria-label="Persistent run log" className="max-h-80 overflow-y-auto space-y-1 rounded border border-border bg-muted/20 p-2 text-xs font-mono">
                 {streamEvents.map((e, idx) => (
                   <div key={idx} className="flex gap-3">
                     <span className="text-muted-foreground">#{idx + 1}</span>
@@ -476,7 +476,7 @@ export function SimulationPage() {
                     </div>
 
                     {/* Data table */}
-                    <div className="rounded-xl border border-border overflow-x-auto max-h-64 overflow-y-auto">
+                    <div tabIndex={0} role="region" aria-label={`${selectedSeries.exerciseName} projection table`} className="rounded-xl border border-border overflow-x-auto max-h-64 overflow-y-auto">
                       <table className="w-full">
                         <thead className="sticky top-0 bg-muted/50">
                           <tr className="border-b border-border">
