@@ -15,6 +15,7 @@ import {
   Legend,
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { ToggleButton } from '@/components/ui/toggle-button';
 
 type TimePeriod = '1M' | '3M' | '6M' | '1Y' | 'ALL';
 type Metric = 'weight' | 'volume' | 'e1rm';
@@ -109,36 +110,20 @@ export function ExerciseHistoryChart({ sessions, weightUnit }: ExerciseHistoryCh
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         {/* Time period filter */}
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5" role="group" aria-label="Time period">
           {periods.map((p) => (
-            <button
-              key={p}
-              onClick={() => setTimePeriod(p)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                timePeriod === p
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
+            <ToggleButton key={p} pressed={timePeriod === p} onClick={() => setTimePeriod(p)}>
               {p}
-            </button>
+            </ToggleButton>
           ))}
         </div>
 
         {/* Metric selector */}
         <div className="flex gap-1.5">
           {metrics.map((m) => (
-            <button
-              key={m}
-              onClick={() => setActiveMetric(m)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                activeMetric === m
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
+            <ToggleButton key={m} pressed={activeMetric === m} onClick={() => setActiveMetric(m)}>
               {METRIC_CONFIG[m].label}
-            </button>
+            </ToggleButton>
           ))}
         </div>
       </div>

@@ -111,7 +111,9 @@ export const AllVariants: Story = {
       </div>
       <div className="flex gap-2 flex-wrap">
         <Button disabled>Disabled</Button>
-        <Button variant="outline" disabled>Disabled Outline</Button>
+        <Button variant="outline" disabled>
+          Disabled Outline
+        </Button>
       </div>
     </div>
   ),

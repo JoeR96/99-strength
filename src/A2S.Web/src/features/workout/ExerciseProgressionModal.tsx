@@ -62,7 +62,7 @@ export function ExerciseProgressionModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
       <Card className="relative w-full max-w-2xl max-h-[85vh] mx-4 flex flex-col">
@@ -172,7 +172,7 @@ export function ExerciseProgressionModal({
       {/* Edit Exercise Config Modal (stacked above) */}
       {showEditConfig && onSave && onChangeProgression && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setShowEditConfig(false)} />
+          <div className="absolute inset-0 bg-background/80" onClick={() => setShowEditConfig(false)} />
           <div className="relative">
             <EditExerciseConfigModal
               exercise={exercise}

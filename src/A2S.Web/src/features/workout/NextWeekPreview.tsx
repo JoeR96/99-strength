@@ -153,13 +153,13 @@ export function NextWeekPreview({ workout, onWorkoutUpdated }: NextWeekPreviewPr
 
   return (
     <Card className="p-6 mt-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="text-xl font-bold">Next Week Preview</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="text-sm text-muted-foreground">
             Week {nextWeek} of {workout.totalWeeks}
             {nextWeekParams.isDeload && (
-              <span className="ml-2 text-yellow-500 font-medium">Deload Week</span>
+              <span className="ml-2 text-warning font-medium">Deload Week</span>
             )}
           </div>
           {hevyEnabled && (

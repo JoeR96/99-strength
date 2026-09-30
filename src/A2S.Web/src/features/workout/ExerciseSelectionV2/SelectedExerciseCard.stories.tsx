@@ -15,13 +15,14 @@ import type { SelectedExercise } from '@/types/workout';
  * - Color-coded category badges
  */
 const meta = {
-  title: 'Workout/ExerciseSelectionV2/SelectedExerciseCard',
+  title: 'Features/Setup/SelectedExerciseCard',
   component: SelectedExerciseCard,
   parameters: {
     layout: 'centered',
     docs: {
       description: {
-        component: 'Card component for displaying a configured exercise with edit and remove actions.',
+        component:
+          'Card component for displaying a configured exercise with edit and remove actions.',
       },
     },
   },

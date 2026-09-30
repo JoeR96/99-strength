@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { apiClient } from '@/api';
 import { workoutTemplates } from '@/data/workoutTemplates';
 import { useQueryClient } from '@tanstack/react-query';
@@ -226,14 +229,11 @@ export function SettingsPage() {
       <Navbar />
       {ConfirmDialog}
       <main className="container-page py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your application settings and data</p>
-        </div>
+        <PageHeader title="Settings" description="Manage your application settings and data" />
 
         <div className="grid gap-6">
           {/* Seed Data Section */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h2 className="text-xl font-semibold text-foreground mb-2">Seed Test Data</h2>
             <p className="text-muted-foreground mb-4">
               Create a 4-day workout program and fill weeks 1-17 with randomly generated workout data.
@@ -250,31 +250,23 @@ export function SettingsPage() {
               </div>
             )}
 
-            <button
-              onClick={handleSeedData}
-              disabled={isSeeding}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button size="sm" onClick={handleSeedData} disabled={isSeeding}>
               {isSeeding ? 'Seeding...' : 'Seed 4-Day Template (Weeks 1-17)'}
-            </button>
-          </div>
+            </Button>
+          </Card>
 
           {/* Export Data Section */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h2 className="text-xl font-semibold text-foreground mb-2">Export Program Data</h2>
             <p className="text-muted-foreground mb-4">
               Export your complete workout program including all exercises, progression settings,
               and workout history. This creates a JSON backup file you can use to restore your data.
             </p>
 
-            <button
-              onClick={handleExportProgram}
-              disabled={isExporting}
-              className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button size="sm" variant="secondary" onClick={handleExportProgram} disabled={isExporting}>
               {isExporting ? 'Exporting...' : 'Export Current Program'}
-            </button>
-          </div>
+            </Button>
+          </Card>
         </div>
       </main>
     </div>

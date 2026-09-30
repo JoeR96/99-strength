@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ExerciseLibraryPage } from './ExerciseLibraryPage';
 
+vi.mock('@/contexts/HevyContext', () => ({
+  useHevy: () => ({ apiKey: null, isConfigured: false, isValid: null }),
+}));
+
 vi.mock('@/components/layout/Navbar', () => ({
   Navbar: () => <nav data-testid="navbar">Navbar</nav>,
 }));

@@ -161,7 +161,7 @@ export function ExerciseConfigDialog({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -169,7 +169,7 @@ export function ExerciseConfigDialog({
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="bg-card text-card-foreground rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-border/50"
+          className="bg-card text-card-foreground rounded-xl shadow-lg w-full max-w-2xl flex flex-col max-h-[90vh] border border-border/50"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

@@ -62,13 +62,14 @@ const mockAccessory: SelectedExercise = {
  * - Save and Cancel actions
  */
 const meta = {
-  title: 'Workout/ExerciseSelectionV2/ExerciseConfigDialog',
+  title: 'Features/Setup/ExerciseConfigDialog',
   component: ExerciseConfigDialog,
   parameters: {
     layout: 'centered',
     docs: {
       description: {
-        component: 'Dialog for configuring exercise category, progression type, and day assignment.',
+        component:
+          'Dialog for configuring exercise category, progression type, and day assignment.',
       },
     },
   },

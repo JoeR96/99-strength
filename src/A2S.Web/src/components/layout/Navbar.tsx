@@ -57,9 +57,9 @@ export function Navbar() {
               <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
                 <span className="text-lg font-bold font-display text-primary-foreground">99</span>
               </div>
-              <h1 className="text-xl font-bold hidden sm:block text-foreground">
+              <span className="text-xl font-bold font-display hidden sm:block text-foreground">
                 Strength
-              </h1>
+              </span>
             </Link>
 
             {/* Navigation Links */}
@@ -128,7 +128,7 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-40 lg:hidden" aria-modal="true" role="dialog">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/80" aria-hidden="true" />
+            <div className="absolute inset-0 bg-background/80" aria-hidden="true" />
 
             {/* Menu panel */}
             <div

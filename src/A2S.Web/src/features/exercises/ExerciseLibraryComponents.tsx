@@ -124,7 +124,7 @@ export function ExerciseCard({ exercise, onClick }: { exercise: Exercise; onClic
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-medium text-sm text-foreground leading-tight">{exercise.title}</h3>
         {exercise.is_custom && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium shrink-0">
+          <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium shrink-0">
             Custom
           </span>
         )}
@@ -164,7 +164,7 @@ export function ExerciseListItem({ exercise, onClick }: { exercise: Exercise; on
           {equipmentConfig.label}
         </span>
         {exercise.is_custom && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">
+          <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">
             Custom
           </span>
         )}
@@ -199,7 +199,7 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label={`${exercise.title} exercise history`}
@@ -215,7 +215,8 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            aria-label="Close exercise history"
+            className="flex h-11 w-11 items-center justify-center rounded-md hover:bg-muted transition-colors"
           >
             <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -277,7 +278,7 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
 
               {/* Performance Chart with time filtering and metric selection */}
               {history.sessions.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Performance Over Time</h3>
                   <ExerciseHistoryChart
                     sessions={history.sessions}
@@ -287,7 +288,7 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
               )}
 
               {/* Session History Table */}
-              <div className="rounded-xl border border-border bg-card p-6">
+              <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Session History</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -327,7 +328,7 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
 
               {/* Recent Sets */}
               {history.sessions.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4">
                     Most Recent Session Sets
                   </h3>

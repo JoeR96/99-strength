@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useHevy } from '@/contexts/HevyContext';
@@ -94,13 +95,12 @@ export function HevyDataPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Hevy Data</h1>
-          <p className="text-muted-foreground">
-            Browse your Hevy workouts and explore exercise history
-          </p>
-        </div>
+      <main className="container-page py-8">
+        <PageHeader
+          title="Hevy Data"
+          description="Browse your Hevy workouts and explore exercise history"
+        />
+        <div className="max-w-4xl">
 
         {!isConfigured || isValid === false ? (
           <div className="space-y-4">
@@ -232,7 +232,8 @@ export function HevyDataPage() {
             onClose={() => setSelectedExercise(null)}
           />
         )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

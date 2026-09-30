@@ -87,8 +87,11 @@ src/
 ### Storybook
 
 - Storybook 10 configured at port 6006
-- Stories colocated with components: `Component.stories.tsx`
-- Addons: a11y, docs, vitest
+- Stories colocated with components: `Component.stories.tsx`. Route pages are titled `Pages/*`, building blocks `Features/*`.
+- Addons: a11y, docs, vitest, plus `msw-storybook-addon` (CSF3 loader in `.storybook/preview.tsx`)
+- **Data comes from MSW**, never from patching api objects: fixtures and handlers live in `src/mocks/` (a lifter in week 11 of a 21-week program). Override per story with `parameters: { msw: { handlers: [...override, ...handlers] } }`.
+- Global decorator (`src/mocks/storybook.tsx`) provides QueryClient, HevyProvider, a MemoryRouter at `parameters.route` (`{ path, url }`) and toasts. `@clerk/clerk-react` is aliased to a signed-in stand-in (`src/mocks/clerk.tsx`); `parameters.clerk: 'real'` wraps the story in Clerk's provider on the dev instance (needs network).
+- `npm run showcase` → portfolio screenshots in `showcase/`; `npm run a11y:stories` → axe over every story.
 
 ## Build & Dev
 

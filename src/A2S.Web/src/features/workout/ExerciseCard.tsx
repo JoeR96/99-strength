@@ -204,9 +204,7 @@ export function ExerciseCard({
                 </div>
               )}
               <div
-                className={`grid grid-cols-12 gap-2 items-center ${
-                  set.completed ? "opacity-60" : ""
-                } ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
+                className={`grid grid-cols-12 gap-2 items-center ${set.isAmrap && !set.completed ? "p-2 rounded-lg bg-primary/10 border border-primary/20" : ""}`}
                 data-testid={`set-row-${set.setNumber}`}
               >
                 <div className="col-span-1 font-medium">
@@ -259,7 +257,10 @@ export function ExerciseCard({
                     onClick={() => onSetComplete(exerciseIndex, setIndex)}
                     data-testid={`complete-set-${set.setNumber}`}
                   >
-                    {set.completed ? "Done" : set.isAmrap ? "Log AMRAP" : "Log"}
+                    {set.completed ? "Done" : set.isAmrap ? (
+                      // Short label on phones: "Log AMRAP" overflowed the 3-column cell at 390px.
+                      <><span className="sm:hidden">Log</span><span className="hidden sm:inline">Log AMRAP</span></>
+                    ) : "Log"}
                   </Button>
                 </div>
               </div>

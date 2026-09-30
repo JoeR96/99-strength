@@ -7,9 +7,10 @@ import { useCurrentWorkout } from '@/hooks/useWorkouts';
 import { WeekOverview } from '@/features/workout/WeekOverview';
 import { NextWeekPreview } from '@/features/workout/NextWeekPreview';
 import { DashboardExerciseTracking } from './DashboardExerciseTracking';
+import { DashboardPersonalRecords } from './DashboardPersonalRecords';
 
 /**
- * Modern dashboard with mosaic-style layout using Golden Twilight theme.
+ * Dashboard: active program, this week's training, next week and progression charts.
  * Shows active program details and this week's training schedule.
  */
 export function DashboardPage() {
@@ -28,6 +29,7 @@ export function DashboardPage() {
     ? ((workout.currentWeek - 1) * daysPerWeek) + completedDays.size
     : 0;
   const thisWeekCompleted = completedDays.size;
+  const weeksRemaining = workout ? Math.max(0, workout.totalWeeks - workout.currentWeek) : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,16 +39,16 @@ export function DashboardPage() {
       <main className="container-page py-8 space-y-6">
         {/* Welcome Header - Apple hero style */}
         <div className="text-center">
-          <h2 className="text-hero text-foreground mb-4">
+          <h1 className="text-hero text-foreground mb-4">
             Welcome back, {user?.firstName || 'User'}
-          </h2>
+          </h1>
           <p className="text-body text-muted-foreground max-w-2xl mx-auto">
             Track your strength training progress and achieve your fitness goals.
           </p>
         </div>
 
         {/* Apple Grid Layout - clean and spacious */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
           {/* Quick Stats Card - Spans 2 columns on larger screens */}
           <Card className="md:col-span-2 lg:col-span-2 overflow-hidden">
             <CardHeader className="pb-4">
@@ -60,17 +62,17 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 sm:grid-cols-3">
-                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                <div className="group relative overflow-hidden rounded-lg bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
                   <div className="text-4xl font-semibold text-primary mb-2">{totalWorkoutsCompleted}</div>
                   <p className="text-caption text-muted-foreground">Total Workouts</p>
                 </div>
-                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                <div className="group relative overflow-hidden rounded-lg bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
                   <div className="text-4xl font-semibold text-primary mb-2">{thisWeekCompleted}/{daysPerWeek}</div>
                   <p className="text-caption text-muted-foreground">This Week</p>
                 </div>
-                <div className="group relative overflow-hidden rounded-2xl bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
-                  <div className="text-4xl font-semibold text-primary mb-2">{totalWorkoutsCompleted}</div>
-                  <p className="text-caption text-muted-foreground">Workouts Done</p>
+                <div className="group relative overflow-hidden rounded-lg bg-muted/30 p-6 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/50">
+                  <div className="text-4xl font-semibold text-primary mb-2">{weeksRemaining}</div>
+                  <p className="text-caption text-muted-foreground">Weeks Remaining</p>
                 </div>
               </div>
             </CardContent>
@@ -94,7 +96,7 @@ export function DashboardPage() {
                 </div>
               ) : workout ? (
                 <div className="space-y-6">
-                  <div className="rounded-2xl bg-muted/30 p-6">
+                  <div className="rounded-lg bg-muted/30 p-6">
                     <h3 className="font-semibold text-xl text-foreground mb-1">{workout.name}</h3>
                     <p className="text-caption text-muted-foreground">
                       {workout.daysPerWeek}-Day Split
@@ -135,7 +137,7 @@ export function DashboardPage() {
                 </div>
               ) : (
                 <>
-                  <div className="mb-6 flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 py-12 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
+                  <div className="mb-6 flex items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 py-12 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
                     <p className="text-body text-muted-foreground">No program selected</p>
                   </div>
                   <Button className="w-full" onClick={() => navigate('/setup')}>
@@ -190,33 +192,14 @@ export function DashboardPage() {
           )}
 
           {/* Personal Records Card */}
-          <Card className="md:col-span-2 lg:col-span-3 overflow-hidden">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                Personal Records
-              </CardTitle>
-              <CardDescription>Your best lifts across all exercises</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-muted/10 py-12">
-                <svg className="h-12 w-12 text-muted-foreground/30 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                <p className="text-sm font-medium text-muted-foreground">No personal records yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Complete workouts to track your PRs</p>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardPersonalRecords workout={workout} />
 
         </div>
       </main>
 
       {/* Footer */}
       <footer className="mt-auto border-t border-border/50 bg-card/50">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="container-page py-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-muted-foreground">
               99 Strength — Built for strength athletes

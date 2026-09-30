@@ -244,7 +244,7 @@ export function ExerciseSubstitutionConfigModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden m-4 flex flex-col">
         {/* Header */}
         <div className="p-6 border-b">
