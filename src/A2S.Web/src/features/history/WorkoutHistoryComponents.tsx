@@ -11,243 +11,35 @@ import {
   Area,
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
-import { blockColors, getBlockColor } from '@/lib/blockColors';
+import { getBlockColor } from '@/lib/blockColors';
+import { unitLabel } from './historyStats';
+import type { ExerciseHistoryDto } from './historyTypes';
 
-export interface CompletedSetDto {
-  setNumber: number;
-  weight: number;
-  weightUnit: string;
-  actualReps: number;
-  wasAmrap: boolean;
-}
+export type {
+  CompletedSetDto,
+  WeeklyPerformanceDto,
+  ExerciseHistoryDto,
+  ExercisePerformanceHistoryDto,
+  WorkoutActivityDto,
+  WorkoutHistoryDto,
+} from './historyTypes';
 
-export interface WeeklyPerformanceDto {
-  weekNumber: number;
-  blockNumber: number;
-  completedAt: string | null;
-  isDeloadWeek: boolean;
-  totalVolume: number;
-  averageWeight: number;
-  totalReps: number;
-  setsCompleted: number;
-  amrapReps: number | null;
-  sets: CompletedSetDto[];
-}
+const PROGRESSION_LABELS: Record<string, string> = {
+  Linear: 'Linear',
+  RepsPerSet: 'Reps per set',
+  MinimalSets: 'Minimal sets',
+};
+const progressionLabel = (type: string) => PROGRESSION_LABELS[type] ?? type;
 
-export interface ExerciseHistoryDto {
-  exerciseId: string;
-  name: string;
-  progressionType: string;
-  assignedDay: number;
-  category: string;
-  equipment: string;
-  currentWeight: number;
-  weightUnit: string;
-  currentSets: number;
-  targetSets: number;
-  trainingMax: number | null;
-  weeklyHistory: WeeklyPerformanceDto[];
-}
+/** "MainLift" -> "Main lift" */
+const categoryLabel = (category: string) =>
+  category.replace(/([a-z])([A-Z])/g, (_, a: string, b: string) => `${a} ${b.toLowerCase()}`);
 
-export interface ExercisePerformanceHistoryDto {
-  exerciseId: string;
-  completedAt: string;
-  completedSets: CompletedSetDto[];
-}
-
-export interface WorkoutActivityDto {
-  day: string;
-  dayNumber: number;
-  weekNumber: number;
-  blockNumber: number;
-  completedAt: string;
-  isDeloadWeek: boolean;
-  performances: ExercisePerformanceHistoryDto[];
-}
-
-export interface WorkoutHistoryDto {
-  workoutId: string;
-  workoutName: string;
-  variant: string;
-  totalWeeks: number;
-  currentWeek: number;
-  currentBlock: number;
-  daysPerWeek: number;
-  startedAt: string | null;
-  totalWorkoutsCompleted: number;
-  completedActivities: WorkoutActivityDto[];
-  exerciseHistories: ExerciseHistoryDto[];
-}
-
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-export function GitHubStyleCalendar({
-  months,
-  onActivityClick,
-  selectedDate,
-}: {
-  months: { month: number; year: number; days: { date: Date; activity: WorkoutActivityDto | null }[] }[];
-  daysPerWeek: number;
-  onActivityClick?: (activity: WorkoutActivityDto, date: Date) => void;
-  selectedDate?: Date;
-}) {
-  return (
-    <div className="space-y-8">
-      {months.map((monthData, idx) => (
-        <div key={idx} className="rounded-lg border border-border bg-card p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            {MONTHS[monthData.month]} {monthData.year}
-          </h3>
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {DAYS.map(day => (
-              <div key={day} className="text-center text-xs text-muted-foreground font-medium py-1">{day}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {monthData.days.map((day, dayIdx) => {
-              if (day.date.getTime() === 0) {
-                return <div key={dayIdx} className="aspect-square" />;
-              }
-              const activity = day.activity;
-              const isToday = day.date.toDateString() === new Date().toDateString();
-              const isSelected = selectedDate && day.date.toDateString() === selectedDate.toDateString();
-              const blockColor = activity ? getBlockColor(activity.blockNumber) : undefined;
-
-              return (
-                <div
-                  key={dayIdx}
-                  onClick={() => activity && onActivityClick?.(activity, day.date)}
-                  onKeyDown={(e) => {
-                    if (activity && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      onActivityClick?.(activity, day.date);
-                    }
-                  }}
-                  role={activity ? 'button' : undefined}
-                  tabIndex={activity ? 0 : undefined}
-                  aria-label={activity
-                    ? `Week ${activity.weekNumber}, Day ${activity.dayNumber}${activity.isDeloadWeek ? ' (Deload)' : ''}`
-                    : day.date.toLocaleDateString()
-                  }
-                  className={`aspect-square rounded-md flex items-center justify-center text-xs font-medium transition-all ${
-                    activity
-                      ? 'text-background cursor-pointer hover:ring-2 hover:ring-foreground/50'
-                      : isToday
-                      ? 'bg-muted/30 text-foreground ring-2 ring-primary cursor-default'
-                      : 'bg-muted/30 text-muted-foreground cursor-default'
-                  } ${isSelected ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background' : ''}`}
-                  style={activity ? { backgroundColor: blockColor } : undefined}
-                  title={activity
-                    ? `Week ${activity.weekNumber}, Day ${activity.dayNumber}${activity.isDeloadWeek ? ' (Deload)' : ''} - Click for details`
-                    : day.date.toLocaleDateString()
-                  }
-                >
-                  {day.date.getDate()}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
-            {Object.keys(blockColors).map(Number).map(b => (
-              <div key={b} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getBlockColor(b) }} />
-                <span>Block {b}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function WorkoutActivityDetail({
-  activity,
-  date,
-  exerciseHistories,
-  onClose,
-}: {
-  activity?: WorkoutActivityDto;
-  date?: Date;
-  exerciseHistories: ExerciseHistoryDto[];
-  onClose: () => void;
-}) {
-  if (!activity || !date) {
-    return (
-      <div className="rounded-lg border border-border bg-card p-6 h-full flex items-center justify-center">
-        <div className="text-center">
-          <svg className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <p className="text-muted-foreground text-sm">Click on a workout day to see details</p>
-        </div>
-      </div>
-    );
-  }
-
-  const getExerciseName = (exerciseId: string) => {
-    const exercise = exerciseHistories.find(e => e.exerciseId === exerciseId);
-    return exercise?.name ?? 'Unknown Exercise';
-  };
-
-  const totalVolume = activity.performances.reduce((sum, perf) => {
-    return sum + perf.completedSets.reduce((setSum, set) => setSum + (set.weight * set.actualReps), 0);
-  }, 0);
-
-  const totalSets = activity.performances.reduce((sum, perf) => sum + perf.completedSets.length, 0);
-
-  return (
-    <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Week {activity.weekNumber}, Day {activity.dayNumber}
-            {activity.isDeloadWeek && <span className="ml-2 text-warning">(Deload)</span>}
-          </p>
-        </div>
-        <button onClick={onClose} className="-m-2 flex h-11 w-11 items-center justify-center rounded-md hover:bg-muted transition-colors" title="Close" aria-label="Close workout details">
-          <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 rounded-lg bg-muted/30 text-center">
-          <p className="text-xs text-muted-foreground">Exercises</p>
-          <p className="text-lg font-semibold text-foreground">{activity.performances.length}</p>
-        </div>
-        <div className="p-3 rounded-lg bg-muted/30 text-center">
-          <p className="text-xs text-muted-foreground">Sets</p>
-          <p className="text-lg font-semibold text-foreground">{totalSets}</p>
-        </div>
-        <div className="p-3 rounded-lg bg-muted/30 text-center">
-          <p className="text-xs text-muted-foreground">Volume</p>
-          <p className="text-lg font-semibold text-foreground">{Math.round(totalVolume).toLocaleString()}</p>
-        </div>
-      </div>
-      <div className="space-y-3 max-h-[400px] overflow-y-auto">
-        {activity.performances.map((perf) => (
-          <div key={perf.exerciseId} className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
-            <h4 className="font-medium text-foreground text-sm mb-2">{getExerciseName(perf.exerciseId)}</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {perf.completedSets.map((set) => (
-                <div key={set.setNumber} className={`px-2 py-1 rounded text-xs ${set.wasAmrap ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-muted/50 text-foreground'}`}>
-                  <span className="font-mono">{set.weight}{set.weightUnit === 'Kilograms' ? 'kg' : 'lbs'} × {set.actualReps}</span>
-                  {set.wasAmrap && <span className="ml-1">(AMRAP)</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+/** A Linear lift has no fixed weight (it is a percentage of the training max), so show that instead. */
+const loadLabel = (exercise: ExerciseHistoryDto) =>
+  exercise.progressionType === 'Linear' && exercise.trainingMax
+    ? `training max ${exercise.trainingMax} ${unitLabel(exercise.weightUnit)}`
+    : `${exercise.currentWeight} ${unitLabel(exercise.weightUnit)}`;
 
 export function ExerciseProgressView({
   exercises,
@@ -288,7 +80,7 @@ export function ExerciseProgressView({
                   >
                     <div className="font-medium text-sm">{exercise.name}</div>
                     <div className={`text-xs ${selectedExercise?.exerciseId === exercise.exerciseId ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                      {exercise.progressionType} · {exercise.currentWeight} {exercise.weightUnit.toLowerCase()}
+                      {progressionLabel(exercise.progressionType)} · {loadLabel(exercise)}
                     </div>
                   </button>
                 ))}
@@ -342,23 +134,25 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-xl font-semibold text-foreground">{exercise.name}</h3>
-            <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {exercise.category} · {exercise.equipment}</p>
+            <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {categoryLabel(exercise.category)} · {exercise.equipment}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
             exercise.progressionType === 'Linear' ? 'bg-neon-blue/15 text-[color-mix(in_srgb,var(--color-neon-blue)_60%,var(--color-foreground))]'
             : exercise.progressionType === 'RepsPerSet' ? 'bg-neon-purple/15 text-[color-mix(in_srgb,var(--color-neon-purple)_60%,var(--color-foreground))]'
             : 'bg-warning/10 text-warning'
-          }`}>{exercise.progressionType}</span>
+          }`}>{progressionLabel(exercise.progressionType)}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="p-3 rounded-lg bg-muted/30">
-            <p className="text-xs text-muted-foreground">Current Weight</p>
-            <p className="text-lg font-semibold text-foreground">{exercise.currentWeight} {exercise.weightUnit.toLowerCase()}</p>
-          </div>
+          {exercise.currentWeight > 0 && (
+            <div className="p-3 rounded-lg bg-muted/30">
+              <p className="text-xs text-muted-foreground">Current Weight</p>
+              <p className="text-lg font-semibold text-foreground">{exercise.currentWeight} {unitLabel(exercise.weightUnit)}</p>
+            </div>
+          )}
           {exercise.trainingMax && (
             <div className="p-3 rounded-lg bg-muted/30">
               <p className="text-xs text-muted-foreground">Training Max</p>
-              <p className="text-lg font-semibold text-foreground">{exercise.trainingMax} {exercise.weightUnit.toLowerCase()}</p>
+              <p className="text-lg font-semibold text-foreground">{exercise.trainingMax} {unitLabel(exercise.weightUnit)}</p>
             </div>
           )}
           <div className="p-3 rounded-lg bg-muted/30">
@@ -401,7 +195,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
                   <XAxis dataKey="week" stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} />
                   <YAxis stroke={chartColors.mutedForeground} tick={{ fill: chartColors.mutedForeground }} fontSize={12} domain={['auto', 'auto']} />
                   <Tooltip contentStyle={chartTooltipContentStyle}
-                    formatter={(value) => [`${value} ${exercise.weightUnit.toLowerCase()}`, 'Weight']} />
+                    formatter={(value) => [`${value} ${unitLabel(exercise.weightUnit)}`, 'Weight']} />
                   <Line type="monotone" dataKey="weight" stroke={chartColors.primary} strokeWidth={2} dot={{ fill: chartColors.primary, strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -439,7 +233,7 @@ export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto 
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{week.completedAt ? new Date(week.completedAt).toLocaleDateString() : '-'}</td>
                       <td className="py-3 px-4 text-right font-mono text-foreground">{week.setsCompleted}</td>
-                      <td className="py-3 px-4 text-right font-mono text-foreground">{Math.round(week.averageWeight * 10) / 10} {exercise.weightUnit.toLowerCase()}</td>
+                      <td className="py-3 px-4 text-right font-mono text-foreground">{Math.round(week.averageWeight * 10) / 10} {unitLabel(exercise.weightUnit)}</td>
                       <td className="py-3 px-4 text-right font-mono text-foreground">{week.totalReps}</td>
                       <td className="py-3 px-4 text-right font-mono text-foreground">{Math.round(week.totalVolume)}</td>
                       {exercise.progressionType === 'Linear' && (

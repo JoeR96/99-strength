@@ -4,15 +4,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/api';
-import {
-  GitHubStyleCalendar,
-  WorkoutActivityDetail,
-  ExerciseProgressView,
-  type WorkoutActivityDto,
-  type WorkoutHistoryDto,
-  type ExerciseHistoryDto,
-} from './WorkoutHistoryComponents';
-import { buildCalendarMonths } from './calendarData';
+import { ExerciseProgressView } from './WorkoutHistoryComponents';
+import { TrainingCalendar } from './TrainingCalendar';
+import { SessionDetail } from './SessionDetail';
+import { OneRepMaxPanel } from './OneRepMaxPanel';
+import { HistorySummary } from './HistorySummary';
+import { buildCalendarGrid } from './calendarData';
+import type { ExerciseHistoryDto, WorkoutActivityDto, WorkoutHistoryDto } from './historyTypes';
 
 export function WorkoutHistoryPage() {
   const [selectedExercise, setSelectedExercise] = useState<ExerciseHistoryDto | null>(null);
@@ -27,8 +25,11 @@ export function WorkoutHistoryPage() {
     },
   });
 
-  // Build calendar data grouped by month
-  const calendarData = useMemo(() => buildCalendarMonths(history), [history]);
+  const calendar = useMemo(() => buildCalendarGrid(history), [history]);
+
+  // Until a day is picked, show the latest session: the panel beside the calendar is never empty
+  const latest = history?.completedActivities[history.completedActivities.length - 1];
+  const shown = selectedActivity ?? (latest ? { activity: latest, date: new Date(latest.completedAt) } : null);
 
   const handleExportCSV = () => {
     if (!history) return;
@@ -127,7 +128,7 @@ export function WorkoutHistoryPage() {
             aria-pressed={viewMode === 'calendar'}
             onClick={() => { setViewMode('calendar'); setSelectedExercise(null); }}
           >
-            Activity Calendar
+            Overview
           </Button>
           <Button
             size="sm"
@@ -140,29 +141,28 @@ export function WorkoutHistoryPage() {
         </div>
 
         {viewMode === 'calendar' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <GitHubStyleCalendar
-                months={calendarData}
-                daysPerWeek={history.daysPerWeek}
-                onActivityClick={(activity, date) => setSelectedActivity({ activity, date })}
-                selectedDate={selectedActivity?.date}
-              />
-            </div>
-            {/* Sticky so the detail stays beside the day you clicked further down. */}
-            <div className="lg:col-span-1 lg:sticky lg:top-20 lg:self-start">
-              <WorkoutActivityDetail
-                activity={selectedActivity?.activity}
-                date={selectedActivity?.date}
-                exerciseHistories={history.exerciseHistories}
-                onClose={() => setSelectedActivity(null)}
-              />
+          <div className="space-y-6">
+            <HistorySummary history={history} />
+            {/* The session runs down the right; one-rep max fills the space under the calendar */}
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+              <div className="space-y-6 lg:col-span-2">
+                <TrainingCalendar
+                  grid={calendar}
+                  exercises={history.exerciseHistories}
+                  selectedDate={shown?.date}
+                  onSelect={(activity, date) => setSelectedActivity({ activity, date })}
+                />
+                <OneRepMaxPanel exercises={history.exerciseHistories} />
+              </div>
+              {shown && (
+                <SessionDetail activity={shown.activity} date={shown.date} exercises={history.exerciseHistories} />
+              )}
             </div>
           </div>
         ) : (
           <ExerciseProgressView
             exercises={history.exerciseHistories}
-            selectedExercise={selectedExercise}
+            selectedExercise={selectedExercise ?? history.exerciseHistories[0] ?? null}
             onSelectExercise={setSelectedExercise}
           />
         )}
