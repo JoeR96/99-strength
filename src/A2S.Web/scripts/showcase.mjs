@@ -47,6 +47,17 @@ const SHOTS = [
   { file: 'phone-session', story: 'pages-workout-session--logging-sets', caption: 'Set logging on a phone.', viewport: PHONE },
   { file: 'phone-history', story: 'pages-history--overview', caption: 'The training calendar on a phone: a week per row.', viewport: PHONE, scrollTo: 'Training calendar' },
   { file: 'phone-sign-in', story: 'pages-sign-in--default', caption: 'Sign-in on a phone.', viewport: PHONE },
+  { file: 'phone-session-complete', story: 'features-workout-completion-summary--bench-day-complete', caption: 'The completion summary on a phone.', viewport: PHONE },
+  { file: 'phone-one-rep-max', story: 'pages-history--overview', scrollTo: 'Estimated one-rep max', click: 'button:has-text("Bench Press")', caption: 'Estimated one-rep max on a phone.', viewport: PHONE },
+  { file: 'phone-exercise-progress', story: 'pages-history--exercise-progress', scrollTo: 'Training Volume Over Time', caption: 'Per-exercise progress on a phone.', viewport: PHONE },
+  { file: 'phone-exercise-history', story: 'pages-exercise-library--squat-history', caption: 'Squat history on a phone.', viewport: PHONE },
+  { file: 'phone-program-overview', story: 'pages-workout--mid-program', caption: 'Program overview on a phone.', viewport: PHONE },
+  { file: 'phone-setup-template', story: 'pages-setup-wizard--choose-template', caption: 'Setup wizard, template step, on a phone.', viewport: PHONE },
+  { file: 'phone-exercise-library', story: 'pages-exercise-library--grouped', caption: 'Exercise library on a phone.', viewport: PHONE },
+  { file: 'phone-hevy-sync', story: 'pages-hevy--connected', caption: 'Hevy integration on a phone.', viewport: PHONE },
+  // No phone shot for setup-exercises (every exercise name is truncated at 390px) or the simulator
+  // (the charts squash and the legends overlap them); the portfolio hides those two on phones.
+  { file: 'phone-hevy-workouts', story: 'pages-hevy-data--synced-workouts', caption: 'Workouts from Hevy on a phone.', viewport: PHONE },
 ];
 
 async function toWebp(png) {
@@ -60,7 +71,7 @@ async function toWebp(png) {
 
 async function scrollToText(page, text) {
   await page.evaluate((t) => {
-    const el = [...document.querySelectorAll('h1,h2,h3,button,[class*="CardTitle"],div')].find(
+    const el = [...document.querySelectorAll('h1,h2,h3,h4,button,[class*="CardTitle"],div')].find(
       (n) => n.childElementCount === 0 && (n.textContent?.trim() ?? '').startsWith(t)
     );
     if (!el) return;
@@ -75,7 +86,6 @@ const filter = process.argv[2] ? new RegExp(process.argv[2]) : null;
 fs.mkdirSync(OUT, { recursive: true });
 const server = await serveStatic('storybook-static');
 const browser = await launchBrowser();
-const results = [];
 try {
   for (const shot of SHOTS) {
     if (filter && !filter.test(shot.file)) continue;
@@ -99,7 +109,6 @@ try {
     const file = path.join(OUT, `${shot.file}.webp`);
     fs.writeFileSync(file, buf);
     const kb = Math.round(buf.length / 1024);
-    results.push({ ...shot, viewport, kb });
     console.log(`${file}  ${viewport.width}×${viewport.height}@${viewport.deviceScaleFactor}x  q${quality}  ${kb} KB`);
     await context.close();
   }
@@ -108,8 +117,9 @@ try {
   await server.close();
 }
 
-if (!filter) {
-  const rows = results
+// The table lists every shot, so a filtered run (e.g. `node scripts/showcase.mjs phone-`) keeps it whole
+{
+  const rows = SHOTS.map((shot) => ({ ...shot, viewport: shot.viewport ?? DESKTOP }))
     .map((r) => {
       const size = `${r.viewport.width * r.viewport.deviceScaleFactor}×${r.viewport.height * r.viewport.deviceScaleFactor}`;
       return `| \`${r.file}.webp\` | ${size} | ${r.caption} | \`${r.story}\` |`;

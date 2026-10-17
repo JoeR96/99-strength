@@ -29,3 +29,12 @@ are relative to the day you run it.
 | `phone-session.webp` | 780×1688 | Set logging on a phone. | `pages-workout-session--logging-sets` |
 | `phone-history.webp` | 780×1688 | The training calendar on a phone: a week per row. | `pages-history--overview` |
 | `phone-sign-in.webp` | 780×1688 | Sign-in on a phone. | `pages-sign-in--default` |
+| `phone-session-complete.webp` | 780×1688 | The completion summary on a phone. | `features-workout-completion-summary--bench-day-complete` |
+| `phone-one-rep-max.webp` | 780×1688 | Estimated one-rep max on a phone. | `pages-history--overview` |
+| `phone-exercise-progress.webp` | 780×1688 | Per-exercise progress on a phone. | `pages-history--exercise-progress` |
+| `phone-exercise-history.webp` | 780×1688 | Squat history on a phone. | `pages-exercise-library--squat-history` |
+| `phone-program-overview.webp` | 780×1688 | Program overview on a phone. | `pages-workout--mid-program` |
+| `phone-setup-template.webp` | 780×1688 | Setup wizard, template step, on a phone. | `pages-setup-wizard--choose-template` |
+| `phone-exercise-library.webp` | 780×1688 | Exercise library on a phone. | `pages-exercise-library--grouped` |
+| `phone-hevy-sync.webp` | 780×1688 | Hevy integration on a phone. | `pages-hevy--connected` |
+| `phone-hevy-workouts.webp` | 780×1688 | Workouts from Hevy on a phone. | `pages-hevy-data--synced-workouts` |

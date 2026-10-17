@@ -77,7 +77,13 @@ export function AppProviders({
   );
 
   return clerk === 'real' ? (
-    <ClerkProvider publishableKey={STORYBOOK_CLERK_KEY} afterSignOutUrl="/sign-in">
+    // The Storybook key is a development instance; drop Clerk's "Development mode" footer
+    // so the screenshots look like the production sign-in.
+    <ClerkProvider
+      publishableKey={STORYBOOK_CLERK_KEY}
+      afterSignOutUrl="/sign-in"
+      appearance={{ layout: { unsafe_disableDevelopmentModeWarnings: true } }}
+    >
       {tree}
     </ClerkProvider>
   ) : (
