@@ -1,95 +1,37 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router-dom";
-import { ClerkProvider } from "@clerk/clerk-react";
-import { ExerciseLibraryPage } from "./ExerciseLibraryPage";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { userEvent, within } from 'storybook/test';
+import { ExerciseLibraryPage } from './ExerciseLibraryPage';
 
-const createQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, staleTime: Infinity },
-    },
-  });
-
+/** /exercises — the Hevy exercise catalogue, grouped by muscle, with history drill-down. */
 const meta = {
-  title: "Features/Exercises/ExerciseLibraryPage",
+  title: 'Pages/Exercise Library',
   component: ExerciseLibraryPage,
-  parameters: {
-    layout: "fullscreen",
-  },
-  decorators: [
-    (Story) => {
-      const queryClient = createQueryClient();
-      return (
-        <ClerkProvider publishableKey="pk_test_placeholder">
-          <MemoryRouter initialEntries={["/exercises"]}>
-            <QueryClientProvider client={queryClient}>
-              <Story />
-            </QueryClientProvider>
-          </MemoryRouter>
-        </ClerkProvider>
-      );
-    },
-  ],
+  parameters: { route: { path: '/exercises' } },
 } satisfies Meta<typeof ExerciseLibraryPage>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Grouped: Story = {};
 
-export const GridView: Story = {
+export const FilteredToBarbell: Story = {
   play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, 100));
-    const gridButton = Array.from(canvasElement.querySelectorAll("button")).find(
-      (b) => b.textContent === "Grid"
+    const canvas = within(canvasElement);
+    await userEvent.type(await canvas.findByPlaceholderText('Search exercises...'), 'press');
+    await userEvent.click(canvas.getByRole('button', { name: 'grid' }));
+  },
+};
+
+/** Clicking an exercise opens its logged history (from Hevy): stats, chart, sessions. */
+export const SquatHistory: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(
+      await canvas.findByPlaceholderText('Search exercises...'),
+      'Squat (Barbell)'
     );
-    gridButton?.click();
-  },
-};
-
-export const ListView: Story = {
-  play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, 100));
-    const listButton = Array.from(canvasElement.querySelectorAll("button")).find(
-      (b) => b.textContent === "List"
-    );
-    listButton?.click();
-  },
-};
-
-export const SearchResults: Story = {
-  play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, 100));
-    const input = canvasElement.querySelector(
-      'input[placeholder="Search exercises..."]'
-    ) as HTMLInputElement | null;
-    if (input) {
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value"
-      )?.set;
-      nativeInputValueSetter?.call(input, "squat");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  },
-};
-
-export const EmptySearch: Story = {
-  play: async ({ canvasElement }) => {
-    await new Promise((r) => setTimeout(r, 100));
-    const input = canvasElement.querySelector(
-      'input[placeholder="Search exercises..."]'
-    ) as HTMLInputElement | null;
-    if (input) {
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value"
-      )?.set;
-      nativeInputValueSetter?.call(input, "zzzzzznonexistent");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    }
+    const matches = await canvas.findAllByText('Squat (Barbell)');
+    await userEvent.click(matches[0]);
+    await within(document.body).findByText(/Max Weight|Weight/, undefined, { timeout: 5000 });
   },
 };

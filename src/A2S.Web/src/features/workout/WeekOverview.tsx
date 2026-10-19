@@ -298,9 +298,9 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="text-xl font-bold">This Week's Training</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="text-sm text-muted-foreground">
             Week {workout.currentWeek} of {workout.totalWeeks}
             {workout.isWeekComplete && (

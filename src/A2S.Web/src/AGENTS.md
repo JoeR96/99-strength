@@ -34,13 +34,14 @@ Type scale (don't invent sizes):
 
 ## Spacing & layout
 
-- Page shell: `.container-page` + vertical `py-8` (pages), `space-y-6` between page sections.
+- Page shell: `<main className="container-page py-8">` under the `Navbar`, opened by `components/layout/PageHeader` (the page's one `<h1>`, `.text-hero`, caption, optional actions). `space-y-6` between page sections. Narrow content (Hevy pages) goes in a `max-w-4xl` column inside the shell, not a different shell.
 - Cards: `p-6` padding (compact lists may use `p-4`), `gap-4` internal stacks.
 - Stick to the 4/6/8 Tailwind steps for padding/gaps; anything else needs a reason.
 
 ## Surfaces & depth
 
-- Cards/panels: `bg-card border border-border` + `rounded-lg` (tokens give Apple-style radii). Shadows only for elevation that means something (modals `shadow-lg`, popovers `shadow-md`); resting cards need no shadow.
+- Cards/panels: use `Card` (or `bg-card border border-border rounded-lg`). Radius scale: panels `rounded-lg`, modals `rounded-xl`, inner tiles/chips `rounded-md`, pills `rounded-full`. Shadows only for elevation that means something (modals `shadow-lg`, popovers `shadow-md`); resting cards need no shadow and no hover effect.
+- Modal scrim: `bg-background/80` (optionally `backdrop-blur-sm`). Never `bg-black/*`.
 - No glows, scanlines, pixel effects, or gradient backgrounds.
 
 ## Charts (Recharts)
@@ -55,6 +56,8 @@ Recharts renders SVG and cannot consume Tailwind classes, so colours must be con
 ## Components
 
 - ShadCN primitives in `components/ui/` for buttons, cards, dialogs, inputs. Compose these rather than re-styling raw elements.
+- Segmented filters / on-off chips (time period, metric, series picker): `components/ui/toggle-button` (`pressed` drives style + `aria-pressed`). View switches can also use `Button` with `variant={active ? 'default' : 'secondary'}` and `aria-pressed`.
+- Status colours are tokens: `text-success` / `text-destructive` / `text-warning`, never `text-green-500` etc.
 - `cn()` from `lib/utils` for conditional class merging.
 - Max 500 lines/file (see parent `AGENTS.md`).
 - Touch targets ≥ 44px on interactive elements.
@@ -63,8 +66,6 @@ Recharts renders SVG and cannot consume Tailwind classes, so colours must be con
 
 The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and all but one P2 (`SetupWizard.tsx` over-500-line split, deferred — see below). Genuinely outstanding items a future styling change should know about:
 
-- **`LoginPage.tsx` dead decorative classes** — `bg-gradient-navy`, `text-gradient-gold`, and a scanline `linear-gradient` grid persist (page is still routed). Off-contract retro leftovers; remove if you touch this file.
-- **`CardTitle` keeps `tracking-wide`** in `components/ui/card.tsx` — harmless (no ALL-CAPS pairing) but off the type scale; don't copy the letterspacing.
 - **`equipmentStyle()` in `lib/muscleGroupStyles.ts` is exported but unwired** (no call sites). `muscleGroupStyle()` is wired.
 - **Categorical badge colours cycle a fixed 8-token `--color-neon-*` palette** by index (`lib/muscleGroupStyles.ts`), so muscle groups past the 8th share a colour. Inherent to a fixed palette — don't "fix" by inventing raw colours.
 - **`lib/blockColors.ts` holds literal hex** for training-block identity — **sanctioned** by the token contract; leave it.

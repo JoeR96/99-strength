@@ -12,7 +12,7 @@ import { EquipmentType } from '@/types/workout';
  * - Add button to select the exercise
  */
 const meta = {
-  title: 'Workout/ExerciseSelectionV2/ExerciseTemplateCard',
+  title: 'Features/Setup/ExerciseTemplateCard',
   component: ExerciseTemplateCard,
   parameters: {
     layout: 'centered',

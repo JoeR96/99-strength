@@ -21,8 +21,7 @@ const BLOCK_LABELS: Record<number, string> = {
 
 /**
  * Inline style for a block chip: tinted background + the block's identity colour as
- * text/border. Uses the shared block palette (lib/blockColors) so it renders identically
- * across themes — replaces the old Tailwind `dark:` class map, which only changed on OSRS.
+ * text/border. Uses the shared block palette (lib/blockColors).
  */
 function blockChipStyle(blockType: number): React.CSSProperties {
   const color = getBlockColor(blockType);
@@ -82,7 +81,7 @@ export function BlockSequenceEditor({ workout, isOpen, onClose, onUpdated }: Blo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50" onClick={onClose}>
       <Card className="p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <h2 className="text-xl font-bold mb-4">Manage Block Sequence</h2>
 
@@ -110,15 +109,15 @@ export function BlockSequenceEditor({ workout, isOpen, onClose, onUpdated }: Blo
                 >
                   <span>B{blockType}</span>
                   {isCurrent && (
-                    <span className="text-[10px] ml-1">(current)</span>
+                    <span className="text-xs ml-1">(current)</span>
                   )}
                   {isPast && (
-                    <span className="text-[10px] ml-1">(done)</span>
+                    <span className="text-xs ml-1">(done)</span>
                   )}
                   {canRemove && (
                     <button
                       onClick={() => handleRemoveBlock(idx)}
-                      className="ml-1 p-0.5 rounded-full hover:bg-black/10 transition-colors"
+                      className="ml-1 p-0.5 rounded-full hover:bg-foreground/10 transition-colors"
                       title="Remove block"
                     >
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

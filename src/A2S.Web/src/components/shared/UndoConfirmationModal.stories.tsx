@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { UndoConfirmationModal } from "./UndoConfirmationModal";
-import { fn } from "storybook/test";
+import type { Meta, StoryObj } from '@storybook/react';
+import { UndoConfirmationModal } from './UndoConfirmationModal';
+import { fn } from 'storybook/test';
 
 const meta: Meta<typeof UndoConfirmationModal> = {
-  title: "Components/UndoConfirmationModal",
+  title: 'Components/UndoConfirmationModal',
   component: UndoConfirmationModal,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   args: {
     isOpen: true,

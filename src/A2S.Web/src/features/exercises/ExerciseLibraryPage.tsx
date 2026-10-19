@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { HEVY_EXERCISE_MAPPING } from '@/data/hevyExercises';
@@ -141,12 +143,10 @@ export function ExerciseLibraryPage() {
 
       <main className="container-page py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Exercise Library</h1>
-          <p className="text-muted-foreground">
-            Browse {allExercises.length} exercises ({standardCount} standard, {customCount} custom)
-          </p>
-        </div>
+        <PageHeader
+          title="Exercise Library"
+          description={`Browse ${allExercises.length} exercises (${standardCount} standard, ${customCount} custom)`}
+        />
 
         {/* Search and View Toggle */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -159,37 +159,19 @@ export function ExerciseLibraryPage() {
               className="w-full"
             />
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode('grouped')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'grouped'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Grouped
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Grid
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              List
-            </button>
+          <div className="flex gap-2" role="group" aria-label="Layout">
+            {(['grouped', 'grid', 'list'] as const).map((mode) => (
+              <Button
+                key={mode}
+                size="sm"
+                variant={viewMode === mode ? 'default' : 'secondary'}
+                aria-pressed={viewMode === mode}
+                onClick={() => setViewMode(mode)}
+                className="h-11 capitalize"
+              >
+                {mode}
+              </Button>
+            ))}
           </div>
         </div>
 

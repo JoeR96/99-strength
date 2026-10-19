@@ -27,7 +27,7 @@ export function ConfirmModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <Card className="w-full max-w-sm m-4 p-6">
         <h3 className="text-lg font-bold mb-2">{title}</h3>
         <p className="text-sm text-muted-foreground mb-4">{body}</p>

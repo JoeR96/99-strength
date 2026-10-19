@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { useAllWorkouts, useSetActiveWorkout, useDeleteWorkout } from '@/hooks/useWorkouts';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { WorkoutSummaryDto } from '@/types/workout';
@@ -51,12 +52,12 @@ export function ProgramsPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <main className="container-page py-8">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <p className="mt-4 text-muted-foreground">Loading programs...</p>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -65,14 +66,14 @@ export function ProgramsPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <main className="container-page py-8">
           <Card className="p-8 text-center">
             <p className="text-destructive">Failed to load programs</p>
             <Button className="mt-4" onClick={() => window.location.reload()}>
               Retry
             </Button>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -81,19 +82,16 @@ export function ProgramsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       {ConfirmDialog}
-      <div className="max-w-6xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">My Programs</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your workout programs. Only one can be active at a time.
-          </p>
-        </div>
-        <Button onClick={() => navigate('/setup')} variant="default">
-          Create New Program
-        </Button>
-      </div>
+      <main className="container-page py-8">
+      <PageHeader
+        title="My Programs"
+        description="Manage your workout programs. Only one can be active at a time."
+        actions={
+          <Button onClick={() => navigate('/setup')} variant="default">
+            Create New Program
+          </Button>
+        }
+      />
 
       {/* Programs List */}
       {!workouts || workouts.length === 0 ? (
@@ -125,7 +123,7 @@ export function ProgramsPage() {
           ))}
         </div>
       )}
-      </div>
+      </main>
     </div>
   );
 }

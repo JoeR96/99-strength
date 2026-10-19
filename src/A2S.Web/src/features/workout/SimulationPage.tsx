@@ -6,8 +6,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ToggleButton } from '@/components/ui/toggle-button';
 import { apiClient, getAuthToken } from '@/api/apiClient';
 import { useAllWorkouts } from '@/hooks/useWorkouts';
 import { readNdjsonStream } from '@/lib/ndjson';
@@ -19,40 +21,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
-import { chartColors, chartSeriesPalette, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
+import { TrainingMaxProjectionChart, AccessoryWeightProjectionChart } from './SimulationCharts';
+import type { SimulationResult } from './simulationTypes';
 import { simOutcomeClass } from '@/lib/outcomeStatus';
 
-interface SimulationDataPoint {
-  session: number;
-  week: number;
-  block: number;
-  trainingMax: number | null;
-  trainingMaxUnit: string | null;
-  currentWeight: number | null;
-  currentWeightUnit: string | null;
-  summary: {
-    type: string;
-    details: Record<string, string>;
-  };
-}
-
-interface ExerciseSimulationSeries {
-  exerciseId: string;
-  exerciseName: string;
-  progressionType: string;
-  dataPoints: SimulationDataPoint[];
-}
-
-interface SimulationResult {
-  workoutName: string;
-  variant: string;
-  startWeek: number;
-  endWeek: number;
-  totalWeeks: number;
-  exerciseTimeSeries: ExerciseSimulationSeries[];
-}
 
 function useSimulation(workoutId: string | null, sessions: number, enabled: boolean) {
   return useQuery({
@@ -67,10 +41,6 @@ function useSimulation(workoutId: string | null, sessions: number, enabled: bool
     staleTime: 1000 * 60 * 5,
   });
 }
-
-// Multi-series simulation charts need distinct colours per exercise; use the shared
-// theme-token palette so every series stays on-theme. See lib/chartTheme.ts.
-const CHART_COLORS = chartSeriesPalette;
 
 interface StreamDayEvent {
   type: 'day';
@@ -200,13 +170,11 @@ export function SimulationPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Workout Simulator</h1>
-          <p className="text-muted-foreground">
-            Project your progression using real training algorithms with simulated AMRAP results
-          </p>
-        </div>
+      <main className="container-page py-8">
+        <PageHeader
+          title="Workout Simulator"
+          description="Project your progression using real training algorithms with simulated AMRAP results"
+        />
 
         {/* Controls */}
         <Card className="mb-6">
@@ -218,7 +186,7 @@ export function SimulationPage() {
                 </label>
                 <select
                   aria-label="Workout"
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                   value={selectedWorkoutId ?? ''}
                   onChange={(e) => {
                     setSelectedWorkoutId(e.target.value || null);
@@ -252,7 +220,7 @@ export function SimulationPage() {
                     setSessionCount(Math.max(1, Math.min(500, parseInt(e.target.value) || 1)));
                     setRunSimulation(false);
                   }}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
 
@@ -289,7 +257,7 @@ export function SimulationPage() {
                   max={200}
                   value={runDays}
                   onChange={(e) => setRunDays(Math.max(1, Math.min(200, parseInt(e.target.value) || 1)))}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               <div className="w-28">
@@ -301,7 +269,7 @@ export function SimulationPage() {
                   max={100}
                   value={Math.round(runSuccessRate * 100)}
                   onChange={(e) => setRunSuccessRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               <div className="w-28">
@@ -313,7 +281,7 @@ export function SimulationPage() {
                   max={100}
                   value={Math.round(runMaintainRate * 100)}
                   onChange={(e) => setRunMaintainRate(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) / 100)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                  className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
                 />
               </div>
               {streaming ? (
@@ -335,7 +303,7 @@ export function SimulationPage() {
             )}
 
             {streamEvents.length > 0 && (
-              <div className="max-h-80 overflow-y-auto space-y-1 rounded border border-border bg-muted/20 p-2 text-xs font-mono">
+              <div tabIndex={0} role="log" aria-label="Persistent run log" className="max-h-80 overflow-y-auto space-y-1 rounded border border-border bg-muted/20 p-2 text-xs font-mono">
                 {streamEvents.map((e, idx) => (
                   <div key={idx} className="flex gap-3">
                     <span className="text-muted-foreground">#{idx + 1}</span>
@@ -395,122 +363,9 @@ export function SimulationPage() {
               </CardContent>
             </Card>
 
-            {/* Training Max Chart (Linear exercises) */}
-            {linearExercises.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Training Max Progression</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={linearExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
-                        <XAxis
-                          dataKey="session"
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
-                        />
-                        <YAxis
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{
-                            value: 'TM (kg)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            offset: 10,
-                          }}
-                        />
-                        <Tooltip
-                          contentStyle={chartTooltipContentStyle}
-                          formatter={(value, name) => [
-                            `${Math.round(Number(value) * 100) / 100}kg`,
-                            name,
-                          ]}
-                          labelFormatter={(label) => `Session ${label}`}
-                        />
-                        <Legend />
-                        {linearExercises.map((series, idx) => (
-                          <Line
-                            key={series.exerciseId}
-                            data={series.dataPoints}
-                            type="monotone"
-                            dataKey="trainingMax"
-                            name={series.exerciseName}
-                            stroke={CHART_COLORS[idx % CHART_COLORS.length]}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                          />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <TrainingMaxProjectionChart series={linearExercises} />
 
-            {/* Weight progression for RPS exercises */}
-            {rpsExercises.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Accessory Weight Progression</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={rpsExercises[0]?.dataPoints ?? []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border} />
-                        <XAxis
-                          dataKey="session"
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{ value: 'Session', position: 'insideBottom', offset: -5 }}
-                        />
-                        <YAxis
-                          stroke={chartColors.mutedForeground}
-                          tick={{ fill: chartColors.mutedForeground }}
-                          fontSize={11}
-                          label={{
-                            value: 'Weight (kg)',
-                            angle: -90,
-                            position: 'insideLeft',
-                            offset: 10,
-                          }}
-                        />
-                        <Tooltip
-                          contentStyle={chartTooltipContentStyle}
-                          formatter={(value, name) => [
-                            value != null ? `${value}kg` : 'Pending',
-                            name,
-                          ]}
-                          labelFormatter={(label) => `Session ${label}`}
-                        />
-                        <Legend />
-                        {rpsExercises.map((series, idx) => (
-                          <Line
-                            key={series.exerciseId}
-                            data={series.dataPoints}
-                            type="monotone"
-                            dataKey="currentWeight"
-                            name={series.exerciseName}
-                            stroke={CHART_COLORS[(idx + 3) % CHART_COLORS.length]}
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4 }}
-                            connectNulls
-                          />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AccessoryWeightProjectionChart series={rpsExercises} />
 
             {/* MinimalSets exercises info */}
             {minimalSetsExercises.length > 0 && (
@@ -552,23 +407,19 @@ export function SimulationPage() {
                 <CardTitle className="text-lg">Exercise Detail</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label="Exercise">
                   {simulation.exerciseTimeSeries.map((series) => (
-                    <button
+                    <ToggleButton
                       key={series.exerciseId}
+                      pressed={selectedExercise === series.exerciseId}
                       onClick={() =>
                         setSelectedExercise(
                           selectedExercise === series.exerciseId ? null : series.exerciseId
                         )
                       }
-                      className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        selectedExercise === series.exerciseId
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                      }`}
                     >
                       {series.exerciseName}
-                    </button>
+                    </ToggleButton>
                   ))}
                 </div>
 
@@ -625,7 +476,7 @@ export function SimulationPage() {
                     </div>
 
                     {/* Data table */}
-                    <div className="rounded-xl border border-border overflow-x-auto max-h-64 overflow-y-auto">
+                    <div tabIndex={0} role="region" aria-label={`${selectedSeries.exerciseName} projection table`} className="rounded-xl border border-border overflow-x-auto max-h-64 overflow-y-auto">
                       <table className="w-full">
                         <thead className="sticky top-0 bg-muted/50">
                           <tr className="border-b border-border">
@@ -686,7 +537,7 @@ export function SimulationPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
     </div>
   );
 }

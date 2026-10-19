@@ -1,12 +1,12 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { UnilateralToggle } from "./UnilateralToggle";
-import { fn } from "storybook/test";
+import type { Meta, StoryObj } from '@storybook/react';
+import { UnilateralToggle } from './UnilateralToggle';
+import { fn } from 'storybook/test';
 
 const meta: Meta<typeof UnilateralToggle> = {
-  title: "Components/UnilateralToggle",
+  title: 'Components/UnilateralToggle',
   component: UnilateralToggle,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   args: {
     isUnilateral: false,

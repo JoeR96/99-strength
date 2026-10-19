@@ -6,17 +6,14 @@
  * the app's theme CSS custom properties directly.
  *
  * IMPORTANT: the theme variables defined in `index.css` are named `--color-*` and
- * already hold a complete colour value (e.g. `--color-primary: hsl(25 80% 45%)`).
+ * already hold a complete colour value (e.g. `--color-primary: hsl(25 80% 50%)`).
  * Therefore the correct reference is `var(--color-primary)` — NOT `hsl(var(--primary))`,
  * which resolves to `hsl(undefined)` (invalid) and falls back to black, rendering the
  * chart illegible on every theme. Use these tokens everywhere instead of inline strings.
- *
- * Because these are `var(...)` references (not snapshot values), charts re-resolve the
- * colour automatically when the active theme class changes — no re-render required.
  */
 
 export const chartColors = {
-  /** Primary accent — olive (Retro), gold (OSRS), blue (Apple). Default line/series colour. */
+  /** Primary accent (burnt orange). Default line/series colour. */
   primary: 'var(--color-primary)',
   /** Translucent primary for area-chart fills (theme primary at 20% over transparent). */
   primaryTranslucent: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
@@ -40,7 +37,7 @@ export const chartColors = {
 
 /**
  * Ordered palette for multi-series charts (e.g. comparing several exercises at once).
- * All entries are theme tokens, so series stay on-theme across Retro / OSRS / Apple.
+ * All entries are theme tokens, so series stay on-theme.
  * Index into it with `chartSeriesPalette[i % chartSeriesPalette.length]`.
  */
 export const chartSeriesPalette = [

@@ -101,7 +101,7 @@ export function WorkoutSession() {
         </div>
 
         {/* Complete Workout Button */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
           {session.workout.completedDaysInCurrentWeek && session.workout.completedDaysInCurrentWeek.length > 0 && (
             <Button variant="outline" onClick={() => session.setShowUndoModal(true)} className="text-destructive border-destructive hover:bg-destructive/10">
               Undo Last Workout

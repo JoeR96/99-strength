@@ -31,3 +31,6 @@ storybook-static
 # Test artifacts
 playwright-report/
 test-results/
+
+# a11y:stories output
+a11y-results.json

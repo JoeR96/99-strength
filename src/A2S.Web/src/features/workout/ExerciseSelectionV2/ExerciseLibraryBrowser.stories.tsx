@@ -247,7 +247,7 @@ const mockTemplates: ExerciseTemplate[] = [
  * - Responsive grid layout
  */
 const meta = {
-  title: 'Workout/ExerciseSelectionV2/ExerciseLibraryBrowser',
+  title: 'Features/Setup/ExerciseLibraryBrowser',
   component: ExerciseLibraryBrowser,
   parameters: {
     layout: 'centered',

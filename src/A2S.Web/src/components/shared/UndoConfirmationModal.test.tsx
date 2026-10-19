@@ -57,8 +57,8 @@ describe('UndoConfirmationModal', () => {
 
   it('closes modal when backdrop is clicked', () => {
     render(<UndoConfirmationModal {...defaultProps} />);
-    // Find and click the backdrop (the element with bg-black/50)
-    const backdrop = document.querySelector('.bg-black\\/50');
+    // Find and click the backdrop scrim
+    const backdrop = document.querySelector('.bg-background\\/80');
     if (backdrop) {
       fireEvent.click(backdrop);
       expect(defaultProps.onClose).toHaveBeenCalled();

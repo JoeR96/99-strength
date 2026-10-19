@@ -37,6 +37,14 @@ export function HevyProvider({ children }: { children: ReactNode }) {
         if (!cancelled && data.apiKey) {
           setApiKeyState(data.apiKey);
           hevyApi.setApiKey(data.apiKey);
+          // Validate the saved key once so isValid isn't stuck on null after a reload
+          // (pages gate routine lists on isValid === true). Failure leaves it null.
+          hevyApi
+            .validateApiKey()
+            .then((valid) => {
+              if (!cancelled) setIsValid(valid);
+            })
+            .catch(() => {});
         }
       } catch {
         // Not logged in yet or endpoint unavailable — ignore
