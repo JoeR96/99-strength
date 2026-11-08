@@ -27,6 +27,7 @@
   <ItemGroup>
     <EmbeddedResource Include="SeedData\exercise-library.json" />
     <EmbeddedResource Include="SeedData\hevy-exercises.json" />
+    <EmbeddedResource Include="SeedData\meals-seed.json" />
   </ItemGroup>
 
 </Project>

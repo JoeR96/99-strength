@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { apiClient } from '@/api';
 import { HevySettings } from '@/components/hevy/HevySettings';
@@ -67,6 +68,28 @@ export function SettingsPage() {
         </div>
 
         <div className="grid gap-6">
+          {/* More: features that have no tab of their own */}
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-xl font-semibold text-foreground mb-2">More</h2>
+            <p className="text-muted-foreground mb-4">
+              Pick this week's meals from the cut-friendly recipe set and shop from one summed list.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/meals"
+                className="inline-flex min-h-11 items-center px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors"
+              >
+                Meals
+              </Link>
+              <Link
+                to="/shopping-list"
+                className="inline-flex min-h-11 items-center px-4 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-muted transition-colors"
+              >
+                Shopping list
+              </Link>
+            </div>
+          </div>
+
           <HevySettings />
 
           {/* Secondary pages that used to sit in the top menu */}
