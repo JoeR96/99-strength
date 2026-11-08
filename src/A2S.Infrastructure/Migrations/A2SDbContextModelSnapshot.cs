@@ -552,6 +552,13 @@ namespace A2S.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("_secondaryMuscleGroups")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("SecondaryMuscleGroups")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EquipmentType");

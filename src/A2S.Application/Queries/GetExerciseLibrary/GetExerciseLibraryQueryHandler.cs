@@ -42,7 +42,9 @@ public sealed class GetExerciseLibraryQueryHandler : IRequestHandler<GetExercise
                     }
                     : null,
                 DefaultSets = d.DefaultSets,
-                Description = d.Description
+                Description = d.Description,
+                MuscleGroup = d.MuscleGroup,
+                SecondaryMuscleGroups = d.SecondaryMuscleGroups
             }).ToList();
 
             var result = new ExerciseLibraryDto

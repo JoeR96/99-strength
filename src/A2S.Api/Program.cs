@@ -131,6 +131,9 @@ using (var scope = app.Services.CreateScope())
     // Encrypt any pre-v2 plaintext Hevy keys. Idempotent; logs a count only.
     var protector = scope.ServiceProvider.GetRequiredService<ISecretProtector>();
     await HevyApiKeyBackfill.RunAsync(dbContext, protector, logger);
+
+    // Tag the exercise library with Hevy primary/secondary muscle groups for the volume budget. Idempotent.
+    await MuscleGroupBackfill.RunAsync(dbContext, logger);
 }
 
 if (app.Environment.IsDevelopment())

@@ -1,9 +1,11 @@
 using A2S.Application.Commands.SubstituteExercise;
 using A2S.Application.Common;
+using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
+using A2S.Domain.Services;
 using A2S.Domain.ValueObjects;
 using A2S.Tests.Shared.Builders;
 using FluentAssertions;
@@ -17,6 +19,7 @@ public class SubstituteExerciseCommandHandlerTests
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IExerciseLibraryProvider _library;
     private readonly SubstituteExerciseCommandHandler _handler;
 
     private static readonly UserId TestUserId = new("a0b11111-1111-1111-1111-111111111111");
@@ -26,7 +29,10 @@ public class SubstituteExerciseCommandHandlerTests
         _workoutRepository = Substitute.For<IWorkoutRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _handler = new SubstituteExerciseCommandHandler(_workoutRepository, _unitOfWork, _currentUserService);
+        _library = Substitute.For<IExerciseLibraryProvider>();
+        _library.GetAllTemplatesAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<ExerciseTemplate>());
+        var budget = new DayBudgetCalculator(new VolumeBudgetService(new A2SProgramProvider()), _library);
+        _handler = new SubstituteExerciseCommandHandler(_workoutRepository, _unitOfWork, _currentUserService, budget);
     }
 
     [Fact]
@@ -187,6 +193,38 @@ public class SubstituteExerciseCommandHandlerTests
     private void SetupAuthenticatedUser(UserId userId)
     {
         _currentUserService.UserId.Returns(userId.Value.ToString());
+    }
+
+    [Fact]
+    public async Task Handle_WhenSubstitutionPushesChestOverTheCap_SucceedsAndCarriesOneWarning()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        _library.GetAllTemplatesAsync(Arg.Any<CancellationToken>()).Returns(new[]
+        {
+            new ExerciseTemplate("Bench Press", EquipmentType.Barbell, MuscleGroup: "chest"),
+            new ExerciseTemplate("Cable Fly", EquipmentType.Cable, MuscleGroup: "chest")
+        });
+        var workout = new WorkoutBuilder()
+            .WithUserId(TestUserId)
+            .WithVariant(ProgramVariant.FiveDay)
+            .WithDefaultLinearExercise("Bench Press", DayNumber.Day1, 1, 100m)
+            .WithExercise(e => e.WithName("Dumbbell Fly").WithCategory(ExerciseCategory.Accessory).WithOrder(2).AsRepsPerSet(startingSets: 6, targetSets: 6))
+            .Build();
+        workout.Start();
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var fly = workout.Exercises.Single(e => e.Name == "Dumbbell Fly");
+
+        var result = await _handler.Handle(
+            new SubstituteExerciseCommand(workout.Id.Value, fly.Id.Value, "Cable Fly", "cable-fly"),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue("volume warnings never block");
+        result.Value.Warnings.Should().ContainSingle();
+        result.Value.Warnings[0].Bucket.Should().Be("Chest");
+        result.Value.Warnings[0].Sets.Should().Be(11, "5 bench sets + 6 cable fly sets");
+        result.Value.Warnings[0].Cap.Should().Be(10);
+        result.Value.OverTimeBudget.Should().BeFalse("1100 s + 780 s is 42 minutes with the warm-up");
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     private static Workout CreateActiveWorkout(UserId userId)
