@@ -164,3 +164,19 @@ Repeat audit §2 live on a 390 px viewport with a Clerk test user, save to `docs
 ## What approval means
 
 Approving this document approves the decisions table, the phase order and the open-question defaults where you give no other answer. Each phase then gets a task-level plan with tests named per task, and a PR you review.
+
+---
+
+## Implementation notes (added 8 Nov 2026, after Phases 2–8 and 10 were built)
+
+Decisions taken while building, where they refine the table above:
+
+- **Weekly zone 4–5 goal** (asked for after approval): `TrainingPlan.HighIntensityTarget`, default 15–30 min/week; `CardioLog.HighIntensityMinutes` per session (watch/WHOOP); a Norwegian 4×4 marked done without a reading credits its 16 work minutes; LISS and C25K credit nothing by default. Shown as the sixth weekly ring. PR #33.
+- **Norwegian 4×4 is 40 minutes**, not the brief's "~38": recovery sits between the four efforts (three recoveries), so 10 + 16 + 9 + 5.
+- **Weekly "done" counts completions, day slots stay strict.** A lift done out of order (Lower A on Monday) leaves its slot Missed — the brief's "assign by hand" case — but the Mon–Sun rings count every session actually completed that week. PR #36.
+- **Reorderable value-object lists are jsonb values** (`JsonColumn`), not EF owned JSON collections, which throw on reorder. Applies to drills, intervals, schedule, phases, checkpoints, allowance uses, ingredients, shopping items.
+- **Open questions resolved by default:** Protein dropped; kg only; standing-desk minimum 2; custom Hevy templates allowed; weigh-ins mirrored to Hevy (Phase 6); Terran CC left untouched (import script in PR #29, archive there by hand afterwards).
+- **Brief § 5 as written exceeds its own limits:** Upper A ≈ 60, Lower A ≈ 62, Lower B ≈ 62 min against the 55-min budget, and week 1 exceeds the back, shoulder, quad, hamstring and glute caps. The seed ships as written with warnings (PR #34); Joe decides whether to trim rests, count per-side work once, or drop an accessory.
+- **Migration chain** (all additive): AddHevyApiKeyProtected → AddTrainingPlan → AddHabitsAndBodyWeight → AddSecondaryMuscleGroups → AddHighIntensityTarget → AddMeals → AddPushSubscriptions → (Phase 6) Hevy links/snapshots. The plaintext key column is dropped in a later PR once production has run on the protected column.
+- **Lighthouse job** needs the repo variable `VITE_CLERK_PUBLISHABLE_KEY`; without a real publishable key the sign-in page paints nothing.
+- **Docker Desktop Resource Saver** must stay off on the dev machine: it paused the WSL VM between test runs and the pause timed out, leaving the engine unreachable.
