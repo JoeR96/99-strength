@@ -6,6 +6,7 @@ using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.Repositories;
 using A2S.Infrastructure.SeedData;
 using A2S.Infrastructure.Security;
+using A2S.Infrastructure.Services;
 using A2S.Application.Interfaces;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,12 @@ public static class DependencyInjection
         services.AddScoped<ICardioProtocolRepository, CardioProtocolRepository>();
         services.AddScoped<IMobilityRoutineRepository, MobilityRoutineRepository>();
         services.AddSingleton<PlanCalendarService>();
+        // Habits and body weight. NullPlanCheckpointSource is swapped for a TrainingPlan-backed one at integration.
+        services.AddScoped<IHabitRepository, HabitRepository>();
+        services.AddScoped<IBodyWeightRepository, BodyWeightRepository>();
+        services.AddSingleton<HabitStreakService>();
+        services.AddSingleton<TrendService>();
+        services.AddScoped<IPlanCheckpointSource, NullPlanCheckpointSource>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

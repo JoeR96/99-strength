@@ -1,6 +1,8 @@
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
+using A2S.Domain.Aggregates.BodyWeight;
+using A2S.Domain.Aggregates.Habits;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Aggregates.User;
@@ -39,6 +41,10 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<TrainingPlan> TrainingPlans => Set<TrainingPlan>();
     public DbSet<CardioProtocol> CardioProtocols => Set<CardioProtocol>();
     public DbSet<MobilityRoutine> MobilityRoutines => Set<MobilityRoutine>();
+    // Habits and body weight
+    public DbSet<HabitDefinition> Habits => Set<HabitDefinition>();
+    public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
+    public DbSet<BodyWeightEntry> BodyWeightEntries => Set<BodyWeightEntry>();
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
