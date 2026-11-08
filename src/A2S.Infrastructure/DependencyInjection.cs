@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace A2S.Infrastructure;
@@ -61,9 +62,19 @@ public static class DependencyInjection
         services.AddScoped<IWorkoutRepository, WorkoutRepository>();
         services.AddScoped<IExerciseDefinitionRepository, ExerciseDefinitionRepository>();
 
+        // Whole Plan (PR 2): plan, cardio and mobility repositories plus the calendar service.
+        services.AddScoped<ITrainingPlanRepository, TrainingPlanRepository>();
+        services.AddScoped<ICardioProtocolRepository, CardioProtocolRepository>();
+        services.AddScoped<IMobilityRoutineRepository, MobilityRoutineRepository>();
+        services.AddSingleton<PlanCalendarService>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
+
+        // Every human-facing date is a Europe/London DateOnly produced through ILocalClock.
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<ILocalClock, LocalClock>();
         services.AddMemoryCache();
         services.AddScoped<IExerciseLibraryProvider, ExerciseLibraryProvider>();
 

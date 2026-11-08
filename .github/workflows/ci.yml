@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-unit:
+    name: Domain + Application tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore A2S.sln
+      - run: dotnet build A2S.sln --no-restore -c Release
+      - run: dotnet test tests/A2S.Domain.Tests --no-build -c Release --logger "trx;LogFileName=domain.trx"
+      - run: dotnet test tests/A2S.Application.Tests --no-build -c Release --logger "trx;LogFileName=application.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-unit-results
+          path: '**/TestResults/*.trx'
+
+  backend-integration:
+    name: Infrastructure + API tests (Testcontainers)
+    runs-on: ubuntu-latest
+    # GitHub's ubuntu runners ship Docker, which Testcontainers uses to start postgres:16-alpine.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: docker pull postgres:16-alpine
+      - run: dotnet restore A2S.sln
+      - run: dotnet build A2S.sln --no-restore -c Release
+      - run: dotnet test tests/A2S.Infrastructure.Tests --no-build -c Release --logger "trx;LogFileName=infrastructure.trx"
+      - run: dotnet test tests/A2S.Api.Tests --no-build -c Release --logger "trx;LogFileName=api.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-integration-results
+          path: '**/TestResults/*.trx'
+
+  frontend:
+    name: Vitest + build + lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/A2S.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/A2S.Web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          VITE_API_BASE_URL: http://localhost:5123/api/v1
+      # Lint is reported but does not fail the build yet: master carries ~60 pre-existing problems.
+      - run: npm run lint
+        continue-on-error: true
+
+  storybook:
+    name: Storybook build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/A2S.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/A2S.Web/package-lock.json
+      - run: npm ci
+      - run: npm run build-storybook -- --quiet
