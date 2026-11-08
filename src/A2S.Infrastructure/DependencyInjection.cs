@@ -88,6 +88,11 @@ public static class DependencyInjection
         services.AddHttpClient<IPushSender, WebPushSender>();
         services.AddHostedService<PushNudgeHostedService>();
 
+        // Hevy push/pull (Phase 6): links, snapshots and the pull cursor.
+        services.AddScoped<IHevyLinkRepository, HevyLinkRepository>();
+        services.AddScoped<IHevyWorkoutSnapshotRepository, HevyWorkoutSnapshotRepository>();
+        services.AddScoped<IHevyPullCursorRepository, HevyPullCursorRepository>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();

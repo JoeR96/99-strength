@@ -3,6 +3,7 @@ using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.BodyWeight;
 using A2S.Domain.Aggregates.Habits;
+using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Meals;
 using A2S.Domain.Aggregates.Push;
 using A2S.Domain.Aggregates.Workout;
@@ -53,6 +54,10 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     // Web push (Phase 4 PR 7b): one subscription per device, one nudge-log row per user/day/kind.
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<PushNudgeLog> PushNudgeLogs => Set<PushNudgeLog>();
+    // Hevy push/pull (Phase 6): idempotent push links, pulled workout snapshots and the per-user pull cursor.
+    public DbSet<HevyLink> HevyLinks => Set<HevyLink>();
+    public DbSet<HevyWorkoutSnapshot> HevyWorkoutSnapshots => Set<HevyWorkoutSnapshot>();
+    public DbSet<HevyPullCursor> HevyPullCursors => Set<HevyPullCursor>();
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();

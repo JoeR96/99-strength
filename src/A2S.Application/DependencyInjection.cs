@@ -33,6 +33,9 @@ public static class DependencyInjection
         services.AddSingleton<VolumeBudgetService>();
         services.AddScoped<DayBudgetCalculator>();
 
+        // Hevy push/pull (Phase 6).
+        services.AddScoped<Hevy.HevyTemplateCatalogue>();
+
         return services;
     }
 }
