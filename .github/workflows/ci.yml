@@ -104,6 +104,12 @@ jobs:
   lighthouse:
     name: Lighthouse installability (PWA)
     runs-on: ubuntu-latest
+    # /sign-in renders only Clerk's <SignIn/>, which paints nothing until clerk-js has loaded from
+    # the Clerk frontend API, and Lighthouse aborts with NO_FCP on a blank page. So this job needs a
+    # real publishable key: set the repository *variable* VITE_CLERK_PUBLISHABLE_KEY to the dev
+    # instance's pk_test_… key (publishable keys ship in the bundle, so a variable, not a secret).
+    # Until it is set the job is skipped and shows as such on the PR.
+    if: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY != '' }}
     defaults:
       run:
         working-directory: src/A2S.Web
@@ -117,7 +123,7 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          VITE_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_API_BASE_URL: http://localhost:5123/api/v1
       - run: npx vite preview --port 4173 --strictPort &
       - run: npx --yes wait-on@8 http://localhost:4173/sign-in --timeout 60000
