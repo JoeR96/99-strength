@@ -24,6 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Hevy\Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\A2S.Application\A2S.Application.csproj" />
     <ProjectReference Include="..\..\src\A2S.Domain\A2S.Domain.csproj" />
     <ProjectReference Include="..\A2S.Tests.Shared\A2S.Tests.Shared.csproj" />

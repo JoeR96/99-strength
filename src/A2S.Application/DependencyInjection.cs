@@ -1,4 +1,5 @@
 using A2S.Application.Behaviors;
+using A2S.Application.Common;
 using A2S.Application.Services;
 using A2S.Domain.Services;
 using FluentValidation;
@@ -36,6 +37,9 @@ public static class DependencyInjection
         // Hevy push/pull (Phase 6).
         services.AddScoped<Hevy.HevyTemplateCatalogue>();
         services.AddScoped<Hevy.HevyRoutinePusher>();
+        services.AddScoped<Hevy.HevySessionCompleter>();
+        services.AddScoped<Hevy.HevyPullService>();
+        services.AddScoped<AmbientUser>();
 
         return services;
     }
