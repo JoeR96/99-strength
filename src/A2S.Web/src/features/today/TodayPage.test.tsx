@@ -11,6 +11,8 @@ import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
 import { WATER_ID } from '@/mocks/fixtures/habits';
+import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
+import { suggestedPlansApi } from '@/api/suggestedPlans';
 import { LONG_PRESS_MS } from './HabitCounter';
 
 vi.mock('@clerk/clerk-react', () => ({
@@ -45,6 +47,7 @@ describe('TodayPage', () => {
     installPlansHandlers(plansHandlers.default());
     installHabitsHandlers(habitsHandlers.default());
     installBodyWeightHandlers(bodyWeightHandlers.empty());
+    installSuggestedPlansHandlers(suggestedPlansHandlers.default());
   });
 
   it('logs a bottle of water with one tap from mount', async () => {
@@ -102,13 +105,31 @@ describe('TodayPage', () => {
     expect(screen.getByTestId('ring-lifts')).toHaveTextContent('—');
   });
 
-  it('with no plan shows the start-a-plan card but still habits and weigh-in', async () => {
+  it('with no plan shows the Start this plan card but still habits and weigh-in', async () => {
     installPlansHandlers(plansHandlers.noPlan());
     renderToday();
-    const card = await screen.findByTestId('no-plan-card');
-    expect(within(card).getByRole('link', { name: /start a plan/i })).toHaveAttribute('href', '/setup');
+    const card = await screen.findByTestId('start-suggested-plan-card');
+    expect(within(card).getByRole('button', { name: /start this plan/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('start-session')).not.toBeInTheDocument();
     expect(await screen.findByTestId(`habit-counter-${WATER_ID}`)).toBeInTheDocument();
     expect(screen.getByTestId('weigh-in')).toBeInTheDocument();
+  });
+
+  it('after starting the suggested plan, Today refetches and shows the session', async () => {
+    installPlansHandlers(plansHandlers.noPlan());
+    const startSpy = vi.spyOn(suggestedPlansApi, 'startCutTo85');
+    renderToday();
+    const card = await screen.findByTestId('start-suggested-plan-card');
+    fireEvent.change(within(card).getByLabelText('Bench press TM'), { target: { value: '100' } });
+    fireEvent.change(within(card).getByLabelText('Squat TM'), { target: { value: '140' } });
+    fireEvent.change(within(card).getByLabelText('Overhead press TM'), { target: { value: '60' } });
+    fireEvent.change(within(card).getByLabelText('Deadlift TM'), { target: { value: '180' } });
+    // The server now has a plan: later reads return Monday's session.
+    installPlansHandlers(plansHandlers.default());
+    fireEvent.click(within(card).getByRole('button', { name: /start this plan/i }));
+    await waitFor(() => expect(startSpy).toHaveBeenCalledTimes(1));
+    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(screen.queryByTestId('start-suggested-plan-card')).not.toBeInTheDocument();
   });
 
   it('marks a cardio session done through the log sheet', async () => {

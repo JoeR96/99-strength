@@ -4,6 +4,7 @@ import { withAppProviders, withApiMocks, phoneParameters } from '@/mocks/storyPr
 import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
+import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
 
 const meta = {
   title: 'Features/Today/TodayPage',
@@ -68,13 +69,14 @@ export const Paused: Story = {
   ],
 };
 
-/** First run: no plan. Habits and weigh-in still work. */
+/** First run: no plan, so the "Start this plan" card. Habits and weigh-in still work. */
 export const NoPlan: Story = {
   decorators: [
     withApiMocks(() => {
       installPlansHandlers(plansHandlers.noPlan());
       installHabitsHandlers(habitsHandlers.default());
       installBodyWeightHandlers(bodyWeightHandlers.empty());
+      installSuggestedPlansHandlers(suggestedPlansHandlers.default());
     }),
   ],
 };

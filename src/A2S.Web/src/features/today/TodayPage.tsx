@@ -27,7 +27,7 @@ import { currentPhase } from './phase';
 import { CardioLogSheet } from './CardioLogSheet';
 import { MobilityChecklist } from './MobilityChecklist';
 import { PendingSyncBadge } from './PendingSyncBadge';
-import { NoPlanCard } from './NoPlanCard';
+import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 
 export interface TodayPageProps {
   /** PR 7 passes the offline queue length; shown as a badge in the header. */
@@ -165,7 +165,15 @@ export function TodayPage({ pendingSyncCount = 0 }: TodayPageProps) {
           </section>
         )}
 
-        {!planLoading && !planError && today === null && <NoPlanCard />}
+        {!planLoading && !planError && today === null && (
+          <StartSuggestedPlanCard
+            onStarted={(result) => {
+              toast.success(result.alreadyStarted ? 'Your plan is already running' : 'Plan started');
+              void todayQuery.refetch();
+              void planQuery.refetch();
+            }}
+          />
+        )}
 
         {today && (
           <section className="space-y-3" aria-label="Today's sessions">
