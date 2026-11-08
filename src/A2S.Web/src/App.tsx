@@ -16,6 +16,8 @@ import { HevyDataPage } from './features/hevy/HevyDataPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
+import { MealsPage } from './features/meals/MealsPage';
+import { ShoppingListPage } from './features/meals/ShoppingListPage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -73,6 +75,8 @@ function AppContent() {
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><SimulationPage /></ProtectedRoute>} />
+        <Route path="/meals" element={<ProtectedRoute><MealsPage /></ProtectedRoute>} />
+        <Route path="/shopping-list" element={<ProtectedRoute><ShoppingListPage /></ProtectedRoute>} />
 
         {/* Default route */}
         <Route
