@@ -4,6 +4,8 @@
  */
 
 import '@testing-library/jest-dom/vitest';
+// A real (in-memory) IndexedDB so the offline queue works in every test.
+import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 
 // Mock localStorage

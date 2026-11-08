@@ -6,14 +6,21 @@
  * at once (double-tap), so the server's reply only replaces the cached value when
  * it is the last one outstanding for that habit; the cache is then invalidated so
  * the next read comes from the server. Date and `clientTimestamp` are fixed at
- * tap time so PR 7 can replay the same request later unchanged.
+ * tap time so the offline queue can replay the same request later unchanged.
+ *
+ * Offline (or when the request dies on the wire) the tap is queued instead of
+ * failing: the optimistic value stays, the pending badge counts it, and today's
+ * query lays pending ops over whatever the server or the cache returns.
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import toast from 'react-hot-toast';
 import { habitsApi } from '@/api/habits';
 import { todayLocal, type LocalDate } from '@/lib/localDate';
+import { useOfflineSync } from '@/offline/context';
+import { overlayHabitOps } from '@/offline/overlay';
+import { useOfflineMutation } from '@/offline/useOfflineMutation';
 import type {
   CreateHabitRequest,
   HabitLogDto,
@@ -31,9 +38,10 @@ export const habitKeys = {
 };
 
 export function useHabitsToday(date: LocalDate) {
+  const sync = useOfflineSync();
   return useQuery({
     queryKey: habitKeys.today(date),
-    queryFn: () => habitsApi.getToday(date),
+    queryFn: async () => overlayHabitOps(await habitsApi.getToday(date), await sync.queue.all()),
     staleTime: 60 * 1000,
   });
 }
@@ -65,6 +73,11 @@ function applyValue(data: HabitsTodayDto | undefined, habitId: string, next: (ha
   };
 }
 
+/** The habit's name from today's cache, for toasts about a dropped op. */
+function habitName(queryClient: QueryClient, date: LocalDate, habitId: string): string | undefined {
+  return queryClient.getQueryData<HabitsTodayDto>(habitKeys.today(date))?.habits.find((h) => h.id === habitId)?.name;
+}
+
 export interface IncrementVariables {
   habitId: string;
   delta: 1 | -1;
@@ -82,10 +95,16 @@ export function useIncrementHabit() {
   const queryClient = useQueryClient();
   const inFlight = useRef(new Map<string, number>());
 
-  const mutation = useMutation<HabitLogDto, Error, IncrementVariables, { key: string }>({
+  const mutation = useOfflineMutation<HabitLogDto, IncrementVariables, { key: string }>({
     mutationKey: habitKeys.increment(),
-    mutationFn: ({ habitId, delta, date, clientTimestamp }) =>
-      habitsApi.increment(habitId, date, { delta, clientTimestamp }),
+    run: ({ habitId, delta, date, clientTimestamp }) => habitsApi.increment(habitId, date, { delta, clientTimestamp }),
+    toOp: ({ habitId, delta, date, clientTimestamp }) => ({
+      kind: 'habit.increment',
+      localDate: date,
+      target: { habitId },
+      payload: { delta, clientTimestamp },
+      label: habitName(queryClient, date, habitId),
+    }),
     onMutate: async ({ habitId, delta, date }) => {
       const key = `${habitId}|${date}`;
       inFlight.current.set(key, (inFlight.current.get(key) ?? 0) + 1);
@@ -95,12 +114,13 @@ export function useIncrementHabit() {
       );
       return { key };
     },
-    onSuccess: (serverLog, { habitId, date }, context) => {
+    onSuccess: (outcome, { habitId, date }, context) => {
+      if (outcome.queued) return;
       // Only the last outstanding tap for this habit may overwrite the cache with
       // the server's value; earlier replies are stale relative to later taps.
       if ((inFlight.current.get(context.key) ?? 0) <= 1) {
         queryClient.setQueryData<HabitsTodayDto>(habitKeys.today(date), (old) =>
-          applyValue(old, habitId, () => serverLog.value)
+          applyValue(old, habitId, () => outcome.data.value)
         );
       }
     },
@@ -110,12 +130,13 @@ export function useIncrementHabit() {
       );
       toast.error("Couldn't save that tap. Try again.");
     },
-    onSettled: (_data, _error, { date }, context) => {
+    onSettled: (outcome, _error, { date }, context) => {
       if (!context) return;
       const remaining = (inFlight.current.get(context.key) ?? 1) - 1;
       if (remaining <= 0) {
         inFlight.current.delete(context.key);
-        void queryClient.invalidateQueries({ queryKey: habitKeys.today(date) });
+        // A queued tap is reconciled when it replays; refetching now would only find the cache.
+        if (!outcome?.queued) void queryClient.invalidateQueries({ queryKey: habitKeys.today(date) });
       } else {
         inFlight.current.set(context.key, remaining);
       }
@@ -135,30 +156,37 @@ export interface SetValueVariables {
   clientTimestamp: string;
 }
 
-/** Sets a day's value (numeric entry, checkbox toggle). Optimistic, with rollback. */
+/** Sets a day's value (numeric entry, checkbox toggle). Optimistic, with rollback; queued when offline. */
 export function useSetHabitValue() {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<HabitLogDto, Error, SetValueVariables, { previous: HabitsTodayDto | undefined }>({
-    mutationFn: ({ habitId, value, date, clientTimestamp }) =>
-      habitsApi.setLog(habitId, date, { value, clientTimestamp }),
+  const mutation = useOfflineMutation<HabitLogDto, SetValueVariables, { previous: HabitsTodayDto | undefined }>({
+    run: ({ habitId, value, date, clientTimestamp }) => habitsApi.setLog(habitId, date, { value, clientTimestamp }),
+    toOp: ({ habitId, value, date, clientTimestamp }) => ({
+      kind: 'habit.set',
+      localDate: date,
+      target: { habitId },
+      payload: { value, clientTimestamp },
+      label: habitName(queryClient, date, habitId),
+    }),
     onMutate: async ({ habitId, value, date }) => {
       await queryClient.cancelQueries({ queryKey: habitKeys.today(date) });
       const previous = queryClient.getQueryData<HabitsTodayDto>(habitKeys.today(date));
       queryClient.setQueryData<HabitsTodayDto>(habitKeys.today(date), (old) => applyValue(old, habitId, () => value));
       return { previous };
     },
-    onSuccess: (serverLog, { habitId, date }) => {
+    onSuccess: (outcome, { habitId, date }) => {
+      if (outcome.queued) return;
       queryClient.setQueryData<HabitsTodayDto>(habitKeys.today(date), (old) =>
-        applyValue(old, habitId, () => serverLog.value)
+        applyValue(old, habitId, () => outcome.data.value)
       );
     },
     onError: (_error, { date }, context) => {
       if (context?.previous) queryClient.setQueryData(habitKeys.today(date), context.previous);
       toast.error("Couldn't save that. Try again.");
     },
-    onSettled: (_data, _error, { date }) => {
-      void queryClient.invalidateQueries({ queryKey: habitKeys.today(date) });
+    onSettled: (outcome, _error, { date }) => {
+      if (!outcome?.queued) void queryClient.invalidateQueries({ queryKey: habitKeys.today(date) });
     },
   });
 

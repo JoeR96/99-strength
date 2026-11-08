@@ -3,7 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { plansApi } from '@/api/plans';
 import type { LocalDate } from '@/lib/localDate';
-import type { AllowanceKind, CompleteSessionRequest } from '@/types/plan';
+import { useOfflineSync } from '@/offline/context';
+import { overlayPlanOps } from '@/offline/overlay';
+import { useOfflineMutation } from '@/offline/useOfflineMutation';
+import { SessionStatus, type AllowanceKind, type CompleteSessionRequest, type TodayDto } from '@/types/plan';
 
 export const planKeys = {
   all: ['plans'] as const,
@@ -24,9 +27,10 @@ export function useActivePlan() {
 
 /** Sessions, phase and week for a date; `null` when there is no plan. */
 export function useToday(date: LocalDate) {
+  const sync = useOfflineSync();
   return useQuery({
     queryKey: planKeys.today(date),
-    queryFn: () => plansApi.getToday(date),
+    queryFn: async () => overlayPlanOps(await plansApi.getToday(date), await sync.queue.all()),
     staleTime: 60 * 1000,
   });
 }
@@ -56,13 +60,48 @@ function invalidatePlanViews(queryClient: ReturnType<typeof useQueryClient>) {
   ]);
 }
 
-/** Marks a cardio or mobility session (or a manual lift) done. */
+export interface CompleteSessionVariables {
+  planId: string;
+  request: CompleteSessionRequest;
+  /** The session's label ("Norwegian 4×4") for a toast should the queued op be refused. */
+  label?: string;
+}
+
+/** Marks the matching session Done in the cached day while the completion waits in the queue. */
+function markDoneLocally(today: TodayDto | null | undefined, request: CompleteSessionRequest): TodayDto | null | undefined {
+  if (!today) return today;
+  return {
+    ...today,
+    sessions: today.sessions.map((s) =>
+      s.kind === request.kind &&
+      (request.liftDay ?? null) === s.liftDay &&
+      (request.cardioProtocolId ?? null) === s.cardioProtocolId &&
+      (request.mobilityRoutineId ?? null) === s.mobilityRoutineId
+        ? { ...s, status: SessionStatus.Done }
+        : s
+    ),
+  };
+}
+
+/** Marks a cardio or mobility session (or a manual lift) done; queued when offline. */
 export function useCompleteSession() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ planId, request }: { planId: string; request: CompleteSessionRequest }) =>
-      plansApi.completeSession(planId, request),
-    onSuccess: () => invalidatePlanViews(queryClient),
+  return useOfflineMutation({
+    run: ({ planId, request }: CompleteSessionVariables) => plansApi.completeSession(planId, request),
+    toOp: ({ planId, request, label }) => ({
+      kind: 'plan.complete',
+      localDate: request.date,
+      target: { planId },
+      payload: request,
+      label,
+    }),
+    onSuccess: (outcome, { request }) => {
+      if (outcome.queued) {
+        queryClient.setQueryData<TodayDto | null>(planKeys.today(request.date), (old) => markDoneLocally(old, request));
+        return;
+      }
+      return invalidatePlanViews(queryClient);
+    },
   });
 }
 

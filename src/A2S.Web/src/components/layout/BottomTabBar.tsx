@@ -4,10 +4,13 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
+import { usePendingSyncCount } from '@/offline/context';
 import { TABS, isTabActive } from './tabs';
+import { TabBadge } from './TabBadge';
 
 export function BottomTabBar() {
   const { pathname } = useLocation();
+  const pending = usePendingSyncCount();
 
   return (
     <nav
@@ -28,7 +31,10 @@ export function BottomTabBar() {
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon className="h-6 w-6" aria-hidden="true" strokeWidth={active ? 2.5 : 2} />
+                <span className="relative">
+                  <Icon className="h-6 w-6" aria-hidden="true" strokeWidth={active ? 2.5 : 2} />
+                  {tab.badge === 'pendingSync' && <TabBadge count={pending} />}
+                </span>
                 <span>{tab.label}</span>
               </Link>
             </li>
