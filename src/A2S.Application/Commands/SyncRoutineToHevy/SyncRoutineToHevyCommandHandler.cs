@@ -19,14 +19,17 @@ public sealed class SyncRoutineToHevyCommandHandler
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IHevyIntegrationService _hevyService;
     private readonly IA2SProgramProvider _programProvider;
+    private readonly IHevyKeyResolver _keyResolver;
     private readonly ILogger<SyncRoutineToHevyCommandHandler> _logger;
 
     public SyncRoutineToHevyCommandHandler(
         IWorkoutRepository workoutRepository,
         IHevyIntegrationService hevyService,
         IA2SProgramProvider programProvider,
+        IHevyKeyResolver keyResolver,
         ILogger<SyncRoutineToHevyCommandHandler> logger)
     {
+        _keyResolver = keyResolver ?? throw new ArgumentNullException(nameof(keyResolver));
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _hevyService = hevyService ?? throw new ArgumentNullException(nameof(hevyService));
         _programProvider = programProvider ?? throw new ArgumentNullException(nameof(programProvider));
@@ -39,6 +42,13 @@ public sealed class SyncRoutineToHevyCommandHandler
     {
         try
         {
+            var apiKey = await _keyResolver.ForCurrentUserAsync(cancellationToken);
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return Result.Failure<SyncRoutineResult>(
+                    "Hevy API key is required. Add it under Settings.", ErrorCode.ValidationFailed);
+            }
+
             // AuthorizedWorkoutBehavior guarantees the workout exists and is owned by the current user
             var workout = await _workoutRepository.GetByIdAsync(
                 new WorkoutId(request.WorkoutId),
@@ -92,7 +102,7 @@ public sealed class SyncRoutineToHevyCommandHandler
             };
 
             var result = await _hevyService.SyncRoutineForDayAsync(
-                syncRequest, request.HevyApiKey, cancellationToken);
+                syncRequest, apiKey, cancellationToken);
 
             if (!result.Success)
             {

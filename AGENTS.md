@@ -29,10 +29,13 @@ A2S.Integration.Hevy → A2S.Application (ACL for Hevy API)
 | `A2S.Application` | Commands, queries, validators, behaviors, DTOs |
 | `A2S.Domain` | Aggregates, entities, value objects, events, enums, domain services |
 | `A2S.Infrastructure` | EF Core, repositories, seed data, persistence configs |
-| `A2S.Integration.Hevy` | Hevy API anti-corruption layer (Polly resilience) |
+| `A2S.Integration.Hevy` | Hevy API anti-corruption layer (Polly resilience) used by `SyncRoutineToHevy`. Most Hevy traffic from the frontend goes through `HevyProxyController` / `HevyDataController` (`/api/v1/hevy/*`), which attach the user's stored key server-side |
 | `A2S.Web` | React frontend (separate — see `src/A2S.Web/AGENTS.md`) |
 
 ### Rules
+
+- **Secrets never leave the server**: the Hevy API key is encrypted at rest with ASP.NET Core Data Protection (key ring in the `DataProtectionKeys` table). Clients only ever see `{ hasKey, lastFour }`. Never add the key to a response, a log line, a test fixture or `HttpContext.Items`.
+- **Non-production endpoints** (simulation, debugging aids) are marked `[NonProductionOnly]` and removed from routing in Production.
 
 - **Handlers are thin orchestrators**: load aggregate → call domain methods → persist. No domain logic in Application layer.
 - **Domain has zero external dependencies**: No framework references, no I/O.
@@ -58,7 +61,7 @@ Workout (AggregateRoot<WorkoutId>)
 └── BlockSequence (List<int>) — block ordering
 ```
 
-**User** (aggregate root) — `Aggregates/User/User.cs`
+**User** (aggregate root) — `Aggregates/User/User.cs`. Holds the Hevy API key only in protected form (`HevyApiKeyProtected`, via `ISecretProtector`); `RevealHevyApiKey` is the single way to read it and the value must never be logged, persisted elsewhere or returned by an endpoint.
 
 **ExerciseDefinition** — reference data entity (exercise library, read-only)
 
@@ -187,7 +190,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | Command | Handler | Purpose |
 |---------|---------|---------|
 | `CreateWorkout` | Creates workout with exercises from template | |
-| `DeleteWorkout` | Soft deletes workout | |
+| `DeleteWorkout` | Hard-deletes the workout and its children (no soft delete) | |
 | `SetActiveWorkout` | Sets workout as active (pauses others) | |
 | `CompleteDay` | Records exercise performances, applies progression | |
 | `ProgressWeek` | Advances to next week/block | |
@@ -200,7 +203,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `ConfirmStartingWeight` | Confirms deferred starting weight for RPS | |
 | `ConfirmWorkingWeight` | Confirms Cable/Machine weight after progression | |
 | `RetrofixLinearTm` | Recalculates TM history from AMRAP data | |
-| `SyncRoutineToHevy` | Pushes routine to Hevy via ACL | |
+| `SyncRoutineToHevy` | Pushes routine to Hevy via ACL; the key is resolved server-side via `IHevyKeyResolver` | |
 | `CreateUser` | Auto-provisions user from Clerk auth | |
 
 ### Queries
@@ -301,7 +304,7 @@ Two-stage build:
 ### Startup Sequence
 
 1. `npm run start:db` — PostgreSQL via docker-compose
-2. `npm run start:api` — .NET API (auto-migrates DB on startup, seeds exercise library)
+2. `npm run start:api` — .NET API. It does **not** migrate on startup: it refuses to boot with pending migrations. Apply them with `dotnet ef database update` locally (the Docker image runs an EF migration bundle in `docker-entrypoint.sh`). On boot it upserts the exercise library by name and encrypts any legacy plaintext Hevy keys.
 3. `npm run start:web` — Vite dev server
 
 Or `npm start` for all three concurrently.

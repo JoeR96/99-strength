@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using A2S.Api.Contracts.Responses;
-using A2S.Application.Common;
+using A2S.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -11,6 +11,7 @@ namespace A2S.Api.Controllers;
 /// <summary>
 /// Aggregated Hevy workout data endpoints for charting and analysis.
 /// Fetches raw data via the Hevy API proxy and transforms it into chart-ready DTOs.
+/// The Hevy key is resolved server-side; clients never send it.
 /// </summary>
 [ApiController]
 [Route("api/v1/hevy/data")]
@@ -19,7 +20,7 @@ public class HevyDataController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<HevyDataController> _logger;
-    private readonly ICurrentUserService _currentUser;
+    private readonly IHevyKeyResolver _keys;
     private const string HevyApiBaseUrl = "https://api.hevyapp.com/v1";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -31,11 +32,11 @@ public class HevyDataController : ControllerBase
     public HevyDataController(
         IHttpClientFactory httpClientFactory,
         ILogger<HevyDataController> logger,
-        ICurrentUserService currentUser)
+        IHevyKeyResolver keys)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
-        _currentUser = currentUser;
+        _keys = keys;
     }
 
     /// <summary>
@@ -44,12 +45,11 @@ public class HevyDataController : ControllerBase
     [HttpGet("workouts")]
     [ProducesResponseType(typeof(HevyWorkoutListResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWorkouts(
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         [FromQuery] int page = 1,
         [FromQuery][Range(1, 100)] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -120,11 +120,10 @@ public class HevyDataController : ControllerBase
     [ProducesResponseType(typeof(HevyExerciseHistoryResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetExerciseHistory(
         [FromRoute] string exerciseTemplateId,
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         [FromQuery][Range(1, 20)] int maxPages = 10,
         CancellationToken cancellationToken = default)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();

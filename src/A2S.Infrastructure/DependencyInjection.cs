@@ -5,6 +5,9 @@ using A2S.Domain.Services;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.Repositories;
 using A2S.Infrastructure.SeedData;
+using A2S.Infrastructure.Security;
+using A2S.Application.Interfaces;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +68,14 @@ public static class DependencyInjection
         services.AddScoped<IExerciseLibraryProvider, ExerciseLibraryProvider>();
 
         services.AddScoped<IDomainEventDispatcher, MediatRDomainEventDispatcher>();
+
+        // Secrets at rest: Data Protection with the key ring persisted in Postgres so a redeploy
+        // (new container, new filesystem) can still read previously protected values.
+        services.AddDataProtection()
+            .SetApplicationName("99-strength")
+            .PersistKeysToDbContext<A2SDbContext>();
+        services.AddSingleton<ISecretProtector, DataProtectionSecretProtector>();
+        services.AddScoped<IHevyKeyResolver, UserHevyKeyResolver>();
 
         return services;
     }

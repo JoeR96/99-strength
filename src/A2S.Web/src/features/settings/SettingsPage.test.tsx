@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { type ReactNode } from 'react';
 
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: { firstName: 'TestUser' } }),
@@ -33,8 +32,17 @@ vi.mock('react-hot-toast', () => ({
   default: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('@/data/workoutTemplates', () => ({
-  workoutTemplates: [],
+vi.mock('@/contexts/HevyContext', () => ({
+  useHevy: () => ({
+    isConfigured: true,
+    keyLastFour: '7781',
+    isValidating: false,
+    isValid: true,
+    isLoading: false,
+    setApiKey: vi.fn(),
+    clearApiKey: vi.fn(),
+    validateKey: vi.fn(),
+  }),
 }));
 
 import { SettingsPage } from './SettingsPage';
@@ -61,9 +69,17 @@ describe('SettingsPage', () => {
     expect(headings.length).toBeGreaterThan(0);
   });
 
-  it('shows seed data button', () => {
+  it('no longer offers the destructive seed-data action', () => {
     renderSettings();
-    expect(screen.getByText(/Seed.*Data/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Seed.*Data/i)).not.toBeInTheDocument();
+  });
+
+  it('shows Hevy key management with only the last four characters', () => {
+    renderSettings();
+    expect(screen.getByText(/Hevy Integration/i)).toBeInTheDocument();
+    expect(screen.getByTestId('hevy-key-masked')).toHaveTextContent('7781');
+    expect(screen.getByText(/Replace key/i)).toBeInTheDocument();
+    expect(screen.getByText(/Remove key/i)).toBeInTheDocument();
   });
 
   it('shows export button', () => {

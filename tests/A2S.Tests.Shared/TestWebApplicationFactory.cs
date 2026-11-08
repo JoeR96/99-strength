@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using Serilog.Core;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -93,8 +94,15 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.AddDbContext<A2SDbContext>(options =>
             {
                 options.UseNpgsql(ConnectionString);
+                // Deliberately on: the logging tests prove secrets stay out of logs even so.
+                options.EnableSensitiveDataLogging();
                 options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
             });
+
+            // Capture every log event so tests can assert on what was (not) logged
+            var sink = new CapturingLogSink();
+            services.AddSingleton(sink);
+            services.AddSingleton<ILogEventSink>(sink);
 
             // Replace ICurrentUserService with test implementation
             services.RemoveAll<ICurrentUserService>();

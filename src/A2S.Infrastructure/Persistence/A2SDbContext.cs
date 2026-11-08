@@ -2,6 +2,7 @@ using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Aggregates.User;
 using A2S.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2S.Infrastructure.Persistence;
@@ -9,7 +10,7 @@ namespace A2S.Infrastructure.Persistence;
 /// <summary>
 /// Entity Framework Core database context for the A2S application.
 /// </summary>
-public class A2SDbContext : DbContext
+public class A2SDbContext : DbContext, IDataProtectionKeyContext
 {
     private readonly IDomainEventDispatcher? _domainEventDispatcher;
 
@@ -30,6 +31,9 @@ public class A2SDbContext : DbContext
     public DbSet<ExerciseProgression> ExerciseProgressions => Set<ExerciseProgression>();
     public DbSet<User> Users => Set<User>();
     public DbSet<ExerciseDefinition> ExerciseDefinitions => Set<ExerciseDefinition>();
+
+    /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

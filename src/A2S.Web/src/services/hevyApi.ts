@@ -25,64 +25,44 @@ import type {
 const HEVY_PROXY_BASE_URL = '/hevy';
 
 class HevyApiService {
-  private apiKey: string | null = null;
+  /** Mirrors whether the server has a key stored for this user (set by HevyProvider). */
+  private configured = false;
 
-  /**
-   * Set the API key for authentication
-   */
-  setApiKey(apiKey: string) {
-    this.apiKey = apiKey;
+  setConfigured(configured: boolean) {
+    this.configured = configured;
   }
 
   /**
-   * Get the current API key
-   */
-  getApiKey(): string | null {
-    return this.apiKey;
-  }
-
-  /**
-   * Check if the API key is configured
+   * Whether the server holds a Hevy API key for this user
    */
   isConfigured(): boolean {
-    return this.apiKey !== null && this.apiKey.length > 0;
+    return this.configured;
   }
 
   /**
-   * Clear the API key
-   */
-  clearApiKey() {
-    this.apiKey = null;
-  }
-
-  /**
-   * Make an authenticated request to the Hevy API via backend proxy
+   * Make a request to the Hevy API via the backend proxy (which attaches the stored key)
    */
   private async request<T>(
     endpoint: string,
     options: { method?: string; body?: unknown } = {}
   ): Promise<T> {
-    if (!this.apiKey) {
+    if (!this.configured) {
       throw new Error('Hevy API key not configured. Please set your API key in settings.');
     }
 
+    // The server resolves the user's encrypted key; nothing secret travels with the request.
     const url = `${HEVY_PROXY_BASE_URL}${endpoint}`;
-    const config = {
-      headers: {
-        'X-Hevy-Api-Key': this.apiKey,
-      },
-    };
 
     try {
       let response;
       if (options.method === 'POST') {
-        response = await apiClient.post(url, options.body, config);
+        response = await apiClient.post(url, options.body);
       } else if (options.method === 'PUT') {
-        response = await apiClient.put(url, options.body, config);
+        response = await apiClient.put(url, options.body);
       } else if (options.method === 'DELETE') {
-        response = await apiClient.delete(url, config);
+        response = await apiClient.delete(url);
       } else {
-        response = await apiClient.get(url, config);
+        response = await apiClient.get(url);
       }
       return response.data;
     } catch (error: unknown) {
@@ -343,24 +323,11 @@ class HevyApiService {
   // ==================== Utility Methods ====================
 
   /**
-   * Validate the API key by making a test request
+   * Ask the server to validate the stored key against Hevy
    */
   async validateApiKey(): Promise<boolean> {
-    if (!this.apiKey) {
-      return false;
-    }
-
-    try {
-      const response = await apiClient.get(`${HEVY_PROXY_BASE_URL}/validate`, {
-        headers: {
-          'X-Hevy-Api-Key': this.apiKey,
-        },
-      });
-      return response.data?.valid === true;
-    } catch (error: unknown) {
-      // Re-throw to let the caller handle it
-      throw error;
-    }
+    const response = await apiClient.get(`${HEVY_PROXY_BASE_URL}/validate`);
+    return response.data?.valid === true;
   }
 
   /**
