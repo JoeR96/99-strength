@@ -14,6 +14,7 @@ import { ExerciseLibraryPage } from './features/exercises/ExerciseLibraryPage';
 import { HevyManagementPage } from './features/hevy/HevyManagementPage';
 import { HevyDataPage } from './features/hevy/HevyDataPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { HabitsPage } from './features/habits/HabitsPage';
 import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
 
@@ -54,6 +55,8 @@ function AppContent() {
 
         {/* Protected routes */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/today" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/habits" element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
         <Route path="/workout" element={<ProtectedRoute><WorkoutDashboard /></ProtectedRoute>} />
         <Route
           path="/workout/session/:day"

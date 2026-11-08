@@ -232,6 +232,7 @@ export function SetupWizard() {
                   <label className="block text-sm font-semibold text-foreground">Total Weeks</label>
                   <Input
                     type="number"
+              inputMode="decimal"
                     value={totalWeeks}
                     onChange={(e) => setTotalWeeks(Number(e.target.value))}
                     min="1"
