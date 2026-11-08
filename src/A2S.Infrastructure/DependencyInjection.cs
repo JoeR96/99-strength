@@ -68,12 +68,12 @@ public static class DependencyInjection
         services.AddScoped<ICardioProtocolRepository, CardioProtocolRepository>();
         services.AddScoped<IMobilityRoutineRepository, MobilityRoutineRepository>();
         services.AddSingleton<PlanCalendarService>();
-        // Habits and body weight. NullPlanCheckpointSource is swapped for a TrainingPlan-backed one at integration.
+        // Habits and body weight; the pace reading takes its checkpoints from the active TrainingPlan.
         services.AddScoped<IHabitRepository, HabitRepository>();
         services.AddScoped<IBodyWeightRepository, BodyWeightRepository>();
         services.AddSingleton<HabitStreakService>();
         services.AddSingleton<TrendService>();
-        services.AddScoped<IPlanCheckpointSource, NullPlanCheckpointSource>();
+        services.AddScoped<IPlanCheckpointSource, TrainingPlanCheckpointSource>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
