@@ -5,6 +5,7 @@ import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
 import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
+import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
 
 const meta = {
   title: 'Features/Today/TodayPage',
@@ -101,6 +102,25 @@ export const OfflinePending: Story = {
       installHabitsHandlers(habitsHandlers.default());
       installBodyWeightHandlers(bodyWeightHandlers.empty());
     }),
+  ],
+};
+
+/**
+ * The offline journey: water starts at 0. Press "Go offline", tap + twice: the counter reads 2 / 6
+ * and the badge says 2 pending while the mock server still holds 0. Press "Go online": the two
+ * taps replay in order, the badge clears and the server shows 2. Driven by tests/storybook/offline.spec.ts.
+ */
+export const Offline: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+    (Story) => (
+      <OfflineStoryHarness>
+        <Story />
+      </OfflineStoryHarness>
+    ),
   ],
 };
 
