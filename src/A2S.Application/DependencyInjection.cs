@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<Hevy.HevyRoutinePusher>();
         services.AddScoped<Hevy.HevySessionCompleter>();
         services.AddScoped<Hevy.HevyPullService>();
+        services.AddScoped<Hevy.HevyPollRunner>();
         services.AddScoped<AmbientUser>();
 
         return services;
