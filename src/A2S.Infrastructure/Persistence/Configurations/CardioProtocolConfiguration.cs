@@ -55,6 +55,7 @@ public class CardioProtocolConfiguration : IEntityTypeConfiguration<CardioProtoc
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Ignore(p => p.TotalMinutes);
+        builder.Ignore(p => p.DefaultHighIntensityMinutes);
         builder.Ignore(p => p.DomainEvents);
 
         builder.HasIndex(p => p.UserId);

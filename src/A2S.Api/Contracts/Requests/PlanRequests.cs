@@ -30,6 +30,9 @@ public sealed record CompleteSessionRequest(
 /// <summary>Body for <c>POST /api/v1/plans/{id}/allowances</c>.</summary>
 public sealed record UseAllowanceRequest(DateOnly Date, AllowanceKind Kind);
 
+/// <summary>Weekly zone 4–5 minutes band.</summary>
+public sealed record SetHighIntensityTargetRequest(int MinMinutes, int MaxMinutes);
+
 /// <summary>Body for <c>PUT /api/v1/cardio-protocols/{id}/repeat-week</c>.</summary>
 public sealed record SetRepeatWeekRequest(bool Repeat);
 

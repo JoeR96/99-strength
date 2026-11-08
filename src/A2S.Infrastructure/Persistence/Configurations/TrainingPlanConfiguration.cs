@@ -55,6 +55,13 @@ public class TrainingPlanConfiguration : IEntityTypeConfiguration<TrainingPlan>
         });
         builder.Navigation(p => p.Allowances).IsRequired();
 
+        builder.OwnsOne(p => p.HighIntensityTarget, target =>
+        {
+            target.Property(t => t.MinMinutes).HasColumnName("HighIntensityMinMinutes").HasDefaultValue(15).IsRequired();
+            target.Property(t => t.MaxMinutes).HasColumnName("HighIntensityMaxMinutes").HasDefaultValue(30).IsRequired();
+        });
+        builder.Navigation(p => p.HighIntensityTarget).IsRequired();
+
         // Schedule: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
         builder.Ignore(x => x.Schedule);
         builder.Property<List<ScheduledSession>>("_schedule")

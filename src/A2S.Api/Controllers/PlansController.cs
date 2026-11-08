@@ -129,6 +129,15 @@ public class PlansController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
+    /// <summary>Sets the weekly zone 4–5 minutes band (default 15–30).</summary>
+    [HttpPut("{id:guid}/high-intensity-target")]
+    [ProducesResponseType(typeof(HighIntensityTargetDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetHighIntensityTarget([FromRoute] Guid id, [FromBody] SetHighIntensityTargetRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new SetHighIntensityTargetCommand(id, request.MinMinutes, request.MaxMinutes), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
     /// <summary>Takes back one allowance use: <c>?date=yyyy-MM-dd&amp;kind=FlexibleMeal|Alcohol</c>.</summary>
     [HttpDelete("{id:guid}/allowances")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
