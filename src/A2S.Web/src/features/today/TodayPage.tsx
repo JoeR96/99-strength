@@ -27,10 +27,11 @@ import { currentPhase } from './phase';
 import { CardioLogSheet } from './CardioLogSheet';
 import { MobilityChecklist } from './MobilityChecklist';
 import { PendingSyncBadge } from './PendingSyncBadge';
+import { usePendingSyncCount } from '@/offline/context';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 
 export interface TodayPageProps {
-  /** PR 7 passes the offline queue length; shown as a badge in the header. */
+  /** Overrides the offline queue length shown in the header (stories); otherwise read from the queue. */
   pendingSyncCount?: number;
 }
 
@@ -42,8 +43,10 @@ function Skeleton({ className }: { className: string }) {
   return <div className={`animate-pulse rounded-lg bg-muted ${className}`} aria-hidden="true" />;
 }
 
-export function TodayPage({ pendingSyncCount = 0 }: TodayPageProps) {
+export function TodayPage({ pendingSyncCount }: TodayPageProps) {
   const date = useLocalToday();
+  const queuedCount = usePendingSyncCount();
+  const pendingCount = pendingSyncCount ?? queuedCount;
   const todayQuery = useToday(date);
   const planQuery = useActivePlan();
   const habitsQuery = useHabitsToday(date);
@@ -101,12 +104,13 @@ export function TodayPage({ pendingSyncCount = 0 }: TodayPageProps) {
           cardio: extra.cardio ?? null,
           drillTicks: extra.drillTicks ?? null,
         },
+        label: session.label,
       },
       {
-        onSuccess: () => {
+        onSuccess: (outcome) => {
           setCardioSession(null);
           setMobilitySession(null);
-          toast.success(`${session.label} done`);
+          toast.success(outcome.queued ? `${session.label} done — will sync when you're back online` : `${session.label} done`);
         },
         onError: () => toast.error("Couldn't mark that done. Try again."),
       }
@@ -137,7 +141,7 @@ export function TodayPage({ pendingSyncCount = 0 }: TodayPageProps) {
             <h1 className="text-2xl font-bold text-foreground">{formatDayLabel(date)}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <PendingSyncBadge count={pendingSyncCount} />
+            <PendingSyncBadge count={pendingCount} />
             {habits && <StreakChip streak={habits.streak} />}
           </div>
         </header>

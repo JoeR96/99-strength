@@ -1,6 +1,8 @@
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { Link, useLocation } from 'react-router-dom';
 import { TABS, isTabActive } from './tabs';
+import { TabBadge } from './TabBadge';
+import { usePendingSyncCount } from '@/offline/context';
 
 /**
  * Top bar. On phones it is just the logo and the account button — navigation lives in the
@@ -9,6 +11,7 @@ import { TABS, isTabActive } from './tabs';
 export function Navbar() {
   const { user } = useUser();
   const location = useLocation();
+  const pending = usePendingSyncCount();
 
   return (
     <nav className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
@@ -36,7 +39,10 @@ export function Navbar() {
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
                   >
-                    {tab.label}
+                    <span className="relative">
+                      {tab.label}
+                      {tab.badge === 'pendingSync' && <TabBadge count={pending} />}
+                    </span>
                   </Link>
                 );
               })}

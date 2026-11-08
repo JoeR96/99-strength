@@ -8,6 +8,7 @@ using A2S.Infrastructure.SeedData;
 using A2S.Infrastructure.Security;
 using A2S.Infrastructure.Services;
 using A2S.Application.Interfaces;
+using A2S.Application.Push;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -78,6 +79,14 @@ public static class DependencyInjection
         services.AddScoped<IMealRepository, MealRepository>();
         services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
         services.AddScoped<IMealSeeder, MealSeeder>();
+
+        // Web push (PR 7b): subscriptions, the VAPID sender and the minute-by-minute nudge loop. The
+        // loop is idle in Testing and when Push:* keys are absent; the sender is only built when they are.
+        services.Configure<PushOptions>(configuration.GetSection(PushOptions.SectionName));
+        services.AddScoped<IPushSubscriptionRepository, PushSubscriptionRepository>();
+        services.AddScoped<PushNudgeService>();
+        services.AddHttpClient<IPushSender, WebPushSender>();
+        services.AddHostedService<PushNudgeHostedService>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

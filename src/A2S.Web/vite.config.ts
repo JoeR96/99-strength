@@ -8,6 +8,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // injectManifest: src/sw.ts is our own worker (precache + network-first API cache exactly as the
+      // generated one had, plus the web push handlers in src/sw-push.ts). The manifest is unchanged.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
@@ -26,25 +31,9 @@ export default defineConfig({
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        // App shell is precached; API data is network-first with a short fallback window so
-        // Today/Habits still render the last known state when the connection drops.
+      injectManifest: {
+        // App shell is precached; see src/sw.ts for the runtime caching rules.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/sign-in/, /^\/sign-up/],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url, request }) =>
-              request.method === 'GET' && /\/api\/v1\/(habits|plans|body-weight)(\/|$)/.test(url.pathname),
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-today',
-              networkTimeoutSeconds: 4,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
       devOptions: { enabled: false },
     }),
