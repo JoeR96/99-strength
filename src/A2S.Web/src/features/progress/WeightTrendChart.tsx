@@ -17,23 +17,31 @@ import {
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { chartAxisProps, chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
-import { formatShortDate } from '@/lib/localDate';
+import { formatShortDate, fromEpochDays, type LocalDate } from '@/lib/localDate';
 import type { WeightTrendDto } from '@/types/bodyWeight';
 import type { CheckpointDto } from '@/types/plan';
-import { buildTrendSeries, paceLabel, targetAnchors, yDomain } from './trend';
+import { buildTrendSeries, paceLabel, targetAnchors, windowRows, yDomain } from './trend';
 
 export interface WeightTrendChartProps {
   trend: WeightTrendDto | undefined;
   checkpoints?: CheckpointDto[];
   startDate?: string;
   startKg?: number;
+  /** Today's local date; the chart runs from the first weigh-in to the next checkpoint after it. */
+  today?: LocalDate;
 }
+
+const toEpochDaysOf = (date: LocalDate) => Math.round(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10))) / 86_400_000);
 
 const paceBadgeVariant = { success: 'success', warning: 'warning', primary: 'primary', muted: 'neutral' } as const;
 
-export function WeightTrendChart({ trend, checkpoints = [], startDate, startKg }: WeightTrendChartProps) {
+export function WeightTrendChart({ trend, checkpoints = [], startDate, startKg, today }: WeightTrendChartProps) {
   const anchors = useMemo(() => targetAnchors(startDate, startKg, checkpoints), [startDate, startKg, checkpoints]);
-  const rows = useMemo(() => buildTrendSeries(trend?.points ?? [], anchors, checkpoints), [trend?.points, anchors, checkpoints]);
+  const allRows = useMemo(() => buildTrendSeries(trend?.points ?? [], anchors, checkpoints), [trend?.points, anchors, checkpoints]);
+  const lastDate = trend?.points[trend.points.length - 1]?.date;
+  const rows = useMemo(() => windowRows(allRows, today ?? lastDate ?? '', checkpoints), [allRows, today, lastDate, checkpoints]);
+  const visibleCheckpoints = checkpoints.filter((c) => rows.some((r) => r.date === c.date));
+  const formatTick = (t: number) => formatShortDate(fromEpochDays(t));
   const pace = paceLabel(trend?.pace);
   const latest = trend?.points[trend.points.length - 1];
   const hasMa7 = rows.some((r) => r.movingAverage7 !== null);
@@ -72,11 +80,11 @@ export function WeightTrendChart({ trend, checkpoints = [], startDate, startKg }
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
               <CartesianGrid stroke={chartColors.border} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" tickFormatter={formatShortDate} {...chartAxisProps} minTickGap={24} />
+              <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatTick} {...chartAxisProps} minTickGap={28} />
               <YAxis domain={yDomain(rows)} {...chartAxisProps} width={44} tickFormatter={(v: number) => v.toFixed(0)} />
               <Tooltip
                 contentStyle={chartTooltipContentStyle}
-                labelFormatter={(label) => formatShortDate(String(label))}
+                labelFormatter={(label) => formatTick(Number(label))}
                 formatter={(value, name) => [typeof value === 'number' ? `${value.toFixed(1)} kg` : '—', String(name)]}
               />
               <Line type="monotone" dataKey="target" name="Target" stroke={chartColors.mutedForeground} strokeWidth={1.5} strokeDasharray="4 4" dot={false} connectNulls isAnimationActive={false} />
@@ -85,8 +93,8 @@ export function WeightTrendChart({ trend, checkpoints = [], startDate, startKg }
                 <Line type="monotone" dataKey="movingAverage7" name="7-day average" stroke={chartColors.success} strokeWidth={1} dot={false} connectNulls isAnimationActive={false} />
               )}
               <Line type="monotone" dataKey="ewma" name="Trend" stroke={chartColors.primary} strokeWidth={2.5} dot={false} connectNulls isAnimationActive={false} />
-              {checkpoints.map((c) => (
-                <ReferenceDot key={c.date} x={c.date} y={c.targetKg} r={5} fill={chartColors.card} stroke={chartColors.mutedForeground} strokeWidth={2} />
+              {visibleCheckpoints.map((c) => (
+                <ReferenceDot key={c.date} x={toEpochDaysOf(c.date)} y={c.targetKg} r={5} fill={chartColors.card} stroke={chartColors.mutedForeground} strokeWidth={2} />
               ))}
             </ComposedChart>
           </ResponsiveContainer>

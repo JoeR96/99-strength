@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildTrendSeries, formatDelta, interpolateTarget, paceLabel, targetAnchors, yDomain } from './trend';
+import { buildTrendSeries, formatDelta, interpolateTarget, paceLabel, targetAnchors, windowRows, yDomain } from './trend';
 import { volumeBars } from './volume';
 import { planFixture } from '@/mocks/fixtures/plan';
 import { trendPointsFixture } from '@/mocks/fixtures/bodyWeight';
@@ -64,6 +64,30 @@ describe('buildTrendSeries', () => {
     expect(points.every((p) => p.movingAverage7 === null)).toBe(true);
     const rows = buildTrendSeries(points, []);
     expect(rows.every((r) => r.movingAverage7 === null)).toBe(true);
+  });
+});
+
+describe('windowRows', () => {
+  it('runs from the first weigh-in to the next checkpoint after today, not the last one', () => {
+    const points = trendPointsFixture('2026-11-20', 12);
+    const anchors = targetAnchors(planFixture.startDate, planFixture.startWeightKg, planFixture.checkpoints);
+    const rows = buildTrendSeries(points, anchors, planFixture.checkpoints);
+    const shown = windowRows(rows, '2026-11-20', planFixture.checkpoints);
+    expect(shown[0].date).toBe('2026-11-09');
+    expect(shown[shown.length - 1].date).toBe('2026-12-07');
+    expect(shown.some((r) => r.date === '2027-03-08')).toBe(false);
+    expect(shown.every((r) => typeof r.t === 'number')).toBe(true);
+  });
+
+  it('ends at the last weigh-in when no checkpoint lies ahead', () => {
+    const points = trendPointsFixture('2027-03-20', 5);
+    const rows = buildTrendSeries(points, []);
+    const shown = windowRows(rows, '2027-03-20', planFixture.checkpoints);
+    expect(shown[shown.length - 1].date).toBe('2027-03-20');
+  });
+
+  it('is empty without weigh-ins', () => {
+    expect(windowRows([], '2026-11-20', planFixture.checkpoints)).toEqual([]);
   });
 });
 

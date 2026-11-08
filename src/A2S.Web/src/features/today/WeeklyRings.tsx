@@ -66,10 +66,10 @@ function Ring({ ring }: { ring: RingDefinition }) {
           aria-hidden="true"
         />
       </div>
-      <span className="text-xs font-medium tabular-nums text-foreground" data-testid={`ring-${ring.key}`}>
+      <span className="whitespace-nowrap text-[11px] font-medium tabular-nums text-foreground" data-testid={`ring-${ring.key}`}>
         {ring.text ?? (ring.planned === 0 ? '—' : `${ring.done}/${ring.planned}`)}
       </span>
-      <span className="text-[11px] text-muted-foreground">{ring.label}</span>
+      <span className="whitespace-nowrap text-[10px] text-muted-foreground">{ring.label}</span>
     </li>
   );
 }

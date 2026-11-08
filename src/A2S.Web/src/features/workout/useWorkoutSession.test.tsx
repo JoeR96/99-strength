@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { workoutsApi, type WeekPlanDto } from '@/api/workouts';
 import { getWeekParameters, roundToGymIncrement } from '@/utils/weekParameters';
 import type { WorkoutDto, ExerciseDto } from '@/types/workout';
@@ -103,9 +103,13 @@ const workout: WorkoutDto = {
   exercises,
 };
 
-let currentPath = '';
+/** Records the router's pathname so a test can assert where a handler navigated. */
+const pathLog = { current: '' };
 function LocationProbe() {
-  currentPath = useLocation().pathname;
+  const { pathname } = useLocation();
+  useEffect(() => {
+    pathLog.current = pathname;
+  }, [pathname]);
   return null;
 }
 
@@ -144,7 +148,7 @@ const benchDiscrepancy: WeightDiscrepancy = {
 
 describe('useWorkoutSession', () => {
   beforeEach(() => {
-    currentPath = '';
+    pathLog.current = '';
     vi.mocked(workoutsApi.getCurrentWorkout).mockResolvedValue(workout);
     vi.mocked(workoutsApi.getWeekPlan).mockRejectedValue(new Error('plan unavailable'));
     vi.mocked(workoutsApi.completeDay).mockResolvedValue({
@@ -220,7 +224,7 @@ describe('useWorkoutSession', () => {
       await result.current.handleUndoCompletion();
     });
     expect(workoutsApi.undoLastCompletion).toHaveBeenCalledWith('w-1');
-    expect(currentPath).toBe('/workout');
+    await waitFor(() => expect(pathLog.current).toBe('/workout'));
   });
 
   it('sends the "skip progression" decision in the completion payload', async () => {

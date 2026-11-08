@@ -1,11 +1,13 @@
 /** Pure helpers for the weight trend chart and the pace label. */
 
-import { compareLocalDates, daysBetween, type LocalDate } from '@/lib/localDate';
+import { compareLocalDates, daysBetween, toEpochDays, type LocalDate } from '@/lib/localDate';
 import type { Pace, PaceDto, TrendPointDto } from '@/types/bodyWeight';
 import type { CheckpointDto } from '@/types/plan';
 
 export interface TrendRow {
   date: LocalDate;
+  /** Days since the epoch, so the chart can use a real time axis. */
+  t: number;
   kg: number | null;
   ewma: number | null;
   movingAverage7: number | null;
@@ -54,7 +56,7 @@ export function buildTrendSeries(points: TrendPointDto[], anchors: TargetAnchor[
   const ensure = (date: LocalDate): TrendRow => {
     let row = byDate.get(date);
     if (!row) {
-      row = { date, kg: null, ewma: null, movingAverage7: null, target: null, checkpointKg: null };
+      row = { date, t: toEpochDays(date), kg: null, ewma: null, movingAverage7: null, target: null, checkpointKg: null };
       byDate.set(date, row);
     }
     return row;
@@ -69,6 +71,22 @@ export function buildTrendSeries(points: TrendPointDto[], anchors: TargetAnchor[
   for (const a of anchors) ensure(a.date);
   for (const row of byDate.values()) row.target = interpolateTarget(anchors, row.date);
   return [...byDate.values()].sort((a, b) => compareLocalDates(a.date, b.date));
+}
+
+/**
+ * The rows worth plotting: from the first weigh-in to the next checkpoint after `today`
+ * (or the last weigh-in when none is ahead). Checkpoints months away would otherwise
+ * squash the data into a sliver.
+ */
+export function windowRows(rows: TrendRow[], today: LocalDate, checkpoints: CheckpointDto[] = []): TrendRow[] {
+  const firstPoint = rows.find((r) => r.kg !== null);
+  const lastPoint = [...rows].reverse().find((r) => r.kg !== null);
+  if (!firstPoint || !lastPoint) return [];
+  const nextCheckpoint = [...checkpoints]
+    .sort((a, b) => compareLocalDates(a.date, b.date))
+    .find((c) => compareLocalDates(c.date, today) > 0);
+  const end = nextCheckpoint && compareLocalDates(nextCheckpoint.date, lastPoint.date) > 0 ? nextCheckpoint.date : lastPoint.date;
+  return rows.filter((r) => compareLocalDates(r.date, firstPoint.date) >= 0 && compareLocalDates(r.date, end) <= 0);
 }
 
 export interface PaceLabel {

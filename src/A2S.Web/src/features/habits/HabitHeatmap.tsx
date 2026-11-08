@@ -50,7 +50,7 @@ export function HabitHeatmap({ habit, history, to }: HabitHeatmapProps) {
           {cells.flat().map((cell) => (
             <span
               key={cell.date}
-              className={cn('h-[18px] rounded-sm', cellClass[cell.state])}
+              className={cn('h-[18px] rounded-[3px]', cellClass[cell.state])}
               title={`${formatDayLabel(cell.date)}: ${stateLabel[cell.state]}${cell.value > 0 ? ` (${cell.value})` : ''}`}
             />
           ))}

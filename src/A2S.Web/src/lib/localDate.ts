@@ -38,12 +38,12 @@ function parse(date: LocalDate): { y: number; m: number; d: number } {
 }
 
 /** Days since the Unix epoch for a calendar date, ignoring time zones entirely. */
-function toEpochDays(date: LocalDate): number {
+export function toEpochDays(date: LocalDate): number {
   const { y, m, d } = parse(date);
   return Math.round(Date.UTC(y, m - 1, d) / 86_400_000);
 }
 
-function fromEpochDays(days: number): LocalDate {
+export function fromEpochDays(days: number): LocalDate {
   const dt = new Date(days * 86_400_000);
   const y = dt.getUTCFullYear();
   const m = String(dt.getUTCMonth() + 1).padStart(2, '0');

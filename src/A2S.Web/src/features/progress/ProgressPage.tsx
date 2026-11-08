@@ -55,6 +55,7 @@ export function ProgressPage() {
             checkpoints={plan?.checkpoints ?? []}
             startDate={plan?.startDate}
             startKg={plan?.startWeightKg}
+            today={date}
           />
         )}
 
