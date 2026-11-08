@@ -22,7 +22,7 @@ export function WeekPicker({ week, onChange }: WeekPickerProps) {
         ) : (
           <button
             type="button"
-            className="text-sm text-primary underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center px-3 text-sm text-primary underline-offset-4 hover:underline"
             onClick={() => onChange(resolveWeek(null))}
           >
             Back to this week

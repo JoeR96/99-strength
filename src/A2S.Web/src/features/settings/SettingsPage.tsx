@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { apiClient } from '@/api';
 import { HevySettings } from '@/components/hevy/HevySettings';
-import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { WorkoutDto, ExerciseDto } from '@/types/workout';
 

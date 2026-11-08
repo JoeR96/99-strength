@@ -26,7 +26,7 @@ export function HabitTick({ habit, onToggle, pending = false }: HabitTickProps) 
       data-testid={`habit-tick-${habit.id}`}
     >
       <HabitIcon icon={habit.icon} type={habit.type} className="h-6 w-6 shrink-0 text-muted-foreground" />
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{habit.name}</span>
+      <span className="min-w-0 flex-1 text-sm font-medium leading-tight text-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">{habit.name}</span>
       {pending && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label="Not yet synced" />}
       <span
         className={cn(
