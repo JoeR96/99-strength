@@ -74,6 +74,10 @@ public static class DependencyInjection
         services.AddSingleton<HabitStreakService>();
         services.AddSingleton<TrendService>();
         services.AddScoped<IPlanCheckpointSource, TrainingPlanCheckpointSource>();
+        // Meals and the weekly shopping list; the seeder gives a user the starter recipes on first visit.
+        services.AddScoped<IMealRepository, MealRepository>();
+        services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
+        services.AddScoped<IMealSeeder, MealSeeder>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
