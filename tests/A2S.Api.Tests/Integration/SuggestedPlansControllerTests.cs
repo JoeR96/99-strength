@@ -65,7 +65,9 @@ public class SuggestedPlansControllerTests
         plan.Phases.Should().HaveCountGreaterThanOrEqualTo(1);
         plan.StartWeightKg.Should().Be(95m);
 
-        var workout = (await client.GetFromJsonAsync<WorkoutDto>($"/api/v1/workouts/{result.WorkoutId}"))!;
+        var workout = (await client.GetFromJsonAsync<WorkoutDto>("/api/v1/workouts/current"))!;
+        workout.Id.Should().Be(result.WorkoutId!.Value);
+        workout.Name.Should().Be("Cut to 85 — Nov 2026");
         workout.Exercises.Should().HaveCount(20);
 
         var protocols = await client.GetFromJsonAsync<List<CardioProtocolDto>>("/api/v1/cardio-protocols");
