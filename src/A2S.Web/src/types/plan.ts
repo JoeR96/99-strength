@@ -119,6 +119,8 @@ export interface TodaySessionDto {
   cardioProtocolId: string | null;
   mobilityRoutineId: string | null;
   completionId: string | null;
+  /** The Hevy routine a push left for this session, or null when it was never pushed. */
+  hevyRoutineId: string | null;
 }
 
 export interface WeeklyGoalsDto {

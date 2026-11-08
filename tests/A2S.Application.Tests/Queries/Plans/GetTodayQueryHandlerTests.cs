@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.Queries.Plans;
+using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
@@ -25,13 +26,15 @@ public class GetTodayQueryHandlerTests
 
     private readonly ITrainingPlanRepository _plans = Substitute.For<ITrainingPlanRepository>();
     private readonly IWorkoutRepository _workouts = Substitute.For<IWorkoutRepository>();
+    private readonly IHevyLinkRepository _hevyLinks = Substitute.For<IHevyLinkRepository>();
     private readonly ICurrentUserService _currentUser = Substitute.For<ICurrentUserService>();
     private readonly GetTodayQueryHandler _handler;
 
     public GetTodayQueryHandlerTests()
     {
         var clock = new LocalClock(new FakeTimeProvider(new DateTimeOffset(2026, 11, 19, 9, 0, 0, TimeSpan.Zero)));
-        _handler = new GetTodayQueryHandler(_plans, _workouts, _currentUser, new PlanCalendarService(clock), clock);
+        _hevyLinks.ListAsync(Arg.Any<UserId>(), Arg.Any<HevyLinkKind>(), Arg.Any<CancellationToken>()).Returns(Array.Empty<HevyLink>());
+        _handler = new GetTodayQueryHandler(_plans, _workouts, _hevyLinks, _currentUser, new PlanCalendarService(clock), clock);
     }
 
     private static TrainingPlan PlanFor(UserId owner) =>
@@ -100,6 +103,56 @@ public class GetTodayQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Sessions[0].Status.Should().Be(SessionStatus.Planned);
         await _workouts.Received(1).GetByIdAsync(workoutId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WithAPushedLiftRoutine_CarriesItsHevyRoutineId()
+    {
+        _currentUser.UserId.Returns(TestUserId.Value);
+        var plan = PlanFor(TestUserId);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(plan);
+        var synced = new DateTimeOffset(2026, 11, 18, 20, 0, 0, TimeSpan.Zero);
+        _hevyLinks.ListAsync(TestUserId, HevyLinkKind.Routine, Arg.Any<CancellationToken>()).Returns(
+        [
+            HevyLink.Create(TestUserId, HevyLinkKind.Routine, HevyLocalKeys.LiftRoutine(plan.Id, Thu19Nov, DayNumber.Day3), "rt_upper_b_w1", synced),
+            // Another date's push must not leak onto today.
+            HevyLink.Create(TestUserId, HevyLinkKind.Routine, HevyLocalKeys.LiftRoutine(plan.Id, Thu19Nov.AddDays(7), DayNumber.Day3), "rt_upper_b_w2", synced)
+        ]);
+
+        var result = await _handler.Handle(new GetTodayQuery(Thu19Nov), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Sessions.Should().ContainSingle();
+        result.Value.Sessions[0].HevyRoutineId.Should().Be("rt_upper_b_w1");
+        await _hevyLinks.Received(1).ListAsync(TestUserId, HevyLinkKind.Routine, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WithAPushedCardioSlot_LinksOnlyThatSlot()
+    {
+        _currentUser.UserId.Returns(TestUserId.Value);
+        var plan = PlanFor(TestUserId);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(plan);
+        var cardio = plan.Schedule.Single(s => s.Kind == SessionKind.Cardio);
+        _hevyLinks.ListAsync(TestUserId, HevyLinkKind.Routine, Arg.Any<CancellationToken>()).Returns(
+        [
+            HevyLink.Create(TestUserId, HevyLinkKind.Routine, HevyLocalKeys.Routine(plan.Id, Wed18Nov, cardio), "rt_4x4", DateTimeOffset.UtcNow)
+        ]);
+
+        var result = await _handler.Handle(new GetTodayQuery(Wed18Nov), CancellationToken.None);
+
+        result.Value.Sessions.Select(s => s.HevyRoutineId).Should().Equal("rt_4x4", null);
+    }
+
+    [Fact]
+    public async Task Handle_WithNoPushedRoutines_LeavesHevyRoutineIdNull()
+    {
+        _currentUser.UserId.Returns(TestUserId.Value);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(PlanFor(TestUserId));
+
+        var result = await _handler.Handle(new GetTodayQuery(Thu19Nov), CancellationToken.None);
+
+        result.Value.Sessions[0].HevyRoutineId.Should().BeNull();
     }
 
     [Fact]

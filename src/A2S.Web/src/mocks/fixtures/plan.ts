@@ -82,11 +82,24 @@ const upperA: TodaySessionDto = {
   cardioProtocolId: null,
   mobilityRoutineId: null,
   completionId: null,
+  hevyRoutineId: null,
 };
 
 /** Monday: Upper A planned. */
 export function todayUpperA(date: LocalDate): TodayDto {
   return { date, phase: PhaseType.Cut, sessions: [upperA], week: weeklyGoalsFixture(date, { liftsDone: 0 }) };
+}
+
+export const HEVY_ROUTINE_ID = 'rt_upper_a_w1';
+
+/** Monday: Upper A planned and already pushed to Hevy, so the card offers Open in Hevy. */
+export function todayUpperAWithHevy(date: LocalDate): TodayDto {
+  return {
+    date,
+    phase: PhaseType.Cut,
+    sessions: [{ ...upperA, hevyRoutineId: HEVY_ROUTINE_ID }],
+    week: weeklyGoalsFixture(date, { liftsDone: 0 }),
+  };
 }
 
 /** Monday after the lift has been logged. */
@@ -113,6 +126,7 @@ export function todayRest(date: LocalDate): TodayDto {
         cardioProtocolId: null,
         mobilityRoutineId: null,
         completionId: null,
+        hevyRoutineId: null,
       },
     ],
     week: weeklyGoalsFixture(date, { liftsDone: 4, cardioDone: 2, mobilityDone: 1 }),
@@ -133,6 +147,7 @@ export function todayCardio(date: LocalDate): TodayDto {
         cardioProtocolId: CARDIO_4X4_ID,
         mobilityRoutineId: null,
         completionId: null,
+        hevyRoutineId: null,
       },
       {
         kind: SessionKind.Mobility,
@@ -142,6 +157,7 @@ export function todayCardio(date: LocalDate): TodayDto {
         cardioProtocolId: null,
         mobilityRoutineId: MOBILITY_B_ID,
         completionId: null,
+        hevyRoutineId: null,
       },
     ],
     week: weeklyGoalsFixture(date, { liftsDone: 2 }),

@@ -58,6 +58,7 @@ public sealed record TrainingPlanDto(
     IReadOnlyList<SessionCompletionDto> Completions,
     IReadOnlyList<AllowanceUseDto> AllowanceUses);
 
+/// <summary>One session of a plan day. <c>HevyRoutineId</c> is the routine a push left in Hevy, or null when never pushed.</summary>
 public sealed record TodaySessionDto(
     SessionKind Kind,
     string Label,
@@ -65,7 +66,8 @@ public sealed record TodaySessionDto(
     DayNumber? LiftDay,
     Guid? CardioProtocolId,
     Guid? MobilityRoutineId,
-    Guid? CompletionId);
+    Guid? CompletionId,
+    string? HevyRoutineId = null);
 
 public sealed record WeeklyGoalsDto(
     DateOnly WeekStart,
