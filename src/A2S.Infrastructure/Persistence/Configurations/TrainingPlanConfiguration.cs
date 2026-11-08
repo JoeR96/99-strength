@@ -55,51 +55,45 @@ public class TrainingPlanConfiguration : IEntityTypeConfiguration<TrainingPlan>
         });
         builder.Navigation(p => p.Allowances).IsRequired();
 
-        builder.OwnsMany(p => p.Schedule, session =>
-        {
-            session.ToJson();
-            session.Property(s => s.Day).HasConversion<string>();
-            session.Property(s => s.Kind).HasConversion<string>();
-            session.Property(s => s.LiftDay).HasConversion<string>();
-            session.Property(s => s.CardioProtocolId)
-                .HasConversion(new ValueConverter<CardioProtocolId?, Guid?>(
-                    id => id.HasValue ? id.Value.Value : null,
-                    value => value.HasValue ? new CardioProtocolId(value.Value) : null));
-            session.Property(s => s.MobilityRoutineId)
-                .HasConversion(new ValueConverter<MobilityRoutineId?, Guid?>(
-                    id => id.HasValue ? id.Value.Value : null,
-                    value => value.HasValue ? new MobilityRoutineId(value.Value) : null));
-            session.Property(s => s.Label).HasMaxLength(100);
-            session.Ignore(s => s.DayOrder);
-        });
-        builder.Navigation(p => p.Schedule).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // Schedule: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.Schedule);
+        builder.Property<List<ScheduledSession>>("_schedule")
+            .HasColumnName("Schedule")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<ScheduledSession>(), JsonColumn.Comparer<ScheduledSession>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.OwnsMany(p => p.Phases, phase =>
-        {
-            phase.ToJson();
-            phase.Property(x => x.Type).HasConversion<string>();
-            phase.Property(x => x.From);
-            phase.Property(x => x.To);
-            phase.Property(x => x.Note).HasMaxLength(500);
-        });
-        builder.Navigation(p => p.Phases).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // Phases: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.Phases);
+        builder.Property<List<PlanPhase>>("_phases")
+            .HasColumnName("Phases")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<PlanPhase>(), JsonColumn.Comparer<PlanPhase>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.OwnsMany(p => p.Checkpoints, checkpoint =>
-        {
-            checkpoint.ToJson();
-            checkpoint.Property(x => x.Date);
-            checkpoint.Property(x => x.TargetKg);
-            checkpoint.Property(x => x.Note).HasMaxLength(500);
-        });
-        builder.Navigation(p => p.Checkpoints).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // Checkpoints: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.Checkpoints);
+        builder.Property<List<Checkpoint>>("_checkpoints")
+            .HasColumnName("Checkpoints")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<Checkpoint>(), JsonColumn.Comparer<Checkpoint>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.OwnsMany(p => p.AllowanceUses, use =>
-        {
-            use.ToJson();
-            use.Property(x => x.Date);
-            use.Property(x => x.Kind).HasConversion<string>();
-        });
-        builder.Navigation(p => p.AllowanceUses).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // AllowanceUses: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.AllowanceUses);
+        builder.Property<List<AllowanceUse>>("_allowanceUses")
+            .HasColumnName("AllowanceUses")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<AllowanceUse>(), JsonColumn.Comparer<AllowanceUse>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasMany(p => p.Completions)
             .WithOne()

@@ -22,8 +22,8 @@ namespace A2S.Infrastructure.Migrations
                     Notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     WeekIndex = table.Column<int>(type: "integer", nullable: true),
                     RepeatWeek = table.Column<bool>(type: "boolean", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    Intervals = table.Column<string>(type: "jsonb", nullable: true)
+                    Intervals = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,8 +38,8 @@ namespace A2S.Infrastructure.Migrations
                     UserId = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     TargetMinutes = table.Column<int>(type: "integer", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    Drills = table.Column<string>(type: "jsonb", nullable: true)
+                    Drills = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,11 +59,11 @@ namespace A2S.Infrastructure.Migrations
                     StartWeightKg = table.Column<decimal>(type: "numeric(6,2)", precision: 6, scale: 2, nullable: false),
                     FlexibleMealsPerWeek = table.Column<int>(type: "integer", nullable: false),
                     AlcoholOccasionsPerWeek = table.Column<int>(type: "integer", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    AllowanceUses = table.Column<string>(type: "jsonb", nullable: true),
-                    Checkpoints = table.Column<string>(type: "jsonb", nullable: true),
-                    Phases = table.Column<string>(type: "jsonb", nullable: true),
-                    Schedule = table.Column<string>(type: "jsonb", nullable: true)
+                    AllowanceUses = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    Checkpoints = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    Phases = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    Schedule = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {

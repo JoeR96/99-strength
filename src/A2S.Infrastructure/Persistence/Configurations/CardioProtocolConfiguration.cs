@@ -44,14 +44,15 @@ public class CardioProtocolConfiguration : IEntityTypeConfiguration<CardioProtoc
         builder.Property(p => p.WeekIndex);
         builder.Property(p => p.RepeatWeek).IsRequired();
 
-        builder.OwnsMany(p => p.Intervals, interval =>
-        {
-            interval.ToJson();
-            interval.Property(i => i.Label).HasMaxLength(100);
-            interval.Property(i => i.Seconds);
-            interval.Property(i => i.Effort).HasConversion<string>();
-        });
-        builder.Navigation(p => p.Intervals).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // Intervals: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.Intervals);
+        builder.Property<List<CardioInterval>>("_intervals")
+            .HasColumnName("Intervals")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<CardioInterval>(), JsonColumn.Comparer<CardioInterval>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Ignore(p => p.TotalMinutes);
         builder.Ignore(p => p.DomainEvents);

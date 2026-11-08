@@ -34,22 +34,15 @@ public class MobilityRoutineConfiguration : IEntityTypeConfiguration<MobilityRou
 
         builder.Property(r => r.TargetMinutes).IsRequired();
 
-        builder.OwnsMany(r => r.Drills, drill =>
-        {
-            drill.ToJson();
-            drill.Property(d => d.Name).HasMaxLength(200);
-            drill.Property(d => d.Sets);
-            drill.Property(d => d.ExtraSetSide).HasConversion<string>();
-            drill.Property(d => d.Cues).HasMaxLength(500);
-            drill.Property(d => d.StandingAlternative).HasMaxLength(500);
-            drill.Property(d => d.PerSide);
-            drill.OwnsOne(d => d.Dose, dose =>
-            {
-                dose.Property(x => x.Unit).HasConversion<string>();
-                dose.Property(x => x.Amount);
-            });
-        });
-        builder.Navigation(r => r.Drills).UsePropertyAccessMode(PropertyAccessMode.Field);
+        // Drills: one jsonb value (see JsonColumn) so the aggregate can reorder or replace the list freely.
+        builder.Ignore(x => x.Drills);
+        builder.Property<List<MobilityDrill>>("_drills")
+            .HasColumnName("Drills")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.Converter<MobilityDrill>(), JsonColumn.Comparer<MobilityDrill>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Ignore(r => r.DomainEvents);
 
