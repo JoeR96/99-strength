@@ -84,7 +84,9 @@ export async function createCompletedWorkoutInHevy(
   completedExercises: CompletedExerciseData[],
   startTime: Date,
   endTime: Date,
-  progressionChanges?: { exerciseId: string; change: string }[]
+  progressionChanges?: { exerciseId: string; change: string }[],
+  /** The week that was just completed. After a rollover `workout.currentWeek` is already the next one. */
+  weekNumber: number = workout.currentWeek
 ): Promise<SyncResult> {
   if (!hevyApi.isConfigured()) {
     return {
@@ -95,10 +97,10 @@ export async function createCompletedWorkoutInHevy(
 
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayName = dayNames[dayNumber - 1] || `Day ${dayNumber}`;
-  const workoutTitle = `${workout.name} - Week ${workout.currentWeek} / Day ${dayNumber} (${dayName})`;
+  const workoutTitle = `${workout.name} - Week ${weekNumber} / Day ${dayNumber} (${dayName})`;
 
   try {
-    const weekParams = getWeekParameters(workout.currentWeek);
+    const weekParams = getWeekParameters(weekNumber);
     const hevyExercises: HevyWorkoutExercise[] = [];
     const unresolved: string[] = [];
 

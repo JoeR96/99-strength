@@ -55,6 +55,8 @@ export interface SavedWorkoutProgress {
   dayNumber: number;
   weekNumber: number;
   savedAt: string;
+  /** When the session was first opened, so a resumed session keeps its real start time. */
+  startedAt?: string;
   exercises: SavedExerciseProgress[];
 }
 

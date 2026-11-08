@@ -197,6 +197,14 @@ export const workoutsApi = {
   },
 
   /**
+   * The planned sets for one week/day, computed server-side (block, deload, progression).
+   */
+  getWeekPlan: async (workoutId: string, week: number, day: number): Promise<WeekPlanDto> => {
+    const response = await apiClient.get<WeekPlanDto>(`/workouts/${workoutId}/weeks/${week}/days/${day}/plan`);
+    return response.data;
+  },
+
+  /**
    * Undo the last completed day, rolling back progress
    */
   undoLastCompletion: async (workoutId: string): Promise<UndoCompletionResult> => {

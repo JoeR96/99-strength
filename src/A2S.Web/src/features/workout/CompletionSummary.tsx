@@ -92,7 +92,8 @@ export function CompletionSummary({
         completedExercises,
         workoutStartTime,
         workoutEndTime,
-        result.progressionChanges
+        result.progressionChanges,
+        result.weekNumber
       );
 
       if (syncResult.success) {
