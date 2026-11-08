@@ -117,15 +117,29 @@ describe('TodayPage', () => {
     renderToday();
     const buttons = await screen.findAllByTestId('mark-done');
     fireEvent.click(buttons[0]);
-    const minutes = await screen.findByLabelText(/minutes/i);
+    const minutes = await screen.findByLabelText(/^minutes$/i);
     fireEvent.change(minutes, { target: { value: '38' } });
     fireEvent.click(screen.getByRole('button', { name: /^mark done$/i }));
     await waitFor(() => expect(completeSpy).toHaveBeenCalledTimes(1));
     expect(completeSpy.mock.calls[0][1]).toMatchObject({
       date: '2026-11-09',
       kind: 2,
-      cardio: expect.objectContaining({ durationSeconds: 38 * 60 }),
+      cardio: expect.objectContaining({ durationSeconds: 38 * 60, highIntensityMinutes: null }),
     });
+  });
+
+  it('sends zone 4–5 minutes when typed into the cardio sheet', async () => {
+    installPlansHandlers(plansHandlers.cardio());
+    const completeSpy = vi.spyOn(plansApi, 'completeSession');
+    renderToday();
+    fireEvent.click((await screen.findAllByTestId('mark-done'))[0]);
+    fireEvent.change(await screen.findByLabelText(/^minutes$/i), { target: { value: '38' } });
+    const zone = screen.getByLabelText(/zone 4–5 minutes/i);
+    expect(zone).toHaveAttribute('inputmode', 'numeric');
+    fireEvent.change(zone, { target: { value: '16' } });
+    fireEvent.click(screen.getByRole('button', { name: /^mark done$/i }));
+    await waitFor(() => expect(completeSpy).toHaveBeenCalledTimes(1));
+    expect(completeSpy.mock.calls[0][1]).toMatchObject({ cardio: expect.objectContaining({ highIntensityMinutes: 16 }) });
   });
 
   it('saves a weigh-in to the body-weight API', async () => {

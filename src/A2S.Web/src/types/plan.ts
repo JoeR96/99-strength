@@ -60,6 +60,20 @@ export interface CardioLogDto {
   rpe: number | null;
   distanceMeters: number | null;
   notes: string | null;
+  /** Minutes in HR zones 4–5; when omitted the server fills the protocol default (16 for a 4×4). */
+  highIntensityMinutes?: number | null;
+}
+
+/** Weekly zone 4–5 minutes band (default 15–30). */
+export interface HighIntensityTargetDto {
+  minMinutes: number;
+  maxMinutes: number;
+}
+
+/** Body for `PUT /plans/{id}/high-intensity-target`. */
+export interface SetHighIntensityTargetRequest {
+  minMinutes: number;
+  maxMinutes: number;
 }
 
 export interface SessionCompletionDto {
@@ -89,6 +103,7 @@ export interface TrainingPlanDto {
   linkedWorkoutId: string | null;
   startWeightKg: number;
   allowances: WeeklyAllowancesDto;
+  highIntensityTarget: HighIntensityTargetDto;
   schedule: ScheduledSessionDto[];
   phases: PlanPhaseDto[];
   checkpoints: CheckpointDto[];
@@ -118,6 +133,9 @@ export interface WeeklyGoalsDto {
   flexibleMealsAllowed: number;
   alcoholOccasions: number;
   alcoholAllowed: number;
+  highIntensityMinutesDone: number;
+  highIntensityMinutesMin: number;
+  highIntensityMinutesMax: number;
 }
 
 export interface TodayDto {

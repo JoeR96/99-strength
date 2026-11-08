@@ -31,6 +31,7 @@ export function CardioLogSheet({ session, onClose, onSubmit, saving = false }: C
   const [avgHr, setAvgHr] = useState('');
   const [rpe, setRpe] = useState('');
   const [km, setKm] = useState('');
+  const [zoneMinutes, setZoneMinutes] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +48,11 @@ export function CardioLogSheet({ session, onClose, onSubmit, saving = false }: C
       setError('RPE is 1 to 10');
       return;
     }
+    const zone = optionalNumber(zoneMinutes);
+    if (zone !== null && (zone < 0 || zone > mins)) {
+      setError('Zone 4–5 minutes cannot be more than the session');
+      return;
+    }
     setError(null);
     const distance = optionalNumber(km);
     onSubmit(session, {
@@ -55,6 +61,7 @@ export function CardioLogSheet({ session, onClose, onSubmit, saving = false }: C
       rpe: rpeValue,
       distanceMeters: distance === null ? null : Math.round(distance * 1000),
       notes: notes.trim() === '' ? null : notes.trim(),
+      highIntensityMinutes: zone === null ? null : Math.round(zone),
     });
   };
 
@@ -94,6 +101,17 @@ export function CardioLogSheet({ session, onClose, onSubmit, saving = false }: C
               <Input id="cardio-km" inputMode="decimal" value={km} onChange={(e) => setKm(e.target.value)} placeholder="5.0" className="mt-1 h-12" />
             </div>
             <div>
+              <Label htmlFor="cardio-zone">Zone 4–5 minutes</Label>
+              <Input
+                id="cardio-zone"
+                inputMode="numeric"
+                value={zoneMinutes}
+                onChange={(e) => setZoneMinutes(e.target.value)}
+                placeholder="From your watch"
+                className="mt-1 h-12"
+              />
+            </div>
+            <div className="col-span-2">
               <Label htmlFor="cardio-notes">Notes</Label>
               <Input id="cardio-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hills, windy" className="mt-1 h-12" />
             </div>

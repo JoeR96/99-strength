@@ -4,7 +4,9 @@ import type {
   AllowanceKind,
   AllowanceUseDto,
   CompleteSessionRequest,
+  HighIntensityTargetDto,
   PlanDayDto,
+  SetHighIntensityTargetRequest,
   SessionCompletionDto,
   TodayDto,
   TrainingPlanDto,
@@ -73,5 +75,10 @@ export const plansApi = {
 
   removeAllowanceUse: async (planId: string, date: LocalDate, kind: AllowanceKind): Promise<void> => {
     await apiClient.delete(`/plans/${planId}/allowances`, { params: { date, kind } });
+  },
+
+  setHighIntensityTarget: async (planId: string, request: SetHighIntensityTargetRequest): Promise<HighIntensityTargetDto> => {
+    const response = await apiClient.put<HighIntensityTargetDto>(`/plans/${planId}/high-intensity-target`, request);
+    return response.data;
   },
 };

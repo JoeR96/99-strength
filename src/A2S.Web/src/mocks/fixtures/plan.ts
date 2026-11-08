@@ -28,6 +28,7 @@ export const planFixture: TrainingPlanDto = {
   linkedWorkoutId: 'w-1',
   startWeightKg: 95,
   allowances: { flexibleMeals: 1, alcoholOccasions: 1 },
+  highIntensityTarget: { minMinutes: 15, maxMinutes: 30 },
   schedule: [
     { day: 1, kind: SessionKind.Lift, liftDay: 1, cardioProtocolId: null, mobilityRoutineId: null, label: 'Upper A' },
     { day: 2, kind: SessionKind.Lift, liftDay: 2, cardioProtocolId: null, mobilityRoutineId: null, label: 'Lower A' },
@@ -66,6 +67,9 @@ export function weeklyGoalsFixture(date: LocalDate, overrides: Partial<WeeklyGoa
     flexibleMealsAllowed: 1,
     alcoholOccasions: 0,
     alcoholAllowed: 1,
+    highIntensityMinutesDone: 16,
+    highIntensityMinutesMin: 15,
+    highIntensityMinutesMax: 30,
     ...overrides,
   };
 }
@@ -157,6 +161,7 @@ export function todayPaused(date: LocalDate): TodayDto {
       cardioDone: 0,
       mobilityPlanned: 0,
       mobilityDone: 0,
+      highIntensityMinutesDone: 0,
     }),
   };
 }
