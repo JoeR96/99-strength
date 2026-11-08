@@ -191,6 +191,105 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("HabitLogs", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.Meals.Meal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("CutFriendly")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ExternalKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("_ingredients")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Ingredients")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_steps")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Steps")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_tags")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Tags")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ExternalKey")
+                        .IsUnique()
+                        .HasFilter("\"ExternalKey\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "Type", "Title");
+
+                    b.ToTable("Meals", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Meals.ShoppingList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateOnly>("WeekStart")
+                        .HasColumnType("date");
+
+                    b.Property<string>("_items")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Items")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_sourceMealIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("SourceMealIds")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "WeekStart")
+                        .IsUnique();
+
+                    b.ToTable("ShoppingLists", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.Mobility.MobilityRoutine", b =>
                 {
                     b.Property<Guid>("Id")
