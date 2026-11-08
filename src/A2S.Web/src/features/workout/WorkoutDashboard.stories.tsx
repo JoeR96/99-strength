@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { HevyProvider } from "../../contexts/HevyContext";
 import { WorkoutDashboard } from "./WorkoutDashboard";
 import { workoutsApi } from "../../api/workouts";
 import type { WorkoutDto, ExerciseDto } from "../../types/workout";
@@ -104,10 +105,12 @@ const meta = {
     (Story) => {
       const queryClient = createQueryClient();
       return (
-        <ClerkProvider publishableKey="pk_test_placeholder">
+        <ClerkProvider publishableKey="pk_test_Y2xlcmsuZXhhbXBsZS5jb20k">
           <MemoryRouter initialEntries={["/workout"]}>
             <QueryClientProvider client={queryClient}>
-              <Story />
+              <HevyProvider>
+                <Story />
+              </HevyProvider>
             </QueryClientProvider>
           </MemoryRouter>
         </ClerkProvider>

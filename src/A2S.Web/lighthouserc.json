@@ -1,0 +1,27 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:4173/sign-in"],
+      "numberOfRuns": 1,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new",
+        "onlyCategories": ["performance", "pwa", "best-practices"]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.7 }],
+        "installable-manifest": "error",
+        "viewport": "error",
+        "themed-omnibox": "error",
+        "maskable-icon": "error",
+        "splash-screen": "error",
+        "content-width": "error"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

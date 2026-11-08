@@ -26,4 +26,9 @@
     <ProjectReference Include="..\A2S.Tests.Shared\A2S.Tests.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The research tables drive the 21-week A2S2 cycle tests (A2S2CycleTests). -->
+    <None Include="..\..\research\A2S2_Validation_Data.md" Link="TestData\A2S2_Validation_Data.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
