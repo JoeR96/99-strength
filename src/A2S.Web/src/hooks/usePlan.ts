@@ -79,8 +79,13 @@ export function useUndoSessionCompletion() {
 export function useAllowance() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ planId, date, kind, remove }: { planId: string; date: LocalDate; kind: AllowanceKind; remove?: boolean }) =>
-      remove ? plansApi.removeAllowanceUse(planId, date, kind) : plansApi.useAllowance(planId, { date, kind }),
+    mutationFn: async ({ planId, date, kind, remove }: { planId: string; date: LocalDate; kind: AllowanceKind; remove?: boolean }) => {
+      if (remove) {
+        await plansApi.removeAllowanceUse(planId, date, kind);
+      } else {
+        await plansApi.useAllowance(planId, { date, kind });
+      }
+    },
     onSuccess: () => invalidatePlanViews(queryClient),
   });
 }
