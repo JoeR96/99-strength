@@ -1,4 +1,5 @@
 using A2S.Application.Interfaces;
+using A2S.Application.Interfaces.Hevy;
 using A2S.Integration.Hevy.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,14 @@ public static class DependencyInjection
                 hevyOptions.CircuitBreakerDurationSeconds));
 
         services.AddScoped<IHevyIntegrationService, HevyIntegrationService>();
+
+        // Typed client (Phase 6): its own named HttpClient with the hard timeout; retry, circuit
+        // and error mapping live inside HevyClient so GETs and writes get different treatment.
+        services.AddHttpClient(HevyClient.HttpClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(Math.Max(hevyOptions.TimeoutSeconds, 1));
+        });
+        services.AddSingleton<IHevyClient, HevyClient>();
 
         return services;
     }
