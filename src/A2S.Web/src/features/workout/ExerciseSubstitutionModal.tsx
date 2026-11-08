@@ -248,6 +248,7 @@ export function ExerciseSubstitutionModal({
                     <label className="text-xs font-medium text-warning">Sets</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repsConfig.sets}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, sets: parseInt(e.target.value) || 3 }))}
                       className="mt-1 h-8 bg-card"
@@ -259,6 +260,7 @@ export function ExerciseSubstitutionModal({
                     <label className="text-xs font-medium text-warning">Min Reps</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repsConfig.minReps}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, minReps: parseInt(e.target.value) || 8 }))}
                       className="mt-1 h-8 bg-card"
@@ -270,6 +272,7 @@ export function ExerciseSubstitutionModal({
                     <label className="text-xs font-medium text-warning">Max Reps</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repsConfig.maxReps}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, maxReps: parseInt(e.target.value) || 12 }))}
                       className="mt-1 h-8 bg-card"
@@ -283,6 +286,7 @@ export function ExerciseSubstitutionModal({
                     </label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repsConfig.startingWeight}
                       onChange={(e) => setRepsConfig(prev => ({ ...prev, startingWeight: parseFloat(e.target.value) || 20 }))}
                       className="mt-1 h-8 bg-card"

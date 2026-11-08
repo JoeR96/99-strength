@@ -245,6 +245,7 @@ export function SimulationPage() {
                 <input
                   aria-label="Sessions"
                   type="number"
+              inputMode="decimal"
                   min={1}
                   max={500}
                   value={sessionCount}
@@ -285,6 +286,7 @@ export function SimulationPage() {
                 <input
                   aria-label="Days"
                   type="number"
+              inputMode="decimal"
                   min={1}
                   max={200}
                   value={runDays}
@@ -297,6 +299,7 @@ export function SimulationPage() {
                 <input
                   aria-label="Success %"
                   type="number"
+              inputMode="decimal"
                   min={0}
                   max={100}
                   value={Math.round(runSuccessRate * 100)}
@@ -309,6 +312,7 @@ export function SimulationPage() {
                 <input
                   aria-label="Maintain %"
                   type="number"
+              inputMode="decimal"
                   min={0}
                   max={100}
                   value={Math.round(runMaintainRate * 100)}

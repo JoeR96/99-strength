@@ -91,6 +91,31 @@ export function SettingsPage() {
 
           <HevySettings />
 
+          {/* Secondary pages that used to sit in the top menu */}
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-xl font-semibold text-foreground mb-2">More</h2>
+            <p className="text-muted-foreground mb-4">Programmes, the exercise library and developer tools.</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {[
+                { to: '/programs', label: 'Programmes', hint: 'Create, activate or delete a programme' },
+                { to: '/exercises', label: 'Exercise library', hint: 'Browse exercises and Hevy history' },
+                { to: '/hevy', label: 'Hevy routines', hint: 'Routines pushed to Hevy' },
+                { to: '/hevy/data', label: 'Hevy data', hint: 'Charts from your Hevy workouts' },
+                { to: '/simulate', label: 'Simulator', hint: 'Developer: project progression' },
+              ].map((item) => (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    className="flex min-h-14 flex-col justify-center rounded-lg border border-border px-4 py-3 transition-colors hover:bg-muted"
+                  >
+                    <span className="font-medium text-foreground">{item.label}</span>
+                    <span className="text-xs text-muted-foreground">{item.hint}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Export Data Section */}
           <div className="rounded-xl border border-border bg-card p-6">
             <h2 className="text-xl font-semibold text-foreground mb-2">Export Program Data</h2>
