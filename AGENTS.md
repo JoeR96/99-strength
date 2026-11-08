@@ -205,6 +205,8 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `RetrofixLinearTm` | Recalculates TM history from AMRAP data | |
 | `SyncRoutineToHevy` | Pushes routine to Hevy via ACL; the key is resolved server-side via `IHevyKeyResolver` | |
 | `CreateUser` | Auto-provisions user from Clerk auth | |
+| `StartSuggestedPlan` | One-tap onboarding: builds "Cut to 85 — Nov 2026" from `SuggestedPlans/CutTo85Nov2026` (workout + cardio protocols + Mobility A/B + habits + linked plan) in one unit of work; idempotent while that plan is active | `POST /api/v1/plans/suggested/cut-to-85` |
+| `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan | `PUT /api/v1/plans/{id}/schedule` |
 
 ### Queries
 
@@ -217,6 +219,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetExerciseHistory` | Historical performance for an exercise |
 | `GetWorkoutHistory` | Completed day history for a workout |
 | `GetCurrentUser` / `GetUser` | User profile |
+| `GetSuggestedPlans` | Previews the suggested plans for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
 
 ## Testing
 
