@@ -30,6 +30,9 @@ public sealed record CompleteSessionRequest(
     IReadOnlyList<bool>? DrillTicks = null,
     string? HevyWorkoutId = null);
 
+/// <summary>Body for <c>POST /api/v1/plans/{id}/sessions/push</c>: the scheduled session of that kind on that date.</summary>
+public sealed record PushSessionRequest(DateOnly Date, SessionKind Kind, DayNumber? LiftDay = null);
+
 /// <summary>Body for <c>POST /api/v1/plans/{id}/allowances</c>.</summary>
 public sealed record UseAllowanceRequest(DateOnly Date, AllowanceKind Kind);
 

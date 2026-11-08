@@ -141,9 +141,10 @@ public static class CutTo85Nov2026
 
     /// <summary>
     /// What the brief says beyond sets × reps and the Workout cannot hold: side bias, pauses, timed
-    /// holds and the superset partner. Keyed by template name.
+    /// holds and the superset partner. Keyed by template name. Public so the Hevy routine push can
+    /// carry them when the plan was started from this spec.
     /// </summary>
-    private static IReadOnlyDictionary<string, string> ExerciseNotes() => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    public static IReadOnlyDictionary<string, string> ExerciseNotes() => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["Single Arm Landmine Press (Barbell)"] = "Half-kneeling. 8 per side, start left.",
         ["Single Arm Cable Row"] = "10 per side, extra set left. Superset with face pulls.",
@@ -159,7 +160,7 @@ public static class CutTo85Nov2026
         ["Dead Bug"] = "8 per side. Superset with Copenhagen plank."
     };
 
-    private static IReadOnlyList<SupersetSpec> Supersets() =>
+    public static IReadOnlyList<SupersetSpec> Supersets() =>
     [
         new(DayNumber.Day1, "Single Arm Cable Row", "Face Pull"),
         new(DayNumber.Day2, "Side Plank", "Cable Core Pallof Press"),

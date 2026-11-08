@@ -30,6 +30,14 @@ public class TestUserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<UserId>> ListIdsWithHevyKeyAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.AppUsers
+            .Where(u => u.HevyApiKeyProtected != null)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         await _dbContext.AppUsers.AddAsync(user, cancellationToken);

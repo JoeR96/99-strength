@@ -1,0 +1,8 @@
+{
+  "page": 1,
+  "page_count": 1,
+  "routine_folders": [
+    { "id": 42, "title": "Cut to 85", "index": 0, "updated_at": "2026-11-15T19:59:00+00:00", "created_at": "2026-11-15T19:59:00+00:00" },
+    { "id": 7, "title": "Old programme", "index": 1, "updated_at": "2026-01-10T10:00:00+00:00", "created_at": "2026-01-10T10:00:00+00:00" }
+  ]
+}

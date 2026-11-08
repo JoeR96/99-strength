@@ -1,4 +1,5 @@
 using A2S.Domain.Common;
+using A2S.Domain.Events;
 
 namespace A2S.Domain.Aggregates.BodyWeight;
 
@@ -30,7 +31,9 @@ public sealed class BodyWeightEntry : AggregateRoot<BodyWeightEntryId>
     public static BodyWeightEntry Create(UserId userId, DateOnly date, decimal kg, DateTimeOffset recordedAt)
     {
         CheckKg(kg);
-        return new BodyWeightEntry(new BodyWeightEntryId(Guid.NewGuid()), userId, date, kg, recordedAt.ToUniversalTime());
+        var entry = new BodyWeightEntry(new BodyWeightEntryId(Guid.NewGuid()), userId, date, kg, recordedAt.ToUniversalTime());
+        entry.AddDomainEvent(new BodyWeightRecorded(userId, date, kg, entry.RecordedAtUtc));
+        return entry;
     }
 
     public void Update(decimal kg, DateTimeOffset at)
@@ -38,6 +41,7 @@ public sealed class BodyWeightEntry : AggregateRoot<BodyWeightEntryId>
         CheckKg(kg);
         Kg = kg;
         RecordedAtUtc = at.ToUniversalTime();
+        AddDomainEvent(new BodyWeightRecorded(UserId, Date, kg, RecordedAtUtc));
     }
 
     private static void CheckKg(decimal kg) =>

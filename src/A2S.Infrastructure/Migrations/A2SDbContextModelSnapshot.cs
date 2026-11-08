@@ -191,6 +191,120 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("HabitLogs", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.HevySync.HevyLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HevyId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("LocalKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Kind", "HevyId");
+
+                    b.HasIndex("UserId", "Kind", "LocalKey")
+                        .IsUnique();
+
+                    b.ToTable("HevyLinks", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.HevySync.HevyPullCursor", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("UserId");
+
+                    b.Property<DateTimeOffset>("LastEventAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LastPulledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HevyPullCursors", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.HevySync.HevyWorkoutSnapshot", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("HevyWorkoutId");
+
+                    b.Property<DateTimeOffset>("EndUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("RawJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RoutineId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("SessionCompletionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("StartUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LocalDate");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("HevyWorkoutSnapshots", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.Meals.Meal", b =>
                 {
                     b.Property<Guid>("Id")
