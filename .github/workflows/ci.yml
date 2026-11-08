@@ -72,7 +72,7 @@ jobs:
         continue-on-error: true
 
   storybook:
-    name: Storybook build
+    name: Storybook build + mobile a11y
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -86,3 +86,48 @@ jobs:
           cache-dependency-path: src/A2S.Web/package-lock.json
       - run: npm ci
       - run: npm run build-storybook -- --quiet
+      # Every page-level story on a 390 × 844 phone: no horizontal overflow, 44 px tap targets,
+      # no serious/critical axe violations (tests/storybook/pages.spec.ts). Known defects are
+      # expected failures listed in tests/storybook/known-issues.ts.
+      # @storybook/test-runner is not a dependency of this project, so Playwright drives the
+      # built stories directly through scripts/storybook-harness.mjs instead.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:storybook
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: storybook-mobile-report
+          path: |
+            src/A2S.Web/playwright-report/storybook
+            src/A2S.Web/test-results
+
+  lighthouse:
+    name: Lighthouse installability (PWA)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/A2S.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/A2S.Web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          VITE_API_BASE_URL: http://localhost:5123/api/v1
+      - run: npx vite preview --port 4173 --strictPort &
+      - run: npx --yes wait-on@8 http://localhost:4173/sign-in --timeout 60000
+      # Lighthouse 12 (lhci 0.14) dropped the PWA category and every installability audit except
+      # `viewport`, so this pins lhci 0.13 (Lighthouse 11), the last release that still ships
+      # installable-manifest, themed-omnibox, maskable-icon, splash-screen and content-width.
+      # Assertions live in src/A2S.Web/lighthouserc.json: installability as errors, performance as a warning.
+      - run: npx --yes @lhci/cli@0.13.x autorun --config=lighthouserc.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: src/A2S.Web/.lighthouseci
