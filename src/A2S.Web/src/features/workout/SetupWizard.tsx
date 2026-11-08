@@ -118,7 +118,7 @@ export function SetupWizard() {
       });
 
       toast.success("Workout created successfully!");
-      navigate("/dashboard");
+      navigate("/today");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to create workout";
       toast.error(errorMessage);

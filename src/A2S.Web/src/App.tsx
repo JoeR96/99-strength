@@ -5,7 +5,6 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignUpPage } from './features/auth/SignUpPage';
-import { DashboardPage } from './features/auth/DashboardPage';
 import { SetupWizard } from './features/workout/SetupWizard';
 import { WorkoutDashboard } from './features/workout/WorkoutDashboard';
 import { WorkoutSession } from './features/workout/WorkoutSession';
@@ -15,6 +14,7 @@ import { HevyManagementPage } from './features/hevy/HevyManagementPage';
 import { HevyDataPage } from './features/hevy/HevyDataPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { HabitsPage } from './features/habits/HabitsPage';
+import { TodayPage } from './features/today/TodayPage';
 import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
 
@@ -31,7 +31,7 @@ function AppContent() {
           element={
             <>
               <SignedIn>
-                <Navigate to="/dashboard" replace />
+                <Navigate to="/today" replace />
               </SignedIn>
               <SignedOut>
                 <LoginPage />
@@ -44,7 +44,7 @@ function AppContent() {
           element={
             <>
               <SignedIn>
-                <Navigate to="/dashboard" replace />
+                <Navigate to="/today" replace />
               </SignedIn>
               <SignedOut>
                 <SignUpPage />
@@ -54,8 +54,8 @@ function AppContent() {
         />
 
         {/* Protected routes */}
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/today" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/today" element={<ProtectedRoute><TodayPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<Navigate to="/today" replace />} />
         <Route path="/habits" element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
         <Route path="/workout" element={<ProtectedRoute><WorkoutDashboard /></ProtectedRoute>} />
         <Route
@@ -83,7 +83,7 @@ function AppContent() {
           element={
             <>
               <SignedIn>
-                <Navigate to="/dashboard" replace />
+                <Navigate to="/today" replace />
               </SignedIn>
               <SignedOut>
                 <Navigate to="/sign-in" replace />

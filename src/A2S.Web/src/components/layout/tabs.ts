@@ -10,10 +10,10 @@ export interface TabDefinition {
 }
 
 export const TABS: TabDefinition[] = [
-  { to: '/dashboard', label: 'Today', icon: Sun, matches: ['/dashboard', '/today'] },
+  { to: '/today', label: 'Today', icon: Sun, matches: ['/today', '/dashboard'] },
   { to: '/workout', label: 'Plan', icon: CalendarDays, matches: ['/workout', '/setup', '/programs'] },
   { to: '/habits', label: 'Habits', icon: CheckCircle2, matches: ['/habits'] },
-  { to: '/history', label: 'Progress', icon: TrendingUp, matches: ['/history', '/hevy/data'] },
+  { to: '/progress', label: 'Progress', icon: TrendingUp, matches: ['/progress', '/history', '/hevy/data'] },
   { to: '/settings', label: 'Settings', icon: Settings, matches: ['/settings', '/hevy', '/exercises', '/simulate'] },
 ];
 

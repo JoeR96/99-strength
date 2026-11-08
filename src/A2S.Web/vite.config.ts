@@ -14,7 +14,7 @@ export default defineConfig({
         name: '99 Strength',
         short_name: '99 Strength',
         description: 'Your whole training plan — lifts, cardio, mobility, habits and weight — in one place.',
-        start_url: '/dashboard',
+        start_url: '/today',
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',

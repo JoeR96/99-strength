@@ -15,7 +15,7 @@ export function Navbar() {
       <div className="container-page">
         <div className="flex h-14 items-center justify-between lg:h-16">
           <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="flex items-center gap-3" aria-label="99 Strength home">
+            <Link to="/today" className="flex items-center gap-3" aria-label="99 Strength home">
               <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
                 <span className="text-lg font-bold font-display text-primary-foreground">99</span>
               </div>
