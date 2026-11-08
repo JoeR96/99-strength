@@ -22,7 +22,10 @@ public sealed record CheckpointDto(DateOnly Date, decimal TargetKg, string? Note
 
 public sealed record WeeklyAllowancesDto(int FlexibleMeals, int AlcoholOccasions);
 
-public sealed record CardioLogDto(int DurationSeconds, int? AvgHeartRate, int? Rpe, decimal? DistanceMeters, string? Notes);
+public sealed record CardioLogDto(int DurationSeconds, int? AvgHeartRate, int? Rpe, decimal? DistanceMeters, string? Notes, int? HighIntensityMinutes = null);
+
+/// <summary>Weekly zone 4–5 minutes band.</summary>
+public sealed record HighIntensityTargetDto(int MinMinutes, int MaxMinutes);
 
 public sealed record SessionCompletionDto(
     Guid Id,
@@ -47,6 +50,7 @@ public sealed record TrainingPlanDto(
     Guid? LinkedWorkoutId,
     decimal StartWeightKg,
     WeeklyAllowancesDto Allowances,
+    HighIntensityTargetDto HighIntensityTarget,
     IReadOnlyList<ScheduledSessionDto> Schedule,
     IReadOnlyList<PlanPhaseDto> Phases,
     IReadOnlyList<CheckpointDto> Checkpoints,
@@ -73,7 +77,10 @@ public sealed record WeeklyGoalsDto(
     int FlexibleMealsUsed,
     int FlexibleMealsAllowed,
     int AlcoholOccasions,
-    int AlcoholAllowed);
+    int AlcoholAllowed,
+    int HighIntensityMinutesDone,
+    int HighIntensityMinutesMin,
+    int HighIntensityMinutesMax);
 
 public sealed record TodayDto(DateOnly Date, PhaseType? Phase, IReadOnlyList<TodaySessionDto> Sessions, WeeklyGoalsDto Week);
 

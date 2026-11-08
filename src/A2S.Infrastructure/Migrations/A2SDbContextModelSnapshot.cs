@@ -707,6 +707,9 @@ namespace A2S.Infrastructure.Migrations
                             b1.Property<int>("DurationSeconds")
                                 .HasColumnType("integer");
 
+                            b1.Property<int?>("HighIntensityMinutes")
+                                .HasColumnType("integer");
+
                             b1.Property<string>("Notes")
                                 .HasMaxLength(1000)
                                 .HasColumnType("character varying(1000)");
@@ -729,6 +732,31 @@ namespace A2S.Infrastructure.Migrations
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Plan.TrainingPlan", b =>
                 {
+                    b.OwnsOne("A2S.Domain.Aggregates.Plan.HighIntensityTarget", "HighIntensityTarget", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("MaxMinutes")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer")
+                                .HasDefaultValue(30)
+                                .HasColumnName("HighIntensityMaxMinutes");
+
+                            b1.Property<int>("MinMinutes")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer")
+                                .HasDefaultValue(15)
+                                .HasColumnName("HighIntensityMinMinutes");
+
+                            b1.HasKey("TrainingPlanId");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
                     b.OwnsOne("A2S.Domain.Aggregates.Plan.WeeklyAllowances", "Allowances", b1 =>
                         {
                             b1.Property<Guid>("TrainingPlanId")
@@ -751,6 +779,9 @@ namespace A2S.Infrastructure.Migrations
                         });
 
                     b.Navigation("Allowances")
+                        .IsRequired();
+
+                    b.Navigation("HighIntensityTarget")
                         .IsRequired();
                 });
 

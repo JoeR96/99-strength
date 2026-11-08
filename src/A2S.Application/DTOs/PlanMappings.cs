@@ -17,6 +17,7 @@ public static class PlanMappings
         plan.LinkedWorkoutId?.Value,
         plan.StartWeightKg,
         new WeeklyAllowancesDto(plan.Allowances.FlexibleMeals, plan.Allowances.AlcoholOccasions),
+        new HighIntensityTargetDto(plan.HighIntensityTarget.MinMinutes, plan.HighIntensityTarget.MaxMinutes),
         plan.Schedule.Select(ToDto).ToList(),
         plan.Phases.Select(p => new PlanPhaseDto(p.Type, p.From, p.To, p.Note)).ToList(),
         plan.Checkpoints.Select(c => new CheckpointDto(c.Date, c.TargetKg, c.Note)).ToList(),
@@ -53,10 +54,10 @@ public static class PlanMappings
         completion.DrillTicks);
 
     public static CardioLogDto ToDto(this CardioLog log) =>
-        new(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes);
+        new(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes, log.HighIntensityMinutes);
 
     public static CardioLog ToDomain(this CardioLogDto dto) =>
-        new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes);
+        new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes, dto.HighIntensityMinutes);
 
     public static TodaySessionDto ToDto(this PlanDaySession session) => new(
         session.Session.Kind,
@@ -76,7 +77,8 @@ public static class PlanMappings
         goals.CardioPlanned, goals.CardioDone,
         goals.MobilityPlanned, goals.MobilityDone,
         goals.FlexibleMealsUsed, goals.FlexibleMealsAllowed,
-        goals.AlcoholOccasions, goals.AlcoholAllowed);
+        goals.AlcoholOccasions, goals.AlcoholAllowed,
+        goals.HighIntensityMinutesDone, goals.HighIntensityMinutesMin, goals.HighIntensityMinutesMax);
 
     public static CardioProtocolDto ToDto(this CardioProtocol protocol) => new(
         protocol.Id.Value,
