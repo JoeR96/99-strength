@@ -1,3 +1,4 @@
+using A2S.Application.SuggestedPlans;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
@@ -103,3 +104,26 @@ public sealed record MobilityDrillDto(
     bool PerSide);
 
 public sealed record MobilityRoutineDto(Guid Id, string Name, int TargetMinutes, IReadOnlyList<MobilityDrillDto> Drills);
+
+/// <summary>A soft schedule rule the plan breaks (e.g. Norwegian 4×4 the day before a lower-body lift).</summary>
+public sealed record ScheduleWarningDto(string Code, string Message);
+
+/// <summary>What <c>PUT /plans/{id}/schedule</c> returns: the plan and any soft-rule warnings. The schedule is saved either way.</summary>
+public sealed record UpdateScheduleResult(TrainingPlanDto Plan, IReadOnlyList<ScheduleWarningDto> Warnings);
+
+public sealed record SuggestedSessionPreviewDto(DayOfWeek Day, SessionKind Kind, string Label);
+
+public sealed record SuggestedDayPreviewDto(string Label, IReadOnlyList<string> Exercises, int EstimatedMinutes, bool OverBudget);
+
+/// <summary>A suggested plan as the onboarding card shows it, previewed for today.</summary>
+public sealed record SuggestedPlanPreviewDto(
+    string Key,
+    string Name,
+    string Description,
+    DateOnly StartDate,
+    IReadOnlyList<SuggestedPlanInputSpec> Inputs,
+    IReadOnlyList<SuggestedSessionPreviewDto> Schedule,
+    IReadOnlyList<SuggestedDayPreviewDto> LiftingDays,
+    IReadOnlyList<string> Habits,
+    IReadOnlyList<CheckpointDto> Checkpoints,
+    bool AlreadyStarted);

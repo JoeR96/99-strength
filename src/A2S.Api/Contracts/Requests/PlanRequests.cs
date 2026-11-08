@@ -4,6 +4,9 @@ using A2S.Domain.Enums;
 
 namespace A2S.Api.Contracts.Requests;
 
+/// <summary>Body for <c>POST /api/v1/plans/suggested/cut-to-85</c>. Training maxes in kg; start weight defaults to 95 kg.</summary>
+public sealed record StartSuggestedPlanRequest(decimal BenchTm, decimal SquatTm, decimal OhpTm, decimal DeadliftTm, decimal? StartWeightKg = null);
+
 /// <summary>Body for <c>PUT /api/v1/plans/{id}/schedule</c>.</summary>
 public sealed record UpdateScheduleRequest(IReadOnlyList<ScheduledSessionDto> Schedule);
 
