@@ -170,7 +170,7 @@ public class MealsControllerTests
         text.Content.Headers.ContentType!.MediaType.Should().Be("text/plain");
         (await text.Content.ReadAsStringAsync()).Should().Be("- [x] 2 clove garlic\n- [ ] 200 g orzo\n- [ ] salt");
         csv.Content.Headers.ContentType!.MediaType.Should().Be("text/csv");
-        csv.Content.Headers.ContentDisposition!.FileName.Should().Be("\"shopping-list-2026-11-09.csv\"");
+        csv.Content.Headers.ContentDisposition!.FileName!.Trim('"').Should().Be("shopping-list-2026-11-09.csv");
         (await csv.Content.ReadAsStringAsync()).Should().Be("name,quantity,unit,checked\ngarlic,2,clove,true\norzo,200,g,false\nsalt,,,false\n");
         bad.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -179,10 +179,12 @@ public class MealsControllerTests
     public async Task AnotherUser_CannotSeeOrToggleMyList_OrEditMyMeal()
     {
         var mine = NewUser();
-        var theirs = NewUser();
         var meal = (await (await mine.PostAsJsonAsync("/api/v1/meals", Orzo())).Content.ReadFromJsonAsync<MealDto>())!;
         await mine.PutAsJsonAsync("/api/v1/meals/week", new { weekStart = Monday, mealIds = new[] { meal.Id } });
         var list = (await (await mine.PostAsJsonAsync("/api/v1/shopping-list/generate", new { weekStart = Monday })).Content.ReadFromJsonAsync<ShoppingListDto>())!;
+        // TestCurrentUserService is static: the most recently created client is "the current user",
+        // so the second user must be created only after the first user's data exists.
+        var theirs = NewUser();
 
         var toggle = await theirs.PostAsJsonAsync("/api/v1/shopping-list/items/toggle", new { listId = list.Id, name = "garlic", unit = "clove" });
         var edit = await theirs.PutAsJsonAsync($"/api/v1/meals/{meal.Id}", Orzo());
