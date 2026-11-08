@@ -30,7 +30,7 @@ public class MuscleGroupBackfillTests
 
         var updated = await MuscleGroupBackfill.RunAsync(db, NullLogger.Instance);
 
-        updated.Should().Be(445, "every seeded row starts as 'General'");
+        updated.Should().Be(445, "every Hevy-described row starts as 'General'; the five Phase 7 correctives carry their group in the JSON and are skipped");
         await using var fresh = Reopen(db);
         var squat = await fresh.ExerciseDefinitions.SingleAsync(d => d.Name == "Squat (Barbell)");
         squat.MuscleGroup.Should().Be("quadriceps");

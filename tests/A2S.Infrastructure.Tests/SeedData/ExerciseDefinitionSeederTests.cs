@@ -1,3 +1,4 @@
+using A2S.Domain.Enums;
 using A2S.Infrastructure.SeedData;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -31,9 +32,33 @@ public class ExerciseDefinitionSeederTests
         inserted.Should().Be(library.Count - 1);
         await using var fresh = MigratedDatabase.Reopen(db);
         (await fresh.ExerciseDefinitions.CountAsync()).Should().Be(library.Count);
-        library.Count.Should().Be(445);
+        library.Count.Should().Be(450);
         (await fresh.ExerciseDefinitions.AnyAsync(d => d.Name == "Squat (Barbell)")).Should().BeTrue();
         (await fresh.ExerciseDefinitions.CountAsync(d => d.Name == "Cable Core Pallof Press")).Should().Be(1);
+    }
+
+    /// <summary>
+    /// Phase 7: the suggested plan's accessories and correctives that Hevy's library does not have.
+    /// They carry their muscle group in the JSON itself (no "Hevy:" token), so the seeder tags them
+    /// directly and the Hevy backfill leaves them alone.
+    /// </summary>
+    [Theory]
+    [InlineData("Seal Row (Barbell)", "upper_back", EquipmentType.Barbell)]
+    [InlineData("Wall Slide with Lift-Off", "shoulders", EquipmentType.Bodyweight)]
+    [InlineData("Copenhagen Plank (Short Lever)", "adductors", EquipmentType.Bodyweight)]
+    [InlineData("Cable Serratus Punch", "chest", EquipmentType.Cable)]
+    [InlineData("Push-Up Plus", "chest", EquipmentType.Bodyweight)]
+    public async Task Seed_InsertsTheSuggestedPlanCorrectives_WithTheirMuscleGroup(string name, string muscleGroup, EquipmentType equipment)
+    {
+        await using var db = await MigratedDatabase.CreateAsync(_fixture, "seed");
+
+        await ExerciseDefinitionSeeder.SeedAsync(db, NullLogger.Instance);
+
+        await using var fresh = MigratedDatabase.Reopen(db);
+        var definition = await fresh.ExerciseDefinitions.SingleAsync(d => d.Name == name);
+        definition.MuscleGroup.Should().Be(muscleGroup);
+        definition.EquipmentType.Should().Be(equipment);
+        definition.SecondaryMuscleGroups.Should().BeEmpty();
     }
 
     [Fact]
