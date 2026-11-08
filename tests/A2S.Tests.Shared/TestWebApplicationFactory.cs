@@ -33,6 +33,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
 
     public string ConnectionString { get; private set; } = string.Empty;
 
+    /// <summary>An ephemeral VAPID pair so the push endpoints see push as configured; never a real key.</summary>
+    public EphemeralVapidKeys VapidKeys { get; } = EphemeralVapidKeys.Generate();
+
     // JWT settings shared between configuration and test helpers
     public const string TestJwtSecret = "ThisIsATestSecretKeyForJwtTokenGenerationThatIs64CharactersLongForHS256";
     public const string TestJwtIssuer = "A2STestIssuer";
@@ -80,7 +83,10 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning",
                 ["Clerk:Domain"] = TestJwtIssuer,
-                ["Cors:Origins:0"] = "http://localhost:5173"
+                ["Cors:Origins:0"] = "http://localhost:5173",
+                ["Push:VapidPublicKey"] = VapidKeys.PublicKey,
+                ["Push:VapidPrivateKey"] = VapidKeys.PrivateKey,
+                ["Push:Subject"] = EphemeralVapidKeys.Subject
             });
         });
 

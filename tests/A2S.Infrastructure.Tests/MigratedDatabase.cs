@@ -1,5 +1,6 @@
 using A2S.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
 
 namespace A2S.Infrastructure.Tests;
@@ -20,6 +21,9 @@ public static class MigratedDatabase
 
         var options = new DbContextOptionsBuilder<A2SDbContext>()
             .UseNpgsql(builder.ConnectionString)
+            // As in TestWebApplicationFactory: a PR may add entities before the integrator scaffolds
+            // their migration; these tests only need the tables the migrations already create.
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         var context = new A2SDbContext(options);

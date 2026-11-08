@@ -64,6 +64,20 @@ test fixture, commit message or PR.
   The test project shares the API's `UserSecretsId`, so one command serves both. Alternatively set the
   `HEVY_LIVE_TEST_API_KEY` environment variable for the test run only. Remove it afterwards with
   `dotnet user-secrets remove "Hevy:LiveTestApiKey" --project src/A2S.Api`.
+- **Web push (VAPID) keys** are read only from configuration: `Push:VapidPublicKey`, `Push:VapidPrivateKey`
+  and `Push:Subject` (a `mailto:` address). Without all three the nudge service stays idle and Settings
+  reports push as unavailable. Generate a pair once (for example `npx web-push generate-vapid-keys`) and
+  keep it out of the repo:
+
+  ```bash
+  dotnet user-secrets set "Push:VapidPublicKey" "<public key>" --project src/A2S.Api
+  dotnet user-secrets set "Push:VapidPrivateKey" "<private key>" --project src/A2S.Api
+  dotnet user-secrets set "Push:Subject" "mailto:you@example.com" --project src/A2S.Api
+  ```
+
+  In production set the same three values as Dokploy environment variables (`Push__VapidPublicKey`,
+  `Push__VapidPrivateKey`, `Push__Subject`). Rotating the pair invalidates every stored subscription;
+  browsers re-subscribe the next time Settings is opened.
 - **Frontend** configuration goes in an untracked `src/A2S.Web/.env.local` (see `.env.example`).
 
 ## Deploying a release

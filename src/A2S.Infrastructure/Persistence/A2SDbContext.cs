@@ -4,6 +4,7 @@ using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.BodyWeight;
 using A2S.Domain.Aggregates.Habits;
 using A2S.Domain.Aggregates.Meals;
+using A2S.Domain.Aggregates.Push;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Aggregates.User;
@@ -49,6 +50,9 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     // Meals and the weekly shopping list (Phase 10)
     public DbSet<Meal> Meals => Set<Meal>();
     public DbSet<ShoppingList> ShoppingLists => Set<ShoppingList>();
+    // Web push (Phase 4 PR 7b): one subscription per device, one nudge-log row per user/day/kind.
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+    public DbSet<PushNudgeLog> PushNudgeLogs => Set<PushNudgeLog>();
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
