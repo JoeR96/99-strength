@@ -1,4 +1,6 @@
 using A2S.Application.Behaviors;
+using A2S.Application.Services;
+using A2S.Domain.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,9 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+
+        services.AddSingleton<VolumeBudgetService>();
+        services.AddScoped<DayBudgetCalculator>();
 
         return services;
     }
