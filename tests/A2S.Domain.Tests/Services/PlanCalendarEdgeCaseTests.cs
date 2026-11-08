@@ -117,7 +117,7 @@ public class PlanCalendarEdgeCaseTests
 
         NonRest(weekOne).Should().HaveCount(7).And.OnlyContain(s => s.Status == SessionStatus.Missed);
         weekOne.Single(d => d.Date == Sun22Nov).Sessions.Single().Status.Should().Be(SessionStatus.Rest, "a rest day is never missed");
-        goalsOne.Should().Be(new WeeklyGoals(Mon16Nov, 4, 0, 2, 0, 1, 0, 0, 1, 0, 1));
+        goalsOne.Should().Be(new WeeklyGoals(Mon16Nov, 4, 0, 2, 0, 1, 0, 0, 1, 0, 1, 0, 15, 30));
 
         NonRest(weekTwo).Should().HaveCount(7).And.OnlyContain(s => s.Status == SessionStatus.Planned, "nothing carries over from a missed week");
         goalsTwo.LiftsPlanned.Should().Be(4);
@@ -165,12 +165,12 @@ public class PlanCalendarEdgeCaseTests
         On(week, Tue17Nov).Status.Should().Be(SessionStatus.Missed);
         On(week, Sat21Nov).Session.Kind.Should().Be(SessionKind.Cardio);
         On(week, Sat21Nov).Status.Should().Be(SessionStatus.Missed, "Saturday's slot is cardio, which a lift does not satisfy");
-        goals.LiftsDone.Should().Be(3);
+        goals.LiftsDone.Should().Be(4, "the weekly ring counts every lift done this week, wherever it landed");
         goals.LiftsPlanned.Should().Be(4);
     }
 
-    [Fact(Skip = "BUG: swapping Upper A and Lower A within the week shows both days as Missed and LiftsDone = 0 although two lifts were done; the calendar only matches a lift to the slot whose A2S2 day it carries")]
-    public void CompletingOutOfOrder_SwappingMondayAndTuesday_CountsBothLiftsAsDone()
+    [Fact]
+    public void CompletingOutOfOrder_SwappingMondayAndTuesday_CountsBothLiftsInTheWeeklyGoals()
     {
         var service = ServiceAt("2026-11-18T08:00:00Z");
         var plan = BriefPlan();
@@ -180,8 +180,10 @@ public class PlanCalendarEdgeCaseTests
         var week = service.Week(plan, Wed18Nov, NoHistory);
         var goals = service.ForWeek(plan, Wed18Nov, NoHistory);
 
-        On(week, Mon16Nov).Status.Should().Be(SessionStatus.Done);
-        On(week, Tue17Nov).Status.Should().Be(SessionStatus.Done);
+        // Day slots stay strict (brief § 3: Upper on a Lower day is an "unmatched" workout to assign by hand)...
+        On(week, Mon16Nov).Status.Should().Be(SessionStatus.Missed);
+        On(week, Tue17Nov).Status.Should().Be(SessionStatus.Missed);
+        // ...but the weekly ring never under-counts work that was done.
         goals.LiftsDone.Should().Be(2);
     }
 
@@ -259,7 +261,7 @@ public class PlanCalendarEdgeCaseTests
         pausedWeek.Should().OnlyContain(d => d.Phase == PhaseType.Pause);
         NonRest(pausedWeek).Should().HaveCount(7).And.OnlyContain(s => s.Status == SessionStatus.Paused);
         pausedWeek.Single(d => d.Date == Sun29Nov).Sessions.Single().Status.Should().Be(SessionStatus.Rest);
-        pausedGoals.Should().Be(new WeeklyGoals(Mon23Nov, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1), "paused sessions are not goals");
+        pausedGoals.Should().Be(new WeeklyGoals(Mon23Nov, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 15, 30), "paused sessions are not goals");
 
         nextWeek.Should().OnlyContain(d => d.Phase == null);
         On(nextWeek, Mon30Nov).Status.Should().Be(SessionStatus.Missed, "the first day back was skipped");
@@ -352,7 +354,8 @@ public class PlanCalendarEdgeCaseTests
 
         saturdayStatus.Should().Be(expectedOctoberDay == 24 ? SessionStatus.Done : SessionStatus.Missed);
         sundayStatus.Should().Be(expectedOctoberDay == 25 ? SessionStatus.Done : SessionStatus.Missed);
-        service.ForWeek(plan, saturday, history).LiftsDone.Should().Be(expectedOctoberDay == 26 ? 0 : 1,
+        // the fixture records two lifts at the same instant (one per slot day); both count once they land in this week
+        service.ForWeek(plan, saturday, history).LiftsDone.Should().Be(expectedOctoberDay == 26 ? 0 : 2,
             "a lift finished after midnight on Monday belongs to the next week");
     }
 
@@ -376,7 +379,7 @@ public class PlanCalendarEdgeCaseTests
 
         saturdayStatus.Should().Be(expectedMarchDay == 27 ? SessionStatus.Done : SessionStatus.Missed);
         sundayStatus.Should().Be(expectedMarchDay == 28 ? SessionStatus.Done : SessionStatus.Missed);
-        service.ForWeek(plan, sunday, history).LiftsDone.Should().Be(expectedMarchDay == 29 ? 0 : 1);
+        service.ForWeek(plan, sunday, history).LiftsDone.Should().Be(expectedMarchDay == 29 ? 0 : 2);
     }
 
     [Fact]

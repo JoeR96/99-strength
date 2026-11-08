@@ -105,7 +105,15 @@ public sealed class PlanCalendarService
         var sessions = Week(plan, anyDay, liftingHistory).SelectMany(d => d.Sessions).ToList();
 
         int Planned(SessionKind kind) => sessions.Count(s => s.Session.Kind == kind && s.Status != SessionStatus.Paused);
-        int Done(SessionKind kind) => sessions.Count(s => s.Session.Kind == kind && s.Status == SessionStatus.Done);
+        // Done counts what was actually completed in the week, whatever slot it landed on: a Lower A
+        // done on Saturday or two lifts on one day still move the ring (the day view keeps slot statuses).
+        var weekCompletions = plan.Completions.Where(c => c.Date >= weekStart && c.Date <= weekEnd).ToList();
+        var liftsFromHistory = liftingHistory
+            .Select(a => (a.Day, Date: _clock.ToLocalDate(a.CompletedAt)))
+            .Where(x => x.Date >= weekStart && x.Date <= weekEnd)
+            .Distinct()
+            .Count(x => !weekCompletions.Any(c => c.Kind == SessionKind.Lift && c.LiftDay == x.Day && c.Date == x.Date));
+        int Done(SessionKind kind) => weekCompletions.Count(c => c.Kind == kind) + (kind == SessionKind.Lift ? liftsFromHistory : 0);
         int Used(AllowanceKind kind) => plan.AllowanceUses.Count(u => u.Kind == kind && u.Date >= weekStart && u.Date <= weekEnd);
         var highIntensity = plan.Completions
             .Where(c => c.Kind == SessionKind.Cardio && c.Date >= weekStart && c.Date <= weekEnd)
