@@ -1,8 +1,10 @@
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.Plans;
+using A2S.Application.Commands.SuggestedPlans;
 using A2S.Application.DTOs;
 using A2S.Application.Queries.Plans;
+using A2S.Application.Queries.SuggestedPlans;
 using A2S.Domain.Aggregates.Plan;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -46,8 +48,46 @@ public class PlansController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : CreatedAtAction(nameof(GetActive), null, result.Value);
     }
 
+    /// <summary>The ready-made plans a person can start with one tap, previewed for today.</summary>
+    [HttpGet("suggested")]
+    [ProducesResponseType(typeof(IReadOnlyList<SuggestedPlanPreviewDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSuggested(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetSuggestedPlansQuery(), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Starts "Cut to 85 — Nov 2026" from four training maxes and a start weight (default 95 kg): workout,
+    /// cardio protocols, mobility routines, habits and the plan, starting the coming Monday.
+    /// 201 on creation; 200 with the existing plan when it is already the active one.
+    /// </summary>
+    [HttpPost("suggested/cut-to-85")]
+    [ProducesResponseType(typeof(StartSuggestedPlanResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(StartSuggestedPlanResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> StartCutTo85([FromBody] StartSuggestedPlanRequest request, CancellationToken cancellationToken)
+    {
+        var command = new StartSuggestedPlanCommand(
+            request.BenchTm,
+            request.SquatTm,
+            request.OhpTm,
+            request.DeadliftTm,
+            request.StartWeightKg ?? Application.SuggestedPlans.CutTo85Nov2026.DefaultStartWeightKg);
+        var result = await _mediator.Send(command, cancellationToken);
+        if (result.IsFailure)
+        {
+            return result.ToProblemResult();
+        }
+
+        return result.Value.AlreadyStarted
+            ? Ok(result.Value)
+            : CreatedAtAction(nameof(GetActive), null, result.Value);
+    }
+
+    /// <summary>Replaces the weekly schedule. Soft-rule warnings (4×4 the day before Lower A/B) come back alongside the plan.</summary>
     [HttpPut("{id:guid}/schedule")]
-    [ProducesResponseType(typeof(TrainingPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UpdateScheduleResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateSchedule([FromRoute] Guid id, [FromBody] UpdateScheduleRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new UpdateScheduleCommand(id, request.Schedule), cancellationToken);
