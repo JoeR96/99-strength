@@ -61,10 +61,15 @@ public sealed class CardioProtocol : AggregateRoot<CardioProtocolId>
     public static CardioProtocol NorwegianFourByFour(UserId userId)
     {
         var intervals = new List<CardioInterval> { new("Warm-up", 600, CardioEffort.WarmUp) };
+        // Recovery sits *between* work intervals (brief: "4 x 4 min ... with 3 min active recovery
+        // between"), so there are three recoveries, not four: 10 + 16 + 9 + 5 = 40 minutes.
         for (var i = 1; i <= 4; i++)
         {
             intervals.Add(new CardioInterval($"Work {i}", 240, CardioEffort.Work));
-            intervals.Add(new CardioInterval($"Recovery {i}", 180, CardioEffort.Recovery));
+            if (i < 4)
+            {
+                intervals.Add(new CardioInterval($"Recovery {i}", 180, CardioEffort.Recovery));
+            }
         }
         intervals.Add(new CardioInterval("Cool-down", 300, CardioEffort.CoolDown));
 

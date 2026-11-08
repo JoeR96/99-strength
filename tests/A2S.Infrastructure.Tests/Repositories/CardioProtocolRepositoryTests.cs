@@ -51,7 +51,7 @@ public class CardioProtocolRepositoryTests : IAsyncLifetime
         var loadedLiss = await freshRepository.GetByIdAsync(liss.Id);
 
         loadedFourByFour!.Intervals.Should().Equal(fourByFour.Intervals);
-        loadedFourByFour.TotalMinutes.Should().Be(43);
+        loadedFourByFour.TotalMinutes.Should().Be(40);
         loadedFourByFour.Kind.Should().Be(CardioProtocolKind.NorwegianFourByFour);
         loadedC25k!.WeekIndex.Should().Be(3);
         loadedC25k.RepeatWeek.Should().BeTrue();

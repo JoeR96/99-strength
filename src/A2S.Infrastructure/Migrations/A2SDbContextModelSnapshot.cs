@@ -22,6 +22,175 @@ namespace A2S.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.Cardio.CardioProtocol", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("RepeatWeek")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int?>("WeekIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CardioProtocols", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Mobility.MobilityRoutine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("TargetMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MobilityRoutines", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Plan.SessionCompletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CardioProtocolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("HevyWorkoutId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("LiftDay")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid?>("MobilityRoutineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("RecordedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("TrainingPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("_drillTicks")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("DrillTicks");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingPlanId", "Date");
+
+                    b.HasIndex("TrainingPlanId", "HevyWorkoutId")
+                        .IsUnique()
+                        .HasFilter("\"HevyWorkoutId\" IS NOT NULL");
+
+                    b.ToTable("SessionCompletions", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Plan.TrainingPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LinkedWorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("StartWeightKg")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsActive");
+
+                    b.ToTable("TrainingPlans", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.User.User", b =>
                 {
                     b.Property<string>("Id")
@@ -338,6 +507,321 @@ namespace A2S.Infrastructure.Migrations
                         .HasColumnName("TargetSets");
 
                     b.HasDiscriminator().HasValue("RepsPerSet");
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Cardio.CardioProtocol", b =>
+                {
+                    b.OwnsMany("A2S.Domain.Aggregates.Cardio.CardioInterval", "Intervals", b1 =>
+                        {
+                            b1.Property<Guid>("CardioProtocolId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Effort")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
+
+                            b1.Property<int>("Seconds")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("CardioProtocolId", "__synthesizedOrdinal");
+
+                            b1.ToTable("CardioProtocols");
+
+                            b1.ToJson("Intervals");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CardioProtocolId");
+                        });
+
+                    b.Navigation("Intervals");
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Mobility.MobilityRoutine", b =>
+                {
+                    b.OwnsMany("A2S.Domain.Aggregates.Mobility.MobilityDrill", "Drills", b1 =>
+                        {
+                            b1.Property<Guid>("MobilityRoutineId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Cues")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("ExtraSetSide")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<bool>("PerSide")
+                                .HasColumnType("boolean");
+
+                            b1.Property<int>("Sets")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("StandingAlternative")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.HasKey("MobilityRoutineId", "__synthesizedOrdinal");
+
+                            b1.ToTable("MobilityRoutines");
+
+                            b1.ToJson("Drills");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MobilityRoutineId");
+
+                            b1.OwnsOne("A2S.Domain.Aggregates.Mobility.DrillDose", "Dose", b2 =>
+                                {
+                                    b2.Property<Guid>("MobilityDrillMobilityRoutineId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("MobilityDrill__synthesizedOrdinal")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<int>("Amount")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("Unit")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.HasKey("MobilityDrillMobilityRoutineId", "MobilityDrill__synthesizedOrdinal");
+
+                                    b2.ToTable("MobilityRoutines");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("MobilityDrillMobilityRoutineId", "MobilityDrill__synthesizedOrdinal");
+                                });
+
+                            b1.Navigation("Dose")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Drills");
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Plan.SessionCompletion", b =>
+                {
+                    b.HasOne("A2S.Domain.Aggregates.Plan.TrainingPlan", null)
+                        .WithMany("Completions")
+                        .HasForeignKey("TrainingPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("A2S.Domain.Aggregates.Plan.CardioLog", "Cardio", b1 =>
+                        {
+                            b1.Property<Guid>("SessionCompletionId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int?>("AvgHeartRate")
+                                .HasColumnType("integer");
+
+                            b1.Property<decimal?>("DistanceMeters")
+                                .HasColumnType("numeric");
+
+                            b1.Property<int>("DurationSeconds")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Notes")
+                                .HasMaxLength(1000)
+                                .HasColumnType("character varying(1000)");
+
+                            b1.Property<int?>("Rpe")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("SessionCompletionId");
+
+                            b1.ToTable("SessionCompletions");
+
+                            b1.ToJson("Cardio");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SessionCompletionId");
+                        });
+
+                    b.Navigation("Cardio");
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Plan.TrainingPlan", b =>
+                {
+                    b.OwnsMany("A2S.Domain.Aggregates.Plan.AllowanceUse", "AllowanceUses", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<DateOnly>("Date")
+                                .HasColumnType("date");
+
+                            b1.Property<string>("Kind")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("TrainingPlanId", "__synthesizedOrdinal");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.ToJson("AllowanceUses");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
+                    b.OwnsMany("A2S.Domain.Aggregates.Plan.Checkpoint", "Checkpoints", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<DateOnly>("Date")
+                                .HasColumnType("date");
+
+                            b1.Property<string>("Note")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<decimal>("TargetKg")
+                                .HasColumnType("numeric");
+
+                            b1.HasKey("TrainingPlanId", "__synthesizedOrdinal");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.ToJson("Checkpoints");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
+                    b.OwnsMany("A2S.Domain.Aggregates.Plan.PlanPhase", "Phases", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<DateOnly>("From")
+                                .HasColumnType("date");
+
+                            b1.Property<string>("Note")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<DateOnly>("To")
+                                .HasColumnType("date");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("TrainingPlanId", "__synthesizedOrdinal");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.ToJson("Phases");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
+                    b.OwnsMany("A2S.Domain.Aggregates.Plan.ScheduledSession", "Schedule", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<Guid?>("CardioProtocolId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Day")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Kind")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
+
+                            b1.Property<string>("LiftDay")
+                                .HasColumnType("text");
+
+                            b1.Property<Guid?>("MobilityRoutineId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("TrainingPlanId", "__synthesizedOrdinal");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.ToJson("Schedule");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
+                    b.OwnsOne("A2S.Domain.Aggregates.Plan.WeeklyAllowances", "Allowances", b1 =>
+                        {
+                            b1.Property<Guid>("TrainingPlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("AlcoholOccasions")
+                                .HasColumnType("integer")
+                                .HasColumnName("AlcoholOccasionsPerWeek");
+
+                            b1.Property<int>("FlexibleMeals")
+                                .HasColumnType("integer")
+                                .HasColumnName("FlexibleMealsPerWeek");
+
+                            b1.HasKey("TrainingPlanId");
+
+                            b1.ToTable("TrainingPlans");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TrainingPlanId");
+                        });
+
+                    b.Navigation("AllowanceUses");
+
+                    b.Navigation("Allowances")
+                        .IsRequired();
+
+                    b.Navigation("Checkpoints");
+
+                    b.Navigation("Phases");
+
+                    b.Navigation("Schedule");
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Workout.Exercise", b =>
@@ -1018,6 +1502,11 @@ namespace A2S.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SuggestedWeight");
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Plan.TrainingPlan", b =>
+                {
+                    b.Navigation("Completions");
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.Workout.Exercise", b =>

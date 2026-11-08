@@ -10,21 +10,22 @@ public class CardioProtocolTests
     private static readonly UserId Owner = new("user_cardio_0001");
 
     [Fact]
-    public void NorwegianFourByFour_HasTenIntervalsTotalling43Minutes()
+    public void NorwegianFourByFour_HasNineIntervalsTotalling40Minutes()
     {
         var protocol = CardioProtocol.NorwegianFourByFour(Owner);
 
         protocol.Kind.Should().Be(CardioProtocolKind.NorwegianFourByFour);
         protocol.UserId.Should().Be(Owner);
-        protocol.Intervals.Should().HaveCount(10);
+        protocol.Intervals.Should().HaveCount(9);
         protocol.Intervals[0].Should().Be(new CardioInterval("Warm-up", 600, CardioEffort.WarmUp));
         protocol.Intervals[1].Should().Be(new CardioInterval("Work 1", 240, CardioEffort.Work));
         protocol.Intervals[2].Should().Be(new CardioInterval("Recovery 1", 180, CardioEffort.Recovery));
+        protocol.Intervals[6].Should().Be(new CardioInterval("Recovery 3", 180, CardioEffort.Recovery));
         protocol.Intervals[7].Should().Be(new CardioInterval("Work 4", 240, CardioEffort.Work));
-        protocol.Intervals[8].Should().Be(new CardioInterval("Recovery 4", 180, CardioEffort.Recovery));
-        protocol.Intervals[9].Should().Be(new CardioInterval("Cool-down", 300, CardioEffort.CoolDown));
-        protocol.Intervals.Sum(i => i.Seconds).Should().Be(2580);
-        protocol.TotalMinutes.Should().Be(43);
+        protocol.Intervals[8].Should().Be(new CardioInterval("Cool-down", 300, CardioEffort.CoolDown));
+        protocol.Intervals.Count(i => i.Effort == CardioEffort.Recovery).Should().Be(3, "recovery sits between work intervals");
+        protocol.Intervals.Sum(i => i.Seconds).Should().Be(2400);
+        protocol.TotalMinutes.Should().Be(40);
         protocol.WeekIndex.Should().BeNull();
         protocol.RepeatWeek.Should().BeFalse();
     }
