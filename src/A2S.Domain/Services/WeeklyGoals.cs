@@ -15,4 +15,7 @@ public sealed record WeeklyGoals(
     int FlexibleMealsUsed,
     int FlexibleMealsAllowed,
     int AlcoholOccasions,
-    int AlcoholAllowed);
+    int AlcoholAllowed,
+    int HighIntensityMinutesDone,
+    int HighIntensityMinutesMin,
+    int HighIntensityMinutesMax);

@@ -251,7 +251,8 @@ public class PlanCalendarServiceTests
             CardioPlanned: 2, CardioDone: 1,
             MobilityPlanned: 1, MobilityDone: 0,
             FlexibleMealsUsed: 2, FlexibleMealsAllowed: 1,
-            AlcoholOccasions: 0, AlcoholAllowed: 1));
+            AlcoholOccasions: 0, AlcoholAllowed: 1,
+            HighIntensityMinutesDone: 0, HighIntensityMinutesMin: 15, HighIntensityMinutesMax: 30));
     }
 
     [Fact]

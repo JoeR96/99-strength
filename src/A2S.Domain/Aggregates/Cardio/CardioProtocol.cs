@@ -58,6 +58,14 @@ public sealed class CardioProtocol : AggregateRoot<CardioProtocolId>
     public int TotalMinutes => (int)Math.Ceiling(_intervals.Sum(i => i.Seconds) / 60m);
 
     /// <summary>10 min warm-up, 4 × (4 min work + 3 min active recovery), 5 min cool-down.</summary>
+    /// <summary>
+    /// Zone 4–5 minutes a session of this protocol is expected to produce, or null when only the
+    /// watch can tell (LISS and C25K runs are not high-intensity work by design).
+    /// </summary>
+    public int? DefaultHighIntensityMinutes => Kind == CardioProtocolKind.NorwegianFourByFour
+        ? Intervals.Where(i => i.Effort == CardioEffort.Work).Sum(i => i.Seconds) / 60
+        : null;
+
     public static CardioProtocol NorwegianFourByFour(UserId userId)
     {
         var intervals = new List<CardioInterval> { new("Warm-up", 600, CardioEffort.WarmUp) };

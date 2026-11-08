@@ -37,6 +37,7 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
         _schedule = schedule;
         StartWeightKg = startWeightKg;
         Allowances = allowances;
+        HighIntensityTarget = HighIntensityTarget.Default;
     }
 
     // EF Core constructor
@@ -44,6 +45,7 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
     {
         Name = string.Empty;
         Allowances = WeeklyAllowances.Default;
+        HighIntensityTarget = HighIntensityTarget.Default;
     }
 
     public UserId UserId { get; private set; }
@@ -56,6 +58,9 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
     public WorkoutId? LinkedWorkoutId { get; private set; }
     public decimal StartWeightKg { get; private set; }
     public WeeklyAllowances Allowances { get; private set; }
+
+    /// <summary>Weekly zone 4–5 minutes band (default 15–30).</summary>
+    public HighIntensityTarget HighIntensityTarget { get; private set; }
 
     /// <summary>Ordered Monday-first, then by insertion within a day.</summary>
     public IReadOnlyList<ScheduledSession> Schedule => _schedule.AsReadOnly();
@@ -125,6 +130,12 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
     }
 
     public bool RemoveCheckpoint(DateOnly date) => _checkpoints.RemoveAll(c => c.Date == date) > 0;
+
+    public void SetHighIntensityTarget(HighIntensityTarget target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        HighIntensityTarget = target;
+    }
 
     public void LinkWorkout(WorkoutId workoutId) => LinkedWorkoutId = workoutId;
 

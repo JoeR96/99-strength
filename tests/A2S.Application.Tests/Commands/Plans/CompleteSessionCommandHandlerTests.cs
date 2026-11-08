@@ -1,6 +1,7 @@
 using A2S.Application.Commands.Plans;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -22,12 +23,13 @@ public class CompleteSessionCommandHandlerTests
     private readonly ITrainingPlanRepository _plans = Substitute.For<ITrainingPlanRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ICurrentUserService _currentUser = Substitute.For<ICurrentUserService>();
+    private readonly ICardioProtocolRepository _protocols = Substitute.For<ICardioProtocolRepository>();
     private readonly CompleteSessionCommandHandler _handler;
 
     public CompleteSessionCommandHandlerTests()
     {
         var clock = new LocalClock(new FakeTimeProvider(Now));
-        _handler = new CompleteSessionCommandHandler(_plans, _unitOfWork, _currentUser, clock);
+        _handler = new CompleteSessionCommandHandler(_plans, _unitOfWork, _currentUser, clock, _protocols);
     }
 
     private static TrainingPlan PlanFor(UserId owner) =>
@@ -139,5 +141,53 @@ public class CompleteSessionCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be(ErrorCode.DomainRuleViolation);
+    }
+
+    [Fact]
+    public async Task Handle_CardioMarkedDoneWithoutALog_CreditsTheProtocolsZoneMinutes()
+    {
+        var plan = GivenOwnedPlan();
+        var fourByFour = CardioProtocol.NorwegianFourByFour(TestUserId);
+        _protocols.GetByIdAsync(fourByFour.Id, Arg.Any<CancellationToken>()).Returns(fourByFour);
+
+        var result = await _handler.Handle(
+            new CompleteSessionCommand(plan.Id.Value, Mon16Nov, SessionKind.Cardio, CardioProtocolId: fourByFour.Id.Value),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Cardio.Should().NotBeNull();
+        result.Value.Cardio!.HighIntensityMinutes.Should().Be(16);
+        result.Value.Cardio.DurationSeconds.Should().Be(40 * 60);
+    }
+
+    [Fact]
+    public async Task Handle_CardioLogWithWatchZoneMinutes_KeepsTheWatchValue()
+    {
+        var plan = GivenOwnedPlan();
+        var fourByFour = CardioProtocol.NorwegianFourByFour(TestUserId);
+        _protocols.GetByIdAsync(fourByFour.Id, Arg.Any<CancellationToken>()).Returns(fourByFour);
+
+        var result = await _handler.Handle(
+            new CompleteSessionCommand(plan.Id.Value, Mon16Nov, SessionKind.Cardio, CardioProtocolId: fourByFour.Id.Value,
+                Cardio: new CardioLogDto(2500, 168, 9, null, "windy", HighIntensityMinutes: 21)),
+            CancellationToken.None);
+
+        result.Value.Cardio!.HighIntensityMinutes.Should().Be(21);
+        await _protocols.DidNotReceive().GetByIdAsync(Arg.Any<CardioProtocolId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_LissLogWithoutZoneMinutes_StaysNull_ForTheWatchToFill()
+    {
+        var plan = GivenOwnedPlan();
+        var liss = CardioProtocol.Liss(TestUserId, 35, null);
+        _protocols.GetByIdAsync(liss.Id, Arg.Any<CancellationToken>()).Returns(liss);
+
+        var result = await _handler.Handle(
+            new CompleteSessionCommand(plan.Id.Value, Mon16Nov, SessionKind.Cardio, CardioProtocolId: liss.Id.Value,
+                Cardio: new CardioLogDto(2100, 130, 4, 3500m, null)),
+            CancellationToken.None);
+
+        result.Value.Cardio!.HighIntensityMinutes.Should().BeNull();
     }
 }

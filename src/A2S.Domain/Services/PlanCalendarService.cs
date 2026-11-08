@@ -107,6 +107,9 @@ public sealed class PlanCalendarService
         int Planned(SessionKind kind) => sessions.Count(s => s.Session.Kind == kind && s.Status != SessionStatus.Paused);
         int Done(SessionKind kind) => sessions.Count(s => s.Session.Kind == kind && s.Status == SessionStatus.Done);
         int Used(AllowanceKind kind) => plan.AllowanceUses.Count(u => u.Kind == kind && u.Date >= weekStart && u.Date <= weekEnd);
+        var highIntensity = plan.Completions
+            .Where(c => c.Kind == SessionKind.Cardio && c.Date >= weekStart && c.Date <= weekEnd)
+            .Sum(c => c.Cardio?.HighIntensityMinutes ?? 0);
 
         return new WeeklyGoals(
             weekStart,
@@ -114,7 +117,8 @@ public sealed class PlanCalendarService
             Planned(SessionKind.Cardio), Done(SessionKind.Cardio),
             Planned(SessionKind.Mobility), Done(SessionKind.Mobility),
             Used(AllowanceKind.FlexibleMeal), plan.Allowances.FlexibleMeals,
-            Used(AllowanceKind.Alcohol), plan.Allowances.AlcoholOccasions);
+            Used(AllowanceKind.Alcohol), plan.Allowances.AlcoholOccasions,
+            highIntensity, plan.HighIntensityTarget.MinMinutes, plan.HighIntensityTarget.MaxMinutes);
     }
 
     /// <summary>

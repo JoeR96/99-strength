@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -38,6 +39,7 @@ public sealed class CompleteSessionCommandValidator : AbstractValidator<Complete
             RuleFor(x => x.Cardio!.DurationSeconds).GreaterThan(0);
             RuleFor(x => x.Cardio!.Rpe).InclusiveBetween(1, 10).When(x => x.Cardio!.Rpe.HasValue);
             RuleFor(x => x.Cardio!.AvgHeartRate).InclusiveBetween(30, 250).When(x => x.Cardio!.AvgHeartRate.HasValue);
+            RuleFor(x => x.Cardio!.HighIntensityMinutes).InclusiveBetween(0, 600).When(x => x.Cardio!.HighIntensityMinutes.HasValue);
         });
     }
 }
@@ -48,13 +50,16 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
+    private readonly ICardioProtocolRepository _protocols;
 
     public CompleteSessionCommandHandler(
         ITrainingPlanRepository plans,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUser,
-        ILocalClock clock)
+        ILocalClock clock,
+        ICardioProtocolRepository protocols)
     {
+        _protocols = protocols ?? throw new ArgumentNullException(nameof(protocols));
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
@@ -77,6 +82,13 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
 
         var source = string.IsNullOrWhiteSpace(request.HevyWorkoutId) ? CompletionSource.Manual : CompletionSource.Hevy;
 
+        var log = request.Cardio?.ToDomain();
+        if (request.Kind == SessionKind.Cardio && request.CardioProtocolId is { } protocolId
+            && (log is null || log.HighIntensityMinutes is null))
+        {
+            log = await WithProtocolDefaultsAsync(log, new CardioProtocolId(protocolId), cancellationToken);
+        }
+
         try
         {
             var completion = load.Value.CompleteSession(
@@ -87,7 +99,7 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
                 cardio: request.CardioProtocolId is { } c ? new CardioProtocolId(c) : null,
                 mobility: request.MobilityRoutineId is { } m ? new MobilityRoutineId(m) : null,
                 hevyWorkoutId: request.HevyWorkoutId,
-                log: request.Cardio?.ToDomain(),
+                log: log,
                 drillTicks: request.DrillTicks,
                 recordedAt: _clock.NowUtc());
 
@@ -99,5 +111,31 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
         {
             return PlanAccess.FromDomain<SessionCompletionDto>(ex);
         }
+    }
+
+    /// <summary>
+    /// "Mark done" without a watch reading still credits the protocol's expected zone 4–5 minutes
+    /// (16 for a Norwegian 4×4); a session with no log at all gets the protocol's length too.
+    /// </summary>
+    private async Task<CardioLog?> WithProtocolDefaultsAsync(CardioLog? log, CardioProtocolId protocolId, CancellationToken ct)
+    {
+        var protocol = await _protocols.GetByIdAsync(protocolId, ct);
+        if (protocol is null)
+        {
+            return log;
+        }
+
+        var defaultMinutes = protocol.DefaultHighIntensityMinutes;
+        if (log is null)
+        {
+            return defaultMinutes is null
+                ? null
+                : new CardioLog(protocol.TotalMinutes * 60, null, null, null, null, defaultMinutes);
+        }
+
+        return defaultMinutes is null
+            ? log
+            : new CardioLog(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes,
+                Math.Min(defaultMinutes.Value, (log.DurationSeconds + 59) / 60));
     }
 }

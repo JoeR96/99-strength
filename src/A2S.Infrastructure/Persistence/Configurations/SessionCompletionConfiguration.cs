@@ -66,6 +66,7 @@ public class SessionCompletionConfiguration : IEntityTypeConfiguration<SessionCo
             log.Property(l => l.Rpe);
             log.Property(l => l.DistanceMeters);
             log.Property(l => l.Notes).HasMaxLength(1000);
+            log.Property(l => l.HighIntensityMinutes);
         });
 
         var drillTicksConverter = new ValueConverter<List<bool>?, string?>(
