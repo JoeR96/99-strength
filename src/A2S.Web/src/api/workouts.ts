@@ -6,7 +6,6 @@ import type {
   CreateWorkoutRequest,
   CompleteDayRequest,
   CompleteDayResult,
-  ProgressWeekResult,
   DayNumber,
   UpdateExercisesRequest,
   UpdateExercisesResult,
@@ -99,16 +98,6 @@ export const workoutsApi = {
     const response = await apiClient.post<CompleteDayResult>(
       `/workouts/${workoutId}/days/${day}/complete`,
       request
-    );
-    return response.data;
-  },
-
-  /**
-   * Progress to the next week
-   */
-  progressWeek: async (workoutId: string): Promise<ProgressWeekResult> => {
-    const response = await apiClient.post<ProgressWeekResult>(
-      `/workouts/${workoutId}/progress-week`
     );
     return response.data;
   },
@@ -207,18 +196,6 @@ export const workoutsApi = {
     );
   },
 
-  confirmWorkingWeight: async (
-    workoutId: string,
-    exerciseId: string,
-    weight: number,
-    unit: 1 | 2
-  ): Promise<void> => {
-    await apiClient.post(
-      `/workouts/${workoutId}/exercises/${exerciseId}/confirm-working-weight`,
-      { weight, unit }
-    );
-  },
-
   /**
    * Undo the last completed day, rolling back progress
    */
@@ -259,22 +236,6 @@ export const workoutsApi = {
     }
   },
 
-  /**
-   * Get the planned workout for a specific week and day.
-   * Returns calculated working weights, sets, and reps from the backend.
-   * This is the single source of truth - use this instead of frontend calculations.
-   */
-  getWeekPlan: async (
-    weekNumber: number,
-    dayNumber: number,
-    workoutId?: string
-  ): Promise<WeekPlanDto> => {
-    const params = workoutId ? `?id=${workoutId}` : '';
-    const response = await apiClient.get<WeekPlanDto>(
-      `/workouts/weeks/${weekNumber}/days/${dayNumber}/plan${params}`
-    );
-    return response.data;
-  },
 };
 
 /**

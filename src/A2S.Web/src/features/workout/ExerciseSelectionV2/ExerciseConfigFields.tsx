@@ -88,6 +88,7 @@ export function ExerciseConfigFields({
             <div className="flex gap-2">
               <input
                 type="number"
+              inputMode="decimal"
                 value={trainingMaxValue}
                 onChange={(e) => setTrainingMaxValue(Number(e.target.value))}
                 className="flex-1 px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -160,6 +161,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Min</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={repRangeMin}
                   onChange={(e) => setRepRangeMin(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -171,6 +173,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Max</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={repRangeMax}
                   onChange={(e) => setRepRangeMax(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -199,6 +202,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Starting Sets</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={currentSets}
                   onChange={(e) => setCurrentSets(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -210,6 +214,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Target Sets</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={targetSets}
                   onChange={(e) => setTargetSets(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -252,6 +257,7 @@ export function ExerciseConfigFields({
             <label className="block text-sm font-medium mb-2 text-foreground">Target Total Reps</label>
             <input
               type="number"
+              inputMode="decimal"
               value={targetTotalReps}
               onChange={(e) => setTargetTotalReps(Number(e.target.value))}
               className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -271,6 +277,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Min Sets</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={minSets}
                   onChange={(e) => setMinSets(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -282,6 +289,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Starting Sets</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={minimalCurrentSets}
                   onChange={(e) => setMinimalCurrentSets(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
@@ -293,6 +301,7 @@ export function ExerciseConfigFields({
                 <label className="text-xs text-muted-foreground">Max Sets</label>
                 <input
                   type="number"
+              inputMode="decimal"
                   value={maxSets}
                   onChange={(e) => setMaxSets(Number(e.target.value))}
                   className="w-full px-3 py-2.5 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground"
