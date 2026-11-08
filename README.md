@@ -22,6 +22,20 @@ dotnet ef database update -p src/A2S.Infrastructure -s src/A2S.Api
 
 The Docker image applies them with an EF migration bundle in `docker-entrypoint.sh`.
 
+## Install on your phone
+
+99-Strength is a progressive web app: open it once in the browser and add it to your home screen.
+It then launches full-screen, keeps you signed in and works for habits even when the signal drops.
+
+**iPhone / iPad (Safari, iOS 16.4+)**
+1. Open `https://99-strength.enjoeneer.dev` in Safari.
+2. Tap **Share** (the square with the arrow), then **Add to Home Screen**, then **Add**.
+3. Launch it from the Home Screen. Notifications only work from the installed app.
+
+**Android (Chrome)**
+1. Open `https://99-strength.enjoeneer.dev` in Chrome.
+2. Tap the **⋮** menu, then **Install app** (or **Add to Home screen**), then **Install**.
+
 ## Tests
 
 ```bash
