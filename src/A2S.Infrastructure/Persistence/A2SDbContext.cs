@@ -1,3 +1,6 @@
+using A2S.Domain.Aggregates.Cardio;
+using A2S.Domain.Aggregates.Mobility;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Aggregates.User;
@@ -31,6 +34,11 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<ExerciseProgression> ExerciseProgressions => Set<ExerciseProgression>();
     public DbSet<User> Users => Set<User>();
     public DbSet<ExerciseDefinition> ExerciseDefinitions => Set<ExerciseDefinition>();
+
+    // Whole Plan (PR 2): the plan beside the A2S2 workout, and its cardio/mobility definitions.
+    public DbSet<TrainingPlan> TrainingPlans => Set<TrainingPlan>();
+    public DbSet<CardioProtocol> CardioProtocols => Set<CardioProtocol>();
+    public DbSet<MobilityRoutine> MobilityRoutines => Set<MobilityRoutine>();
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();

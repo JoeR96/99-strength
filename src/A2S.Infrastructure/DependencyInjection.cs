@@ -62,6 +62,12 @@ public static class DependencyInjection
         services.AddScoped<IWorkoutRepository, WorkoutRepository>();
         services.AddScoped<IExerciseDefinitionRepository, ExerciseDefinitionRepository>();
 
+        // Whole Plan (PR 2): plan, cardio and mobility repositories plus the calendar service.
+        services.AddScoped<ITrainingPlanRepository, TrainingPlanRepository>();
+        services.AddScoped<ICardioProtocolRepository, CardioProtocolRepository>();
+        services.AddScoped<IMobilityRoutineRepository, MobilityRoutineRepository>();
+        services.AddSingleton<PlanCalendarService>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();

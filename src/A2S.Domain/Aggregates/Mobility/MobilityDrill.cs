@@ -18,6 +18,13 @@ public sealed record MobilityDrill
     /// <summary>True when the dose is performed per side (e.g. 5 reps each side).</summary>
     public bool PerSide { get; }
 
+    // EF Core constructor: an owned navigation (Dose) cannot be bound to a constructor parameter.
+    private MobilityDrill()
+    {
+        Name = string.Empty;
+        Dose = null!;
+    }
+
     public MobilityDrill(
         string name,
         int sets,
