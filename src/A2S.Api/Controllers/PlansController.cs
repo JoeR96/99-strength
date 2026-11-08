@@ -1,8 +1,10 @@
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
+using A2S.Application.Commands.Hevy;
 using A2S.Application.Commands.Plans;
 using A2S.Application.Commands.SuggestedPlans;
 using A2S.Application.DTOs;
+using A2S.Application.Hevy;
 using A2S.Application.Queries.Plans;
 using A2S.Application.Queries.SuggestedPlans;
 using A2S.Domain.Aggregates.Plan;
@@ -159,6 +161,32 @@ public class PlansController : ControllerBase
     {
         var result = await _mediator.Send(new UndoSessionCompletionCommand(id, completionId), cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : NoContent();
+    }
+
+    /// <summary>
+    /// Pushes one scheduled session to Hevy as a routine (Mobility A first for lifts, interval sets for
+    /// cardio). Idempotent: pushing again updates the same routine. 400 without a stored Hevy key.
+    /// </summary>
+    [HttpPost("{id:guid}/sessions/push")]
+    [ProducesResponseType(typeof(PushRoutineResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    public async Task<IActionResult> PushSession([FromRoute] Guid id, [FromBody] PushSessionRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new PushSessionRoutineCommand(id, request.Date, request.Kind, request.LiftDay), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>Pushes every non-rest session of the Mon–Sun week containing <c>?date=</c> (today when omitted).</summary>
+    [HttpPost("{id:guid}/sessions/push-week")]
+    [ProducesResponseType(typeof(PushWeekResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> PushWeek([FromRoute] Guid id, [FromQuery] DateOnly? date, [FromServices] Domain.Common.ILocalClock clock, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new PushWeekRoutinesCommand(id, date ?? clock.Today()), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
     [HttpPost("{id:guid}/allowances")]

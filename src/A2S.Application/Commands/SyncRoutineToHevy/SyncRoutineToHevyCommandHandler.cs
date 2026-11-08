@@ -1,4 +1,5 @@
 using A2S.Application.Common;
+using A2S.Application.Hevy;
 using A2S.Application.Interfaces;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -79,7 +80,7 @@ public sealed class SyncRoutineToHevyCommandHandler
                     {
                         ExternalTemplateId = e.ExternalTemplateId,
                         ProgressionType = e.Progression.ProgressionType,
-                        Notes = BuildExerciseNotes(e, weekParams, plannedSets),
+                        Notes = ExerciseNoteBuilder.Build(e, weekParams, plannedSets),
                         PlannedSets = plannedSets.Select(s => new HevySyncSetInfo
                         {
                             WeightKg = s.Weight.ConvertTo(WeightUnit.Kilograms).Value,
@@ -137,67 +138,5 @@ public sealed class SyncRoutineToHevyCommandHandler
             _logger.LogError(ex, "Failed to sync routine for workout {WorkoutId}", request.WorkoutId);
             return Result.Failure<SyncRoutineResult>($"Failed to sync routine: {ex.Message}");
         }
-    }
-
-    private static string BuildExerciseNotes(
-        Domain.Aggregates.Workout.Exercise exercise,
-        WeekParameters weekParams,
-        IReadOnlyList<Domain.ValueObjects.PlannedSet> plannedSets)
-    {
-        var data = exercise.Progression.GetProgressionData();
-        var trainingMax = exercise.Progression.GetTrainingMax();
-        var currentWeight = exercise.Progression.GetCurrentWeight();
-        var noteParts = new List<string>();
-
-        if (trainingMax != null)
-        {
-            // Linear progression
-            noteParts.Add($"TM: {trainingMax}");
-            if (weekParams.IsDeload)
-            {
-                noteParts.Add("DELOAD");
-            }
-            else
-            {
-                var blockPhase = weekParams.BlockNumber switch
-                {
-                    1 => BlockDescriptions.Volume,
-                    2 => BlockDescriptions.Intensity,
-                    3 => BlockDescriptions.Peaking,
-                    _ => ""
-                };
-                noteParts.Add($"Block {weekParams.BlockNumber} - {blockPhase}");
-            }
-            noteParts.Add($"{weekParams.IntensityPercentage:0}% × {weekParams.Sets} sets × {weekParams.TargetReps} reps");
-            if (data.UseAmrap == true)
-            {
-                noteParts.Add($"AMRAP last set (target: {plannedSets.LastOrDefault()?.TargetReps ?? 0}+)");
-            }
-        }
-        else if (data.RepRangeMinimum.HasValue && data.RepRangeMaximum.HasValue)
-        {
-            // RepsPerSet progression
-            var effectiveMaxSets = Math.Min(data.TargetSets ?? 3, data.CurrentSetCount ?? 3);
-            noteParts.Add($"Sets: {data.CurrentSetCount}/{data.TargetSets}");
-            noteParts.Add($"Rep range: {data.RepRangeMinimum}-{data.RepRangeMaximum} (hit {data.RepRangeMaximum} to progress)");
-            if (exercise.Progression.IsUnilateral)
-            {
-                noteParts.Add("Unilateral");
-            }
-        }
-        else if (data.TargetTotalReps.HasValue)
-        {
-            // MinimalSets progression
-            noteParts.Add($"Target: {data.TargetTotalReps} reps in {data.CurrentSetCount} sets (range: {data.MinimumSets}-{data.MaximumSets}) | Complete in fewer sets to progress");
-        }
-
-        return string.Join(" | ", noteParts);
-    }
-
-    private static class BlockDescriptions
-    {
-        public const string Volume = "Volume phase";
-        public const string Intensity = "Intensity phase";
-        public const string Peaking = "Peaking phase";
     }
 }

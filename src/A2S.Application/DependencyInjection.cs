@@ -35,6 +35,7 @@ public static class DependencyInjection
 
         // Hevy push/pull (Phase 6).
         services.AddScoped<Hevy.HevyTemplateCatalogue>();
+        services.AddScoped<Hevy.HevyRoutinePusher>();
 
         return services;
     }
