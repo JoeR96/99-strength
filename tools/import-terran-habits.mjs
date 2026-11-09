@@ -8,13 +8,14 @@
  *
  * Usage:
  *   node tools/import-terran-habits.mjs --dry-run                 # print the payload, change nothing
- *   node tools/import-terran-habits.mjs --token <clerk-jwt>       # import into the API
+ *   node tools/import-terran-habits.mjs --token <token>           # import into the API
  *   node tools/import-terran-habits.mjs --api http://localhost:5123/api/v1 --token ...
  *
  * Options:
  *   --db <path>     Terran CC database (default %APPDATA%\terran-cc\tcc.db)
- *   --api <url>     API base (default https://api.99-strength.enjoeneer.dev/api/v1 or $A2S_API_BASE)
- *   --token <jwt>   Clerk session token (or $A2S_TOKEN). Never printed, never written to disk.
+ *   --api <url>     API base (default https://api-99strength.enjoeneer.dev/api/v1 or $A2S_API_BASE)
+ *   --token <token> A desktop widget token from Settings (nns_pat_…) or a Clerk session token
+ *                   (or $A2S_TOKEN). Never printed, never written to disk.
  *   --out <file>    With --dry-run, write the payload to a file instead of stdout.
  *
  * Mapping (brief § 5 and plan decisions):
@@ -112,7 +113,7 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const dbPath = args.db ?? path.join(process.env.APPDATA ?? '', 'terran-cc', 'tcc.db');
-  const api = (args.api ?? process.env.A2S_API_BASE ?? 'https://api.99-strength.enjoeneer.dev/api/v1').replace(/\/$/, '');
+  const api = (args.api ?? process.env.A2S_API_BASE ?? 'https://api-99strength.enjoeneer.dev/api/v1').replace(/\/$/, '');
 
   const { habits, logs } = await readTerran(dbPath);
   const payload = buildImportPayload(habits, logs);
@@ -129,7 +130,7 @@ async function main() {
 
   const token = args.token ?? process.env.A2S_TOKEN;
   if (!token) {
-    console.error('A Clerk session token is required (--token or A2S_TOKEN). Use --dry-run to preview.');
+    console.error('A token is required (--token or A2S_TOKEN): create a desktop widget token in Settings. Use --dry-run to preview.');
     process.exitCode = 2;
     return;
   }
