@@ -308,7 +308,7 @@ Two-stage build:
 ### Startup Sequence
 
 1. `npm run start:db` — PostgreSQL via docker-compose
-2. `npm run start:api` — .NET API. It does **not** migrate on startup: it refuses to boot with pending migrations. Apply them with `dotnet ef database update` locally (the Docker image runs an EF migration bundle in `docker-entrypoint.sh`). On boot it upserts the exercise library by name and encrypts any legacy plaintext Hevy keys.
+2. `npm run start:api` — .NET API. It does **not** migrate on startup: it refuses to boot with pending migrations. Apply them with `dotnet ef database update` locally (the Docker image runs an EF migration bundle in `docker-entrypoint.sh`). On boot it upserts the exercise library by name and encrypts any legacy plaintext Hevy keys, erasing the plaintext.
 3. `npm run start:web` — Vite dev server
 
 Or `npm start` for all three concurrently.
