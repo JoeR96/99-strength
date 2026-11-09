@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Application.Hevy;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
 using MediatR;
@@ -13,19 +14,22 @@ public sealed class GetPlanCalendarQueryHandler : IRequestHandler<GetPlanCalenda
 {
     private readonly ITrainingPlanRepository _plans;
     private readonly IWorkoutRepository _workouts;
+    private readonly IHevyLinkRepository _hevyLinks;
     private readonly ICurrentUserService _currentUser;
     private readonly PlanCalendarService _calendar;
 
     public GetPlanCalendarQueryHandler(
         ITrainingPlanRepository plans,
         IWorkoutRepository workouts,
+        IHevyLinkRepository hevyLinks,
         ICurrentUserService currentUser,
         PlanCalendarService calendar)
     {
-        _plans = plans;
-        _workouts = workouts;
-        _currentUser = currentUser;
-        _calendar = calendar;
+        _plans = plans ?? throw new ArgumentNullException(nameof(plans));
+        _workouts = workouts ?? throw new ArgumentNullException(nameof(workouts));
+        _hevyLinks = hevyLinks ?? throw new ArgumentNullException(nameof(hevyLinks));
+        _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+        _calendar = calendar ?? throw new ArgumentNullException(nameof(calendar));
     }
 
     public async Task<Result<IReadOnlyList<PlanDayDto>>> Handle(GetPlanCalendarQuery request, CancellationToken cancellationToken)
@@ -47,9 +51,11 @@ public sealed class GetPlanCalendarQueryHandler : IRequestHandler<GetPlanCalenda
             return PlanAccess.Fail<IReadOnlyList<PlanDayDto>>(load);
         }
 
-        var history = await PlanAccess.LiftingHistoryAsync(_workouts, load.Value, cancellationToken);
-        var days = _calendar.Month(load.Value, request.Year, request.Month, history);
+        var plan = load.Value;
+        var history = await PlanAccess.LiftingHistoryAsync(_workouts, plan, cancellationToken);
+        var routines = await HevyRoutineLookup.LoadAsync(_hevyLinks, user.Value, cancellationToken);
+        var days = _calendar.Month(plan, request.Year, request.Month, history);
 
-        return Result.Success<IReadOnlyList<PlanDayDto>>(days.Select(d => d.ToDto()).ToList());
+        return Result.Success<IReadOnlyList<PlanDayDto>>(days.Select(d => d.ToDto(plan.Id, routines)).ToList());
     }
 }

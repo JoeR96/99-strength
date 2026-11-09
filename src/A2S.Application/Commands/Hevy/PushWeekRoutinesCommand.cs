@@ -13,8 +13,14 @@ namespace A2S.Application.Commands.Hevy;
 /// <summary>One session the week push could not send, with the user-facing reason.</summary>
 public sealed record PushRoutineFailure(DateOnly Date, string Label, string Error);
 
+/// <summary>
+/// One session the week push sent: the day it is scheduled for and its label, then what Hevy now holds
+/// (the same three fields as <see cref="PushRoutineResult"/>), so the result can be read day by day.
+/// </summary>
+public sealed record PushedSession(DateOnly Date, string Label, string RoutineId, string Title, string Outcome);
+
 /// <summary>Everything the week push did. Paused days are skipped; failures do not stop the rest.</summary>
-public sealed record PushWeekResult(DateOnly WeekStart, IReadOnlyList<PushRoutineResult> Pushed, IReadOnlyList<PushRoutineFailure> Failed);
+public sealed record PushWeekResult(DateOnly WeekStart, IReadOnlyList<PushedSession> Pushed, IReadOnlyList<PushRoutineFailure> Failed);
 
 /// <summary>Pushes every non-rest session of the Monday–Sunday week containing <paramref name="Date"/>.</summary>
 public sealed record PushWeekRoutinesCommand(Guid PlanId, DateOnly Date) : ICommand<Result<PushWeekResult>>;
@@ -68,7 +74,7 @@ public sealed class PushWeekRoutinesCommandHandler : IRequestHandler<PushWeekRou
 
         var plan = load.Value;
         var monday = LocalDates.StartOfWeek(request.Date);
-        var pushed = new List<PushRoutineResult>();
+        var pushed = new List<PushedSession>();
         var failed = new List<PushRoutineFailure>();
 
         for (var offset = 0; offset < 7; offset++)
@@ -84,7 +90,7 @@ public sealed class PushWeekRoutinesCommandHandler : IRequestHandler<PushWeekRou
                 var result = await _pusher.PushAsync(apiKey, plan, session, date, cancellationToken);
                 if (result.IsSuccess)
                 {
-                    pushed.Add(result.Value);
+                    pushed.Add(new PushedSession(date, session.Label, result.Value.RoutineId, result.Value.Title, result.Value.Outcome));
                 }
                 else
                 {

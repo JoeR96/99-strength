@@ -1,3 +1,4 @@
+using A2S.Application.Hevy;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
@@ -59,17 +60,24 @@ public static class PlanMappings
     public static CardioLog ToDomain(this CardioLogDto dto) =>
         new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes, dto.HighIntensityMinutes);
 
-    public static TodaySessionDto ToDto(this PlanDaySession session) => new(
+    public static TodaySessionDto ToDto(this PlanDaySession session) => session.ToDto(hevyRoutineId: null);
+
+    public static TodaySessionDto ToDto(this PlanDaySession session, string? hevyRoutineId) => new(
         session.Session.Kind,
         session.Session.Label,
         session.Status,
         session.Session.LiftDay,
         session.Session.CardioProtocolId?.Value,
         session.Session.MobilityRoutineId?.Value,
-        session.Completion?.Id.Value);
+        session.Completion?.Id.Value,
+        hevyRoutineId);
 
     public static PlanDayDto ToDto(this PlanDay day) =>
-        new(day.Date, day.Phase, day.Sessions.Select(ToDto).ToList());
+        new(day.Date, day.Phase, day.Sessions.Select(s => s.ToDto()).ToList());
+
+    /// <summary>Maps a day with each session's pushed Hevy routine id (<see cref="HevyRoutineLookup"/>) filled in.</summary>
+    public static PlanDayDto ToDto(this PlanDay day, TrainingPlanId planId, HevyRoutineLookup routines) =>
+        new(day.Date, day.Phase, day.Sessions.Select(s => s.ToDto(routines.For(planId, day.Date, s.Session))).ToList());
 
     public static WeeklyGoalsDto ToDto(this WeeklyGoals goals) => new(
         goals.WeekStart,

@@ -1,5 +1,7 @@
+using A2S.Application.Commands.Hevy;
 using A2S.Application.Common;
 using A2S.Application.Hevy;
+using A2S.Application.Interfaces;
 using A2S.Application.Interfaces.Hevy;
 using A2S.Application.Services;
 using A2S.Application.SuggestedPlans;
@@ -260,5 +262,42 @@ public class HevyRoutinePusherTests
 
         result.IsFailure.Should().BeTrue();
         result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
+    }
+
+    private PushWeekRoutinesCommandHandler WeekHandler(string? key = Key)
+    {
+        var plans = Substitute.For<ITrainingPlanRepository>();
+        plans.GetByIdAsync(_plan.Id, Arg.Any<CancellationToken>()).Returns(_plan);
+        var currentUser = Substitute.For<ICurrentUserService>();
+        currentUser.UserId.Returns(Joe.Value);
+        var keys = Substitute.For<IHevyKeyResolver>();
+        keys.ForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns(key);
+        return new PushWeekRoutinesCommandHandler(plans, currentUser, keys, _pusher);
+    }
+
+    [Fact]
+    public async Task PushWeek_ReportsEachPushedSessionWithItsDayAndLabel_AndEachFailureWithItsReason()
+    {
+        var result = await WeekHandler().Handle(new PushWeekRoutinesCommand(_plan.Id.Value, Wed18Nov), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        result.Value.WeekStart.Should().Be(Mon16Nov);
+        result.Value.Pushed.Should().Equal(
+            new PushedSession(Mon16Nov, "Upper A", "R-1", "Cut to 85 — Nov 2026 · W1 Upper A", PushRoutineResult.Created),
+            new PushedSession(Wed18Nov, "Norwegian 4×4", "R-2", "Cut to 85 — Nov 2026 · Norwegian 4×4", PushRoutineResult.Created));
+        var failure = result.Value.Failed.Should().ContainSingle().Subject;
+        failure.Date.Should().Be(new DateOnly(2026, 11, 21));
+        failure.Label.Should().Be("C25K run or LISS 30–40 min");
+        failure.Error.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task PushWeek_WithoutAStoredKey_FailsValidation_AndPushesNothing()
+    {
+        var result = await WeekHandler(key: null).Handle(new PushWeekRoutinesCommand(_plan.Id.Value, Mon16Nov), CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
+        _posted.Should().BeEmpty();
     }
 }

@@ -5,33 +5,16 @@
  * exists and its last four characters, and every Hevy call is made server-side.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { hevyApi } from '@/services/hevyApi';
 import { apiClient } from '@/api/apiClient';
 import toast from 'react-hot-toast';
+import { HevyContext } from './hevyStatusContext';
 
 export interface HevyKeyStatus {
   hasKey: boolean;
   lastFour: string | null;
 }
-
-interface HevyContextType {
-  /** A key is stored server-side. */
-  isConfigured: boolean;
-  /** Last four characters of the stored key, for recognition only. */
-  keyLastFour: string | null;
-  isValidating: boolean;
-  isValid: boolean | null;
-  isLoading: boolean;
-  /** Stores a new key (replacing any existing one) and validates it against Hevy. */
-  setApiKey: (key: string) => Promise<boolean>;
-  /** Removes the stored key. */
-  clearApiKey: () => Promise<void>;
-  /** Re-checks the stored key against Hevy. */
-  validateKey: () => Promise<boolean>;
-}
-
-const HevyContext = createContext<HevyContextType | undefined>(undefined);
 
 export function HevyProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<HevyKeyStatus>({ hasKey: false, lastFour: null });

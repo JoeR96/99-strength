@@ -8,6 +8,7 @@ import { plansApi } from '@/api/plans';
 import { todayLocal, type LocalDate } from '@/lib/localDate';
 import type { TodayDto, TrainingPlanDto } from '@/types/plan';
 import {
+  dayFromSchedule,
   pausedPlanFixture,
   planFixture,
   todayCardio,
@@ -15,6 +16,7 @@ import {
   todayPaused,
   todayRest,
   todayUpperA,
+  todayUpperAWithHevy,
 } from '../fixtures/plan';
 import { installHandlers, never, rejectWith } from './install';
 
@@ -47,6 +49,10 @@ function withToday(build: (date: LocalDate) => TodayDto, plan: TrainingPlanDto |
 export const plansHandlers = {
   /** Monday, Upper A planned. */
   default: (): PlansHandlers => withToday(todayUpperA),
+  /** Monday, Upper A planned and already pushed to Hevy. */
+  withHevyRoutine: (): PlansHandlers => withToday(todayUpperAWithHevy),
+  /** Each date answers from the weekly schedule (Mon Upper A … Sun Rest). */
+  week: (): PlansHandlers => withToday(dayFromSchedule),
   done: (): PlansHandlers => withToday(todayDone),
   rest: (): PlansHandlers => withToday(todayRest),
   cardio: (): PlansHandlers => withToday(todayCardio),

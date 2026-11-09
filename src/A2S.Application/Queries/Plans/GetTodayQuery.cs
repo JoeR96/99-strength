@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Application.Hevy;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
@@ -14,6 +15,7 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
 {
     private readonly ITrainingPlanRepository _plans;
     private readonly IWorkoutRepository _workouts;
+    private readonly IHevyLinkRepository _hevyLinks;
     private readonly ICurrentUserService _currentUser;
     private readonly PlanCalendarService _calendar;
     private readonly ILocalClock _clock;
@@ -21,12 +23,14 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
     public GetTodayQueryHandler(
         ITrainingPlanRepository plans,
         IWorkoutRepository workouts,
+        IHevyLinkRepository hevyLinks,
         ICurrentUserService currentUser,
         PlanCalendarService calendar,
         ILocalClock clock)
     {
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
         _workouts = workouts ?? throw new ArgumentNullException(nameof(workouts));
+        _hevyLinks = hevyLinks ?? throw new ArgumentNullException(nameof(hevyLinks));
         _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         _calendar = calendar ?? throw new ArgumentNullException(nameof(calendar));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -50,9 +54,11 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
         var date = request.Date ?? _clock.Today();
         var history = await PlanAccess.LiftingHistoryAsync(_workouts, plan, cancellationToken);
 
+        var routines = await HevyRoutineLookup.LoadAsync(_hevyLinks, user.Value, cancellationToken);
+
         var day = _calendar.DayFor(plan, date, history);
         var week = _calendar.ForWeek(plan, date, history);
 
-        return Result.Success(new TodayDto(day.Date, day.Phase, day.Sessions.Select(s => s.ToDto()).ToList(), week.ToDto()));
+        return Result.Success(new TodayDto(day.Date, day.Phase, day.ToDto(plan.Id, routines).Sessions, week.ToDto()));
     }
 }

@@ -4,6 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { apiClient } from '@/api';
 import { HevySettings } from '@/components/hevy/HevySettings';
 import { PushSettings } from './PushSettings';
+import { HevySyncSettings } from './HevySyncSettings';
 import toast from 'react-hot-toast';
 import type { WorkoutDto, ExerciseDto } from '@/types/workout';
 
@@ -93,6 +94,8 @@ export function SettingsPage() {
           <PushSettings />
 
           <HevySettings />
+
+          <HevySyncSettings />
 
           {/* Secondary pages that used to sit in the top menu */}
           <div className="rounded-xl border border-border bg-card p-6">

@@ -33,11 +33,11 @@ src/
 │   ├── shared/       # App-wide shared components (ErrorBoundary, ProtectedRoute, modals)
 │   ├── layout/       # Navbar, page layout
 │   └── hevy/         # Hevy-specific components
-├── contexts/         # React contexts (HevyContext)
+├── contexts/         # React contexts (HevyContext, hevyStatusContext)
 ├── features/         # Feature-folder organized pages
 │   ├── auth/         # Login, SignUp, Dashboard pages
 │   ├── exercises/    # Exercise library page
-│   ├── hevy/         # Hevy sync/data pages
+│   ├── hevy/         # Hevy routines, data and the unmatched-workout inbox
 │   ├── history/      # Workout history page
 │   ├── programs/     # Programs management page
 │   ├── settings/     # Settings page
@@ -71,6 +71,14 @@ src/
 - **Axios-based API client** (`api/apiClient.ts`) with Clerk auth token injection
 - **Path alias**: `@/` maps to `src/` (configured in `vite.config.ts`)
 - **API base URL**: `VITE_API_BASE_URL` env var (default: `https://localhost:5001/api/v1`)
+
+### Hevy push and pull (UI)
+
+- Every Hevy call goes through our API (`api/hevySync.ts`); the hooks are in `hooks/useHevySync.ts` (pull, push session, push week, inbox, assign, ignore).
+- Pages that only need to know whether a key is stored read `useHevyStatus()` from `contexts/hevyStatusContext.ts`. It answers "no key" without a `HevyProvider`, so tests and stories need `HevyStatusStub` / `withHevyStatus(true)` only for the configured states. `useHevy()` (key management) still requires the provider.
+- Today pulls in the background on mount, on app resume (at most once a minute), on Refresh / pull-to-refresh and after coming back from "Open in Hevy" (`useAutoPullHevy`). It must never block render, and it does not run without a key or offline.
+- `SessionCard` shows Open in Hevy (`hevy://routine/{id}`, web fallback after 800 ms, `features/today/hevyDeepLink.ts`) when `hevyRoutineId` is set, else Push to Hevy when a key is stored.
+- `/hevy/inbox` (`features/hevy/HevyInboxPage.tsx`) lists unmatched workouts; it is read-only offline. Settings → Hevy sync is `features/settings/HevySyncSettings.tsx`.
 
 ### Auth
 

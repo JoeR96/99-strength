@@ -1,11 +1,13 @@
 /**
  * One of today's sessions. Lifts get a big Start that opens the session page;
  * cardio and mobility get Mark done, which the page turns into a log sheet.
- * A paused day shows the status and nothing to press.
+ * Beside it sits Hevy: Open in Hevy once the session has a pushed routine, or
+ * Push to Hevy when a key is stored and it has none. A paused day shows the
+ * status and nothing to press. Every button is at least 44 px tall.
  */
 
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Dumbbell, ExternalLink, HeartPulse, Moon, Play, StretchHorizontal, Undo2 } from 'lucide-react';
+import { CheckCircle2, Dumbbell, ExternalLink, HeartPulse, Moon, Play, StretchHorizontal, Undo2, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -17,8 +19,14 @@ export interface SessionCardProps {
   paused?: boolean;
   onMarkDone?: (session: TodaySessionDto) => void;
   onUndo?: (session: TodaySessionDto) => void;
-  /** A Hevy routine deep link; Phase 6 supplies it, so until then it is absent and the button hidden. */
-  hevyRoutineUrl?: string | null;
+  /** A Hevy key is stored, so a session without a routine can be pushed. */
+  hevyConfigured?: boolean;
+  /** Opens `session.hevyRoutineId` in Hevy (deep link with a web fallback). */
+  onOpenInHevy?: (session: TodaySessionDto) => void;
+  /** Pushes the session as a Hevy routine. */
+  onPushToHevy?: (session: TodaySessionDto) => void;
+  /** A push for this card is in flight. */
+  pushing?: boolean;
   busy?: boolean;
 }
 
@@ -36,6 +44,9 @@ const kindName = {
   [SessionKind.Mobility]: 'Mobility',
 } as const;
 
+/** Side by side from 360 px; on anything narrower the two buttons stack so neither label is cut. */
+const TWO_UP = 'grid-cols-1 min-[360px]:grid-cols-2';
+
 function statusBadge(status: SessionStatus) {
   switch (status) {
     case SessionStatus.Done:
@@ -51,12 +62,54 @@ function statusBadge(status: SessionStatus) {
   }
 }
 
-export function SessionCard({ session, paused = false, onMarkDone, onUndo, hevyRoutineUrl, busy = false }: SessionCardProps) {
+export function SessionCard({
+  session,
+  paused = false,
+  onMarkDone,
+  onUndo,
+  hevyConfigured = false,
+  onOpenInHevy,
+  onPushToHevy,
+  pushing = false,
+  busy = false,
+}: SessionCardProps) {
   const Icon = kindIcon[session.kind];
   const isRest = session.kind === SessionKind.Rest;
   const isDone = session.status === SessionStatus.Done;
   const inactive = paused || session.status === SessionStatus.Paused;
   const canAct = !isRest && !isDone && !inactive;
+  const isPlanned = session.status === SessionStatus.Planned;
+
+  const showOpenInHevy = canAct && isPlanned && !!session.hevyRoutineId;
+  const showPushToHevy = canAct && isPlanned && !session.hevyRoutineId && hevyConfigured;
+  const hasHevyButton = showOpenInHevy || showPushToHevy;
+
+  const hevyButton = showOpenInHevy ? (
+    <Button
+      variant="outline"
+      size="lg"
+      className="w-full px-3 text-base"
+      onClick={() => onOpenInHevy?.(session)}
+      data-testid="open-in-hevy"
+      aria-label={`Open in Hevy: ${session.label}`}
+    >
+      <ExternalLink aria-hidden="true" />
+      Open in Hevy
+    </Button>
+  ) : showPushToHevy ? (
+    <Button
+      variant="outline"
+      size="lg"
+      className="w-full px-3 text-base"
+      onClick={() => onPushToHevy?.(session)}
+      disabled={pushing || busy}
+      data-testid="push-to-hevy"
+      aria-label={pushing ? `Pushing ${session.label} to Hevy` : `Push to Hevy: ${session.label}`}
+    >
+      <Upload aria-hidden="true" />
+      {pushing ? 'Pushing…' : 'Push to Hevy'}
+    </Button>
+  ) : null;
 
   return (
     <article
@@ -81,29 +134,31 @@ export function SessionCard({ session, paused = false, onMarkDone, onUndo, hevyR
       </div>
 
       {canAct && session.kind === SessionKind.Lift && session.liftDay && (
-        <div className="mt-4 flex flex-col gap-2">
-          <Button asChild size="lg" className="w-full" data-testid="start-session">
+        <div className={cn('mt-4 grid gap-2', hasHevyButton ? TWO_UP : 'grid-cols-1')}>
+          <Button asChild size="lg" className={cn('w-full', hasHevyButton && 'px-3 text-base')} data-testid="start-session">
             <Link to={`/workout/session/${session.liftDay}`}>
               <Play aria-hidden="true" />
               Start
             </Link>
           </Button>
-          {hevyRoutineUrl && (
-            <Button asChild variant="outline" className="w-full">
-              <a href={hevyRoutineUrl} target="_blank" rel="noreferrer">
-                <ExternalLink aria-hidden="true" />
-                Open in Hevy
-              </a>
-            </Button>
-          )}
+          {hevyButton}
         </div>
       )}
 
       {canAct && (session.kind === SessionKind.Cardio || session.kind === SessionKind.Mobility) && (
-        <Button size="lg" className="mt-4 w-full" onClick={() => onMarkDone?.(session)} disabled={busy} data-testid="mark-done">
-          <CheckCircle2 aria-hidden="true" />
-          Mark done
-        </Button>
+        <div className={cn('mt-4 grid gap-2', hasHevyButton ? TWO_UP : 'grid-cols-1')}>
+          <Button
+            size="lg"
+            className={cn('w-full', hasHevyButton && 'px-3 text-base')}
+            onClick={() => onMarkDone?.(session)}
+            disabled={busy}
+            data-testid="mark-done"
+          >
+            <CheckCircle2 aria-hidden="true" />
+            Mark done
+          </Button>
+          {hevyButton}
+        </div>
       )}
 
       {isDone && onUndo && session.completionId && (
