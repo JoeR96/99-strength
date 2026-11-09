@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/Navbar";
 import { useHevy } from "@/contexts/HevyContext";
-import { createCompletedWorkoutInHevy, handleRoutineLifecycle, type CompletedExerciseData } from "@/services/hevySyncService";
+import { createCompletedWorkoutInHevy, type CompletedExerciseData } from "@/services/hevySyncService";
 import toast from "react-hot-toast";
 import type { CompleteDayResult, WorkoutDto, DayNumber, ExerciseEntry } from "./workoutSessionTypes";
 import { outcomeToStatus, outcomeLabel, statusBadgeClass } from "@/lib/outcomeStatus";
@@ -32,41 +32,6 @@ export function CompletionSummary({
   const { isConfigured, isValid } = useHevy();
   const [isSyncingToHevy, setIsSyncingToHevy] = useState(false);
   const [hevySynced, setHevySynced] = useState(false);
-  const [routineLifecycleCompleted, setRoutineLifecycleCompleted] = useState(false);
-  const [routineLifecycleMessage, setRoutineLifecycleMessage] = useState<string | null>(null);
-
-  const handleRoutineLifecycleOnWeekProgress = useCallback(async () => {
-    if (!result.weekProgressed || result.programComplete) return;
-    if (!isConfigured || !isValid) return;
-    if (routineLifecycleCompleted) return;
-
-    try {
-      const lifecycleResult = await handleRoutineLifecycle(
-        workout,
-        dayNumber,
-        result.weekNumber,
-        result.newCurrentWeek
-      );
-
-      if (lifecycleResult.success) {
-        setRoutineLifecycleMessage(lifecycleResult.message);
-        toast.success(lifecycleResult.message);
-      } else {
-        setRoutineLifecycleMessage(`Routine update: ${lifecycleResult.message}`);
-        console.warn('Routine lifecycle warning:', lifecycleResult.message);
-      }
-      setRoutineLifecycleCompleted(true);
-    } catch (error) {
-      console.error('Failed to handle routine lifecycle:', error);
-      setRoutineLifecycleCompleted(true);
-    }
-  }, [result.weekProgressed, result.programComplete, result.weekNumber, result.newCurrentWeek, isConfigured, isValid, routineLifecycleCompleted, workout, dayNumber]);
-
-  useEffect(() => {
-    if (result.weekProgressed && isConfigured && isValid && !routineLifecycleCompleted) {
-      handleRoutineLifecycleOnWeekProgress();
-    }
-  }, [result.weekProgressed, isConfigured, isValid, routineLifecycleCompleted, handleRoutineLifecycleOnWeekProgress]);
 
   const handleSendToHevy = async () => {
     if (!workout) return;
@@ -92,7 +57,8 @@ export function CompletionSummary({
         completedExercises,
         workoutStartTime,
         workoutEndTime,
-        result.progressionChanges
+        result.progressionChanges,
+        result.weekNumber
       );
 
       if (syncResult.success) {
@@ -139,9 +105,6 @@ export function CompletionSummary({
                 Week Complete! Moving to Week {result.newCurrentWeek}
                 {result.isDeloadWeek && " (Deload Week)"}
               </p>
-              {isConfigured && isValid && routineLifecycleMessage && (
-                <p className="text-sm text-muted-foreground mt-1">{routineLifecycleMessage}</p>
-              )}
             </div>
           )}
 

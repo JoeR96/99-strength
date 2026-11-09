@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using Serilog.Core;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -31,6 +32,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     private PostgreSqlContainer? _postgresContainer;
 
     public string ConnectionString { get; private set; } = string.Empty;
+
+    /// <summary>An ephemeral VAPID pair so the push endpoints see push as configured; never a real key.</summary>
+    public EphemeralVapidKeys VapidKeys { get; } = EphemeralVapidKeys.Generate();
 
     // JWT settings shared between configuration and test helpers
     public const string TestJwtSecret = "ThisIsATestSecretKeyForJwtTokenGenerationThatIs64CharactersLongForHS256";
@@ -71,6 +75,13 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         builder.UseEnvironment("Testing");
 
+        // Program.cs reads these two while it is still building the host, and stops the boot when
+        // either is empty (RequiredSettings). ConfigureAppConfiguration below is applied too late
+        // for that read; UseSetting is host configuration, which the app sees from its first line.
+        // The domain is never contacted: the JWT options are replaced with the test key further down.
+        builder.UseSetting("Clerk:Domain", "https://clerk.test.invalid");
+        builder.UseSetting("Cors:Origins:0", "http://localhost:5173");
+
         // Provide test configuration
         builder.ConfigureAppConfiguration((context, config) =>
         {
@@ -78,8 +89,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             {
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning",
-                ["Clerk:Domain"] = TestJwtIssuer,
-                ["Cors:Origins:0"] = "http://localhost:5173"
+                ["Push:VapidPublicKey"] = VapidKeys.PublicKey,
+                ["Push:VapidPrivateKey"] = VapidKeys.PrivateKey,
+                ["Push:Subject"] = EphemeralVapidKeys.Subject
             });
         });
 
@@ -93,8 +105,15 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             services.AddDbContext<A2SDbContext>(options =>
             {
                 options.UseNpgsql(ConnectionString);
+                // Deliberately on: the logging tests prove secrets stay out of logs even so.
+                options.EnableSensitiveDataLogging();
                 options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
             });
+
+            // Capture every log event so tests can assert on what was (not) logged
+            var sink = new CapturingLogSink();
+            services.AddSingleton(sink);
+            services.AddSingleton<ILogEventSink>(sink);
 
             // Replace ICurrentUserService with test implementation
             services.RemoveAll<ICurrentUserService>();
@@ -145,9 +164,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     }
 
     /// <summary>
-    /// Generates a JWT token for testing purposes.
+    /// Generates a JWT token for testing purposes: what a Clerk session looks like to the test host.
     /// </summary>
-    private string GenerateJwtToken(string userId, string email)
+    public static string GenerateJwtToken(string userId, string email)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

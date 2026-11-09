@@ -1,0 +1,276 @@
+[
+  {
+    "key": "cooks:creamy-lemon-orzo-with-skinless-chicken-thighs",
+    "title": "Creamy Lemon Orzo with Skinless Chicken Thighs",
+    "mealType": "Dinner",
+    "description": "A light, lemony orzo dish with pan-seared skinless chicken thighs. Lower-calorie thanks to the skinless thighs and minimal cream.",
+    "ingredients": [
+      { "name": "skinless boneless chicken thigh", "quantity": 4, "unit": "piece" },
+      { "name": "orzo", "quantity": 200, "unit": "g" },
+      { "name": "lemon", "quantity": 1, "unit": "piece" },
+      { "name": "garlic", "quantity": 2, "unit": "clove" },
+      { "name": "onion", "quantity": 1, "unit": "piece" },
+      { "name": "chicken stock", "quantity": 500, "unit": "ml" },
+      { "name": "light cream cheese", "quantity": 50, "unit": "g" },
+      { "name": "baby spinach", "quantity": 1, "unit": "handful" },
+      { "name": "olive oil", "quantity": 2, "unit": "tbsp" },
+      { "name": "salt" },
+      { "name": "pepper" },
+      { "name": "fresh parsley" }
+    ],
+    "steps": [
+      "Season the chicken thighs with salt and pepper.",
+      "Sear in olive oil over medium-high heat ~4 min per side until golden and cooked through. Rest.",
+      "In the same pan, soften onion and garlic.",
+      "Add orzo and toast for 1 minute.",
+      "Pour in stock and lemon zest, simmer 8-10 min until orzo is al dente and stock is mostly absorbed.",
+      "Stir in cream cheese, lemon juice, and spinach until wilted.",
+      "Slice chicken, top the orzo, and garnish with parsley."
+    ],
+    "tags": ["chicken", "low-calorie", "pasta", "weeknight"]
+  },
+  {
+    "key": "cooks:nandos-fakeaway-with-sweet-potato-wedges-and-tenderstem-broccoli",
+    "title": "Nandos Fakeaway with Sweet Potato Wedges and Tenderstem Broccoli",
+    "mealType": "Dinner",
+    "description": "Peri-peri chicken thighs with crispy sweet potato wedges and charred tenderstem - Nandos at home.",
+    "ingredients": [
+      { "name": "skin-on bone-in chicken thigh", "quantity": 6, "unit": "piece" },
+      { "name": "peri-peri sauce", "quantity": 3, "unit": "tbsp" },
+      { "name": "sweet potato", "quantity": 2, "unit": "piece" },
+      { "name": "olive oil", "quantity": 1, "unit": "tbsp" },
+      { "name": "smoked paprika", "quantity": 1, "unit": "tsp" },
+      { "name": "tenderstem broccoli", "quantity": 200, "unit": "g" },
+      { "name": "olive oil", "quantity": 1, "unit": "tbsp" },
+      { "name": "lemon", "quantity": 1, "unit": "piece" },
+      { "name": "salt" },
+      { "name": "pepper" }
+    ],
+    "steps": [
+      "Preheat oven to 200C.",
+      "Toss sweet potato wedges with olive oil, smoked paprika and salt - spread on a tray.",
+      "Rub chicken thighs all over with peri-peri sauce, place skin-up on a second tray.",
+      "Roast both for 30-35 min, flipping wedges halfway, until chicken is cooked through and skin is crispy.",
+      "In the last 5 min, blanch tenderstem in boiling water 2 min, then char in a hot pan with olive oil for 2-3 min.",
+      "Serve with lemon halves to squeeze over."
+    ],
+    "tags": ["chicken", "fakeaway", "peri-peri", "weeknight"]
+  },
+  {
+    "key": "cooks:slow-cooked-beef-barbacoa",
+    "title": "Slow-Cooked Beef Barbacoa",
+    "mealType": "Dinner",
+    "description": "Mexican-style slow-cooked shredded beef with chipotle, lime and adobo. Great for tacos, bowls, or burritos.",
+    "ingredients": [
+      { "name": "beef chuck", "quantity": 1.2, "unit": "kg" },
+      { "name": "chipotle pepper in adobo", "quantity": 3, "unit": "piece" },
+      { "name": "garlic", "quantity": 4, "unit": "clove" },
+      { "name": "ground cumin", "quantity": 1, "unit": "tbsp" },
+      { "name": "dried oregano", "quantity": 2, "unit": "tsp" },
+      { "name": "ground cloves", "quantity": 1, "unit": "tsp" },
+      { "name": "lime juice", "quantity": 60, "unit": "ml" },
+      { "name": "apple cider vinegar", "quantity": 60, "unit": "ml" },
+      { "name": "beef stock", "quantity": 250, "unit": "ml" },
+      { "name": "bay leaf", "quantity": 3, "unit": "piece" },
+      { "name": "olive oil", "quantity": 2, "unit": "tbsp" },
+      { "name": "salt", "quantity": 1, "unit": "tsp" },
+      { "name": "black pepper", "quantity": 1, "unit": "tsp" }
+    ],
+    "steps": [
+      "Pat beef dry, season with salt and pepper.",
+      "Sear chunks in olive oil until browned all sides - work in batches.",
+      "Transfer to slow cooker.",
+      "Blend chipotles, garlic, cumin, oregano, cloves, lime juice, vinegar and beef stock until smooth.",
+      "Pour over beef, add bay leaves.",
+      "Cook on low 8 hours or high 4-5 hours until shreddable.",
+      "Discard bay leaves, shred with two forks, return to the cooking liquid.",
+      "Serve in tacos with coriander, diced onion and lime."
+    ],
+    "tags": ["beef", "mexican", "slow-cooker", "meal-prep"]
+  },
+  {
+    "key": "cooks:chicken-breast-chow-mein",
+    "title": "Chicken Breast Chow Mein",
+    "mealType": "Dinner",
+    "description": "Quick weeknight stir-fried noodles with chicken breast and crunchy veg in a soy-sesame sauce.",
+    "ingredients": [
+      { "name": "chicken breast", "quantity": 2, "unit": "piece" },
+      { "name": "egg noodles", "quantity": 250, "unit": "g" },
+      { "name": "red pepper", "quantity": 1, "unit": "piece" },
+      { "name": "carrot", "quantity": 1, "unit": "piece" },
+      { "name": "beansprouts", "quantity": 100, "unit": "g" },
+      { "name": "spring onion", "quantity": 3, "unit": "piece" },
+      { "name": "garlic", "quantity": 2, "unit": "clove" },
+      { "name": "fresh ginger", "quantity": 1, "unit": "tbsp" },
+      { "name": "soy sauce", "quantity": 3, "unit": "tbsp" },
+      { "name": "dark soy sauce", "quantity": 1, "unit": "tbsp" },
+      { "name": "oyster sauce", "quantity": 1, "unit": "tbsp" },
+      { "name": "sesame oil", "quantity": 1, "unit": "tsp" },
+      { "name": "sugar", "quantity": 1, "unit": "tsp" },
+      { "name": "vegetable oil", "quantity": 2, "unit": "tbsp" },
+      { "name": "cornflour", "quantity": 1, "unit": "tsp" }
+    ],
+    "steps": [
+      "Cook noodles per packet, drain, toss with a little oil.",
+      "Whisk soy sauces, oyster sauce, sesame oil and sugar in a bowl.",
+      "Heat oil in a wok over high heat.",
+      "Stir-fry chicken 2-3 min until just cooked, set aside.",
+      "Add garlic and ginger to the wok for 20 seconds.",
+      "Add carrot and pepper, stir-fry 1-2 min.",
+      "Return chicken, add noodles, sauce, beansprouts and spring onions. Toss.",
+      "Add cornflour slurry, toss to coat. Serve immediately."
+    ],
+    "tags": ["chicken", "stir-fry", "noodles", "quick"]
+  },
+  {
+    "key": "cooks:nandos-style-chicken-wrap",
+    "title": "Nandos-Style Chicken Wrap",
+    "mealType": "Lunch",
+    "description": "Peri-peri chicken, salad and a tangy mayo wrapped in a warm flour tortilla - like the Nandos wrap menu.",
+    "ingredients": [
+      { "name": "chicken breast", "quantity": 2, "unit": "piece" },
+      { "name": "peri-peri sauce", "quantity": 2, "unit": "tbsp" },
+      { "name": "flour tortilla", "quantity": 4, "unit": "piece" },
+      { "name": "cos lettuce leaf", "quantity": 4, "unit": "piece" },
+      { "name": "tomato", "quantity": 1, "unit": "piece" },
+      { "name": "red onion", "quantity": 0.5, "unit": "piece" },
+      { "name": "cheddar", "quantity": 100, "unit": "g" },
+      { "name": "mayonnaise", "quantity": 4, "unit": "tbsp" },
+      { "name": "peri-peri sauce", "quantity": 1, "unit": "tsp" },
+      { "name": "olive oil", "quantity": 1, "unit": "tbsp" },
+      { "name": "salt" },
+      { "name": "pepper" }
+    ],
+    "steps": [
+      "Butterfly the chicken breasts, season, rub with peri-peri sauce.",
+      "Pan-fry in olive oil over medium-high 4 min per side until cooked through.",
+      "Rest 5 min, slice.",
+      "Mix mayo with 1 tsp peri-peri sauce.",
+      "Warm tortillas in a dry pan.",
+      "On each, spread peri mayo, layer lettuce, tomato, onion, sliced chicken and cheese.",
+      "Wrap tightly, slice in half."
+    ],
+    "tags": ["chicken", "wrap", "fakeaway", "lunch"]
+  },
+  {
+    "key": "cooks:bacon-and-egg-bagel",
+    "title": "Bacon and Egg Bagel",
+    "mealType": "Breakfast",
+    "description": "Toasted bagel with crispy bacon, a fried egg, melted cheese and a smear of brown sauce.",
+    "ingredients": [
+      { "name": "bagel", "quantity": 2, "unit": "piece" },
+      { "name": "smoked back bacon", "quantity": 4, "unit": "slice" },
+      { "name": "egg", "quantity": 2, "unit": "piece" },
+      { "name": "mature cheddar", "quantity": 2, "unit": "slice" },
+      { "name": "butter", "quantity": 1, "unit": "tbsp" },
+      { "name": "brown sauce", "quantity": 2, "unit": "tbsp" },
+      { "name": "black pepper" }
+    ],
+    "steps": [
+      "Fry bacon in a dry pan until crispy, set aside.",
+      "Toast the bagel halves.",
+      "While they toast, fry the eggs in butter to your liking, runny yolks recommended.",
+      "On the bottom half of each bagel, add cheese, bacon, the egg, a grind of pepper, then a smear of brown sauce on the top half.",
+      "Close, eat."
+    ],
+    "tags": ["breakfast", "bagel", "bacon", "quick"]
+  },
+  {
+    "key": "cooks:sushi-rice-and-eggs",
+    "title": "Sushi Rice and Eggs",
+    "mealType": "Breakfast",
+    "description": "Japanese-inspired breakfast - sticky seasoned sushi rice topped with soft-set scrambled eggs, soy and furikake.",
+    "ingredients": [
+      { "name": "sushi rice", "quantity": 200, "unit": "g" },
+      { "name": "rice vinegar", "quantity": 1, "unit": "tbsp" },
+      { "name": "sugar", "quantity": 1, "unit": "tsp" },
+      { "name": "salt", "quantity": 0.5, "unit": "tsp" },
+      { "name": "egg", "quantity": 4, "unit": "piece" },
+      { "name": "soy sauce", "quantity": 1, "unit": "tsp" },
+      { "name": "mirin", "quantity": 1, "unit": "tsp" },
+      { "name": "butter", "quantity": 1, "unit": "tbsp" },
+      { "name": "furikake" },
+      { "name": "spring onion", "quantity": 2, "unit": "piece" },
+      { "name": "soy sauce" }
+    ],
+    "steps": [
+      "Rinse rice until water runs clear, then cook with 240ml water in a rice cooker, or simmer covered 12 min then rest 10 min.",
+      "Mix vinegar, sugar and salt, fold through cooked rice, let cool slightly.",
+      "Beat eggs with soy and mirin.",
+      "Melt butter in a non-stick pan over low heat, add eggs, stir gently with a spatula for soft-set scramble - do not overcook.",
+      "Divide rice between two bowls, top with eggs, sprinkle furikake and spring onions, drizzle a little soy."
+    ],
+    "tags": ["breakfast", "japanese", "rice", "eggs"]
+  },
+  {
+    "key": "cooks:classic-overnight-oats",
+    "title": "Classic Overnight Oats",
+    "mealType": "Breakfast",
+    "description": "The base recipe - creamy rolled oats soaked overnight in milk and yogurt, ready to grab in the morning.",
+    "ingredients": [
+      { "name": "rolled oats", "quantity": 80, "unit": "g" },
+      { "name": "milk", "quantity": 200, "unit": "ml" },
+      { "name": "greek yogurt", "quantity": 100, "unit": "g" },
+      { "name": "honey", "quantity": 1, "unit": "tbsp" },
+      { "name": "chia seeds", "quantity": 1, "unit": "tbsp" },
+      { "name": "vanilla extract", "quantity": 0.5, "unit": "tsp" },
+      { "name": "salt", "quantity": 1, "unit": "pinch" }
+    ],
+    "steps": [
+      "Combine all ingredients in a jar or container.",
+      "Stir well.",
+      "Cover and refrigerate at least 4 hours, ideally overnight.",
+      "In the morning, give it a stir, top with whatever you fancy such as berries, banana or nut butter, eat cold."
+    ],
+    "tags": ["breakfast", "overnight-oats", "meal-prep", "make-ahead"]
+  },
+  {
+    "key": "cooks:peanut-butter-and-banana-overnight-oats",
+    "title": "Peanut Butter and Banana Overnight Oats",
+    "mealType": "Breakfast",
+    "description": "Overnight oats variant with peanut butter, banana and a hint of cinnamon.",
+    "ingredients": [
+      { "name": "rolled oats", "quantity": 80, "unit": "g" },
+      { "name": "milk", "quantity": 200, "unit": "ml" },
+      { "name": "greek yogurt", "quantity": 100, "unit": "g" },
+      { "name": "peanut butter", "quantity": 2, "unit": "tbsp" },
+      { "name": "banana", "quantity": 1, "unit": "piece" },
+      { "name": "honey", "quantity": 1, "unit": "tbsp" },
+      { "name": "chia seeds", "quantity": 1, "unit": "tbsp" },
+      { "name": "ground cinnamon", "quantity": 0.5, "unit": "tsp" },
+      { "name": "salt", "quantity": 1, "unit": "pinch" }
+    ],
+    "steps": [
+      "Mash the banana into the milk and peanut butter until smooth-ish.",
+      "Stir in oats, yogurt, honey, chia, cinnamon and salt.",
+      "Decant into a jar.",
+      "Refrigerate overnight.",
+      "Top with extra banana slices and a drizzle of peanut butter to serve."
+    ],
+    "tags": ["breakfast", "overnight-oats", "peanut-butter", "make-ahead"]
+  },
+  {
+    "key": "cooks:berry-and-almond-overnight-oats",
+    "title": "Berry and Almond Overnight Oats",
+    "mealType": "Breakfast",
+    "description": "Overnight oats variant with mixed berries, almond butter and flaked almonds.",
+    "ingredients": [
+      { "name": "rolled oats", "quantity": 80, "unit": "g" },
+      { "name": "almond milk", "quantity": 200, "unit": "ml" },
+      { "name": "greek yogurt", "quantity": 100, "unit": "g" },
+      { "name": "almond butter", "quantity": 1, "unit": "tbsp" },
+      { "name": "maple syrup", "quantity": 1, "unit": "tbsp" },
+      { "name": "chia seeds", "quantity": 1, "unit": "tbsp" },
+      { "name": "vanilla extract", "quantity": 0.5, "unit": "tsp" },
+      { "name": "salt", "quantity": 1, "unit": "pinch" },
+      { "name": "mixed berries", "quantity": 80, "unit": "g" },
+      { "name": "flaked almonds", "quantity": 1, "unit": "tbsp" }
+    ],
+    "steps": [
+      "Stir oats, milk, yogurt, almond butter, maple syrup, chia, vanilla and salt together in a jar until combined.",
+      "Refrigerate overnight.",
+      "In the morning, top with mixed berries and flaked almonds."
+    ],
+    "tags": ["breakfast", "overnight-oats", "berries", "make-ahead"]
+  }
+]

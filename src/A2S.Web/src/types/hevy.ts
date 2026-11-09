@@ -131,13 +131,6 @@ export interface HevyCreateExerciseTemplateRequest {
   };
 }
 
-// Create routine folder request - note: API expects wrapper object
-export interface HevyCreateRoutineFolderRequest {
-  routine_folder: {
-    title: string;
-  };
-}
-
 // Response types
 export interface HevyWorkout {
   id: string;
@@ -237,10 +230,6 @@ export interface HevyRoutinesResponse extends HevyPaginatedResponse<HevyRoutine>
 
 export interface HevyExerciseTemplatesResponse extends HevyPaginatedResponse<HevyExerciseTemplate> {
   exercise_templates: HevyExerciseTemplate[];
-}
-
-export interface HevyRoutineFoldersResponse extends HevyPaginatedResponse<HevyRoutineFolder> {
-  routine_folders: HevyRoutineFolder[];
 }
 
 export interface HevyWorkoutCountResponse {

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.0.0" />
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
@@ -23,6 +24,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\A2S.Domain\A2S.Domain.csproj" />
     <ProjectReference Include="..\A2S.Tests.Shared\A2S.Tests.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The research tables drive the 21-week A2S2 cycle tests (A2S2CycleTests). -->
+    <None Include="..\..\research\A2S2_Validation_Data.md" Link="TestData\A2S2_Validation_Data.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

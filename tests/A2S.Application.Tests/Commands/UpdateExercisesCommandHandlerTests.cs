@@ -1,9 +1,11 @@
 using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.Common;
+using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
+using A2S.Domain.Services;
 using A2S.Domain.ValueObjects;
 using A2S.Tests.Shared.Builders;
 using FluentAssertions;
@@ -17,6 +19,7 @@ public class UpdateExercisesCommandHandlerTests
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IExerciseLibraryProvider _library;
     private readonly UpdateExercisesCommandHandler _handler;
 
     private static readonly UserId TestUserId = new("a1d11111-1111-1111-1111-111111111111");
@@ -26,7 +29,10 @@ public class UpdateExercisesCommandHandlerTests
         _workoutRepository = Substitute.For<IWorkoutRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _handler = new UpdateExercisesCommandHandler(_workoutRepository, _unitOfWork, _currentUserService);
+        _library = Substitute.For<IExerciseLibraryProvider>();
+        _library.GetAllTemplatesAsync(Arg.Any<CancellationToken>()).Returns(Array.Empty<ExerciseTemplate>());
+        var budget = new DayBudgetCalculator(new VolumeBudgetService(new A2SProgramProvider()), _library);
+        _handler = new UpdateExercisesCommandHandler(_workoutRepository, _unitOfWork, _currentUserService, budget);
     }
 
     [Fact]
@@ -234,6 +240,44 @@ public class UpdateExercisesCommandHandlerTests
     private void SetupAuthenticatedUser(UserId userId)
     {
         _currentUserService.UserId.Returns(userId.Value.ToString());
+    }
+
+    [Fact]
+    public async Task Handle_ResultCarriesVolumeWarningsAndTimeBudget_WithoutBlockingTheUpdate()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        _library.GetAllTemplatesAsync(Arg.Any<CancellationToken>()).Returns(new[]
+        {
+            new ExerciseTemplate("Bench Press", EquipmentType.Barbell, MuscleGroup: "chest"),
+            new ExerciseTemplate("Dumbbell Fly", EquipmentType.Dumbbell, MuscleGroup: "chest"),
+            new ExerciseTemplate("Cable Fly", EquipmentType.Cable, MuscleGroup: "chest"),
+            new ExerciseTemplate("Pec Deck", EquipmentType.Machine, MuscleGroup: "chest")
+        });
+        var workout = new WorkoutBuilder()
+            .WithUserId(TestUserId)
+            .WithVariant(ProgramVariant.FiveDay)
+            .WithDefaultLinearExercise("Bench Press", DayNumber.Day1, 1, 100m)
+            .WithExercise(e => e.WithName("Dumbbell Fly").WithCategory(ExerciseCategory.Accessory).WithOrder(2).AsRepsPerSet(startingSets: 6, targetSets: 6))
+            .WithExercise(e => e.WithName("Cable Fly").WithCategory(ExerciseCategory.Accessory).WithOrder(3).AsRepsPerSet(startingSets: 6, targetSets: 6))
+            .WithExercise(e => e.WithName("Pec Deck").WithCategory(ExerciseCategory.Accessory).WithOrder(4).AsRepsPerSet(startingSets: 6, targetSets: 6))
+            .Build();
+        workout.Start();
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var bench = workout.Exercises.Single(e => e.Name == "Bench Press");
+
+        var result = await _handler.Handle(
+            new UpdateExercisesCommand(workout.Id.Value, new List<ExerciseUpdateRequest>
+            {
+                new() { ExerciseId = bench.Id.Value, TrainingMaxValue = 105m, TrainingMaxUnit = WeightUnit.Kilograms }
+            }),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue("volume and time warnings never block");
+        result.Value.UpdatedCount.Should().Be(1);
+        result.Value.Warnings.Should().ContainSingle();
+        result.Value.Warnings[0].Message.Should().Be("Chest: 23 hard sets this week, cap 10");
+        result.Value.OverTimeBudget.Should().BeTrue("1100 s + 3 × 780 s is 58 minutes before the warm-up");
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     private static Workout CreateActiveWorkout(UserId userId)

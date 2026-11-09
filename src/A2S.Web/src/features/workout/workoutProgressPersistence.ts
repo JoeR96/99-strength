@@ -6,13 +6,15 @@ export function saveWorkoutProgress(
   workoutId: string,
   dayNumber: number,
   weekNumber: number,
-  exerciseEntries: ExerciseEntry[]
+  exerciseEntries: ExerciseEntry[],
+  startedAt?: Date
 ): void {
   const progress: SavedWorkoutProgress = {
     workoutId,
     dayNumber,
     weekNumber,
     savedAt: new Date().toISOString(),
+    startedAt: startedAt?.toISOString(),
     exercises: exerciseEntries.map((entry) => ({
       exerciseId: entry.exercise.id,
       sets: entry.sets.map((set) => ({

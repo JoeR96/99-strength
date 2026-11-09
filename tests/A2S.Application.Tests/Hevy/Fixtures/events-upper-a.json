@@ -1,0 +1,55 @@
+[
+  {
+    "type": "updated",
+    "workout": {
+      "id": "b3c2a1d0-1111-4222-8333-444455556666",
+      "title": "Cut to 85 — Nov 2026 · W1 Upper A",
+      "description": null,
+      "routine_id": "routine-upper-a",
+      "start_time": "2026-11-16T17:30:00+00:00",
+      "end_time": "2026-11-16T18:40:00+00:00",
+      "updated_at": "2026-11-16T18:41:12+00:00",
+      "created_at": "2026-11-16T17:30:05+00:00",
+      "exercises": [
+        {
+          "index": 0,
+          "title": "Open books",
+          "notes": "2 × 5 reps each side",
+          "exercise_template_id": "T-open-books",
+          "superset_id": null,
+          "sets": [
+            { "index": 0, "type": "normal", "weight_kg": null, "reps": 5, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 1, "type": "normal", "weight_kg": null, "reps": 5, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null }
+          ]
+        },
+        {
+          "index": 1,
+          "title": "Bench Press (Barbell)",
+          "notes": "TM: 100kg | Block 1 - Volume phase",
+          "exercise_template_id": "79D0BB3A",
+          "superset_id": null,
+          "sets": [
+            { "index": 0, "type": "warmup", "weight_kg": 40, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 1, "type": "normal", "weight_kg": 65, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 2, "type": "normal", "weight_kg": 65, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 3, "type": "normal", "weight_kg": 65, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 4, "type": "normal", "weight_kg": 65, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 5, "type": "failure", "weight_kg": 65, "reps": 14, "distance_meters": null, "duration_seconds": null, "rpe": 9, "custom_metric": null }
+          ]
+        },
+        {
+          "index": 2,
+          "title": "Seal Row (Barbell)",
+          "notes": null,
+          "exercise_template_id": "T-seal-row",
+          "superset_id": null,
+          "sets": [
+            { "index": 0, "type": "normal", "weight_kg": 40, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 1, "type": "normal", "weight_kg": 40, "reps": 10, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null },
+            { "index": 2, "type": "normal", "weight_kg": 40, "reps": 9, "distance_meters": null, "duration_seconds": null, "rpe": null, "custom_metric": null }
+          ]
+        }
+      ]
+    }
+  }
+]

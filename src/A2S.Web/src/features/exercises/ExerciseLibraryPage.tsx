@@ -13,10 +13,8 @@ import {
 } from './ExerciseLibraryComponents';
 import { muscleGroupStyle } from '@/lib/muscleGroupStyles';
 import { HevyExerciseModal } from '@/features/hevy/HevyExerciseModal';
-import { useHevy } from '@/contexts/HevyContext';
 
 export function ExerciseLibraryPage() {
-  const { apiKey } = useHevy();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<Set<string>>(new Set());
   const [selectedEquipment, setSelectedEquipment] = useState<Set<string>>(new Set());
@@ -406,7 +404,6 @@ export function ExerciseLibraryPage() {
         <HevyExerciseModal
           exerciseTemplateId={selectedExerciseForHistory.id}
           exerciseTitle={selectedExerciseForHistory.title}
-          apiKey={apiKey}
           onClose={() => setSelectedExerciseForHistory(null)}
         />
       )}

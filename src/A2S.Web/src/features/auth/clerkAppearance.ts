@@ -22,13 +22,21 @@ export const clerkAppearance = {
     headerTitle: 'text-foreground font-bold',
     headerSubtitle: 'text-muted-foreground',
     socialButtonsBlockButton:
-      'bg-secondary/50 border-border/50 text-secondary-foreground hover:bg-secondary/70 transition-all',
+      'min-h-11 bg-secondary/50 border-border/50 text-secondary-foreground hover:bg-secondary/70 transition-all',
+    // With three or more providers Clerk renders icon-only buttons. Clerk sets their min-height
+    // itself (32 px, unlayered CSS), so the 44 px has to be !important to win over it.
+    socialButtonsIconButton: 'min-h-11!',
+    // GitHub's mark is black and vanished on the dark card.
+    socialButtonsProviderIcon__github: 'invert',
     formFieldLabel: 'text-foreground font-medium',
     formFieldInput:
-      'bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20',
+      'min-h-11 bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20',
+    formFieldInputShowPasswordButton: 'min-h-11 min-w-11 justify-center',
     formButtonPrimary:
-      'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all font-semibold',
-    footerActionLink: 'text-primary hover:text-primary/80',
+      'min-h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all font-semibold',
+    // The link is 44 px tall now, so centre the sentence beside it.
+    footerAction: 'items-center!',
+    footerActionLink: 'inline-flex min-h-11 min-w-11 items-center justify-center text-primary hover:text-primary/80',
     dividerLine: 'bg-border/50',
     dividerText: 'text-muted-foreground',
   },

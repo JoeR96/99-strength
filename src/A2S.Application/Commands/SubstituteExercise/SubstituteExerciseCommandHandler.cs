@@ -1,5 +1,6 @@
 using System.Text.Json;
 using A2S.Application.Common;
+using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -19,15 +20,18 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly DayBudgetCalculator _budget;
 
     public SubstituteExerciseCommandHandler(
         IWorkoutRepository workoutRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        DayBudgetCalculator budget)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _budget = budget ?? throw new ArgumentNullException(nameof(budget));
     }
 
     public async Task<Result<SubstituteExerciseResult>> Handle(SubstituteExerciseCommand request, CancellationToken cancellationToken)
@@ -150,6 +154,9 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
                 ? $"Successfully substituted '{originalName}' with '{request.NewExerciseName}' and changed progression to {newProgressionType}."
                 : $"Successfully substituted '{originalName}' with '{request.NewExerciseName}'.";
 
+            // Warn, never block: the substitution has already been saved.
+            var (warnings, overTimeBudget) = await _budget.AfterChangeAsync(workout, [exercise.AssignedDay], cancellationToken);
+
             return Result.Success(new SubstituteExerciseResult
             {
                 ExerciseId = request.ExerciseId,
@@ -158,7 +165,9 @@ public sealed class SubstituteExerciseCommandHandler : IRequestHandler<Substitut
                 Success = true,
                 ProgressionTypeChanged = progressionTypeChanged,
                 NewProgressionType = newProgressionType,
-                Message = message
+                Message = message,
+                Warnings = warnings,
+                OverTimeBudget = overTimeBudget
             });
         }
         catch (Exception ex)

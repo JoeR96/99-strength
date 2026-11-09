@@ -1,0 +1,272 @@
+[
+  {
+    "story": "components-undoconfirmationmodal--default",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 2
+  },
+  {
+    "story": "components-undoconfirmationmodal--with-week-rollback",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 2
+  },
+  {
+    "story": "pages-dashboard--mid-program",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 11534,
+    "hScroll": false,
+    "smallTargets": 35,
+    "totalTargets": 39
+  },
+  {
+    "story": "pages-dashboard--no-program",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1951,
+    "hScroll": false,
+    "smallTargets": 3,
+    "totalTargets": 7
+  },
+  {
+    "story": "pages-sign-in--default",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": false,
+    "smallTargets": 9,
+    "totalTargets": 9
+  },
+  {
+    "story": "pages-sign-up--default",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1065,
+    "hScroll": false,
+    "smallTargets": 11,
+    "totalTargets": 11
+  },
+  {
+    "story": "pages-exercise-library--grouped",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 35834,
+    "hScroll": false,
+    "smallTargets": 28,
+    "totalTargets": 454
+  },
+  {
+    "story": "pages-exercise-library--filtered-to-barbell",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 5528,
+    "hScroll": false,
+    "smallTargets": 29,
+    "totalTargets": 86
+  },
+  {
+    "story": "pages-exercise-library--squat-history",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1781,
+    "hScroll": false,
+    "smallTargets": 37,
+    "totalTargets": 49
+  },
+  {
+    "story": "pages-hevy-data--synced-workouts",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 5352,
+    "hScroll": false,
+    "smallTargets": 2,
+    "totalTargets": 50
+  },
+  {
+    "story": "pages-hevy-data--bench-history",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 5352,
+    "hScroll": false,
+    "smallTargets": 10,
+    "totalTargets": 59
+  },
+  {
+    "story": "pages-hevy--connected",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1793,
+    "hScroll": false,
+    "smallTargets": 12,
+    "totalTargets": 16
+  },
+  {
+    "story": "pages-hevy--not-connected",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": false,
+    "smallTargets": 2,
+    "totalTargets": 7
+  },
+  {
+    "story": "pages-history--overview",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 2716,
+    "hScroll": false,
+    "smallTargets": 50,
+    "totalTargets": 53
+  },
+  {
+    "story": "pages-history--session-detail",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 2671,
+    "hScroll": false,
+    "smallTargets": 50,
+    "totalTargets": 53
+  },
+  {
+    "story": "pages-history--exercise-progress",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 5272,
+    "hScroll": false,
+    "smallTargets": 3,
+    "totalTargets": 24
+  },
+  {
+    "story": "pages-programs--three-programs",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1233,
+    "hScroll": false,
+    "smallTargets": 6,
+    "totalTargets": 10
+  },
+  {
+    "story": "pages-programs--empty",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 5
+  },
+  {
+    "story": "pages-settings--default",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 871,
+    "hScroll": false,
+    "smallTargets": 2,
+    "totalTargets": 5
+  },
+  {
+    "story": "pages-setup-wizard--welcome",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1207,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 7
+  },
+  {
+    "story": "pages-setup-wizard--choose-template",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1961,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 9
+  },
+  {
+    "story": "pages-setup-wizard--exercises",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 4311,
+    "hScroll": false,
+    "smallTargets": 437,
+    "totalTargets": 490
+  },
+  {
+    "story": "pages-setup-wizard--review",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 3946,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 5
+  },
+  {
+    "story": "pages-simulator--ready",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1079,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 10
+  },
+  {
+    "story": "pages-simulator--projection",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 3541,
+    "hScroll": false,
+    "smallTargets": 18,
+    "totalTargets": 28
+  },
+  {
+    "story": "pages-simulator--persistent-run",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 1399,
+    "hScroll": false,
+    "smallTargets": 0,
+    "totalTargets": 10
+  },
+  {
+    "story": "pages-workout--mid-program",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 8667,
+    "hScroll": false,
+    "smallTargets": 32,
+    "totalTargets": 35
+  },
+  {
+    "story": "pages-workout--no-program",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 844,
+    "hScroll": true,
+    "smallTargets": 0,
+    "totalTargets": 5
+  },
+  {
+    "story": "pages-workout-session--bench-day",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 2135,
+    "hScroll": false,
+    "smallTargets": 51,
+    "totalTargets": 68
+  },
+  {
+    "story": "pages-workout-session--logging-sets",
+    "phase": "finished",
+    "errors": [],
+    "docHeight": 2159,
+    "hScroll": false,
+    "smallTargets": 51,
+    "totalTargets": 68
+  }
+]

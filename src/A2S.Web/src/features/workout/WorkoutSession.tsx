@@ -69,6 +69,7 @@ export function WorkoutSession() {
         currentWeek={session.workout.currentWeek}
         workoutName={session.workout.name}
         isPrefilled={session.isPrefilled}
+        isDeloadWeek={session.isDeloadWeek}
         completedSetsCount={session.completedSetsCount}
         totalSetsCount={session.totalSetsCount}
         completedExercisesCount={session.completedExercisesCount}
@@ -107,13 +108,16 @@ export function WorkoutSession() {
               Undo Last Workout
             </Button>
           )}
-          <Button size="lg" onClick={session.handleCompleteWorkout} disabled={!session.allSetsCompleted || session.isSubmitting} data-testid="complete-workout-button" className="min-w-[200px]">
-            {session.isSubmitting ? "Completing..." : "Complete Workout"}
+          <Button size="lg" onClick={session.handleCompleteWorkout} disabled={!session.canComplete || session.isSubmitting} data-testid="complete-workout-button" className="min-w-[200px]">
+            {session.isSubmitting ? "Completing..." : session.allSetsCompleted ? "Complete Workout" : "Finish Partial Workout"}
           </Button>
         </div>
 
-        {!session.allSetsCompleted && (
-          <p className="text-center text-sm text-muted-foreground mt-2">Complete all sets to finish the workout</p>
+        {!session.canComplete && (
+          <p className="text-center text-sm text-muted-foreground mt-2">Log at least one set to finish the workout</p>
+        )}
+        {session.canComplete && !session.allSetsCompleted && (
+          <p className="text-center text-sm text-muted-foreground mt-2">Exercises with nothing logged are left out; their progression waits for next time</p>
         )}
       </main>
 

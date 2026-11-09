@@ -55,7 +55,9 @@ public sealed class ExerciseLibraryProvider : IExerciseLibraryProvider
                 ? RepRange.Create(d.DefaultRepRangeMin.Value, d.DefaultRepRangeMax.Value)
                 : null,
             DefaultSets: d.DefaultSets,
-            Description: d.Description
+            Description: d.Description,
+            MuscleGroup: d.MuscleGroup,
+            SecondaryMuscleGroups: d.SecondaryMuscleGroups
         )).ToArray();
     }
 }
