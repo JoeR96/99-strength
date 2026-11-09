@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.ApiTokens;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
@@ -58,6 +59,8 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<HevyLink> HevyLinks => Set<HevyLink>();
     public DbSet<HevyWorkoutSnapshot> HevyWorkoutSnapshots => Set<HevyWorkoutSnapshot>();
     public DbSet<HevyPullCursor> HevyPullCursors => Set<HevyPullCursor>();
+    // Personal API tokens for clients that cannot hold a Clerk session (the desktop habit widget).
+    public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();

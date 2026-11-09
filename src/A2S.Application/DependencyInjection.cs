@@ -42,6 +42,9 @@ public static class DependencyInjection
         services.AddScoped<Hevy.HevyPollRunner>();
         services.AddScoped<AmbientUser>();
 
+        // Personal API tokens: resolves a presented token to its user for the API's token scheme.
+        services.AddScoped<ApiTokens.IApiTokenAuthenticator, ApiTokens.ApiTokenAuthenticator>();
+
         return services;
     }
 }

@@ -1,3 +1,4 @@
+using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.BodyWeight;
@@ -12,10 +13,12 @@ namespace A2S.Api.Controllers;
 
 /// <summary>
 /// Morning weigh-ins and the smoothed trend against the plan's checkpoints. Dates are local <c>yyyy-MM-dd</c>.
+/// Every action here can also be called with a personal API token (the desktop habit widget).
 /// </summary>
 [ApiController]
 [Route("api/v1/body-weight")]
 [Authorize]
+[AllowApiToken]
 public class BodyWeightController : ControllerBase
 {
     private const int DefaultTrendDays = 90;

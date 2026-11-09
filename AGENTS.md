@@ -36,6 +36,7 @@ A2S.Integration.Hevy → A2S.Application (ACL for Hevy API)
 
 - **Secrets never leave the server**: the Hevy API key is encrypted at rest with ASP.NET Core Data Protection (key ring in the `DataProtectionKeys` table). Clients only ever see `{ hasKey, lastFour }`. Never add the key to a response, a log line, a test fixture or `HttpContext.Items`.
 - **Non-production endpoints** (simulation, debugging aids) are marked `[NonProductionOnly]` and removed from routing in Production.
+- **Personal API tokens are deny-by-default**: a `nns_pat_…` bearer token (the desktop habit widget) only reaches endpoints marked `[AllowApiToken]`; everything else answers 403 (`ApiTokenScopeMiddleware`). Only the token's SHA-256 hash is stored and the plaintext is returned once, on create — never log it. Marking a new route means updating the pinned list in `ApiTokenAllowListTests`.
 
 - **Handlers are thin orchestrators**: load aggregate → call domain methods → persist. No domain logic in Application layer.
 - **Domain has zero external dependencies**: No framework references, no I/O.

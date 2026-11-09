@@ -159,9 +159,9 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     }
 
     /// <summary>
-    /// Generates a JWT token for testing purposes.
+    /// Generates a JWT token for testing purposes: what a Clerk session looks like to the test host.
     /// </summary>
-    private string GenerateJwtToken(string userId, string email)
+    public static string GenerateJwtToken(string userId, string email)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

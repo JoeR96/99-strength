@@ -1,3 +1,4 @@
+using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.Habits;
@@ -11,10 +12,12 @@ namespace A2S.Api.Controllers;
 
 /// <summary>
 /// Daily habits: definitions, per-day logs and the streak. Dates are local (Europe/London) <c>yyyy-MM-dd</c>.
+/// Every action here can also be called with a personal API token (the desktop habit widget).
 /// </summary>
 [ApiController]
 [Route("api/v1/habits")]
 [Authorize]
+[AllowApiToken]
 public class HabitsController : ControllerBase
 {
     private readonly IMediator _mediator;
