@@ -19,7 +19,7 @@
  *   --out <file>    With --dry-run, write the payload to a file instead of stdout.
  *
  * Mapping (brief § 5 and plan decisions):
- *   Walks                 count  target 2   -> Counter  target 2, minimum 1
+ *   Walks                 count  target 2   -> Counter  target 2, minimum 1   (same habit the plan seeds)
  *   Water                 amount 3000 ml    -> Counter  target 6 bottles (532 ml), minimum 4; values = round(ml / 532)
  *   Protein               amount 180 g      -> dropped (protein tracking is out of scope)
  *   Creatine + supplements check           -> Checkbox
@@ -32,13 +32,21 @@ import { pathToFileURL } from 'node:url';
 
 export const BOTTLE_ML = 532;
 
-/** Terran habit name -> 99-Strength definition. Null means "do not import". */
+/**
+ * Terran habit name -> 99-Strength definition. Null means "do not import".
+ *
+ * `key`, `name` and `icon` must match the habit the suggested plan seeds
+ * (src/A2S.Application/SuggestedPlans/CutTo85Nov2026.cs), so that importing before or after
+ * "Start this plan" lands on the same habit instead of creating a second one. The API matches an
+ * import by externalKey only. Icons are the web app's icon keys (features/habits/habitIcons.ts).
+ * Standing desk is not part of the suggested plan; it is carried over as its own habit.
+ */
 export const HABIT_MAP = {
-  Walks: { name: 'Walks', type: 'Counter', target: 2, minimum: 1, unit: null, icon: '🚶', order: 2, value: (v) => Math.round(v) },
-  Water: { name: 'Water (532 ml bottle)', type: 'Counter', target: 6, minimum: 4, unit: 'bottles', icon: '💧', order: 1, value: (ml) => Math.round(ml / BOTTLE_ML) },
+  Walks: { key: 'terran:walks', name: 'Walks', type: 'Counter', target: 2, minimum: 1, unit: null, icon: 'footprints', order: 2, value: (v) => Math.round(v) },
+  Water: { key: 'seed:water', name: 'Water (532ml bottle)', type: 'Counter', target: 6, minimum: 4, unit: 'bottles', icon: 'droplets', order: 1, value: (ml) => Math.round(ml / BOTTLE_ML) },
   Protein: null,
-  'Creatine + supplements': { name: 'Creatine (3–5 g)', type: 'Checkbox', target: 1, minimum: 1, unit: null, icon: '💊', order: 4, value: (v) => (v >= 1 ? 1 : 0) },
-  'Standing desk': { name: 'Standing desk', type: 'Counter', target: 4, minimum: 2, unit: null, icon: '🧍', order: 5, value: (v) => Math.round(v) },
+  'Creatine + supplements': { key: 'terran:creatine', name: 'Creatine (3–5g)', type: 'Checkbox', target: 1, minimum: 1, unit: null, icon: 'pill', order: 5, value: (v) => (v >= 1 ? 1 : 0) },
+  'Standing desk': { key: 'terran:standing-desk', name: 'Standing desk', type: 'Counter', target: 4, minimum: 2, unit: null, icon: null, order: 6, value: (v) => Math.round(v) },
 };
 
 /**
@@ -67,7 +75,7 @@ export function buildImportPayload(habits, logs) {
     }
     const rows = (byHabit.get(habit.id) ?? []).slice().sort((a, b) => a.date.localeCompare(b.date));
     imported.push({
-      externalKey: `terran:${habit.id}`,
+      externalKey: spec.key,
       name: spec.name,
       type: spec.type,
       target: spec.target,
