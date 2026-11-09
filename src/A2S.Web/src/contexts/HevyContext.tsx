@@ -6,6 +6,7 @@
  */
 
 import { useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { hevyApi } from '@/services/hevyApi';
 import { apiClient } from '@/api/apiClient';
 import toast from 'react-hot-toast';
@@ -21,27 +22,35 @@ export function HevyProvider({ children }: { children: ReactNode }) {
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { isLoaded, isSignedIn } = useAuth();
 
   const applyStatus = useCallback((next: HevyKeyStatus) => {
     setStatus(next);
     hevyApi.setConfigured(next.hasKey);
   }, []);
 
-  // Ask the server whether a key is stored. Never fetches the key itself.
+  // Ask the server whether a key is stored. Never fetches the key itself. Only a signed-in
+  // user has a key to ask about: asking from the sign-in page was a 401 on every load.
   useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      applyStatus({ hasKey: false, lastFour: null });
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
         const { data } = await apiClient.get<HevyKeyStatus>('/users/me/hevy-api-key');
         if (!cancelled) applyStatus({ hasKey: !!data.hasKey, lastFour: data.lastFour ?? null });
       } catch {
-        // Not logged in yet or endpoint unavailable — ignore
+        // Endpoint unavailable or offline — read as "no key"
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [applyStatus]);
+  }, [applyStatus, isLoaded, isSignedIn]);
 
   const validateKey = useCallback(async (): Promise<boolean> => {
     if (!status.hasKey) return false;

@@ -25,6 +25,10 @@ vi.mock('@/api/apiClient', () => ({
   },
 }));
 
+// Clerk's session state, switched per test. Signed in unless a test says otherwise.
+const auth = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
+vi.mock('@clerk/clerk-react', () => ({ useAuth: () => auth }));
+
 vi.mock('react-hot-toast', () => ({
   default: {
     success: vi.fn(),
@@ -60,6 +64,8 @@ function renderWithProvider() {
 describe('HevyContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.isLoaded = true;
+    auth.isSignedIn = true;
     vi.mocked(apiClient.get).mockResolvedValue({ data: { hasKey: false, lastFour: null } });
     vi.mocked(apiClient.put).mockResolvedValue({ data: null });
     vi.mocked(apiClient.delete).mockResolvedValue({ data: null });
@@ -84,6 +90,37 @@ describe('HevyContext', () => {
       await waitFor(() => expect(screen.getByTestId('isConfigured')).toHaveTextContent('true'));
       expect(screen.getByTestId('lastFour')).toHaveTextContent('7781');
       expect(hevyApi.setConfigured).toHaveBeenCalledWith(true);
+    });
+
+    it('does not ask the server while signed out (the sign-in page must not log a 401)', async () => {
+      auth.isSignedIn = false;
+
+      renderWithProvider();
+
+      await waitFor(() => expect(screen.getByTestId('isLoading')).toHaveTextContent('false'));
+      expect(apiClient.get).not.toHaveBeenCalled();
+      expect(screen.getByTestId('isConfigured')).toHaveTextContent('false');
+    });
+
+    it('waits for Clerk to load before deciding, then asks once the session is there', async () => {
+      auth.isLoaded = false;
+      auth.isSignedIn = false;
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { hasKey: true, lastFour: '7781' } });
+
+      const view = renderWithProvider();
+      expect(screen.getByTestId('isLoading')).toHaveTextContent('true');
+      expect(apiClient.get).not.toHaveBeenCalled();
+
+      auth.isLoaded = true;
+      auth.isSignedIn = true;
+      view.rerender(
+        <HevyProvider>
+          <TestConsumer />
+        </HevyProvider>
+      );
+
+      await waitFor(() => expect(screen.getByTestId('isConfigured')).toHaveTextContent('true'));
+      expect(apiClient.get).toHaveBeenCalledTimes(1);
     });
 
     it('never touches localStorage', async () => {
