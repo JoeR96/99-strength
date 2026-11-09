@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { Toaster } from 'react-hot-toast';
+import { HevyStatusStub } from './HevyStatusStub';
 
 export function createStoryQueryClient(): QueryClient {
   return new QueryClient({
@@ -40,6 +41,17 @@ export function withApiMocks(setup: () => void): Decorator {
   return function ApiMocksDecorator(Story) {
     setup();
     return <Story />;
+  };
+}
+
+/** The signed-in user has (or has not) stored a Hevy key. Without it pages read "no key". */
+export function withHevyStatus(isConfigured: boolean): Decorator {
+  return function HevyStatusDecorator(Story) {
+    return (
+      <HevyStatusStub isConfigured={isConfigured}>
+        <Story />
+      </HevyStatusStub>
+    );
   };
 }
 
