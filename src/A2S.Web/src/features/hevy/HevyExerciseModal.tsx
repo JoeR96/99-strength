@@ -47,19 +47,21 @@ type TimePeriod = '1M' | '3M' | '6M' | '1Y' | 'ALL';
 interface HevyExerciseModalProps {
   exerciseTemplateId: string;
   exerciseTitle: string;
+  apiKey: string | null;
   onClose: () => void;
 }
 
-function useExerciseHistory(templateId: string) {
+function useExerciseHistory(templateId: string, apiKey: string | null) {
   return useQuery({
     queryKey: ['hevy-exercise-history', templateId],
     queryFn: async () => {
       const response = await apiClient.get<HevyExerciseHistoryResponse>(
-        `/hevy/data/exercises/${templateId}/history?maxPages=20`
+        `/hevy/data/exercises/${templateId}/history?maxPages=20`,
+        { headers: { 'X-Hevy-Api-Key': apiKey ?? '' } }
       );
       return response.data;
     },
-    enabled: !!templateId,
+    enabled: !!apiKey && !!templateId,
     staleTime: 1000 * 60 * 10,
   });
 }
@@ -67,9 +69,10 @@ function useExerciseHistory(templateId: string) {
 export function HevyExerciseModal({
   exerciseTemplateId,
   exerciseTitle,
+  apiKey,
   onClose,
 }: HevyExerciseModalProps) {
-  const { data, isLoading, error } = useExerciseHistory(exerciseTemplateId);
+  const { data, isLoading, error } = useExerciseHistory(exerciseTemplateId, apiKey);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('ALL');
   const [chartMetric, setChartMetric] = useState<'weight' | 'volume' | 'reps'>('weight');
 

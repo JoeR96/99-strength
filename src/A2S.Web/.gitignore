@@ -31,4 +31,3 @@ storybook-static
 # Test artifacts
 playwright-report/
 test-results/
-.lighthouseci/

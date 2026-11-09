@@ -71,6 +71,7 @@ public class AutoProvisionUserMiddleware
 
                 context.Items["UserId"] = result.Value.Id;
                 context.Items["UserEmail"] = result.Value.Email;
+                // New users won't have a Hevy key yet
 
                 _logger.LogInformation("Auto-provisioned new user {UserId} with email {Email}", result.Value.Id, email);
             }
@@ -89,6 +90,8 @@ public class AutoProvisionUserMiddleware
 
                 context.Items["UserId"] = user.Id.Value;
                 context.Items["UserEmail"] = user.Email;
+                if (!string.IsNullOrEmpty(user.HevyApiKey))
+                    context.Items["HevyApiKey"] = user.HevyApiKey;
             }
 
             await _next(context);
@@ -97,6 +100,8 @@ public class AutoProvisionUserMiddleware
 
         context.Items["UserId"] = user.Id.Value;
         context.Items["UserEmail"] = user.Email;
+        if (!string.IsNullOrEmpty(user.HevyApiKey))
+            context.Items["HevyApiKey"] = user.HevyApiKey;
 
         await _next(context);
     }

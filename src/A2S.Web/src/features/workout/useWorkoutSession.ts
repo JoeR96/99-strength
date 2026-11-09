@@ -1,11 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useCurrentWorkout, useSubstituteExercise, useUpdateExercises, useUndoCompletion, useRemoveExercise, useWeekPlan } from "@/hooks/useWorkouts";
+import { useCurrentWorkout, useSubstituteExercise, useUpdateExercises, useUndoCompletion, useRemoveExercise } from "@/hooks/useWorkouts";
 import { workoutsApi } from "@/api/workouts";
 import { useHevy } from "@/contexts/HevyContext";
-import { getWeekParameters } from "@/utils/weekParameters";
+import { getWeekParameters, roundToGymIncrement } from "@/utils/weekParameters";
 import { kgToLbs } from "@/utils/constants";
-import { buildExerciseEntries } from "./buildExerciseEntries";
 import toast from "react-hot-toast";
 import { saveWorkoutProgress, loadWorkoutProgress, clearWorkoutProgress } from "./workoutProgressPersistence";
 import {
@@ -26,7 +25,9 @@ import type {
   TemporarySubstitution,
   SavedWorkoutProgress,
   ExerciseDto,
+  LinearProgressionDto,
   RepsPerSetProgressionDto,
+  MinimalSetsProgressionDto,
   CompleteDayResult,
   DayNumber,
   DetectedSubstitution,
@@ -96,11 +97,6 @@ export function useWorkoutSession() {
   const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayName = dayNames[dayNumber - 1] || `Day ${dayNumber}`;
 
-  // Planned sets come from the server's week plan; the local calculators are only a fallback.
-  const weekPlanQuery = useWeekPlan(workout?.id, workout?.currentWeek, dayNumber, Boolean(workout));
-  const weekPlanSettled = weekPlanQuery.isSuccess || weekPlanQuery.isError;
-  const isDeloadWeek = weekPlanQuery.data?.isDeloadWeek ?? (workout ? getWeekParameters(workout.currentWeek).isDeload : false);
-
   const dayExercises = useMemo(() => {
     if (!workout) return [];
     return workout.exercises
@@ -108,12 +104,60 @@ export function useWorkoutSession() {
       .sort((a, b) => a.orderInDay - b.orderInDay);
   }, [workout, dayNumber]);
 
-  // Initialize exercise entries once the workout and its week plan have loaded (or the plan failed)
+  // Initialize exercise entries when workout loads
   useEffect(() => {
-    if (dayExercises.length > 0 && exerciseEntries.length === 0 && workout && weekPlanSettled) {
-      setExerciseEntries(buildExerciseEntries(dayExercises, workout.currentWeek, weekPlanQuery.data));
+    if (dayExercises.length > 0 && exerciseEntries.length === 0 && workout) {
+      const currentWeek = workout.currentWeek;
+      const weekParams = getWeekParameters(currentWeek);
+
+      const entries = dayExercises.map((exercise) => {
+        const isLinear = exercise.progression.type === "Linear";
+        const isRepsPerSet = exercise.progression.type === "RepsPerSet";
+        const isMinimalSets = exercise.progression.type === "MinimalSets";
+
+        let targetSets = 3;
+        let targetReps = 10;
+        let targetWeight = 50;
+        let weightUnit = "kg";
+        let isAmrapExercise = false;
+
+        if (isLinear) {
+          const prog = exercise.progression as LinearProgressionDto;
+          targetSets = weekParams.sets;
+          targetReps = weekParams.targetReps;
+          targetWeight = roundToGymIncrement(prog.trainingMax.value * weekParams.intensity);
+          weightUnit = prog.trainingMax.unit === 1 ? "kg" : "lbs";
+          isAmrapExercise = prog.useAmrap;
+        } else if (isRepsPerSet) {
+          const prog = exercise.progression as RepsPerSetProgressionDto;
+          targetSets = prog.currentSetCount;
+          targetReps = prog.repRange.maximum;
+          targetWeight = prog.isWeightPending ? 0 : prog.currentWeight;
+          weightUnit = prog.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg";
+        } else if (isMinimalSets) {
+          const prog = exercise.progression as MinimalSetsProgressionDto;
+          targetSets = prog.currentSetCount;
+          targetReps = Math.ceil(prog.targetTotalReps / prog.currentSetCount);
+          targetWeight = prog.currentWeight;
+          weightUnit = prog.weightUnit?.toLowerCase() === "pounds" ? "lbs" : "kg";
+        }
+
+        const sets: SetEntry[] = [];
+        for (let i = 1; i <= targetSets; i++) {
+          sets.push({
+            setNumber: i,
+            weight: Math.round(targetWeight * 10) / 10,
+            reps: targetReps,
+            isAmrap: isAmrapExercise && i === targetSets,
+            completed: false,
+          });
+        }
+
+        return { exercise, sets, targetSets, targetReps, targetWeight, weightUnit, isAmrapExercise };
+      });
+      setExerciseEntries(entries);
     }
-  }, [dayExercises, exerciseEntries.length, workout, weekPlanSettled, weekPlanQuery.data]);
+  }, [dayExercises, exerciseEntries.length, workout]);
 
   const convertWeightFromKg = (weightKg: number, targetUnit: string) => {
     if (targetUnit === "lbs") {
@@ -192,18 +236,13 @@ export function useWorkoutSession() {
     if (workout && exerciseEntries.length > 0 && !showCompletionSummary) {
       const hasCompletedSets = exerciseEntries.some((entry) => entry.sets.some((set) => set.completed));
       if (hasCompletedSets) {
-        saveWorkoutProgress(workout.id, dayNumber, workout.currentWeek, exerciseEntries, workoutStartTime.current);
+        saveWorkoutProgress(workout.id, dayNumber, workout.currentWeek, exerciseEntries);
       }
     }
   }, [exerciseEntries, workout, dayNumber, showCompletionSummary]);
 
   const handleResumeProgress = () => {
     if (!savedProgressData) return;
-    // A resumed session started when it was first opened, not when it was reopened.
-    if (savedProgressData.startedAt) {
-      const started = new Date(savedProgressData.startedAt);
-      if (!Number.isNaN(started.getTime())) workoutStartTime.current = started;
-    }
     setExerciseEntries((prev) => {
       return prev.map((entry) => {
         const savedExercise = savedProgressData.exercises.find((ex) => ex.exerciseId === entry.exercise.id);
@@ -270,7 +309,7 @@ export function useWorkoutSession() {
     try {
       await undoCompletionMutation.mutateAsync(workout.id);
       toast.success("Workout undone successfully!");
-      navigate("/workout");
+      navigate(`/workout/day/${workout.currentDay}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to undo workout";
       toast.error(message);
@@ -338,8 +377,6 @@ export function useWorkoutSession() {
     if (!workout) return;
     setIsSubmitting(true);
     try {
-      // Exercises with nothing logged are left out (a partial session is allowed), and the
-      // "skip progression" decision travels as the backend's skip flag (wasTemporarySubstitution).
       const performances: ExercisePerformanceRequest[] = exerciseEntries
         .map((entry) => {
           const isTemporarySubstitution = temporarySubstitutions.some((s) => s.originalExerciseId === entry.exercise.id);
@@ -352,7 +389,7 @@ export function useWorkoutSession() {
               actualReps: set.reps,
               wasAmrap: set.isAmrap,
             })),
-            wasTemporarySubstitution: isTemporarySubstitution || Boolean(entry.skipProgression),
+            wasTemporarySubstitution: isTemporarySubstitution,
           };
         })
         .filter((perf) => perf.completedSets.length > 0);
@@ -417,8 +454,6 @@ export function useWorkoutSession() {
 
   const allSetsCompleted = exerciseEntries.every((entry) => entry.sets.every((set) => set.completed));
   const completedSetsCount = exerciseEntries.reduce((acc, entry) => acc + entry.sets.filter((s) => s.completed).length, 0);
-  // Partial sessions count: one logged set is enough to complete the day.
-  const canComplete = completedSetsCount > 0;
   const totalSetsCount = exerciseEntries.reduce((acc, entry) => acc + entry.sets.length, 0);
   const completedExercisesCount = exerciseEntries.filter((entry) => entry.sets.length > 0 && entry.sets.every((set) => set.completed)).length;
   const totalExercisesCount = exerciseEntries.filter((entry) => entry.sets.length > 0).length;
@@ -426,14 +461,14 @@ export function useWorkoutSession() {
 
   return {
     // State
-    workout, isLoading: isLoading || (Boolean(workout) && !weekPlanSettled), exerciseEntries, isSubmitting, completionResult, showCompletionSummary, isDeloadWeek,
+    workout, isLoading, exerciseEntries, isSubmitting, completionResult, showCompletionSummary,
     isPrefilled, showSubstitutionModal, pendingSubstitutions, showUndoModal, showWeightConfirmationModal, pendingWeightExercises,
     substitutionModalOpen, exerciseToSubstitute, temporarySubstitutions, exerciseToEdit,
     weightDiscrepancies, showWeightDiscrepancyModal, missingExercises, showMissingExercisesModal,
     showRecoveryModal, savedProgressData,
     dayNumber, dayName, workoutStartTime, workoutEndTime,
     // Computed
-    allSetsCompleted, canComplete, completedSetsCount, totalSetsCount, completedExercisesCount, totalExercisesCount, progressPercentage,
+    allSetsCompleted, completedSetsCount, totalSetsCount, completedExercisesCount, totalExercisesCount, progressPercentage,
     // Handlers
     handleSetChange, handleSetComplete, handleCompleteWorkout, handleOpenSubstitution,
     handleTemporarySubstitute, handlePermanentSubstitute,

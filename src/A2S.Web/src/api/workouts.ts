@@ -6,6 +6,7 @@ import type {
   CreateWorkoutRequest,
   CompleteDayRequest,
   CompleteDayResult,
+  ProgressWeekResult,
   DayNumber,
   UpdateExercisesRequest,
   UpdateExercisesResult,
@@ -103,6 +104,39 @@ export const workoutsApi = {
   },
 
   /**
+   * Progress to the next week
+   */
+  progressWeek: async (workoutId: string): Promise<ProgressWeekResult> => {
+    const response = await apiClient.post<ProgressWeekResult>(
+      `/workouts/${workoutId}/progress-week`
+    );
+    return response.data;
+  },
+
+  /**
+   * Set the Hevy routine folder ID for a workout
+   */
+  setHevyFolderId: async (workoutId: string, folderId: string): Promise<void> => {
+    await apiClient.put(`/workouts/${workoutId}/hevy-folder`, { folderId });
+  },
+
+  /**
+   * Record that a routine was synced to Hevy for a specific week/day
+   */
+  setHevySyncedRoutine: async (
+    workoutId: string,
+    weekNumber: number,
+    dayNumber: number,
+    routineId: string
+  ): Promise<void> => {
+    await apiClient.post(`/workouts/${workoutId}/hevy-synced-routine`, {
+      weekNumber,
+      dayNumber,
+      routineId,
+    });
+  },
+
+  /**
    * Update exercises in a workout (training max, weight, etc.)
    */
   updateExercises: async (
@@ -173,12 +207,16 @@ export const workoutsApi = {
     );
   },
 
-  /**
-   * The planned sets for one week/day, computed server-side (block, deload, progression).
-   */
-  getWeekPlan: async (workoutId: string, week: number, day: number): Promise<WeekPlanDto> => {
-    const response = await apiClient.get<WeekPlanDto>(`/workouts/${workoutId}/weeks/${week}/days/${day}/plan`);
-    return response.data;
+  confirmWorkingWeight: async (
+    workoutId: string,
+    exerciseId: string,
+    weight: number,
+    unit: 1 | 2
+  ): Promise<void> => {
+    await apiClient.post(
+      `/workouts/${workoutId}/exercises/${exerciseId}/confirm-working-weight`,
+      { weight, unit }
+    );
   },
 
   /**
@@ -221,6 +259,22 @@ export const workoutsApi = {
     }
   },
 
+  /**
+   * Get the planned workout for a specific week and day.
+   * Returns calculated working weights, sets, and reps from the backend.
+   * This is the single source of truth - use this instead of frontend calculations.
+   */
+  getWeekPlan: async (
+    weekNumber: number,
+    dayNumber: number,
+    workoutId?: string
+  ): Promise<WeekPlanDto> => {
+    const params = workoutId ? `?id=${workoutId}` : '';
+    const response = await apiClient.get<WeekPlanDto>(
+      `/workouts/weeks/${weekNumber}/days/${dayNumber}/plan${params}`
+    );
+    return response.data;
+  },
 };
 
 /**

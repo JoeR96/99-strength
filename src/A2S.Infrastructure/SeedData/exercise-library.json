@@ -480,17 +480,6 @@
     "description": "Hevy: glutes"
   },
   {
-    "name": "Cable Serratus Punch",
-    "equipment": "Cable",
-    "muscleGroup": "chest",
-    "defaultRepRange": {
-      "minimum": 12,
-      "maximum": 12
-    },
-    "defaultSets": 3,
-    "description": "Standing cable press with a punch forward at lockout to protract the scapula. Serratus corrective; alternative to push-up plus."
-  },
-  {
     "name": "Cable Twist (Down to up)",
     "equipment": "Machine",
     "defaultRepRange": {
@@ -759,17 +748,6 @@
     },
     "defaultSets": 3,
     "description": "Hevy: biceps"
-  },
-  {
-    "name": "Copenhagen Plank (Short Lever)",
-    "equipment": "Bodyweight",
-    "muscleGroup": "adductors",
-    "defaultRepRange": {
-      "minimum": 20,
-      "maximum": 20
-    },
-    "defaultSets": 3,
-    "description": "Side plank with the top knee on a bench (short lever). Timed hold: reps are seconds per side."
   },
   {
     "name": "Cross Body Hammer Curl",
@@ -2812,17 +2790,6 @@
     "description": "Hevy: chest"
   },
   {
-    "name": "Push-Up Plus",
-    "equipment": "Bodyweight",
-    "muscleGroup": "chest",
-    "defaultRepRange": {
-      "minimum": 12,
-      "maximum": 12
-    },
-    "defaultSets": 3,
-    "description": "Push-up finishing with an extra scapular protraction (the plus) at the top. Serratus corrective from Mobility B."
-  },
-  {
     "name": "Rack Pull",
     "equipment": "Barbell",
     "defaultRepRange": {
@@ -3151,17 +3118,6 @@
     },
     "defaultSets": 3,
     "description": "Hevy: upper_back"
-  },
-  {
-    "name": "Seal Row (Barbell)",
-    "equipment": "Barbell",
-    "muscleGroup": "upper_back",
-    "defaultRepRange": {
-      "minimum": 8,
-      "maximum": 10
-    },
-    "defaultSets": 3,
-    "description": "Chest-supported barbell row lying prone on a high bench; no leg or lower-back drive. Alternative to Meadows row in the suggested plan's Upper B superset."
   },
   {
     "name": "Seated Cable Row - Bar Grip",
@@ -4422,17 +4378,6 @@
     },
     "defaultSets": 3,
     "description": "Hevy: quadriceps"
-  },
-  {
-    "name": "Wall Slide with Lift-Off",
-    "equipment": "Bodyweight",
-    "muscleGroup": "shoulders",
-    "defaultRepRange": {
-      "minimum": 10,
-      "maximum": 10
-    },
-    "defaultSets": 2,
-    "description": "Forearms on the wall, slide up, then lift the arms off the wall at the top. Serratus and lower-trap corrective from Mobility A."
   },
   {
     "name": "Warm Up",

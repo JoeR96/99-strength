@@ -417,8 +417,7 @@ public class WorkoutsIntegrationTests
     [Fact]
     public async Task GetExerciseLibrary_ReturnsSuccessWithExercises()
     {
-        var client = CreateClient();
-        var response = await client.GetAsync("/api/v1/workouts/exercises/library?pageSize=100");
+        var response = await CreateClient().GetAsync("/api/v1/workouts/exercises/library?pageSize=500");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -426,20 +425,16 @@ public class WorkoutsIntegrationTests
         library.Should().NotBeNull();
         library!.Templates.Should().NotBeNull();
 
-        // Verify we have exercise templates (the page is capped at 100; the total spans the whole seeded library)
+        // Verify we have exercise templates
         library.Templates.Count.Should().BeGreaterThanOrEqualTo(20);
-        library.TotalCount.Should().BeGreaterThanOrEqualTo(400);
-        // Main lifts and accessories are found by search (pages are alphabetical and capped at 100)
-        foreach (var name in new[]
-                 {
-                     "Squat (Barbell)", "Bench Press (Barbell)", "Deadlift (Barbell)", "Overhead Press (Barbell)",
-                     "Bicep Curl (Barbell)", "Lateral Raise (Dumbbell)"
-                 })
-        {
-            var found = await client.GetFromJsonAsync<ExerciseLibraryDto>(
-                $"/api/v1/workouts/exercises/library?searchTerm={Uri.EscapeDataString(name)}&pageSize=100");
-            found!.Templates.Should().Contain(e => e.Name == name);
-        }
+        library.Templates.Should().Contain(e => e.Name == "Squat (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Bench Press (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Deadlift (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Overhead Press (Barbell)");
+
+        // Verify we have accessory exercises
+        library.Templates.Should().Contain(e => e.Name == "Bicep Curl (Barbell)");
+        library.Templates.Should().Contain(e => e.Name == "Lateral Raise (Dumbbell)");
     }
 
     /// <summary>
@@ -448,9 +443,8 @@ public class WorkoutsIntegrationTests
     [Fact]
     public async Task GetExerciseLibrary_ExerciseDefinitionsHaveNoCategoryOrProgressionType()
     {
-        var client = CreateClient();
-        var library = await client.GetFromJsonAsync<ExerciseLibraryDto>(
-            "/api/v1/workouts/exercises/library?searchTerm=Squat%20(Barbell)&pageSize=100");
+        var response = await CreateClient().GetAsync("/api/v1/workouts/exercises/library?pageSize=500");
+        var library = await response.Content.ReadFromJsonAsync<ExerciseLibraryDto>();
 
         var squat = library!.Templates.First(e => e.Name == "Squat (Barbell)");
         squat.Equipment.Should().Be(EquipmentType.Barbell);
@@ -458,9 +452,7 @@ public class WorkoutsIntegrationTests
         squat.DefaultSets.Should().NotBeNull();
 
         // Verify accessory exercises have rep ranges defined
-        var curls = await client.GetFromJsonAsync<ExerciseLibraryDto>(
-            "/api/v1/workouts/exercises/library?searchTerm=Bicep%20Curl%20(Barbell)&pageSize=100");
-        var curl = curls!.Templates.First(e => e.Name == "Bicep Curl (Barbell)");
+        var curl = library.Templates.First(e => e.Name == "Bicep Curl (Barbell)");
         curl.Equipment.Should().Be(EquipmentType.Barbell);
         curl.DefaultRepRange.Should().NotBeNull();
     }
@@ -696,7 +688,7 @@ public class WorkoutsIntegrationTests
     /// Tests that exercises with invalid template names are skipped.
     /// </summary>
     [Fact]
-    public async Task CreateWorkout_WithInvalidTemplateName_ReturnsBadRequestAndCreatesNothing()
+    public async Task CreateWorkout_WithInvalidTemplateName_SkipsInvalidExercises()
     {
         var client = CreateClient();
         var exercises = new List<CreateExerciseRequest>
@@ -745,12 +737,16 @@ public class WorkoutsIntegrationTests
 
         var response = await client.PostAsJsonAsync("/api/v1/workouts", command);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var body = await response.Content.ReadAsStringAsync();
-        body.Should().Contain("NonExistentExercise").And.Contain("was not found in the exercise library");
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var getCurrentResponse = await client.GetAsync("/api/v1/workouts/current");
-        getCurrentResponse.StatusCode.Should().Be(HttpStatusCode.NotFound, "nothing should have been created");
+        var workout = await getCurrentResponse.Content.ReadFromJsonAsync<WorkoutDto>();
+
+        workout.Should().NotBeNull();
+        workout!.Exercises.Count.Should().Be(2, "Invalid exercise should be skipped");
+        workout.Exercises.Should().Contain(e => e.Name == "Squat (Barbell)");
+        workout.Exercises.Should().Contain(e => e.Name == "Bench Press (Barbell)");
+        workout.Exercises.Should().NotContain(e => e.Name == "NonExistentExercise");
     }
 
     #endregion

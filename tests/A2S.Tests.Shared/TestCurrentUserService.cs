@@ -17,6 +17,7 @@ public class TestCurrentUserService : ICurrentUserService
     public string? UserId => _currentUserId;
     public string? Email => _currentEmail;
     public bool IsAuthenticated => !string.IsNullOrEmpty(UserId);
+    public string? HevyApiKey => null;
 
     /// <summary>
     /// Sets the current user for subsequent requests.

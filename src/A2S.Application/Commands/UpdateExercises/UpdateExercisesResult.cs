@@ -1,5 +1,3 @@
-using A2S.Application.DTOs;
-
 namespace A2S.Application.Commands.UpdateExercises;
 
 /// <summary>
@@ -10,12 +8,6 @@ public sealed record UpdateExercisesResult
     public required Guid WorkoutId { get; init; }
     public required int UpdatedCount { get; init; }
     public required IReadOnlyList<ExerciseUpdateResult> Results { get; init; }
-
-    /// <summary>Weekly volume caps exceeded after the update. Informational; the update still applied.</summary>
-    public IReadOnlyList<VolumeWarningDto> Warnings { get; init; } = [];
-
-    /// <summary>True when a day touched by the update is now estimated over the session time budget.</summary>
-    public bool OverTimeBudget { get; init; }
 }
 
 /// <summary>

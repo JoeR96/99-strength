@@ -29,13 +29,7 @@ public sealed class User : AggregateRoot<UserId>
     public string Email { get; private set; }
     public string Name { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    /// <summary>
-    /// The user's Hevy API key in protected (encrypted) form. Never the plaintext.
-    /// </summary>
-    public string? HevyApiKeyProtected { get; private set; }
-
-    /// <summary>Whether a Hevy API key is stored for this user.</summary>
-    public bool HasHevyApiKey => HevyApiKeyProtected is not null;
+    public string? HevyApiKey { get; private set; }
 
     /// <summary>
     /// Creates a new user with validation.
@@ -92,34 +86,10 @@ public sealed class User : AggregateRoot<UserId>
     }
 
     /// <summary>
-    /// Stores the user's Hevy API key in protected form. A blank key clears it.
+    /// Stores the user's Hevy API key so it persists across sessions.
     /// </summary>
-    public void SetHevyApiKey(string? apiKey, ISecretProtector protector)
+    public void SetHevyApiKey(string? apiKey)
     {
-        ArgumentNullException.ThrowIfNull(protector);
-
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            HevyApiKeyProtected = null;
-            return;
-        }
-
-        HevyApiKeyProtected = protector.Protect(apiKey.Trim());
-    }
-
-    /// <summary>Removes the stored Hevy API key.</summary>
-    public void ClearHevyApiKey()
-    {
-        HevyApiKeyProtected = null;
-    }
-
-    /// <summary>
-    /// Returns the plaintext Hevy API key, or null when none is stored or it can no longer be unprotected.
-    /// Callers must use the value immediately and never log or persist it.
-    /// </summary>
-    public string? RevealHevyApiKey(ISecretProtector protector)
-    {
-        ArgumentNullException.ThrowIfNull(protector);
-        return HevyApiKeyProtected is null ? null : protector.Unprotect(HevyApiKeyProtected);
+        HevyApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey.Trim();
     }
 }

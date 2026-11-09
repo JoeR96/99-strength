@@ -76,7 +76,7 @@ const meta = {
     (Story) => {
       const queryClient = createQueryClient();
       return (
-        <ClerkProvider publishableKey="pk_test_Y2xlcmsuZXhhbXBsZS5jb20k">
+        <ClerkProvider publishableKey="pk_test_placeholder">
           <MemoryRouter initialEntries={["/programs"]}>
             <QueryClientProvider client={queryClient}>
               <Story />

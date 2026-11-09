@@ -13,6 +13,7 @@ vi.mock('@/contexts/HevyContext', () => ({
 
 vi.mock('@/services/hevySyncService', () => ({
   createCompletedWorkoutInHevy: vi.fn(),
+  handleRoutineLifecycle: vi.fn(),
 }));
 
 const workout = {

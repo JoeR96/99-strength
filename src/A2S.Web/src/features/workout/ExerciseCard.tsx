@@ -218,7 +218,6 @@ export function ExerciseCard({
                 <div className="col-span-4">
                   <Input
                     type="number"
-              inputMode="decimal"
                     value={set.weight}
                     onChange={(e) =>
                       onSetChange(
@@ -237,7 +236,6 @@ export function ExerciseCard({
                 <div className="col-span-4">
                   <Input
                     type="number"
-              inputMode="decimal"
                     value={set.reps}
                     onChange={(e) =>
                       onSetChange(

@@ -6,7 +6,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import { queryClient } from './queryClient';
 import { HevyProvider } from './contexts/HevyContext';
-import { OfflineProvider } from './offline/OfflineProvider';
 import './index.css';
 import App from './App.tsx';
 
@@ -20,18 +19,16 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <QueryClientProvider client={queryClient}>
-        <OfflineProvider>
-          <HevyProvider>
-            <App />
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                className: 'bg-background text-foreground border border-border',
-                duration: 4000,
-              }}
-            />
-          </HevyProvider>
-        </OfflineProvider>
+        <HevyProvider>
+          <App />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              className: 'bg-background text-foreground border border-border',
+              duration: 4000,
+            }}
+          />
+        </HevyProvider>
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
       </QueryClientProvider>
     </ClerkProvider>

@@ -1,4 +1,3 @@
-using A2S.Application.Common;
 using A2S.Domain.Common;
 using A2S.Infrastructure.Persistence;
 using FluentAssertions;

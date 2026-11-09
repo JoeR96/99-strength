@@ -78,7 +78,6 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
             <div className="flex items-center gap-2 shrink-0">
               <Input
                 type="number"
-              inputMode="decimal"
                 min={0}
                 step={0.5}
                 value={weights[ex.exerciseId] ?? ""}

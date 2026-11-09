@@ -31,6 +31,101 @@ public class UnilateralProgressionTests
 
     private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
+    #region Toggle Unilateral Tests
+
+    /// <summary>
+    /// Tests that toggling to unilateral when at 4 sets caps the set count at 3 (MaxSets for unilateral).
+    /// </summary>
+    [Fact]
+    public async Task ToggleUnilateral_At4Sets_CapsSetCountAt3()
+    {
+        var client = CreateClient();
+        var workoutId = await CreateWorkoutWithRepsPerSetExerciseAsync(client, startingSets: 4, targetSets: 5);
+        var workout = await GetWorkoutAsync(client);
+        var exercise = workout!.Exercises.First(e => e.Progression.Type == "RepsPerSet");
+        var initialProgression = exercise.Progression as RepsPerSetProgressionDto;
+
+        // Verify initial state: 4 sets, bilateral
+        initialProgression.Should().NotBeNull();
+        initialProgression!.CurrentSetCount.Should().Be(4);
+        initialProgression.IsUnilateral.Should().BeFalse();
+
+        var updateRequest = new
+        {
+            Updates = new[]
+            {
+                new
+                {
+                    ExerciseId = exercise.Id,
+                    IsUnilateral = true,
+                    Reason = "Testing unilateral toggle"
+                }
+            }
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises", updateRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<UpdateExercisesResult>();
+        result.Should().NotBeNull();
+        result!.UpdatedCount.Should().Be(1);
+
+        // Verify the exercise is now unilateral and capped at 3 sets
+        var updatedWorkout = await GetWorkoutAsync(client);
+        var updatedExercise = updatedWorkout!.Exercises.First(e => e.Id == exercise.Id);
+        var updatedProgression = updatedExercise.Progression as RepsPerSetProgressionDto;
+
+        updatedProgression.Should().NotBeNull();
+        updatedProgression!.IsUnilateral.Should().BeTrue("Exercise should be marked as unilateral");
+        updatedProgression.CurrentSetCount.Should().Be(3,
+            "Set count should be capped at 3 (MaxSets for unilateral) when was at 4");
+    }
+
+    /// <summary>
+    /// Tests that toggling to unilateral when at 2 sets maintains the set count (below max).
+    /// </summary>
+    [Fact]
+    public async Task ToggleUnilateral_At2Sets_MaintainsSetCount()
+    {
+        var client = CreateClient();
+        var workoutId = await CreateWorkoutWithRepsPerSetExerciseAsync(client, startingSets: 2, targetSets: 5);
+        var workout = await GetWorkoutAsync(client);
+        var exercise = workout!.Exercises.First(e => e.Progression.Type == "RepsPerSet");
+        var initialProgression = exercise.Progression as RepsPerSetProgressionDto;
+
+        // Verify initial state
+        initialProgression!.CurrentSetCount.Should().Be(2);
+        initialProgression.IsUnilateral.Should().BeFalse();
+
+        var updateRequest = new
+        {
+            Updates = new[]
+            {
+                new
+                {
+                    ExerciseId = exercise.Id,
+                    IsUnilateral = true,
+                    Reason = "Testing unilateral toggle at low sets"
+                }
+            }
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises", updateRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var updatedWorkout = await GetWorkoutAsync(client);
+        var updatedExercise = updatedWorkout!.Exercises.First(e => e.Id == exercise.Id);
+        var updatedProgression = updatedExercise.Progression as RepsPerSetProgressionDto;
+
+        updatedProgression!.IsUnilateral.Should().BeTrue();
+        updatedProgression.CurrentSetCount.Should().Be(2,
+            "Set count should remain at 2 (below unilateral max of 3)");
+    }
+
+    #endregion
+
     #region Progression Tests
 
     [Fact]
@@ -94,6 +189,70 @@ public class UnilateralProgressionTests
         updatedProgression.CurrentWeight.Should().Be(initialWeight,
             "Weight should not change when sets can still be reduced");
         updatedProgression.IsUnilateral.Should().BeTrue("Unilateral status should be preserved");
+    }
+
+    #endregion
+
+    #region Toggle Back and Forth Tests
+
+    /// <summary>
+    /// Tests that toggling bilateral -> unilateral -> bilateral maintains proper set progression.
+    /// When toggling back to bilateral, sets should NOT restore to the pre-unilateral value.
+    /// </summary>
+    [Fact]
+    public async Task ToggleBilateralToUnilateral_ThenBack_MaintainsSetProgression()
+    {
+        var client = CreateClient();
+        var workoutId = await CreateWorkoutWithRepsPerSetExerciseAsync(client, startingSets: 3, targetSets: 5);
+        var workout = await GetWorkoutAsync(client);
+        var exercise = workout!.Exercises.First(e => e.Progression.Type == "RepsPerSet");
+
+        // First, progress to 4 sets by completing a successful day
+        var initialProgression = exercise.Progression as RepsPerSetProgressionDto;
+        initialProgression!.CurrentSetCount.Should().Be(3);
+
+        // Complete day with max reps to progress to 4 sets
+        var performances = CreateMaxRepsPerformance(exercise, initialProgression);
+        var completeRequest = new { Performances = performances };
+        await client.PostAsJsonAsync($"/api/v1/workouts/{workoutId}/days/1/complete", completeRequest);
+
+        // Verify progression to 4 sets
+        var workoutAfterProgress = await GetWorkoutAsync(client);
+        var exerciseAfterProgress = workoutAfterProgress!.Exercises.First(e => e.Id == exercise.Id);
+        var progressionAfterSuccess = exerciseAfterProgress.Progression as RepsPerSetProgressionDto;
+        progressionAfterSuccess!.CurrentSetCount.Should().Be(4, "Should have progressed to 4 sets");
+
+        var toggleToUnilateral = new
+        {
+            Updates = new[]
+            {
+                new { ExerciseId = exercise.Id, IsUnilateral = true, Reason = "Toggle to unilateral" }
+            }
+        };
+        await client.PutAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises", toggleToUnilateral);
+
+        var workoutAfterUnilateral = await GetWorkoutAsync(client);
+        var exerciseAfterUnilateral = workoutAfterUnilateral!.Exercises.First(e => e.Id == exercise.Id);
+        var progressionAfterUnilateral = exerciseAfterUnilateral.Progression as RepsPerSetProgressionDto;
+        progressionAfterUnilateral!.CurrentSetCount.Should().Be(3, "Should be capped at 3 for unilateral");
+        progressionAfterUnilateral.IsUnilateral.Should().BeTrue();
+
+        var toggleToBilateral = new
+        {
+            Updates = new[]
+            {
+                new { ExerciseId = exercise.Id, IsUnilateral = false, Reason = "Toggle back to bilateral" }
+            }
+        };
+        await client.PutAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises", toggleToBilateral);
+
+        var finalWorkout = await GetWorkoutAsync(client);
+        var finalExercise = finalWorkout!.Exercises.First(e => e.Id == exercise.Id);
+        var finalProgression = finalExercise.Progression as RepsPerSetProgressionDto;
+
+        finalProgression!.IsUnilateral.Should().BeFalse("Should be bilateral again");
+        finalProgression.CurrentSetCount.Should().Be(3,
+            "Sets should remain at 3, NOT restore to pre-unilateral value of 4");
     }
 
     #endregion

@@ -1,6 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import toast from "react-hot-toast";
 import { hevyApi } from "@/services/hevyApi";
+import { syncDayAsRoutine, getOrCreateRoutineFolder } from "@/services/hevySyncService";
+import { workoutsApi } from "@/api/workouts";
 import { getWeekParameters } from "@/utils/weekParameters";
 import type {
   SetEntry,
@@ -28,11 +30,38 @@ export interface WorkoutConfigDeps {
   updateExercisesMutation: { mutateAsync: (args: { workoutId: string; request: { updates: ExerciseUpdateRequest[] } }) => Promise<unknown> };
 }
 
-/**
- * Said after a saved change when a Hevy key is stored. A routine that is already in Hevy keeps its
- * old numbers until it is pushed again, and the server does the pushing (Settings, Hevy sync).
- */
-export const PUSH_AGAIN_HINT = "To update Hevy, push this week from Settings.";
+async function syncRoutineAfterChange(
+  deps: WorkoutConfigDeps,
+  toastId: string,
+  successMsg: string,
+  failureMsg: string
+) {
+  const { workout, dayNumber, refetch } = deps;
+  if (!workout) return;
+
+  const syncKey = `week${workout.currentWeek}-day${dayNumber}`;
+  const existingRoutineId = workout.hevySyncedRoutines?.[syncKey];
+  if (existingRoutineId) {
+    try { await hevyApi.deleteRoutine(existingRoutineId); } catch (error) { console.warn('Failed to delete Hevy routine:', error); }
+  }
+  let folderId = workout.hevyRoutineFolderId;
+  if (!folderId) {
+    const folderResult = await getOrCreateRoutineFolder(workout.name);
+    if (folderResult) {
+      folderId = folderResult.folderId;
+      try { await workoutsApi.setHevyFolderId(workout.id, folderId); } catch (error) { console.warn('Failed to set Hevy folder ID:', error); }
+    }
+  }
+  const { data: updatedWorkout } = await refetch();
+  if (updatedWorkout) {
+    const result = await syncDayAsRoutine(updatedWorkout, dayNumber, folderId, true);
+    if (result.success) {
+      toast.success(successMsg, { id: toastId });
+    } else {
+      toast.error(`${failureMsg}: ${result.message}`, { id: toastId });
+    }
+  }
+}
 
 export function createTemporarySubstituteHandler(deps: WorkoutConfigDeps) {
   return (originalExercise: ExerciseDto, substituteTemplate: ExerciseTemplate, repsConfig?: RepsPerSetConfig) => {
@@ -109,8 +138,17 @@ export function createSaveExerciseConfigHandler(deps: WorkoutConfigDeps) {
 
       await deps.updateExercisesMutation.mutateAsync({ workoutId: deps.workout.id, request: { updates: [updateRequest] } });
 
-      const saved = "Exercise configuration saved!";
-      toast.success(hevyApi.isConfigured() ? `${saved} ${PUSH_AGAIN_HINT}` : saved, { id: "save-exercise-config" });
+      if (hevyApi.isConfigured()) {
+        await syncRoutineAfterChange(
+          deps,
+          "save-exercise-config",
+          "Exercise updated and Hevy routine refreshed!",
+          "Exercise updated but Hevy sync failed"
+        );
+      } else {
+        toast.success("Exercise configuration saved!", { id: "save-exercise-config" });
+        await deps.refetch();
+      }
 
       const { data: refreshedWorkout } = await deps.refetch();
       if (refreshedWorkout) {
@@ -163,8 +201,16 @@ export function createChangeProgressionHandler(deps: WorkoutConfigDeps) {
         request: { exerciseId, newExerciseName: exercise.name, reason: `Changed progression from ${exercise.progression.type} to ${config.type}`, newProgressionConfig: config },
       });
 
-      const changed = `Changed ${exercise.name} to ${config.type} progression`;
-      toast.success(hevyApi.isConfigured() ? `${changed}. ${PUSH_AGAIN_HINT}` : changed, { id: "change-progression" });
+      if (hevyApi.isConfigured()) {
+        await syncRoutineAfterChange(
+          deps,
+          "change-progression",
+          `Changed ${exercise.name} to ${config.type} progression. Hevy routine updated!`,
+          "Progression changed but Hevy sync failed"
+        );
+      } else {
+        toast.success(`Changed ${exercise.name} to ${config.type} progression`, { id: "change-progression" });
+      }
 
       const { data: refreshedWorkout } = await deps.refetch();
       if (refreshedWorkout) {

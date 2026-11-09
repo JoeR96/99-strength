@@ -7,7 +7,6 @@ interface WorkoutHeaderProps {
   currentWeek: number;
   workoutName: string;
   isPrefilled: boolean;
-  isDeloadWeek?: boolean;
   completedSetsCount: number;
   totalSetsCount: number;
   completedExercisesCount: number;
@@ -15,7 +14,7 @@ interface WorkoutHeaderProps {
   progressPercentage: number;
 }
 
-export function WorkoutHeader({ dayName, dayNumber, currentWeek, workoutName, isPrefilled, isDeloadWeek = false, completedSetsCount, totalSetsCount, completedExercisesCount, totalExercisesCount, progressPercentage }: WorkoutHeaderProps) {
+export function WorkoutHeader({ dayName, dayNumber, currentWeek, workoutName, isPrefilled, completedSetsCount, totalSetsCount, completedExercisesCount, totalExercisesCount, progressPercentage }: WorkoutHeaderProps) {
   return (
     <>
       {/* Sticky Progress Bar */}
@@ -51,13 +50,6 @@ export function WorkoutHeader({ dayName, dayNumber, currentWeek, workoutName, is
           </div>
           <Link to="/workout"><Button variant="outline">Cancel</Button></Link>
         </div>
-
-        {isDeloadWeek && (
-          <div className="mt-3 rounded-lg border border-warning/40 bg-warning/10 p-3 text-warning" role="status" data-testid="deload-banner">
-            <span className="font-medium">Deload week</span>
-            <p className="mt-1 text-sm">Lighter and fewer sets on purpose, with no AMRAP. Move well and leave the gym fresh.</p>
-          </div>
-        )}
 
         {isPrefilled && (
           <div className="mt-3 p-3 bg-neon-blue/15 border border-neon-blue/30 rounded-lg">

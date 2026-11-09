@@ -1,7 +1,4 @@
 using A2S.Application.Behaviors;
-using A2S.Application.Common;
-using A2S.Application.Services;
-using A2S.Domain.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,20 +27,6 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
-
-        services.AddSingleton<VolumeBudgetService>();
-        services.AddScoped<DayBudgetCalculator>();
-
-        // Hevy push/pull (Phase 6).
-        services.AddScoped<Hevy.HevyTemplateCatalogue>();
-        services.AddScoped<Hevy.HevyRoutinePusher>();
-        services.AddScoped<Hevy.HevySessionCompleter>();
-        services.AddScoped<Hevy.HevyPullService>();
-        services.AddScoped<Hevy.HevyPollRunner>();
-        services.AddScoped<AmbientUser>();
-
-        // Personal API tokens: resolves a presented token to its user for the API's token scheme.
-        services.AddScoped<ApiTokens.IApiTokenAuthenticator, ApiTokens.ApiTokenAuthenticator>();
 
         return services;
     }

@@ -10,10 +10,33 @@ export interface DayCardProps {
   isCompleted: boolean;
   isCurrent: boolean;
   hevyEnabled: boolean;
+  isSynced: boolean;
+  syncTimestamp?: Date;
+  onSyncToHevy: () => void;
   onEdit: () => void;
   onPullWorkout: () => void;
   onSubstituteExercise: (exercise: ExerciseDto) => void;
   blockSequence: number[];
+}
+
+function formatSyncTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ', ' + date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubstitute }: { exercise: ExerciseDto; weekNumber: number; blockSequence: number[]; onSubstitute: () => void }) {
@@ -133,10 +156,20 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
   );
 }
 
-export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, onEdit, onPullWorkout, onSubstituteExercise, blockSequence }: DayCardProps) {
+export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurrent, hevyEnabled, isSynced, syncTimestamp, onSyncToHevy, onEdit, onPullWorkout, onSubstituteExercise, blockSequence }: DayCardProps) {
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   const dayLabel = `W${weekNumber} D${dayNumber}`;
   const isUpcoming = !isCompleted && !isCurrent;
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await onSyncToHevy();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handlePull = async () => {
     setIsPulling(true);
@@ -224,6 +257,38 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
           </Button>
         ) : hevyEnabled && (
           <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleSync}
+              disabled={isSyncing || isSynced}
+              data-testid={`send-to-hevy-day-${dayNumber}`}
+            >
+              {isSyncing ? (
+                <>
+                  <svg className="h-4 w-4 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Sending...
+                </>
+              ) : isSynced ? (
+                <span className="flex items-center gap-1" title={syncTimestamp ? `Synced ${syncTimestamp.toLocaleString()}` : 'Synced to Hevy'}>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {syncTimestamp ? `Synced ${formatSyncTime(syncTimestamp)}` : 'Sent to Hevy'}
+                </span>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Send to Hevy
+                </>
+              )}
+            </Button>
             <Button
               variant="outline"
               size="sm"
