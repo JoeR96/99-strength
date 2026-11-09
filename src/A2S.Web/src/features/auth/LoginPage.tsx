@@ -37,10 +37,10 @@ export function LoginPage() {
             99 Strength
           </h1>
           <p className="mt-4 text-lg text-gold-light/80 font-medium">
-            Track your strength journey
+            Your whole training plan in one place
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to continue to your dashboard
+            Sign in to see what's on today
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-muted-foreground/60">
-          Built for strength athletes. Powered by Average to Savage 2.0
+          Lifts, cardio, mobility, habits and weight
         </p>
       </div>
     </div>
