@@ -140,6 +140,56 @@ public class IncrementHabitCommandHandlerTests
     }
 
     [Fact]
+    public async Task SameTimestampAsTheStoredWrite_IsARedelivery_ReturnsTheStoredLogAndWritesNothing()
+    {
+        var existing = HabitLog.Create(_water.Id, Joe, Day, 2, T0);
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(existing);
+
+        var result = await _handler.Handle(new IncrementHabitCommand(_water.Id.Value, Day, 1, T0), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Value.Should().Be(2);
+        result.Value.UpdatedAtUtc.Should().Be(T0);
+        _habits.DidNotReceive().UpdateLog(Arg.Any<HabitLog>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TheSameTapTwice_CountsOnce_ThenTapsWithOtherTimestampsCountAgain()
+    {
+        HabitLog? stored = null;
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(_ => stored);
+        await _habits.AddLogAsync(Arg.Do<HabitLog>(l => stored = l), Arg.Any<CancellationToken>());
+        var tap = new IncrementHabitCommand(_water.Id.Value, Day, 1, T0);
+
+        var first = await _handler.Handle(tap, CancellationToken.None);
+        var redelivered = await _handler.Handle(tap, CancellationToken.None);
+        var older = await _handler.Handle(tap with { ClientTimestamp = T0.AddMinutes(-1) }, CancellationToken.None);
+        var newer = await _handler.Handle(tap with { ClientTimestamp = T0.AddMinutes(1) }, CancellationToken.None);
+
+        first.Value.Value.Should().Be(1);
+        redelivered.IsSuccess.Should().BeTrue();
+        redelivered.Value.Value.Should().Be(1);
+        older.Value.Value.Should().Be(2);
+        newer.Value.Value.Should().Be(3);
+        await _unitOfWork.Received(3).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task WithoutAClientTimestamp_EveryTapCounts()
+    {
+        HabitLog? stored = null;
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(_ => stored);
+        await _habits.AddLogAsync(Arg.Do<HabitLog>(l => stored = l), Arg.Any<CancellationToken>());
+        var tap = new IncrementHabitCommand(_water.Id.Value, Day, 1, default);
+
+        await _handler.Handle(tap, CancellationToken.None);
+        var second = await _handler.Handle(tap, CancellationToken.None);
+
+        second.Value.Value.Should().Be(2);
+    }
+
+    [Fact]
     public async Task Checkbox_PlusOneTicks_MinusOneUnticks()
     {
         var creatine = HabitDefinition.Create(Joe, "Creatine", HabitType.Checkbox, 1, 1, null, 1);

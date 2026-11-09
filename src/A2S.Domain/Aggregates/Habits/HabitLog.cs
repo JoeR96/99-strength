@@ -48,11 +48,35 @@ public sealed class HabitLog : Entity<HabitLogId>
     /// Taps are applied in arrival order whatever their timestamp, because taps from two devices must both
     /// count, but the stored timestamp never moves backwards, so a late-arriving tap cannot reopen the door
     /// to an even older full-value write.
+    /// The one tap that is not applied is a re-delivery of the write already stored
+    /// (<see cref="IsRedeliveryOf"/>). Returns whether the tap was applied.
     /// </summary>
-    public void ApplyTap(HabitType type, int delta, DateTimeOffset clientTimestamp)
+    public bool ApplyTap(HabitType type, int delta, DateTimeOffset clientTimestamp)
     {
+        if (IsRedeliveryOf(clientTimestamp))
+        {
+            return false;
+        }
+
         var at = clientTimestamp.ToUniversalTime();
         Set(AfterTap(type, Value, delta), at > UpdatedAtUtc ? at : UpdatedAtUtc);
+        return true;
+    }
+
+    /// <summary>
+    /// Whether a write stamped <paramref name="clientTimestamp"/> is the one this log already holds, sent
+    /// again because its response never reached the client. A client stamps a write once and repeats that
+    /// stamp on every retry, so an equal timestamp means the same write; any other timestamp, older or
+    /// newer, is a different one.
+    /// The comparison is in whole microseconds, which is what the <c>timestamptz</c> column keeps: a stamp
+    /// with 100 ns ticks comes back from the database cut to the microsecond and must still match.
+    /// A missing timestamp (the zero instant) never matches. Only the last write is remembered, so a
+    /// re-delivery that arrives after another write has landed is not recognised.
+    /// </summary>
+    public bool IsRedeliveryOf(DateTimeOffset clientTimestamp)
+    {
+        return clientTimestamp != default
+            && WholeMicroseconds(clientTimestamp) == WholeMicroseconds(UpdatedAtUtc);
     }
 
     /// <summary>Adds <paramref name="step"/>. Going past the target is allowed and reported as is (7/6).</summary>
@@ -95,6 +119,8 @@ public sealed class HabitLog : Entity<HabitLogId>
         Value = value;
         UpdatedAtUtc = at.ToUniversalTime();
     }
+
+    private static long WholeMicroseconds(DateTimeOffset at) => at.UtcTicks / TimeSpan.TicksPerMicrosecond;
 
     private static decimal AfterTap(HabitType type, decimal current, int delta)
     {

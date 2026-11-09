@@ -170,6 +170,49 @@ public class HabitRepositoryTests : IAsyncLifetime
         reloaded.UpdatedAtUtc.Should().Be(At.AddMinutes(10));
     }
 
+    [Theory]
+    [InlineData(1_230_000)]   // .123 s: the milliseconds a browser stamps
+    [InlineData(1_234_567)]   // .1234567 s: every 100 ns tick .NET can hold
+    [InlineData(9_999_999)]   // .9999999 s: rounding up would land in the next second
+    public async Task LogTimestamp_SurvivesPostgresToTheMicrosecond_SoARedeliveredTapIsStillRecognised(long ticksIntoTheSecond)
+    {
+        var tappedAt = new DateTimeOffset(At.Ticks + ticksIntoTheSecond, TimeSpan.Zero);
+        var repo = new HabitRepository(_db);
+        var water = HabitDefinition.Create(Joe, "Water", HabitType.Counter, 6, 4, null, 0);
+        await repo.AddAsync(water);
+        var day = new DateOnly(2026, 11, 9);
+        await repo.AddLogAsync(HabitLog.CreateFromTap(water.Id, Joe, day, HabitType.Counter, 1, tappedAt));
+        await _db.SaveChangesAsync();
+
+        await using var verify = Reopen();
+        var reloaded = await new HabitRepository(verify).GetLogAsync(water.Id, day);
+
+        // timestamptz keeps microseconds: the seventh digit is cut off, never rounded.
+        reloaded!.UpdatedAtUtc.Ticks.Should().Be(tappedAt.Ticks - tappedAt.Ticks % 10);
+        reloaded.IsRedeliveryOf(tappedAt).Should().BeTrue();
+        reloaded.IsRedeliveryOf(tappedAt.AddMilliseconds(1)).Should().BeFalse();
+        reloaded.ApplyTap(HabitType.Counter, 1, tappedAt).Should().BeFalse();
+        reloaded.Value.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task LogWithoutATimestamp_RoundTripsAsTheZeroInstant_AndIsNeverARedelivery()
+    {
+        var repo = new HabitRepository(_db);
+        var water = HabitDefinition.Create(Joe, "Water", HabitType.Counter, 6, 4, null, 0);
+        await repo.AddAsync(water);
+        var day = new DateOnly(2026, 11, 9);
+        await repo.AddLogAsync(HabitLog.CreateFromTap(water.Id, Joe, day, HabitType.Counter, 1, default));
+        await _db.SaveChangesAsync();
+
+        await using var verify = Reopen();
+        var reloaded = await new HabitRepository(verify).GetLogAsync(water.Id, day);
+
+        reloaded!.UpdatedAtUtc.Should().Be(default(DateTimeOffset));
+        reloaded.ApplyTap(HabitType.Counter, 1, default).Should().BeTrue();
+        reloaded.Value.Should().Be(2);
+    }
+
     [Fact]
     public async Task RemovingAHabit_CascadesToItsLogs()
     {

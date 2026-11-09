@@ -119,7 +119,12 @@ public class HabitsController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
-    /// <summary>The +1 / -1 tap for a day. Creates the log when there is none; never goes below 0.</summary>
+    /// <summary>
+    /// The +1 / -1 tap for a day. Creates the log when there is none; never goes below 0.
+    /// Safe to retry: a tap whose <c>clientTimestamp</c> equals the stored log's <c>updatedAtUtc</c> is the
+    /// same tap delivered again, so it changes nothing and the stored log is returned with 200. Send the
+    /// timestamp taken at the tap, unchanged, on every retry. Taps with any other timestamp always count.
+    /// </summary>
     [HttpPost("{id:guid}/logs/{date}/increment")]
     [ProducesResponseType(typeof(HabitLogDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

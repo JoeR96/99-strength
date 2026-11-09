@@ -43,14 +43,15 @@ public sealed class IncrementHabitCommandHandler : IRequestHandler<IncrementHabi
             {
                 log = HabitLog.CreateFromTap(habit.Id, user.Value, request.Date, habit.Type, request.Delta, request.ClientTimestamp);
                 await _habits.AddLogAsync(log, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            else
+            else if (log.ApplyTap(habit.Type, request.Delta, request.ClientTimestamp))
             {
-                log.ApplyTap(habit.Type, request.Delta, request.ClientTimestamp);
                 _habits.UpdateLog(log);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // A re-delivered tap changes nothing: the stored log goes back so the client can reconcile.
             return Result.Success(HabitLogDto.From(log));
         }
         catch (BusinessRuleViolationException ex)
