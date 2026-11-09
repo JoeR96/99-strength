@@ -25,7 +25,7 @@ export function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md px-4">
+      <div className="relative z-10 w-full max-w-md px-4 py-8">
         {/* Hero Section */}
         <div className="mb-10 text-center">
           <div className="mb-6 flex justify-center">
