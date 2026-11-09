@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -90,6 +90,23 @@ describe('SettingsPage', () => {
     renderSettings();
     expect(screen.getByText('Desktop widget tokens')).toBeInTheDocument();
     expect(await screen.findByTestId('api-tokens-empty')).toBeInTheDocument();
+  });
+
+  describe('the Simulator link', () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it('is hidden in a production build, where the API has no simulate route', () => {
+      vi.stubEnv('DEV', false);
+      renderSettings();
+      expect(screen.getByRole('link', { name: /Exercise library/ })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Simulator/ })).not.toBeInTheDocument();
+    });
+
+    it('is offered in development', () => {
+      vi.stubEnv('DEV', true);
+      renderSettings();
+      expect(screen.getByRole('link', { name: /Simulator/ })).toBeInTheDocument();
+    });
   });
 
   it('shows export button', () => {
