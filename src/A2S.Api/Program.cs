@@ -1,3 +1,4 @@
+using A2S.Api.Authentication;
 using A2S.Api.Infrastructure;
 using A2S.Api.Middleware;
 using A2S.Api.Services;
@@ -10,9 +11,7 @@ using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.SeedData;
 using A2S.Integration.Hevy;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 
@@ -67,28 +66,8 @@ var clerkDomain = builder.Configuration["Clerk:Domain"]
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
     ?? throw new InvalidOperationException("Cors:Origins configuration is required. Set 'Cors:Origins' in appsettings or environment variables.");
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.Authority = clerkDomain;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = clerkDomain,
-        NameClaimType = "name",
-        RoleClaimType = "role"
-    };
-    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-});
-
-builder.Services.AddAuthorization();
+// Clerk session JWTs for the web app, personal API tokens (nns_pat_…) for the desktop widget.
+builder.Services.AddA2SAuthentication(clerkDomain, requireHttpsMetadata: !builder.Environment.IsDevelopment());
 
 builder.Services.AddCors(options =>
 {
@@ -157,6 +136,8 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.UseAuthentication();
+// A personal API token only reaches endpoints marked [AllowApiToken]; anything else is 403.
+app.UseApiTokenScope();
 app.UseAuthorization();
 
 // Auto-provision user on first authenticated request

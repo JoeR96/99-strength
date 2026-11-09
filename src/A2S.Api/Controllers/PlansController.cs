@@ -1,3 +1,4 @@
+using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.Hevy;
@@ -215,8 +216,12 @@ public class PlansController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : NoContent();
     }
 
-    /// <summary>Today's (or the given date's) sessions, phase and the week's goals.</summary>
+    /// <summary>
+    /// Today's (or the given date's) sessions, phase and the week's goals. The one plans action a
+    /// personal API token may call (read-only, for the desktop habit widget).
+    /// </summary>
     [HttpGet("today")]
+    [AllowApiToken]
     [ProducesResponseType(typeof(TodayDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetToday([FromQuery] DateOnly? date, CancellationToken cancellationToken)
