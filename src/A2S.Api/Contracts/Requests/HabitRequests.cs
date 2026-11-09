@@ -26,7 +26,10 @@ public sealed record UpdateHabitRequest(
 /// <summary>Request body for setting a day's value. <paramref name="ClientTimestamp"/> drives last-write-wins.</summary>
 public sealed record SetHabitLogRequest(decimal Value, DateTimeOffset ClientTimestamp);
 
-/// <summary>Request body for the +1 / -1 tap.</summary>
+/// <summary>
+/// Request body for the +1 / -1 tap. <paramref name="ClientTimestamp"/> is the instant of the tap: resend it
+/// unchanged when retrying, because a tap carrying the stored log's timestamp is taken as a duplicate delivery.
+/// </summary>
 public sealed record IncrementHabitRequest(int Delta, DateTimeOffset ClientTimestamp);
 
 /// <summary>Request body for importing habits and their history from another system.</summary>

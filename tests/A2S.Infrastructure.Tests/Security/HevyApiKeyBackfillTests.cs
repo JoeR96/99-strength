@@ -29,7 +29,7 @@ public class HevyApiKeyBackfillTests
             """);
 
     [Fact]
-    public async Task Run_EncryptsLegacyPlaintextRow_AndLeavesPlaintextColumnInPlace()
+    public async Task Run_EncryptsLegacyPlaintextRow_AndErasesThePlaintext()
     {
         await using var db = await MigratedDatabase.CreateAsync(_fixture, "backfill");
         await InsertLegacyUserAsync(db, "user_legacy_1", "legacy-plain-key-0001");
@@ -44,10 +44,33 @@ public class HevyApiKeyBackfillTests
         user.HevyApiKeyProtected.Should().NotBe("legacy-plain-key-0001");
         user.RevealHevyApiKey(protector).Should().Be("legacy-plain-key-0001");
 
-        var plaintextStillThere = await fresh.Database
-            .SqlQueryRaw<string>("""SELECT "HevyApiKey" AS "Value" FROM "Users" WHERE "Id" = 'user_legacy_1'""")
+        var plaintextLeft = await fresh.Database
+            .SqlQueryRaw<int>("""SELECT COUNT(*)::int AS "Value" FROM "Users" WHERE "Id" = 'user_legacy_1' AND "HevyApiKey" IS NOT NULL""")
             .SingleAsync();
-        plaintextStillThere.Should().Be("legacy-plain-key-0001");
+        plaintextLeft.Should().Be(0, "the plaintext copy must not outlive its encrypted one");
+    }
+
+    [Fact]
+    public async Task Run_AfterTheUserRemovesTheirKey_DoesNotBringItBack()
+    {
+        await using var db = await MigratedDatabase.CreateAsync(_fixture, "backfill");
+        await InsertLegacyUserAsync(db, "user_legacy_3", "legacy-plain-key-0003");
+        var protector = NewProtector();
+        await HevyApiKeyBackfill.RunAsync(db, protector, NullLogger.Instance);
+
+        // What DELETE /users/me/hevy-api-key does: the mapped (protected) column goes to null.
+        await using (var session = MigratedDatabase.Reopen(db))
+        {
+            var user = await session.Users.SingleAsync(u => u.Id == new UserId("user_legacy_3"));
+            user.ClearHevyApiKey();
+            await session.SaveChangesAsync();
+        }
+
+        var encryptedOnNextBoot = await HevyApiKeyBackfill.RunAsync(db, protector, NullLogger.Instance);
+
+        encryptedOnNextBoot.Should().Be(0);
+        await using var fresh = MigratedDatabase.Reopen(db);
+        (await fresh.Users.SingleAsync(u => u.Id == new UserId("user_legacy_3"))).HasHevyApiKey.Should().BeFalse();
     }
 
     [Fact]

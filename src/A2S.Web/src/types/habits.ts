@@ -97,6 +97,11 @@ export interface SetHabitLogRequest {
   clientTimestamp: string;
 }
 
+/**
+ * `clientTimestamp` is taken once, at the tap, and resent unchanged on every retry: the server
+ * treats a tap whose timestamp equals the stored log's `updatedAtUtc` as the same tap delivered
+ * again and does not count it twice.
+ */
 export interface IncrementHabitRequest {
   delta: 1 | -1;
   clientTimestamp: string;

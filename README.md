@@ -111,5 +111,6 @@ Adding a route to the list means marking it `[AllowApiToken]` and updating the l
 1. Back up production Postgres (`pg_dump --format=custom`) and rehearse the pending migrations against a
    restored copy.
 2. Run the migration bundle (the Docker entrypoint does this), then deploy the API, then the frontend.
-3. First boot after a schema change: the API upserts the exercise library by name and encrypts any legacy
-   plaintext Hevy keys. Both steps are idempotent and only log counts.
+3. First boot after a schema change: the API upserts the exercise library by name, encrypts any legacy
+   plaintext Hevy keys and erases the plaintext. Both steps are idempotent and only log counts. Rolling
+   back to v1 after that boot means re-entering the Hevy key, because v1 reads the plaintext column.

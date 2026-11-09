@@ -51,6 +51,58 @@ public class IncrementHabitCommandHandlerTests
         result.Value.Value.Should().Be(0);
     }
 
+    // The validator only lets +1 / -1 through, but the handler must not depend on that: the first tap of
+    // a day takes its delta exactly as a later one does.
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(3, 3)]
+    [InlineData(-1, 0)]
+    [InlineData(-3, 0)]
+    public async Task NoLogYet_AppliesTheWholeDelta_NeverBelowZero(int delta, int expected)
+    {
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns((HabitLog?)null);
+
+        var result = await _handler.Handle(new IncrementHabitCommand(_water.Id.Value, Day, delta, T0), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Value.Should().Be(expected);
+        result.Value.UpdatedAtUtc.Should().Be(T0);
+        await _habits.Received(1).AddLogAsync(Arg.Is<HabitLog>(l => l.Value == expected), Arg.Any<CancellationToken>());
+        _habits.DidNotReceive().UpdateLog(Arg.Any<HabitLog>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(-1)]
+    [InlineData(-3)]
+    public async Task NoLogYet_EndsWhereTheSameTapOnAnEmptyLogEnds(int delta)
+    {
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns((HabitLog?)null);
+        var first = await _handler.Handle(new IncrementHabitCommand(_water.Id.Value, Day, delta, T0), CancellationToken.None);
+
+        var otherDay = Day.AddDays(1);
+        _habits.GetLogAsync(_water.Id, otherDay, Arg.Any<CancellationToken>()).Returns(HabitLog.Create(_water.Id, Joe, otherDay, 0, T0.AddMinutes(-1)));
+        var later = await _handler.Handle(new IncrementHabitCommand(_water.Id.Value, otherDay, delta, T0), CancellationToken.None);
+
+        first.Value.Value.Should().Be(later.Value.Value);
+    }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(-1, 0)]
+    public async Task Checkbox_NoLogYet_PlusOneTicks_MinusOneLeavesItUnticked(int delta, int expected)
+    {
+        var creatine = HabitDefinition.Create(Joe, "Creatine", HabitType.Checkbox, 1, 1, null, 1);
+        _habits.GetByIdAsync(creatine.Id, Arg.Any<CancellationToken>()).Returns(creatine);
+        _habits.GetLogAsync(creatine.Id, Day, Arg.Any<CancellationToken>()).Returns((HabitLog?)null);
+
+        var result = await _handler.Handle(new IncrementHabitCommand(creatine.Id.Value, Day, delta, T0), CancellationToken.None);
+
+        result.Value.Value.Should().Be(expected);
+    }
+
     [Fact]
     public async Task Existing_PlusOne_PastTarget_IsKept()
     {
@@ -85,6 +137,56 @@ public class IncrementHabitCommandHandlerTests
 
         result.Value.Value.Should().Be(3);
         result.Value.UpdatedAtUtc.Should().Be(T0);
+    }
+
+    [Fact]
+    public async Task SameTimestampAsTheStoredWrite_IsARedelivery_ReturnsTheStoredLogAndWritesNothing()
+    {
+        var existing = HabitLog.Create(_water.Id, Joe, Day, 2, T0);
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(existing);
+
+        var result = await _handler.Handle(new IncrementHabitCommand(_water.Id.Value, Day, 1, T0), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Value.Should().Be(2);
+        result.Value.UpdatedAtUtc.Should().Be(T0);
+        _habits.DidNotReceive().UpdateLog(Arg.Any<HabitLog>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task TheSameTapTwice_CountsOnce_ThenTapsWithOtherTimestampsCountAgain()
+    {
+        HabitLog? stored = null;
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(_ => stored);
+        await _habits.AddLogAsync(Arg.Do<HabitLog>(l => stored = l), Arg.Any<CancellationToken>());
+        var tap = new IncrementHabitCommand(_water.Id.Value, Day, 1, T0);
+
+        var first = await _handler.Handle(tap, CancellationToken.None);
+        var redelivered = await _handler.Handle(tap, CancellationToken.None);
+        var older = await _handler.Handle(tap with { ClientTimestamp = T0.AddMinutes(-1) }, CancellationToken.None);
+        var newer = await _handler.Handle(tap with { ClientTimestamp = T0.AddMinutes(1) }, CancellationToken.None);
+
+        first.Value.Value.Should().Be(1);
+        redelivered.IsSuccess.Should().BeTrue();
+        redelivered.Value.Value.Should().Be(1);
+        older.Value.Value.Should().Be(2);
+        newer.Value.Value.Should().Be(3);
+        await _unitOfWork.Received(3).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task WithoutAClientTimestamp_EveryTapCounts()
+    {
+        HabitLog? stored = null;
+        _habits.GetLogAsync(_water.Id, Day, Arg.Any<CancellationToken>()).Returns(_ => stored);
+        await _habits.AddLogAsync(Arg.Do<HabitLog>(l => stored = l), Arg.Any<CancellationToken>());
+        var tap = new IncrementHabitCommand(_water.Id.Value, Day, 1, default);
+
+        await _handler.Handle(tap, CancellationToken.None);
+        var second = await _handler.Handle(tap, CancellationToken.None);
+
+        second.Value.Value.Should().Be(2);
     }
 
     [Fact]

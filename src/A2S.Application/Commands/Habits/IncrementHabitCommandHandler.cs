@@ -41,33 +41,17 @@ public sealed class IncrementHabitCommandHandler : IRequestHandler<IncrementHabi
 
             if (log is null)
             {
-                var initial = request.Delta > 0 ? 1 : 0;
-                log = HabitLog.Create(habit.Id, user.Value, request.Date, initial, request.ClientTimestamp);
+                log = HabitLog.CreateFromTap(habit.Id, user.Value, request.Date, habit.Type, request.Delta, request.ClientTimestamp);
                 await _habits.AddLogAsync(log, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            else
+            else if (log.ApplyTap(habit.Type, request.Delta, request.ClientTimestamp))
             {
-                // Taps are applied in arrival order, but the stored timestamp never moves backwards, so a
-                // late-arriving tap cannot reopen the door to an even older full-value write.
-                var at = request.ClientTimestamp > log.UpdatedAtUtc ? request.ClientTimestamp : log.UpdatedAtUtc;
-
-                if (habit.Type == HabitType.Checkbox)
-                {
-                    log.SetValue(request.Delta > 0 ? 1 : 0, at);
-                }
-                else if (request.Delta > 0)
-                {
-                    log.Increment(request.Delta, at);
-                }
-                else
-                {
-                    log.Decrement(-request.Delta, at);
-                }
-
                 _habits.UpdateLog(log);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // A re-delivered tap changes nothing: the stored log goes back so the client can reconcile.
             return Result.Success(HabitLogDto.From(log));
         }
         catch (BusinessRuleViolationException ex)
