@@ -1,6 +1,8 @@
 using A2S.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 
 namespace A2S.Infrastructure.Tests;
@@ -12,7 +14,13 @@ namespace A2S.Infrastructure.Tests;
 /// </summary>
 public static class MigratedDatabase
 {
-    public static async Task<A2SDbContext> CreateAsync(DatabaseFixture fixture, string prefix)
+    /// <param name="fixture">The shared Postgres container.</param>
+    /// <param name="prefix">Database name prefix.</param>
+    /// <param name="targetMigration">
+    /// Stop after this migration instead of applying the whole chain, so a test can seed rows in the
+    /// schema an earlier release left behind and then migrate the rest of the way.
+    /// </param>
+    public static async Task<A2SDbContext> CreateAsync(DatabaseFixture fixture, string prefix, string? targetMigration = null)
     {
         var builder = new NpgsqlConnectionStringBuilder(fixture.ConnectionString)
         {
@@ -27,7 +35,15 @@ public static class MigratedDatabase
             .Options;
 
         var context = new A2SDbContext(options);
-        await context.Database.MigrateAsync();
+        if (targetMigration is null)
+        {
+            await context.Database.MigrateAsync();
+        }
+        else
+        {
+            await context.GetService<IMigrator>().MigrateAsync(targetMigration);
+        }
+
         return context;
     }
 

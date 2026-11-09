@@ -5,8 +5,6 @@ using A2S.Api.Services;
 using A2S.Application;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.User;
-using A2S.Domain.Common;
-using A2S.Infrastructure.Security;
 using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.SeedData;
@@ -104,10 +102,6 @@ using (var scope = app.Services.CreateScope())
 
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     await ExerciseDefinitionSeeder.SeedAsync(dbContext, logger);
-
-    // Encrypt any pre-v2 plaintext Hevy keys. Idempotent; logs a count only.
-    var protector = scope.ServiceProvider.GetRequiredService<ISecretProtector>();
-    await HevyApiKeyBackfill.RunAsync(dbContext, protector, logger);
 
     // Tag the exercise library with Hevy primary/secondary muscle groups for the volume budget. Idempotent.
     await MuscleGroupBackfill.RunAsync(dbContext, logger);
