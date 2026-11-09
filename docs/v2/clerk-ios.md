@@ -17,8 +17,8 @@ Vercel preview → sign in → force-quit → reopen) still needs a real iPhone.
 ## How this repo is set up
 
 - `LoginPage` / `SignUpPage` use `routing="path"` with `path="/sign-in"` and `/sign-up` and
-  `fallbackRedirectUrl="/dashboard"` — same origin, no hosted redirect.
-- Manifest `start_url` is `/dashboard` with `display: standalone` and `scope: /`.
+  `fallbackRedirectUrl="/today"` — same origin, no hosted redirect.
+- Manifest `start_url` is `/today` with `display: standalone` and `scope: /`.
 - `UserButton` uses `afterSignOutUrl="/sign-in"` so sign-out lands back inside the app window.
 - Clerk's **allowed origins** must include the production and preview origins
   (`https://99-strength.enjoeneer.dev` and the Vercel preview domain) in the Clerk dashboard.
