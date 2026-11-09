@@ -80,6 +80,32 @@ test fixture, commit message or PR.
   browsers re-subscribe the next time Settings is opened.
 - **Frontend** configuration goes in an untracked `src/A2S.Web/.env.local` (see `.env.example`).
 
+### Desktop widget tokens
+
+A program that cannot sign in through Clerk, such as the Terran CC habit widget or a habit import
+script, uses a personal API token instead. Create one in the app under
+**Settings → Desktop widget tokens**, give it a name, and copy it straight away: it is shown once.
+The server keeps only a SHA-256 hash, so a lost token cannot be recovered, only replaced.
+
+Send it as `Authorization: Bearer nns_pat_…`. You can have ten active tokens.
+
+A token can:
+
+- call everything under `/api/v1/habits` (today, history, log, increment, create, edit, archive, import);
+- record a weigh-in and read the trend under `/api/v1/body-weight`;
+- read `GET /api/v1/plans/today`;
+- call `GET /api/v1/users/me/api-tokens/whoami` to check that it works.
+
+A token cannot do anything else. It cannot read or change the Hevy key, workouts, plans, meals or
+push settings, and it cannot create, list or revoke tokens. Those calls answer `403`; an unknown or
+revoked token answers `401`.
+
+To revoke a token, press **Revoke** beside it in Settings. It stops working at once. Treat a token
+like a password: keep it out of the repo, logs, commit messages and chat.
+
+Adding a route to the list means marking it `[AllowApiToken]` and updating the list in
+`tests/A2S.Api.Tests/Unit/ApiTokenAllowListTests.cs`, which fails until the two agree.
+
 ## Deploying a release
 
 1. Back up production Postgres (`pg_dump --format=custom`) and rehearse the pending migrations against a
