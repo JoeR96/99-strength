@@ -32,6 +32,10 @@ vi.mock('react-hot-toast', () => ({
   default: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock('@/api/apiTokens', () => ({
+  apiTokensApi: { list: vi.fn().mockResolvedValue([]), create: vi.fn(), revoke: vi.fn() },
+}));
+
 vi.mock('@/contexts/HevyContext', () => ({
   useHevy: () => ({
     isConfigured: true,
@@ -80,6 +84,12 @@ describe('SettingsPage', () => {
     expect(screen.getByTestId('hevy-key-masked')).toHaveTextContent('7781');
     expect(screen.getByText(/Replace key/i)).toBeInTheDocument();
     expect(screen.getByText(/Remove key/i)).toBeInTheDocument();
+  });
+
+  it('has the desktop widget tokens section', async () => {
+    renderSettings();
+    expect(screen.getByText('Desktop widget tokens')).toBeInTheDocument();
+    expect(await screen.findByTestId('api-tokens-empty')).toBeInTheDocument();
   });
 
   it('shows export button', () => {
