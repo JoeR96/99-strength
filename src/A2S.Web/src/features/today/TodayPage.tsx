@@ -2,6 +2,9 @@
  * Today: what do I do now? Today's session with one big Start, the habit
  * counters as 64 px `+` buttons, the weigh-in, the week's rings and the streak.
  * Logging a bottle of water is one tap from app open.
+ *
+ * With a Hevy key stored, opening the page (or pulling down, pressing Refresh, or coming back
+ * from Hevy) pulls completed workouts in the background; the page never waits for it.
  */
 
 import { useMemo, useState } from 'react';
@@ -12,6 +15,10 @@ import { Button } from '@/components/ui/button';
 import { formatDayLabel } from '@/lib/localDate';
 import { useLocalToday } from '@/hooks/useLocalToday';
 import { useActivePlan, useCompleteSession, useToday, useUndoSessionCompletion } from '@/hooks/usePlan';
+import { hevyErrorMessage, useAutoPullHevy, useHevyInbox, usePushSession } from '@/hooks/useHevySync';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useHevyStatus } from '@/contexts/hevyStatusContext';
+import { useOnlineStatus } from '@/offline/useOnlineStatus';
 import { useHabitsToday, useIncrementHabit, useSetHabitValue } from '@/hooks/useHabits';
 import { useRecordWeight, useWeightTrend } from '@/hooks/useBodyWeight';
 import { PhaseType, SessionKind, type CardioLogDto, type TodaySessionDto } from '@/types/plan';
@@ -29,6 +36,8 @@ import { MobilityChecklist } from './MobilityChecklist';
 import { PendingSyncBadge } from './PendingSyncBadge';
 import { usePendingSyncCount } from '@/offline/context';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
+import { HevySyncNotice } from './HevySyncNotice';
+import { openHevyRoutine } from './hevyDeepLink';
 
 export interface TodayPageProps {
   /** Overrides the offline queue length shown in the header (stories); otherwise read from the queue. */
@@ -56,6 +65,12 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
   const recordWeight = useRecordWeight();
   const completeSession = useCompleteSession();
   const undoCompletion = useUndoSessionCompletion();
+
+  const { isConfigured: hevyConfigured } = useHevyStatus();
+  const online = useOnlineStatus();
+  const pull = useAutoPullHevy(hevyConfigured && online);
+  const inboxQuery = useHevyInbox(hevyConfigured);
+  const pushSession = usePushSession();
 
   const [cardioSession, setCardioSession] = useState<TodaySessionDto | null>(null);
   const [mobilitySession, setMobilitySession] = useState<TodaySessionDto | null>(null);
@@ -128,6 +143,46 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
     );
   };
 
+  /** Refresh button and pull-to-refresh: pull from Hevy (which re-reads the plan), or just re-read the plan. */
+  const refresh = () => {
+    if (pull.isPending) return;
+    if (!online) {
+      toast("You're offline. Showing what's saved on this device.");
+      return;
+    }
+    if (hevyConfigured) {
+      pull.mutate({ manual: true, announce: 'always' });
+    } else {
+      void todayQuery.refetch();
+      void planQuery.refetch();
+    }
+  };
+  const pullGesture = usePullToRefresh(refresh);
+  const refreshing = pull.isPending || (todayQuery.isRefetching && !todayQuery.isLoading);
+
+  const pushToHevy = (session: TodaySessionDto) => {
+    if (!plan) return;
+    if (!online) {
+      toast.error("You're offline. Push to Hevy when you're back online.");
+      return;
+    }
+    pushSession.mutate(
+      { planId: plan.id, request: { date, kind: session.kind, liftDay: session.liftDay } },
+      {
+        onSuccess: () => toast.success(`${session.label} is in Hevy`),
+        onError: (error) => toast.error(hevyErrorMessage(error, `Couldn't push ${session.label} to Hevy. Try again.`)),
+      }
+    );
+  };
+  const isPushing = (session: TodaySessionDto) =>
+    pushSession.isPending &&
+    pushSession.variables?.request.kind === session.kind &&
+    (pushSession.variables.request.liftDay ?? null) === session.liftDay;
+
+  const openInHevy = (session: TodaySessionDto) => {
+    if (session.hevyRoutineId) openHevyRoutine(session.hevyRoutineId);
+  };
+
   const planLoading = todayQuery.isLoading || planQuery.isLoading;
   const planError = todayQuery.isError || planQuery.isError;
 
@@ -135,16 +190,48 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container-page space-y-4 py-4">
+        {pullGesture.distance > 0 && (
+          <p
+            className="flex items-end justify-center overflow-hidden text-sm text-muted-foreground"
+            style={{ height: pullGesture.distance / 2 }}
+            aria-hidden="true"
+            data-testid="pull-to-refresh-hint"
+          >
+            {pullGesture.ready ? 'Release to refresh' : 'Pull to refresh'}
+          </p>
+        )}
+
         <header className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm text-muted-foreground">Today</p>
             <h1 className="text-2xl font-bold text-foreground">{formatDayLabel(date)}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <PendingSyncBadge count={pendingCount} />
             {habits && <StreakChip streak={habits.streak} />}
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11"
+              onClick={refresh}
+              disabled={refreshing}
+              aria-label={hevyConfigured ? 'Refresh and pull from Hevy' : 'Refresh'}
+              data-testid="today-refresh"
+            >
+              <RefreshCw className={refreshing ? 'animate-spin' : undefined} aria-hidden="true" />
+            </Button>
           </div>
         </header>
+
+        {hevyConfigured && (
+          <HevySyncNotice
+            inboxCount={inboxQuery.data?.length ?? 0}
+            pullError={pull.isError ? hevyErrorMessage(pull.error, "Couldn't pull from Hevy.") : null}
+            onRetry={refresh}
+            retrying={pull.isPending}
+            offline={!online}
+          />
+        )}
 
         {today?.phase !== undefined && today?.phase !== PhaseType.Cut && (
           <PhaseBanner phase={today?.phase ?? null} detail={phaseDetail} />
@@ -188,6 +275,10 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
                 paused={paused}
                 onMarkDone={openMarkDone}
                 onUndo={undo}
+                hevyConfigured={hevyConfigured}
+                onOpenInHevy={openInHevy}
+                onPushToHevy={pushToHevy}
+                pushing={isPushing(session)}
                 busy={completeSession.isPending || undoCompletion.isPending}
               />
             ))}

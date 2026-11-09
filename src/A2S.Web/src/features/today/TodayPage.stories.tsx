@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { TodayPage } from './TodayPage';
-import { withAppProviders, withApiMocks, phoneParameters } from '@/mocks/storyProviders';
+import { withAppProviders, withApiMocks, withHevyStatus, phoneParameters } from '@/mocks/storyProviders';
 import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
 import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
 import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
+import { hevySyncHandlers, installHevySyncHandlers, installPushFlowHandlers } from '@/mocks/handlers/hevySync';
 
 const meta = {
   title: 'Features/Today/TodayPage',
@@ -89,6 +90,57 @@ export const Empty: Story = {
       installPlansHandlers(plansHandlers.default());
       installHabitsHandlers(habitsHandlers.empty());
       installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+  ],
+};
+
+/** A Hevy key is stored and Upper A was pushed: Open in Hevy sits beside Start. */
+export const WithHevyRoutine: Story = {
+  decorators: [
+    withHevyStatus(true),
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.withHevyRoutine());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+      installHevySyncHandlers(hevySyncHandlers.empty());
+    }),
+  ],
+};
+
+/** A key is stored but Upper A has no routine yet: Push to Hevy, which turns into Open in Hevy. */
+export const PushAvailable: Story = {
+  decorators: [
+    withHevyStatus(true),
+    withApiMocks(() => {
+      installPushFlowHandlers();
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+  ],
+};
+
+/** Two pulled workouts matched nothing: the chip links to the Hevy inbox. */
+export const HevyInboxWaiting: Story = {
+  decorators: [
+    withHevyStatus(true),
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.withHevyRoutine());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+      installHevySyncHandlers(hevySyncHandlers.twoItems());
+    }),
+  ],
+};
+
+/** Hevy is unreachable: the pull on open fails quietly with a retry; the plan still shows. */
+export const HevyPullFailed: Story = {
+  decorators: [
+    withHevyStatus(true),
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.default());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+      installHevySyncHandlers(hevySyncHandlers.writesFail());
     }),
   ],
 };
