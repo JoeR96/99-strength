@@ -95,6 +95,9 @@ public static class DependencyInjection
         // The 15-minute poll: idle in Testing; pulls as each user through AmbientUser.
         services.AddHostedService<HevyPollHostedService>();
 
+        // Personal API tokens (hash-only storage) for the desktop habit widget.
+        services.AddScoped<IApiTokenRepository, ApiTokenRepository>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
