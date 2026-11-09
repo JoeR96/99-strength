@@ -75,6 +75,13 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
     {
         builder.UseEnvironment("Testing");
 
+        // Program.cs reads these two while it is still building the host, and stops the boot when
+        // either is empty (RequiredSettings). ConfigureAppConfiguration below is applied too late
+        // for that read; UseSetting is host configuration, which the app sees from its first line.
+        // The domain is never contacted: the JWT options are replaced with the test key further down.
+        builder.UseSetting("Clerk:Domain", "https://clerk.test.invalid");
+        builder.UseSetting("Cors:Origins:0", "http://localhost:5173");
+
         // Provide test configuration
         builder.ConfigureAppConfiguration((context, config) =>
         {
@@ -82,8 +89,6 @@ public class TestWebApplicationFactory<TProgram> : WebApplicationFactory<TProgra
             {
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
                 ["Serilog:MinimumLevel:Default"] = "Warning",
-                ["Clerk:Domain"] = TestJwtIssuer,
-                ["Cors:Origins:0"] = "http://localhost:5173",
                 ["Push:VapidPublicKey"] = VapidKeys.PublicKey,
                 ["Push:VapidPrivateKey"] = VapidKeys.PrivateKey,
                 ["Push:Subject"] = EphemeralVapidKeys.Subject

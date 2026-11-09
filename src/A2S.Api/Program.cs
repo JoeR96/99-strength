@@ -60,11 +60,9 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-var clerkDomain = builder.Configuration["Clerk:Domain"]
-    ?? throw new InvalidOperationException("Clerk:Domain configuration is required. Set 'Clerk:Domain' in appsettings or environment variables.");
-
-var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-    ?? throw new InvalidOperationException("Cors:Origins configuration is required. Set 'Cors:Origins' in appsettings or environment variables.");
+// Both have empty placeholders in appsettings.json; an unset or empty value stops the boot here.
+var clerkDomain = RequiredSettings.ClerkDomain(builder.Configuration);
+var corsOrigins = RequiredSettings.CorsOrigins(builder.Configuration);
 
 // Clerk session JWTs for the web app, personal API tokens (nns_pat_…) for the desktop widget.
 builder.Services.AddA2SAuthentication(clerkDomain, requireHttpsMetadata: !builder.Environment.IsDevelopment());
