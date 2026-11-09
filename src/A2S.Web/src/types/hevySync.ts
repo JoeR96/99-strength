@@ -1,6 +1,6 @@
 /**
  * Hevy push/pull types mirroring `A2S.Application.Hevy` (PullSummary, HevyInboxItemDto,
- * AssignHevyWorkoutResult, PushRoutineResult, PushWeekResult) and the `HevyInboxController` /
+ * AssignHevyWorkoutResult, PushRoutineResult, PushedSession, PushWeekResult) and the `HevyInboxController` /
  * `PlansController` request bodies. Plan enums serialise as integers; dates are `yyyy-MM-dd`.
  */
 
@@ -72,8 +72,14 @@ export interface PushRoutineFailure {
   error: string;
 }
 
+/** One session the week push sent: its day and label, then what Hevy now holds. */
+export interface PushedSession extends PushRoutineResult {
+  date: LocalDate;
+  label: string;
+}
+
 export interface PushWeekResult {
   weekStart: LocalDate;
-  pushed: PushRoutineResult[];
+  pushed: PushedSession[];
   failed: PushRoutineFailure[];
 }
