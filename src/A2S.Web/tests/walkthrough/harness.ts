@@ -86,17 +86,19 @@ export async function launchPhone(options: LaunchOptions = {}): Promise<BrowserC
 
 export const test = base.extend<{ page: Page }, { phone: BrowserContext }>({
   phone: [
-    async ({}, use) => {
+    // Playwright reads the fixture's dependencies from this destructuring pattern, so it must be one.
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, provide) => {
       const context = await launchPhone();
-      await use(context);
+      await provide(context);
       await context.close();
     },
     { scope: 'worker' },
   ],
-  page: async ({ phone }, use, testInfo) => {
+  page: async ({ phone }, provide, testInfo) => {
     const page = phone.pages()[0] ?? (await phone.newPage());
     watchPage(page, testInfo.titlePath.slice(0, 2).join(' › ').slice(0, 80));
-    await use(page);
+    await provide(page);
     page.removeAllListeners();
   },
 });
