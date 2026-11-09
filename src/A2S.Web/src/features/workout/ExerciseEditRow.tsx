@@ -93,6 +93,7 @@ export function ExerciseEditRow({
           </Label>
           <Input
             type="number"
+              inputMode="decimal"
             step="any"
             min="0"
             value={state.newValue}
@@ -127,6 +128,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.repRangeMin}
                       onChange={(e) =>
                         updateState(state.exerciseId, {
@@ -141,6 +143,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Max</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.repRangeMax}
                       onChange={(e) =>
                         updateState(state.exerciseId, {
@@ -161,6 +164,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Starting</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.startingSets}
                       onChange={(e) =>
                         updateState(state.exerciseId, {
@@ -175,6 +179,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Current</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.currentSets}
                       onChange={(e) =>
                         updateState(state.exerciseId, {
@@ -189,6 +194,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Target</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.targetSets}
                       onChange={(e) =>
                         updateState(state.exerciseId, {
@@ -222,6 +228,7 @@ export function ExerciseEditRow({
                 <Label className="text-sm">Starting Weight ({state.unit})</Label>
                 <Input
                   type="number"
+              inputMode="decimal"
                   step="2.5"
                   value={state.swapWeight}
                   onChange={(e) =>
@@ -239,6 +246,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.swapRepMin}
                       onChange={(e) =>
                         updateState(state.exerciseId, { swapRepMin: Number(e.target.value) })
@@ -249,6 +257,7 @@ export function ExerciseEditRow({
                     <label className="text-xs text-muted-foreground">Max</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={state.swapRepMax}
                       onChange={(e) =>
                         updateState(state.exerciseId, { swapRepMax: Number(e.target.value) })
@@ -261,6 +270,7 @@ export function ExerciseEditRow({
                 <Label className="text-sm">Target Sets</Label>
                 <Input
                   type="number"
+              inputMode="decimal"
                   value={state.swapTargetSets}
                   onChange={(e) =>
                     updateState(state.exerciseId, { swapTargetSets: Number(e.target.value) })
@@ -283,6 +293,7 @@ export function ExerciseEditRow({
                 <Label className="text-sm">Training Max ({state.unit})</Label>
                 <Input
                   type="number"
+              inputMode="decimal"
                   step="2.5"
                   value={state.swapTrainingMax}
                   onChange={(e) =>

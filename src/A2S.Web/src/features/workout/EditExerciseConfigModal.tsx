@@ -206,6 +206,7 @@ export function EditExerciseConfigModal({
                 <div className="flex gap-2">
                   <Input
                     type="number"
+              inputMode="decimal"
                     value={trainingMaxValue}
                     onChange={(e) =>
                       setTrainingMaxValue(parseFloat(e.target.value) || 0)
@@ -248,6 +249,7 @@ export function EditExerciseConfigModal({
                 <div className="flex gap-2">
                   <Input
                     type="number"
+              inputMode="decimal"
                     value={weightValue}
                     onChange={(e) =>
                       setWeightValue(parseFloat(e.target.value) || 0)
@@ -278,6 +280,7 @@ export function EditExerciseConfigModal({
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repRangeMin}
                       onChange={(e) => setRepRangeMin(Number(e.target.value))}
                       min="1"
@@ -288,6 +291,7 @@ export function EditExerciseConfigModal({
                     <label className="text-xs text-muted-foreground">Max</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repRangeMax}
                       onChange={(e) => setRepRangeMax(Number(e.target.value))}
                       min="1"
@@ -327,6 +331,7 @@ export function EditExerciseConfigModal({
                 <div className="flex gap-2">
                   <Input
                     type="number"
+              inputMode="decimal"
                     value={weightValue}
                     onChange={(e) =>
                       setWeightValue(parseFloat(e.target.value) || 0)
@@ -356,6 +361,7 @@ export function EditExerciseConfigModal({
                     <label className="text-xs text-muted-foreground">Min</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repRangeMin}
                       onChange={(e) => setRepRangeMin(Number(e.target.value))}
                       min="1"
@@ -366,6 +372,7 @@ export function EditExerciseConfigModal({
                     <label className="text-xs text-muted-foreground">Max</label>
                     <Input
                       type="number"
+              inputMode="decimal"
                       value={repRangeMax}
                       onChange={(e) => setRepRangeMax(Number(e.target.value))}
                       min="1"
@@ -381,6 +388,7 @@ export function EditExerciseConfigModal({
                 </label>
                 <Input
                   type="number"
+              inputMode="decimal"
                   value={targetSets}
                   onChange={(e) => setTargetSets(Number(e.target.value))}
                   min="1"
@@ -409,6 +417,7 @@ export function EditExerciseConfigModal({
                 <div className="flex gap-2">
                   <Input
                     type="number"
+              inputMode="decimal"
                     value={trainingMaxValue}
                     onChange={(e) =>
                       setTrainingMaxValue(parseFloat(e.target.value) || 0)

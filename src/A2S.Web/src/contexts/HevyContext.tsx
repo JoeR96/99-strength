@@ -1,64 +1,79 @@
 /**
  * Hevy Context
- * Manages Hevy API key — persisted server-side on the User entity so it
- * survives page reloads and device switches.
+ * Tracks whether a Hevy API key is stored for the signed-in user. The key itself lives
+ * encrypted on the server and never reaches the browser: the API only tells us whether one
+ * exists and its last four characters, and every Hevy call is made server-side.
  */
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { hevyApi } from '@/services/hevyApi';
 import { apiClient } from '@/api/apiClient';
 import toast from 'react-hot-toast';
+import { HevyContext } from './hevyStatusContext';
 
-interface HevyContextType {
-  apiKey: string | null;
-  isConfigured: boolean;
-  isValidating: boolean;
-  isValid: boolean | null;
-  isLoading: boolean;
-  setApiKey: (key: string) => Promise<boolean>;
-  clearApiKey: () => void;
-  validateKey: () => Promise<boolean>;
+export interface HevyKeyStatus {
+  hasKey: boolean;
+  lastFour: string | null;
 }
 
-const HevyContext = createContext<HevyContextType | undefined>(undefined);
-
 export function HevyProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setApiKeyState] = useState<string | null>(null);
+  const [status, setStatus] = useState<HevyKeyStatus>({ hasKey: false, lastFour: null });
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { isLoaded, isSignedIn } = useAuth();
 
-  // Load persisted key from the backend on mount
+  const applyStatus = useCallback((next: HevyKeyStatus) => {
+    setStatus(next);
+    hevyApi.setConfigured(next.hasKey);
+  }, []);
+
+  // Ask the server whether a key is stored. Never fetches the key itself. Only a signed-in
+  // user has a key to ask about: asking from the sign-in page was a 401 on every load.
   useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      applyStatus({ hasKey: false, lastFour: null });
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await apiClient.get<{ apiKey: string | null }>('/users/me/hevy-api-key');
-        if (!cancelled && data.apiKey) {
-          setApiKeyState(data.apiKey);
-          hevyApi.setApiKey(data.apiKey);
-        }
+        const { data } = await apiClient.get<HevyKeyStatus>('/users/me/hevy-api-key');
+        if (!cancelled) applyStatus({ hasKey: !!data.hasKey, lastFour: data.lastFour ?? null });
       } catch {
-        // Not logged in yet or endpoint unavailable — ignore
+        // Endpoint unavailable or offline — read as "no key"
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [applyStatus, isLoaded, isSignedIn]);
 
-  const setApiKey = async (key: string): Promise<boolean> => {
+  const validateKey = useCallback(async (): Promise<boolean> => {
+    if (!status.hasKey) return false;
     setIsValidating(true);
     try {
-      hevyApi.setApiKey(key);
-      setApiKeyState(key);
+      const valid = await hevyApi.validateApiKey();
+      setIsValid(valid);
+      return valid;
+    } catch {
+      setIsValid(false);
+      return false;
+    } finally {
+      setIsValidating(false);
+    }
+  }, [status.hasKey]);
 
-      // Persist to backend
-      try {
-        await apiClient.put('/users/me/hevy-api-key', { apiKey: key });
-      } catch {
-        // Non-fatal — key is still in memory for this session
-      }
+  const setApiKey = async (key: string): Promise<boolean> => {
+    const trimmed = key.trim();
+    if (!trimmed) return false;
+    setIsValidating(true);
+    try {
+      await apiClient.put('/users/me/hevy-api-key', { apiKey: trimmed });
+      applyStatus({ hasKey: true, lastFour: trimmed.slice(-4) });
 
       try {
         const valid = await hevyApi.validateApiKey();
@@ -83,37 +98,22 @@ export function HevyProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const clearApiKey = () => {
-    setApiKeyState(null);
-    hevyApi.clearApiKey();
-    setIsValid(null);
-
-    // Remove from backend
-    apiClient.put('/users/me/hevy-api-key', { apiKey: null }).catch(() => {});
-
-    toast.success('Disconnected from Hevy');
-  };
-
-  const validateKey = async (): Promise<boolean> => {
-    if (!apiKey) return false;
-    setIsValidating(true);
+  const clearApiKey = async (): Promise<void> => {
     try {
-      const valid = await hevyApi.validateApiKey();
-      setIsValid(valid);
-      return valid;
+      await apiClient.delete('/users/me/hevy-api-key');
+      applyStatus({ hasKey: false, lastFour: null });
+      setIsValid(null);
+      toast.success('Disconnected from Hevy');
     } catch {
-      setIsValid(false);
-      return false;
-    } finally {
-      setIsValidating(false);
+      toast.error('Failed to remove API key.');
     }
   };
 
   return (
     <HevyContext.Provider
       value={{
-        apiKey,
-        isConfigured: apiKey !== null && apiKey.length > 0,
+        isConfigured: status.hasKey,
+        keyLastFour: status.lastFour,
         isValidating,
         isValid,
         isLoading,

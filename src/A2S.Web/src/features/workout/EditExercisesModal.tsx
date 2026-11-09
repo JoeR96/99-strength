@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { useUpdateExercises, useSubstituteExercise, useRemoveExercise } from "@/hooks/useWorkouts";
-import { useSyncExerciseEditsToHevy } from "./useSyncExerciseEditsToHevy";
 import { ExerciseEditRow } from "./ExerciseEditRow";
 import {
   deriveExerciseEditStates,
@@ -23,14 +22,14 @@ interface EditExercisesModalProps {
   day: number;
   isOpen: boolean;
   onClose: () => void;
-  onSyncRequired?: () => void;
+  /** Exercises were saved or one was removed: re-read the workout. */
+  onExercisesChanged?: () => void;
 }
 
-export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequired }: EditExercisesModalProps) {
+export function EditExercisesModal({ workout, day, isOpen, onClose, onExercisesChanged }: EditExercisesModalProps) {
   const updateExercises = useUpdateExercises();
   const substituteExercise = useSubstituteExercise();
   const removeExerciseMutation = useRemoveExercise();
-  const { syncExerciseEditsToHevy } = useSyncExerciseEditsToHevy();
   const [editStates, setEditStates] = useState<ExerciseEditState[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -63,7 +62,7 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
       setEditStates((prev) => prev.filter((s) => s.exerciseId !== exerciseId));
       setExerciseToRemove(null);
       toast.success(`Removed ${exerciseName} from workout`);
-      onSyncRequired?.();
+      onExercisesChanged?.();
     } catch (err: any) {
       toast.error(err.message || "Failed to remove exercise");
     }
@@ -185,8 +184,9 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onSyncRequir
         });
       }
 
-      // 4. If Hevy is configured, delete old routine and push updated one
-      await syncExerciseEditsToHevy(workout, day, onSyncRequired);
+      // 4. Let the parent re-read the workout and say what was saved. A routine already in Hevy
+      // is not touched from here: the server pushes routines, on Today and in Settings.
+      onExercisesChanged?.();
 
       onClose();
     } catch (err: any) {

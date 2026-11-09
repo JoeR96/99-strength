@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import toast from "react-hot-toast";
 import { workoutsApi } from "@/api/workouts";
 import { getWeekParameters, roundToGymIncrement } from "@/utils/weekParameters";
+import { kgToLbs } from "@/utils/constants";
 import type { SubstituteExerciseRequest, UpdateExercisesRequest, WorkoutDto } from "@/types/workout";
 import type {
   SetEntry,
@@ -86,33 +87,43 @@ export function createRemoveFromSubstitutionHandler(deps: ReconciliationDeps) {
   };
 }
 
+/** Hevy reports kilograms; the programme may be in pounds. */
+export function toExerciseUnit(weightKg: number, weightUnit: string): { weight: number; unit: 1 | 2; label: 'kg' | 'lbs' } {
+  if (weightUnit === 'lbs') {
+    return { weight: Math.round(kgToLbs(weightKg) * 10) / 10, unit: 2, label: 'lbs' };
+  }
+  return { weight: Math.round(weightKg * 10) / 10, unit: 1, label: 'kg' };
+}
+
 export function createApplyWeightDiscrepancyHandler(deps: ReconciliationDeps) {
-  return async (discrepancy: WeightDiscrepancy, confirmedWeight: number, decision: 'skip' | 'update') => {
+  return async (discrepancy: WeightDiscrepancy, confirmedWeightKg: number, decision: 'skip' | 'update') => {
     if (decision === 'skip') {
       deps.setExerciseEntries((prev) =>
         prev.map((entry) => entry.exercise.id === discrepancy.exerciseId ? { ...entry, skipProgression: true } : entry)
       );
       toast.success(`Will skip progression for "${discrepancy.exerciseName}" this week`);
     } else if (decision === 'update' && deps.workout) {
+      const entry = deps.exerciseEntries.find((e) => e.exercise.id === discrepancy.exerciseId);
+      const { weight, unit, label } = toExerciseUnit(confirmedWeightKg, entry?.weightUnit ?? 'kg');
       try {
         if (discrepancy.progressionType === 'Linear') {
           const weekParams = getWeekParameters(deps.workout.currentWeek);
-          const newTm = roundToGymIncrement(confirmedWeight / weekParams.intensity, 'kg');
+          const newTm = roundToGymIncrement(weight / weekParams.intensity, label);
           await deps.updateExercisesMutation.mutateAsync({
             workoutId: deps.workout.id,
             request: {
               updates: [{
                 exerciseId: discrepancy.exerciseId,
                 trainingMaxValue: newTm,
-                trainingMaxUnit: 1,
-                reason: `Updated TM from Hevy sync: actual weight ${confirmedWeight}kg at ${Math.round(weekParams.intensity * 100)}% intensity → TM ${newTm}kg`,
+                trainingMaxUnit: unit,
+                reason: `Updated TM from Hevy sync: actual weight ${weight}${label} at ${Math.round(weekParams.intensity * 100)}% intensity → TM ${newTm}${label}`,
               }],
             },
           });
-          toast.success(`Updated Training Max for "${discrepancy.exerciseName}" to ${newTm}kg`);
+          toast.success(`Updated Training Max for "${discrepancy.exerciseName}" to ${newTm}${label}`);
           await deps.refetch();
         } else {
-          await workoutsApi.updateWorkingWeight(deps.workout.id, discrepancy.exerciseId, confirmedWeight, 1, 'Updated from Hevy sync - weight discrepancy');
+          await workoutsApi.updateWorkingWeight(deps.workout.id, discrepancy.exerciseId, weight, unit, 'Updated from Hevy sync - weight discrepancy');
           toast.success(`Updated working weight for "${discrepancy.exerciseName}"`);
         }
       } catch (error) {
@@ -124,12 +135,29 @@ export function createApplyWeightDiscrepancyHandler(deps: ReconciliationDeps) {
   };
 }
 
+/**
+ * "Skip this week" leaves the exercise in the programme with no sets this session
+ * (it is left out of the completion payload, so no progression runs). "Delete"
+ * removes it from the programme for good.
+ */
 export function createMissingExerciseHandler(deps: ReconciliationDeps) {
   return async (exercise: MissingExercise, decision: 'delete' | 'skip') => {
-    if (decision === 'delete' || decision === 'skip') {
+    if (decision === 'skip') {
       deps.setExerciseEntries((prev) =>
         prev.map((entry) => entry.exercise.id === exercise.exerciseId ? { ...entry, sets: [], skipProgression: true } : entry)
       );
+      return;
+    }
+    if (!deps.workout) return;
+    try {
+      await deps.removeExerciseMutation.mutateAsync({ workoutId: deps.workout.id, exerciseId: exercise.exerciseId });
+      deps.setExerciseEntries((prev) => prev.filter((entry) => entry.exercise.id !== exercise.exerciseId));
+      toast.success(`Removed "${exercise.exerciseName}" from program`);
+      await deps.refetch();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to remove exercise";
+      toast.error(message);
+      throw error;
     }
   };
 }

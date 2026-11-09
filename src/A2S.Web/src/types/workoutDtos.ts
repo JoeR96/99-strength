@@ -35,9 +35,6 @@ export interface WorkoutDto {
   completedAt?: string;
   exerciseCount: number;
   exercises: ExerciseDto[];
-  // Hevy integration
-  hevyRoutineFolderId?: string;
-  hevySyncedRoutines?: Record<string, string>;
 }
 
 export interface ExerciseDto {

@@ -10,8 +10,8 @@ namespace A2S.Application.Commands.CreateWorkout;
 
 /// <summary>
 /// Handler for CreateWorkoutCommand.
-/// Creates a new workout program with a traditional 5-day split including
-/// both Linear and RepsPerSet progression exercises.
+/// Creates a new workout program from configured exercises (via
+/// <see cref="ConfiguredExerciseFactory"/>) or the default main lifts for the variant.
 /// </summary>
 public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutCommand, Result<Guid>>
 {
@@ -48,8 +48,8 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 return Result.Failure<Guid>("An active workout already exists. Complete or pause it before creating a new one.");
             }
 
-        var exercises = request.Exercises != null && request.Exercises.Count > 0
-                ? CreateConfiguredExercises(request.Exercises)
+            var exercises = request.Exercises != null && request.Exercises.Count > 0
+                ? ConfiguredExerciseFactory.Create(_exerciseLibrary, request.Exercises)
                 : CreateExercisesForVariant(request.Variant);
 
             var workout = Workout.Create(
@@ -70,103 +70,6 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
         {
             return Result.Failure<Guid>($"Failed to create workout: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Creates exercises from user-configured exercise requests.
-    /// </summary>
-    private List<Exercise> CreateConfiguredExercises(IReadOnlyList<CreateExerciseRequest> exerciseRequests)
-    {
-        var exercises = new List<Exercise>();
-
-        foreach (var exerciseRequest in exerciseRequests)
-        {
-            var template = _exerciseLibrary.GetByName(exerciseRequest.TemplateName);
-            if (template == null)
-            {
-                // Fail loudly. Silently skipping leaves a gap in the day's OrderInDay
-                // sequence, which the Workout aggregate then rejects with a confusing
-                // "ordering must be sequential" error that doesn't name the real culprit.
-                throw new InvalidOperationException(
-                    $"Exercise template '{exerciseRequest.TemplateName}' was not found in the exercise library. " +
-                    "Add it to the library (exercise-library.json) before using it in a workout.");
-            }
-
-            Exercise exercise;
-
-            if (exerciseRequest.ProgressionType == "Linear")
-            {
-                var trainingMax = TrainingMax.Create(
-                    exerciseRequest.TrainingMaxValue ?? 100m,
-                    exerciseRequest.TrainingMaxUnit ?? WeightUnit.Kilograms
-                );
-
-                // All Linear progression exercises use AMRAP on the last set by default
-                // This can be overridden via UseAmrap property if provided
-                exercise = Exercise.CreateWithLinearProgression(
-                    name: template.Name,
-                    category: exerciseRequest.Category,
-                    equipment: template.Equipment,
-                    assignedDay: exerciseRequest.AssignedDay,
-                    orderInDay: exerciseRequest.OrderInDay,
-                    externalTemplateId: exerciseRequest.ExternalTemplateId,
-                    trainingMax: trainingMax,
-                    useAmrap: exerciseRequest.UseAmrap ?? true, // Default to true for all Linear exercises
-                    baseSetsPerExercise: template.DefaultSets ?? 4
-                );
-            }
-            else if (exerciseRequest.ProgressionType == "MinimalSets")
-            {
-                var weight = Weight.Create(
-                    exerciseRequest.StartingWeight ?? 30m,
-                    exerciseRequest.WeightUnit ?? WeightUnit.Kilograms
-                );
-
-                exercise = Exercise.CreateWithMinimalSetsProgression(
-                    name: template.Name,
-                    category: exerciseRequest.Category,
-                    equipment: template.Equipment,
-                    assignedDay: exerciseRequest.AssignedDay,
-                    orderInDay: exerciseRequest.OrderInDay,
-                    externalTemplateId: exerciseRequest.ExternalTemplateId,
-                    startingWeight: weight,
-                    targetTotalReps: exerciseRequest.TargetTotalReps ?? 40,
-                    startingSets: exerciseRequest.StartingSets ?? 3
-                );
-            }
-            else // RepsPerSet
-            {
-                // Weight is optional - if provided, uses it immediately;
-                // if not provided, will be confirmed after the first session
-                RepRange repRange = (exerciseRequest.RepRangeMinimum.HasValue
-                    && exerciseRequest.RepRangeMaximum.HasValue)
-                    ? RepRange.Create(exerciseRequest.RepRangeMinimum.Value,
-                                      exerciseRequest.RepRangeMaximum.Value)
-                    : template.DefaultRepRange ?? RepRange.Common.Medium;
-
-                Weight? startingWeight = exerciseRequest.StartingWeight.HasValue && exerciseRequest.WeightUnit.HasValue
-                    ? Weight.Create(exerciseRequest.StartingWeight.Value, exerciseRequest.WeightUnit.Value)
-                    : null;
-
-                exercise = Exercise.CreateWithRepsPerSetProgression(
-                    name: template.Name,
-                    category: exerciseRequest.Category,
-                    equipment: template.Equipment,
-                    assignedDay: exerciseRequest.AssignedDay,
-                    orderInDay: exerciseRequest.OrderInDay,
-                    externalTemplateId: exerciseRequest.ExternalTemplateId,
-                    repRange: repRange,
-                    startingSets: exerciseRequest.StartingSets ?? template.DefaultSets ?? 3,
-                    targetSets: exerciseRequest.TargetSets ?? (template.DefaultSets ?? 3) + 2,
-                    isUnilateral: exerciseRequest.IsUnilateral,
-                    startingWeight: startingWeight
-                );
-            }
-
-            exercises.Add(exercise);
-        }
-
-        return exercises;
     }
 
     /// <summary>

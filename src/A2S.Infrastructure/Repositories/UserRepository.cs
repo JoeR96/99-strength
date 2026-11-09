@@ -21,4 +21,12 @@ public class UserRepository : Repository<User, UserId>, IUserRepository
         return await Context.Users
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
     }
+
+    public async Task<IReadOnlyList<UserId>> ListIdsWithHevyKeyAsync(CancellationToken cancellationToken = default)
+    {
+        return await Context.Users
+            .Where(u => u.HevyApiKeyProtected != null)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+    }
 }

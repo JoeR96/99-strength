@@ -54,8 +54,9 @@ describe('HevyDataPage', () => {
 
   it('shows API key prompt when not configured', () => {
     vi.mocked(useHevy).mockReturnValue({
-      apiKey: null,
       isConfigured: false,
+      keyLastFour: null,
+      isLoading: false,
       isValidating: false,
       isValid: null,
       setApiKey: vi.fn(),
@@ -69,8 +70,9 @@ describe('HevyDataPage', () => {
 
   it('renders page content when API key is configured', () => {
     vi.mocked(useHevy).mockReturnValue({
-      apiKey: 'test-key',
       isConfigured: true,
+      keyLastFour: '1234',
+      isLoading: false,
       isValidating: false,
       isValid: true,
       setApiKey: vi.fn(),

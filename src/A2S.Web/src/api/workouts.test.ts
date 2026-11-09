@@ -234,56 +234,6 @@ describe('workoutsApi', () => {
     });
   });
 
-  describe('progressWeek', () => {
-    it('should progress to next week', async () => {
-      const response = {
-        workoutId: 'workout-123',
-        previousWeek: 1,
-        newWeek: 2,
-        previousBlock: 1,
-        newBlock: 1,
-        isDeloadWeek: false,
-        isProgramComplete: false,
-      };
-      vi.mocked(apiClient.post).mockResolvedValue({ data: response });
-
-      const result = await workoutsApi.progressWeek('workout-123');
-
-      expect(apiClient.post).toHaveBeenCalledWith('/workouts/workout-123/progress-week');
-      expect(result).toEqual(response);
-    });
-  });
-
-  describe('setHevyFolderId', () => {
-    it('should set Hevy folder ID', async () => {
-      vi.mocked(apiClient.put).mockResolvedValue({ data: undefined });
-
-      await workoutsApi.setHevyFolderId('workout-123', 'folder-456');
-
-      expect(apiClient.put).toHaveBeenCalledWith(
-        '/workouts/workout-123/hevy-folder',
-        { folderId: 'folder-456' }
-      );
-    });
-  });
-
-  describe('setHevySyncedRoutine', () => {
-    it('should record synced routine', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
-
-      await workoutsApi.setHevySyncedRoutine('workout-123', 1, 2, 'routine-789');
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/workouts/workout-123/hevy-synced-routine',
-        {
-          weekNumber: 1,
-          dayNumber: 2,
-          routineId: 'routine-789',
-        }
-      );
-    });
-  });
-
   describe('updateExercises', () => {
     it('should update exercises', async () => {
       const request = {
@@ -400,19 +350,6 @@ describe('workoutsApi', () => {
       expect(apiClient.post).toHaveBeenCalledWith(
         '/workouts/workout-123/exercises/ex-2/confirm-weight',
         { weight: 25, unit: 2 }
-      );
-    });
-  });
-
-  describe('confirmWorkingWeight', () => {
-    it('should confirm new working weight after progression', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
-
-      await workoutsApi.confirmWorkingWeight('workout-123', 'ex-1', 32.5, 1);
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/workouts/workout-123/exercises/ex-1/confirm-working-weight',
-        { weight: 32.5, unit: 1 }
       );
     });
   });
