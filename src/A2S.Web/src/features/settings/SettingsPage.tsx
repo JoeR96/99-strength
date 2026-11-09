@@ -182,10 +182,6 @@ function buildExportData(workout: WorkoutDto) {
       progression: exercise.progression,
     })),
     exercisesByDay: groupExercisesByDay(workout.exercises),
-    hevyIntegration: {
-      routineFolderId: workout.hevyRoutineFolderId,
-      syncedRoutines: workout.hevySyncedRoutines,
-    },
   };
 }
 

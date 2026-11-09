@@ -75,6 +75,7 @@ src/
 ### Hevy push and pull (UI)
 
 - Every Hevy call goes through our API (`api/hevySync.ts`); the hooks are in `hooks/useHevySync.ts` (pull, push session, push week, inbox, assign, ignore).
+- Routines are pushed by the server only. The v1 browser-built push (Send to Hevy on the Plan tab, the re-sync after an exercise edit, the routine swap at week rollover) is gone; the Plan tab links to Today and Settings instead. What is left in `services/` goes through the `/hevy/{resource}` proxy and builds no routines: Send to Hevy on the completion summary (`hevySyncService.ts`), the Plan tab's Pull from Hevy (`hevySyncPull.ts`) and the routine list on `/hevy`.
 - Pages that only need to know whether a key is stored read `useHevyStatus()` from `contexts/hevyStatusContext.ts`. It answers "no key" without a `HevyProvider`, so tests and stories need `HevyStatusStub` / `withHevyStatus(true)` only for the configured states. `useHevy()` (key management) still requires the provider.
 - Today pulls in the background on mount, on app resume (at most once a minute), on Refresh / pull-to-refresh and after coming back from "Open in Hevy" (`useAutoPullHevy`). It must never block render, and it does not run without a key or offline.
 - `SessionCard` shows Open in Hevy (`hevy://routine/{id}`, web fallback after 800 ms, `features/today/hevyDeepLink.ts`) when `hevyRoutineId` is set, else Push to Hevy when a key is stored.

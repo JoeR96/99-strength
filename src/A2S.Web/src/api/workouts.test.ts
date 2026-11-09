@@ -234,36 +234,6 @@ describe('workoutsApi', () => {
     });
   });
 
-  describe('setHevyFolderId', () => {
-    it('should set Hevy folder ID', async () => {
-      vi.mocked(apiClient.put).mockResolvedValue({ data: undefined });
-
-      await workoutsApi.setHevyFolderId('workout-123', 'folder-456');
-
-      expect(apiClient.put).toHaveBeenCalledWith(
-        '/workouts/workout-123/hevy-folder',
-        { folderId: 'folder-456' }
-      );
-    });
-  });
-
-  describe('setHevySyncedRoutine', () => {
-    it('should record synced routine', async () => {
-      vi.mocked(apiClient.post).mockResolvedValue({ data: undefined });
-
-      await workoutsApi.setHevySyncedRoutine('workout-123', 1, 2, 'routine-789');
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/workouts/workout-123/hevy-synced-routine',
-        {
-          weekNumber: 1,
-          dayNumber: 2,
-          routineId: 'routine-789',
-        }
-      );
-    });
-  });
-
   describe('updateExercises', () => {
     it('should update exercises', async () => {
       const request = {

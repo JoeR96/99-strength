@@ -10,7 +10,6 @@ vi.mock('@/components/layout/Navbar', () => ({ Navbar: () => null }));
 vi.mock('@/contexts/HevyContext', () => ({ useHevy: () => ({ isConfigured: true, isValid: true }) }));
 vi.mock('@/services/hevySyncService', () => ({
   createCompletedWorkoutInHevy: vi.fn().mockResolvedValue({ success: true, message: 'synced' }),
-  handleRoutineLifecycle: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
 }));
 vi.mock('react-hot-toast', () => ({ default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }));
 

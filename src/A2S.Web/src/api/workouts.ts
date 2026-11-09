@@ -103,29 +103,6 @@ export const workoutsApi = {
   },
 
   /**
-   * Set the Hevy routine folder ID for a workout
-   */
-  setHevyFolderId: async (workoutId: string, folderId: string): Promise<void> => {
-    await apiClient.put(`/workouts/${workoutId}/hevy-folder`, { folderId });
-  },
-
-  /**
-   * Record that a routine was synced to Hevy for a specific week/day
-   */
-  setHevySyncedRoutine: async (
-    workoutId: string,
-    weekNumber: number,
-    dayNumber: number,
-    routineId: string
-  ): Promise<void> => {
-    await apiClient.post(`/workouts/${workoutId}/hevy-synced-routine`, {
-      weekNumber,
-      dayNumber,
-      routineId,
-    });
-  },
-
-  /**
    * Update exercises in a workout (training max, weight, etc.)
    */
   updateExercises: async (

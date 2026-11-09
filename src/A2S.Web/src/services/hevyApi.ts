@@ -9,7 +9,6 @@ import type {
   HevyCreateWorkoutRequest,
   HevyCreateRoutineRequest,
   HevyCreateExerciseTemplateRequest,
-  HevyCreateRoutineFolderRequest,
   HevyWorkout,
   HevyRoutine,
   HevyExerciseTemplate,
@@ -17,7 +16,6 @@ import type {
   HevyWorkoutsResponse,
   HevyRoutinesResponse,
   HevyExerciseTemplatesResponse,
-  HevyRoutineFoldersResponse,
   HevyWorkoutCountResponse,
 } from '@/types/hevy';
 
@@ -159,17 +157,6 @@ class HevyApiService {
   }
 
   /**
-   * Create a new routine
-   */
-  async createRoutine(routine: HevyCreateRoutineRequest): Promise<HevyRoutine> {
-    const response = await this.request<{ routine: HevyRoutine }>('/routines', {
-      method: 'POST',
-      body: routine,
-    });
-    return response.routine;
-  }
-
-  /**
    * Update an existing routine
    */
   async updateRoutine(
@@ -276,21 +263,6 @@ class HevyApiService {
   // ==================== Routine Folders ====================
 
   /**
-   * Get paginated list of routine folders
-   * Note: Hevy API max pageSize for routine_folders is 10
-   */
-  async getRoutineFolders(
-    page: number = 1,
-    pageSize: number = 10
-  ): Promise<HevyRoutineFoldersResponse> {
-    // Clamp pageSize to max allowed by Hevy API
-    const clampedPageSize = Math.min(pageSize, 10);
-    return this.request<HevyRoutineFoldersResponse>(
-      `/routine_folders?page=${page}&page_size=${clampedPageSize}`
-    );
-  }
-
-  /**
    * Get a single routine folder by ID
    */
   async getRoutineFolder(folderId: number): Promise<HevyRoutineFolder> {
@@ -298,26 +270,6 @@ class HevyApiService {
       `/routine_folders/${folderId}`
     );
     return response.routine_folder;
-  }
-
-  /**
-   * Create a new routine folder
-   */
-  async createRoutineFolder(
-    folder: HevyCreateRoutineFolderRequest
-  ): Promise<HevyRoutineFolder> {
-    const response = await this.request<{ routine_folder: HevyRoutineFolder } | HevyRoutineFolder>(
-      '/routine_folders',
-      {
-        method: 'POST',
-        body: folder,
-      }
-    );
-    // Handle both wrapped and unwrapped response formats
-    if ('routine_folder' in response) {
-      return response.routine_folder;
-    }
-    return response as HevyRoutineFolder;
   }
 
   // ==================== Utility Methods ====================

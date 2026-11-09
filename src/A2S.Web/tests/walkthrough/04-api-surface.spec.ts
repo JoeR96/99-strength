@@ -204,8 +204,6 @@ const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../../src');
 
 /** Client calls known to have no route on a Production API. Delete an entry when it is fixed. */
 const KNOWN_MISSING: Record<string, string> = {
-  'PUT /workouts/{id}/hevy-folder': 'v1 browser-side Hevy sync (Plan tab Sync buttons); the API never had this route',
-  'POST /workouts/{id}/hevy-synced-routine': 'v1 browser-side Hevy sync; the API never had this route',
   'GET /workouts/{id}/simulate': 'simulation is removed from routing in Production ([NonProductionOnly])',
 };
 
