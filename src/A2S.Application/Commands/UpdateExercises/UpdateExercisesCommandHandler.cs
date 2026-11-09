@@ -1,4 +1,5 @@
 using A2S.Application.Common;
+using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -17,15 +18,18 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly DayBudgetCalculator _budget;
 
     public UpdateExercisesCommandHandler(
         IWorkoutRepository workoutRepository,
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        DayBudgetCalculator budget)
     {
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
+        _budget = budget ?? throw new ArgumentNullException(nameof(budget));
     }
 
     public async Task<Result<UpdateExercisesResult>> Handle(UpdateExercisesCommand request, CancellationToken cancellationToken)
@@ -71,11 +75,20 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
+            // Warn, never block: the update has already been saved.
+            var affectedDays = request.Updates
+                .Select(u => workout.GetExerciseById(new ExerciseId(u.ExerciseId))?.AssignedDay)
+                .Where(day => day.HasValue)
+                .Select(day => day!.Value);
+            var (warnings, overTimeBudget) = await _budget.AfterChangeAsync(workout, affectedDays, cancellationToken);
+
             return Result.Success(new UpdateExercisesResult
             {
                 WorkoutId = request.WorkoutId,
                 UpdatedCount = successCount,
-                Results = results
+                Results = results,
+                Warnings = warnings,
+                OverTimeBudget = overTimeBudget
             });
         }
         catch (Exception ex)

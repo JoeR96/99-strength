@@ -69,6 +69,6 @@ The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-fin
 - **Categorical badge colours cycle a fixed 8-token `--color-neon-*` palette** by index (`lib/muscleGroupStyles.ts`), so muscle groups past the 8th share a colour. Inherent to a fixed palette — don't "fix" by inventing raw colours.
 - **`lib/blockColors.ts` holds literal hex** for training-block identity — **sanctioned** by the token contract; leave it.
 - **Over-500-line files not split**: `features/workout/SetupWizard.tsx` (608 — Task 14 extracted the template-conversion function to `lib/templateConversion.ts`, but the component itself remains over the cap; step-render blocks are the natural seam for a future split), `features/workout/SimulationPage.tsx` (694, internal dev tool) and the static data tables `data/hevyExercises.ts` (3109) / `data/workoutTemplates.ts` (1093, out of scope for the component line limit).
-- **`useSyncExerciseEditsToHevy` / `deriveExerciseEditStates`** (extracted from `EditExercisesModal`) have no dedicated unit tests yet.
+- **`deriveExerciseEditStates`** (extracted from `EditExercisesModal`) has no dedicated unit tests yet.
 - **Lint baseline: 60 pre-existing errors** (`tests/e2e/*` unused vars, `rules-of-hooks`, `Navbar.tsx` setState-in-effect) — toolchain cleanup scheduled separately; don't add to it.
 - **`modal-weight-confirm`** was never reachable (needs a completed session) — not visually signed off.

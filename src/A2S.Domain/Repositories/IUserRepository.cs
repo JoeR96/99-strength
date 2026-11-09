@@ -13,4 +13,7 @@ public interface IUserRepository : IRepository<User, UserId>
     /// Gets a user by their email address.
     /// </summary>
     Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>The ids of every user with a Hevy API key stored (the Hevy poll's audience). Never the keys.</summary>
+    Task<IReadOnlyList<UserId>> ListIdsWithHevyKeyAsync(CancellationToken cancellationToken = default);
 }

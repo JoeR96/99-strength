@@ -198,7 +198,7 @@ export function WorkoutDashboard() {
         <WeekOverview workout={workout} onWorkoutUpdated={refetch} />
 
         {/* Next Week Preview */}
-        <NextWeekPreview workout={workout} onWorkoutUpdated={refetch} />
+        <NextWeekPreview workout={workout} />
 
         {/* Exercises Summary grouped by Day */}
         <Card className="mt-6 p-6">

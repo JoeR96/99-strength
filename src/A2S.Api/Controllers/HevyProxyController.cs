@@ -1,4 +1,4 @@
-using A2S.Application.Common;
+using A2S.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Frozen;
@@ -10,6 +10,7 @@ namespace A2S.Api.Controllers;
 /// <summary>
 /// Typed proxy endpoints for Hevy API.
 /// Eliminates open proxy SSRF risk by only proxying explicitly allowed paths.
+/// The Hevy key is resolved server-side from the user's encrypted store; clients never send it.
 /// </summary>
 [ApiController]
 [Route("api/v1/hevy")]
@@ -18,7 +19,7 @@ public class HevyProxyController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<HevyProxyController> _logger;
-    private readonly ICurrentUserService _currentUser;
+    private readonly IHevyKeyResolver _keys;
     private const string HevyApiBaseUrl = "https://api.hevyapp.com/v1";
 
     /// <summary>
@@ -40,11 +41,11 @@ public class HevyProxyController : ControllerBase
     public HevyProxyController(
         IHttpClientFactory httpClientFactory,
         ILogger<HevyProxyController> logger,
-        ICurrentUserService currentUser)
+        IHevyKeyResolver keys)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
-        _currentUser = currentUser;
+        _keys = keys;
     }
 
     /// <summary>
@@ -52,10 +53,9 @@ public class HevyProxyController : ControllerBase
     /// </summary>
     [HttpGet("validate")]
     public async Task<IActionResult> ValidateApiKey(
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return BadRequest(new ProblemDetails
@@ -84,10 +84,9 @@ public class HevyProxyController : ControllerBase
     public async Task<IActionResult> ProxyGet(
         [FromRoute] string resource,
         [FromRoute] string? resourceId,
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -127,11 +126,10 @@ public class HevyProxyController : ControllerBase
     [HttpPost("{resource}")]
     public async Task<IActionResult> ProxyPost(
         [FromRoute] string resource,
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -171,11 +169,10 @@ public class HevyProxyController : ControllerBase
     public async Task<IActionResult> ProxyPut(
         [FromRoute] string resource,
         [FromRoute] string resourceId,
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         [FromBody] JsonElement body,
         CancellationToken cancellationToken)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();
@@ -215,10 +212,9 @@ public class HevyProxyController : ControllerBase
     public async Task<IActionResult> ProxyDelete(
         [FromRoute] string resource,
         [FromRoute] string resourceId,
-        [FromHeader(Name = "X-Hevy-Api-Key")] string? apiKey,
         CancellationToken cancellationToken)
     {
-        apiKey ??= _currentUser.HevyApiKey;
+        var apiKey = await _keys.ForCurrentUserAsync(cancellationToken);
         if (string.IsNullOrEmpty(apiKey))
         {
             return RequireApiKey();

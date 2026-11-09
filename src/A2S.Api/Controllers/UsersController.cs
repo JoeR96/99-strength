@@ -1,7 +1,5 @@
-using A2S.Api.Contracts.Requests;
 using A2S.Api.Contracts.Responses;
-using A2S.Api.Extensions;
-using A2S.Application.Commands.Users;
+using A2S.Application.Common;
 using A2S.Application.Queries.Users;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -12,7 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace A2S.Api.Controllers;
 
 /// <summary>
-/// User management operations.
+/// User profile and Hevy API key management for the authenticated user.
+/// Users are provisioned automatically from Clerk on first request; there is no create endpoint.
 /// </summary>
 [ApiController]
 [Route("api/v1/users")]
@@ -22,55 +21,46 @@ public class UsersController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ISecretProtector _protector;
+    private readonly ICurrentUserService _currentUser;
 
-    public UsersController(IMediator mediator, IUserRepository userRepository, IUnitOfWork unitOfWork)
+    public UsersController(
+        IMediator mediator,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
+        ISecretProtector protector,
+        ICurrentUserService currentUser)
     {
         _mediator = mediator;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _protector = protector;
+        _currentUser = currentUser;
     }
 
     /// <summary>
-    /// Creates a new user.
-    /// </summary>
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create(
-        [FromBody] CreateUserRequest request,
-        CancellationToken cancellationToken)
-    {
-        var command = new CreateUserCommand(request.Email, request.Name);
-        var result = await _mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return result.ToProblemResult();
-        }
-
-        var response = new UserResponse(result.Value.Id, result.Value.Email, result.Value.Name, result.Value.CreatedAt);
-        return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, response);
-    }
-
-    /// <summary>
-    /// Gets a user by ID.
+    /// Gets a user by ID. Only the authenticated user's own record is accessible.
     /// </summary>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {
-        var query = new GetUserByIdQuery(new UserId(id));
-        var result = await _mediator.Send(query, cancellationToken);
+        if (!string.Equals(id, _currentUser.UserId, StringComparison.Ordinal))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden",
+                Detail = "You can only access your own user record."
+            });
+        }
 
+        var result = await _mediator.Send(new GetUserByIdQuery(new UserId(id)), cancellationToken);
         if (result is null)
         {
-            return NotFound(new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "Not Found",
-                Detail = "User not found"
-            });
+            return UserNotFound();
         }
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
@@ -84,34 +74,24 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
     {
-        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
+        var userId = _currentUser.UserId;
+        if (string.IsNullOrEmpty(userId))
         {
-            return NotFound(new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "Not Found",
-                Detail = "User not found"
-            });
+            return UserNotFound();
         }
 
-        var query = new GetUserByIdQuery(new UserId(userId));
-        var result = await _mediator.Send(query, cancellationToken);
-
+        var result = await _mediator.Send(new GetUserByIdQuery(new UserId(userId)), cancellationToken);
         if (result is null)
         {
-            return NotFound(new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "Not Found",
-                Detail = "User not found"
-            });
+            return UserNotFound();
         }
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
     }
 
     /// <summary>
-    /// Saves the current user's Hevy API key.
+    /// Saves (or, with a blank body value, removes) the current user's Hevy API key.
+    /// The key is encrypted at rest and is never returned by any endpoint.
     /// </summary>
     [HttpPut("me/hevy-api-key")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -120,15 +100,10 @@ public class UsersController : ControllerBase
         [FromBody] SetHevyApiKeyRequest request,
         CancellationToken cancellationToken)
     {
-        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
-        {
-            return NotFound();
-        }
+        var user = await LoadCurrentUserAsync(cancellationToken);
+        if (user is null) return UserNotFound();
 
-        var user = await _userRepository.GetByIdAsync(new UserId(userId), cancellationToken);
-        if (user is null) return NotFound();
-
-        user.SetHevyApiKey(request.ApiKey);
+        user.SetHevyApiKey(request.ApiKey, _protector);
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -136,23 +111,61 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Gets the current user's Hevy API key.
+    /// Removes the current user's Hevy API key.
+    /// </summary>
+    [HttpDelete("me/hevy-api-key")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteHevyApiKey(CancellationToken cancellationToken)
+    {
+        var user = await LoadCurrentUserAsync(cancellationToken);
+        if (user is null) return UserNotFound();
+
+        user.ClearHevyApiKey();
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Reports whether a Hevy API key is stored, plus its last four characters for recognition.
+    /// The key itself is never returned.
     /// </summary>
     [HttpGet("me/hevy-api-key")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(HevyApiKeyStatusResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetHevyApiKey(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetHevyApiKeyStatus(CancellationToken cancellationToken)
     {
-        if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not string userId)
+        var user = await LoadCurrentUserAsync(cancellationToken);
+        if (user is null) return UserNotFound();
+
+        var key = user.RevealHevyApiKey(_protector);
+        if (string.IsNullOrEmpty(key))
         {
-            return NotFound();
+            return Ok(new HevyApiKeyStatusResponse(false, null));
         }
 
-        var user = await _userRepository.GetByIdAsync(new UserId(userId), cancellationToken);
-        if (user is null) return NotFound();
-
-        return Ok(new { apiKey = user.HevyApiKey });
+        var lastFour = key.Length <= 4 ? key : key[^4..];
+        return Ok(new HevyApiKeyStatusResponse(true, lastFour));
     }
+
+    private async Task<Domain.Aggregates.User.User?> LoadCurrentUserAsync(CancellationToken cancellationToken)
+    {
+        var userId = _currentUser.UserId;
+        if (string.IsNullOrEmpty(userId)) return null;
+        return await _userRepository.GetByIdAsync(new UserId(userId), cancellationToken);
+    }
+
+    private NotFoundObjectResult UserNotFound() => NotFound(new ProblemDetails
+    {
+        Status = StatusCodes.Status404NotFound,
+        Title = "Not Found",
+        Detail = "User not found"
+    });
 }
 
 public sealed record SetHevyApiKeyRequest(string? ApiKey);
+
+/// <summary>Whether a Hevy key is stored and its last four characters. Never the key itself.</summary>
+public sealed record HevyApiKeyStatusResponse(bool HasKey, string? LastFour);

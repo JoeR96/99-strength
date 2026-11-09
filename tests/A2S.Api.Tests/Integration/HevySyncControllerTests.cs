@@ -17,6 +17,12 @@ public class HevySyncControllerTests
 
     private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
+    private static async Task StoreTestKeyAsync(HttpClient client)
+    {
+        var response = await client.PutAsJsonAsync("/api/v1/users/me/hevy-api-key", new { apiKey = "test-key-12345" });
+        response.EnsureSuccessStatusCode();
+    }
+
     [Fact]
     public async Task SyncRoutineToHevy_WithoutAuth_ReturnsUnauthorized()
     {
@@ -45,7 +51,7 @@ public class HevySyncControllerTests
     public async Task SyncRoutineToHevy_WithNonexistentWorkout_ReturnsNotFoundOrBadRequest()
     {
         var client = CreateClient();
-        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
+        await StoreTestKeyAsync(client);
         var request = new { WorkoutId = Guid.Parse("a2222222-2222-2222-2222-222222222222"), WeekNumber = 1, DayNumber = 1 };
 
         var response = await client.PostAsJsonAsync("/api/v1/hevy/sync/routine", request);

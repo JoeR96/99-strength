@@ -15,30 +15,18 @@ import { apiClient } from '@/api/apiClient';
 describe('hevyApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    hevyApi.clearApiKey();
+    hevyApi.setConfigured(false);
   });
 
-  describe('API key management', () => {
-    it('starts with no API key', () => {
+  describe('configuration flag', () => {
+    it('starts not configured', () => {
       expect(hevyApi.isConfigured()).toBe(false);
-      expect(hevyApi.getApiKey()).toBeNull();
     });
 
-    it('sets and retrieves API key', () => {
-      hevyApi.setApiKey('test-key');
+    it('reflects the server-side key status set by the provider', () => {
+      hevyApi.setConfigured(true);
       expect(hevyApi.isConfigured()).toBe(true);
-      expect(hevyApi.getApiKey()).toBe('test-key');
-    });
-
-    it('clears API key', () => {
-      hevyApi.setApiKey('test-key');
-      hevyApi.clearApiKey();
-      expect(hevyApi.isConfigured()).toBe(false);
-      expect(hevyApi.getApiKey()).toBeNull();
-    });
-
-    it('considers empty string as not configured', () => {
-      hevyApi.setApiKey('');
+      hevyApi.setConfigured(false);
       expect(hevyApi.isConfigured()).toBe(false);
     });
   });
@@ -50,21 +38,20 @@ describe('hevyApi', () => {
       );
     });
 
-    it('makes GET request with API key header', async () => {
-      hevyApi.setApiKey('my-key');
+    it('makes GET request through the proxy without any key header', async () => {
+      hevyApi.setConfigured(true);
       vi.mocked(apiClient.get).mockResolvedValue({
         data: { workouts: [], page: 1, page_count: 1 },
       });
 
       await hevyApi.getWorkouts(1, 10);
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/hevy/workouts?page=1&page_size=10',
-        { headers: { 'X-Hevy-Api-Key': 'my-key' } }
+        '/hevy/workouts?page=1&page_size=10'
       );
     });
 
     it('makes POST request for createWorkout', async () => {
-      hevyApi.setApiKey('my-key');
+      hevyApi.setConfigured(true);
       const requestBody = {
         workout: {
           title: 'Test',
@@ -82,13 +69,12 @@ describe('hevyApi', () => {
       await hevyApi.createWorkout(requestBody);
       expect(apiClient.post).toHaveBeenCalledWith(
         '/hevy/workouts',
-        requestBody,
-        { headers: { 'X-Hevy-Api-Key': 'my-key' } }
+        requestBody
       );
     });
 
     it('extracts error message from API response', async () => {
-      hevyApi.setApiKey('my-key');
+      hevyApi.setConfigured(true);
       const error = {
         response: {
           data: { message: 'Rate limited' },
@@ -102,7 +88,7 @@ describe('hevyApi', () => {
     });
 
     it('falls back to status text when no message', async () => {
-      hevyApi.setApiKey('my-key');
+      hevyApi.setConfigured(true);
       const error = {
         response: {
           data: {},
@@ -120,7 +106,7 @@ describe('hevyApi', () => {
 
   describe('getWorkoutCount', () => {
     it('returns workout count', async () => {
-      hevyApi.setApiKey('my-key');
+      hevyApi.setConfigured(true);
       vi.mocked(apiClient.get).mockResolvedValue({
         data: { workout_count: 42 },
       });
@@ -132,26 +118,25 @@ describe('hevyApi', () => {
 
   describe('validateApiKey', () => {
     it('returns true for valid key', async () => {
-      hevyApi.setApiKey('my-key');
+      hevyApi.setConfigured(true);
       vi.mocked(apiClient.get).mockResolvedValue({
         data: { valid: true },
       });
 
       const result = await hevyApi.validateApiKey();
       expect(result).toBe(true);
-      expect(apiClient.get).toHaveBeenCalledWith('/hevy/validate', {
-        headers: { 'X-Hevy-Api-Key': 'my-key' },
-      });
+      expect(apiClient.get).toHaveBeenCalledWith('/hevy/validate');
     });
 
     it('throws on network error', async () => {
-      hevyApi.setApiKey('bad-key');
+      hevyApi.setConfigured(true);
       vi.mocked(apiClient.get).mockRejectedValue(new Error('Unauthorized'));
 
       await expect(hevyApi.validateApiKey()).rejects.toThrow('Unauthorized');
     });
 
-    it('returns false when no API key set', async () => {
+    it('returns false when the server reports the stored key as invalid', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue({ data: { valid: false } });
       const result = await hevyApi.validateApiKey();
       expect(result).toBe(false);
     });

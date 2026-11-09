@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using A2S.Api.Extensions;
+using A2S.Api.Infrastructure;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.DeleteWorkout;
 using A2S.Application.Commands.SetActiveWorkout;
@@ -143,6 +144,7 @@ public class WorkoutsController : ControllerBase
     /// Returns projected TM/weight/set data for each exercise.
     /// </summary>
     [HttpGet("{id:guid}/simulate")]
+    [NonProductionOnly]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SimulateWorkout(
@@ -168,6 +170,7 @@ public class WorkoutsController : ControllerBase
     /// Completes real days via CompleteDayCommand so workout state persists.
     /// </summary>
     [HttpGet("{id:guid}/simulate/stream")]
+    [NonProductionOnly]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task SimulateStream(
         [FromRoute] Guid id,
