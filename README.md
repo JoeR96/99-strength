@@ -111,6 +111,25 @@ Adding a route to the list means marking it `[AllowApiToken]` and updating the l
 1. Back up production Postgres (`pg_dump --format=custom`) and rehearse the pending migrations against a
    restored copy.
 2. Run the migration bundle (the Docker entrypoint does this), then deploy the API, then the frontend.
-3. First boot after a schema change: the API upserts the exercise library by name, encrypts any legacy
-   plaintext Hevy keys and erases the plaintext. Both steps are idempotent and only log counts. Rolling
-   back to v1 after that boot means re-entering the Hevy key, because v1 reads the plaintext column.
+3. First boot after a schema change: the API upserts the exercise library by name and tags it with muscle
+   groups. Both steps are idempotent and only log counts.
+
+### The plaintext Hevy key column
+
+Before v2 each Hevy API key sat in plaintext in `Users."HevyApiKey"`. v2 keeps keys encrypted in
+`Users."HevyApiKeyProtected"`, and the `DropLegacyHevyApiKey` migration removes the old column.
+
+**Deploy a release that contains `DropLegacyHevyApiKey` only after an earlier v2 release has started
+once in production.** That earlier release encrypts the old keys, and erases the plaintext, when the API starts. Migrations run
+before the API starts, so a release with the drop cannot do that step itself.
+
+If the rule is broken, no key is lost. The migration finds a key that exists only in plaintext, stops
+with `Refusing to drop "Users"."HevyApiKey"`, and the bundle rolls back everything it applied in that
+run. The entrypoint exits, so the new container never starts. To recover, deploy the last release
+without `DropLegacyHevyApiKey`, let the API start once, then deploy the newer release again.
+
+That earlier release also erases each plaintext value in the same statement that stores its encrypted
+copy, so once v2 has started once the column is empty and the guard has nothing to object to. A key
+removed later in v2 leaves nothing behind in the old column.
+
+Rolling the migration back re-adds an empty column. It cannot restore the plaintext values.
