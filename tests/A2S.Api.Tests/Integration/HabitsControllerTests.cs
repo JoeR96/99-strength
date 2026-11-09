@@ -64,6 +64,42 @@ public class HabitsControllerTests
     }
 
     [Fact]
+    public async Task Increment_FirstTapOfTheDay_BehavesLikeALaterOne()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var water = await CreateWater(client);
+        var url = $"/api/v1/habits/{water.Id}/logs/{Day:yyyy-MM-dd}/increment";
+
+        // A first -1 creates the log at 0 (never below), and the +1 after it counts from there.
+        var firstDown = await client.PostAsJsonAsync(url, new { delta = -1, clientTimestamp = T0 });
+        var thenUp = await client.PostAsJsonAsync(url, new { delta = 1, clientTimestamp = T0.AddMinutes(1) });
+
+        firstDown.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await firstDown.Content.ReadFromJsonAsync<HabitLogDto>())!.Value.Should().Be(0);
+        (await thenUp.Content.ReadFromJsonAsync<HabitLogDto>())!.Value.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Increment_DeltaOtherThanPlusOrMinusOne_IsRejected_OnTheFirstTapAndOnLaterOnes()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var water = await CreateWater(client);
+        var url = $"/api/v1/habits/{water.Id}/logs/{Day:yyyy-MM-dd}/increment";
+
+        // The endpoint is the +1 / -1 tap: a bigger step is refused outright, it is not quietly turned into 1.
+        var firstOfTheDay = await client.PostAsJsonAsync(url, new { delta = 3, clientTimestamp = T0 });
+        var afterRejection = await client.GetFromJsonAsync<HabitsTodayDto>($"/api/v1/habits/today?date={Day:yyyy-MM-dd}");
+        await client.PostAsJsonAsync(url, new { delta = 1, clientTimestamp = T0.AddMinutes(1) });
+        var later = await client.PostAsJsonAsync(url, new { delta = 3, clientTimestamp = T0.AddMinutes(2) });
+        var today = await client.GetFromJsonAsync<HabitsTodayDto>($"/api/v1/habits/today?date={Day:yyyy-MM-dd}");
+
+        firstOfTheDay.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        afterRejection!.Habits.Single().Value.Should().Be(0, "a rejected tap writes nothing");
+        later.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        today!.Habits.Single().Value.Should().Be(1);
+    }
+
+    [Fact]
     public async Task SetLog_OlderClientTimestamp_DoesNotOverwrite()
     {
         var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");

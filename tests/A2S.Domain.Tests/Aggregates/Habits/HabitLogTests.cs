@@ -137,6 +137,80 @@ public class HabitLogTests
         log.Value.Should().Be(4);
     }
 
+    // --- The +n / -n tap: the first tap of a day behaves exactly like a later one ---
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(3, 3)]
+    [InlineData(-1, 0)]
+    [InlineData(-3, 0)]
+    public void CreateFromTap_Counter_StartsAtZeroAndTakesTheWholeDelta(int delta, int expected)
+    {
+        var log = HabitLog.CreateFromTap(Water, Joe, Day, HabitType.Counter, delta, T0);
+
+        log.Value.Should().Be(expected);
+        log.UpdatedAtUtc.Should().Be(T0);
+    }
+
+    [Theory]
+    [InlineData(HabitType.Counter, 1)]
+    [InlineData(HabitType.Counter, 3)]
+    [InlineData(HabitType.Counter, -2)]
+    [InlineData(HabitType.Numeric, 3)]
+    [InlineData(HabitType.Checkbox, 1)]
+    [InlineData(HabitType.Checkbox, 3)]
+    [InlineData(HabitType.Checkbox, -1)]
+    public void CreateFromTap_EndsWhereTheSameTapOnAnEmptyLogEnds(HabitType type, int delta)
+    {
+        var first = HabitLog.CreateFromTap(Water, Joe, Day, type, delta, T0);
+        var later = HabitLog.Create(Water, Joe, Day, 0, T0.AddMinutes(-1));
+        later.ApplyTap(type, delta, T0);
+
+        first.Value.Should().Be(later.Value);
+        first.UpdatedAtUtc.Should().Be(later.UpdatedAtUtc);
+    }
+
+    [Fact]
+    public void ApplyTap_Counter_AddsTheDelta_PastTheTarget_AndNeverBelowZero()
+    {
+        var log = HabitLog.Create(Water, Joe, Day, 5, T0);
+
+        log.ApplyTap(HabitType.Counter, 3, T0.AddMinutes(1));
+        var up = log.Value;
+        log.ApplyTap(HabitType.Counter, -1, T0.AddMinutes(2));
+        var down = log.Value;
+        log.ApplyTap(HabitType.Counter, -20, T0.AddMinutes(3));
+
+        up.Should().Be(8);
+        down.Should().Be(7);
+        log.Value.Should().Be(0);
+        log.UpdatedAtUtc.Should().Be(T0.AddMinutes(3));
+    }
+
+    [Fact]
+    public void ApplyTap_Checkbox_PlusTicks_MinusUnticks_NeverAboveOne()
+    {
+        var log = HabitLog.Create(Water, Joe, Day, 1, T0);
+
+        log.ApplyTap(HabitType.Checkbox, 1, T0.AddMinutes(1));
+        var tickedTwice = log.Value;
+        log.ApplyTap(HabitType.Checkbox, -1, T0.AddMinutes(2));
+
+        tickedTwice.Should().Be(1);
+        log.Value.Should().Be(0);
+    }
+
+    [Fact]
+    public void ApplyTap_OlderThanTheStoredWrite_StillCounts_ButTheTimestampNeverMovesBack()
+    {
+        var log = HabitLog.Create(Water, Joe, Day, 2, T0);
+
+        log.ApplyTap(HabitType.Counter, 1, T0.AddMinutes(-10));
+
+        log.Value.Should().Be(3, "counter taps from two devices must both count");
+        log.UpdatedAtUtc.Should().Be(T0, "an older tap must not let an even older full-value write back in");
+    }
+
     // --- Brief § 6: conflicting edits from two devices ---
 
     [Fact]

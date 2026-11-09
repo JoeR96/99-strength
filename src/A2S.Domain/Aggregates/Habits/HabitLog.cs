@@ -33,6 +33,28 @@ public sealed class HabitLog : Entity<HabitLogId>
         return new HabitLog(new HabitLogId(Guid.NewGuid()), habitId, userId, date, value, updatedAt.ToUniversalTime());
     }
 
+    /// <summary>
+    /// The first tap of a day: the log starts at 0 and takes the tap exactly as <see cref="ApplyTap"/>
+    /// would on an existing log, so a first <c>+3</c> is 3 and a first <c>-1</c> stays at 0.
+    /// </summary>
+    public static HabitLog CreateFromTap(HabitId habitId, UserId userId, DateOnly date, HabitType type, int delta, DateTimeOffset clientTimestamp)
+    {
+        return Create(habitId, userId, date, AfterTap(type, 0, delta), clientTimestamp);
+    }
+
+    /// <summary>
+    /// The <c>+n</c> / <c>-n</c> tap. A counter moves by <paramref name="delta"/>, never below 0 and with no
+    /// upper limit (7/6 is kept); a checkbox is ticked by a positive delta and unticked by anything else.
+    /// Taps are applied in arrival order whatever their timestamp, because taps from two devices must both
+    /// count, but the stored timestamp never moves backwards, so a late-arriving tap cannot reopen the door
+    /// to an even older full-value write.
+    /// </summary>
+    public void ApplyTap(HabitType type, int delta, DateTimeOffset clientTimestamp)
+    {
+        var at = clientTimestamp.ToUniversalTime();
+        Set(AfterTap(type, Value, delta), at > UpdatedAtUtc ? at : UpdatedAtUtc);
+    }
+
     /// <summary>Adds <paramref name="step"/>. Going past the target is allowed and reported as is (7/6).</summary>
     public void Increment(decimal step, DateTimeOffset at) => Set(Value + step, at);
 
@@ -72,6 +94,13 @@ public sealed class HabitLog : Entity<HabitLogId>
     {
         Value = value;
         UpdatedAtUtc = at.ToUniversalTime();
+    }
+
+    private static decimal AfterTap(HabitType type, decimal current, int delta)
+    {
+        return type == HabitType.Checkbox
+            ? (delta > 0 ? 1 : 0)
+            : Math.Max(0, current + delta);
     }
 
     private static void CheckValue(decimal value) => CheckRule(value >= 0, "Habit value cannot be negative.");
