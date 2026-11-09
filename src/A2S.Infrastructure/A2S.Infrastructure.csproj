@@ -9,6 +9,8 @@
     <PackageReference Include="Lib.Net.Http.WebPush" Version="3.3.1" />
     <PackageReference Include="MediatR" Version="14.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.0" />
+    <!-- Pinned: DataProtection 9.0.0 pulls System.Security.Cryptography.Xml 9.0.0, which has high-severity advisories. -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.22" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
