@@ -9,6 +9,7 @@ import type {
   HevyCreateWorkoutRequest,
   HevyCreateRoutineRequest,
   HevyCreateExerciseTemplateRequest,
+  HevyCreateRoutineFolderRequest,
   HevyWorkout,
   HevyRoutine,
   HevyExerciseTemplate,
@@ -16,6 +17,7 @@ import type {
   HevyWorkoutsResponse,
   HevyRoutinesResponse,
   HevyExerciseTemplatesResponse,
+  HevyRoutineFoldersResponse,
   HevyWorkoutCountResponse,
 } from '@/types/hevy';
 
@@ -23,44 +25,64 @@ import type {
 const HEVY_PROXY_BASE_URL = '/hevy';
 
 class HevyApiService {
-  /** Mirrors whether the server has a key stored for this user (set by HevyProvider). */
-  private configured = false;
+  private apiKey: string | null = null;
 
-  setConfigured(configured: boolean) {
-    this.configured = configured;
+  /**
+   * Set the API key for authentication
+   */
+  setApiKey(apiKey: string) {
+    this.apiKey = apiKey;
   }
 
   /**
-   * Whether the server holds a Hevy API key for this user
+   * Get the current API key
+   */
+  getApiKey(): string | null {
+    return this.apiKey;
+  }
+
+  /**
+   * Check if the API key is configured
    */
   isConfigured(): boolean {
-    return this.configured;
+    return this.apiKey !== null && this.apiKey.length > 0;
   }
 
   /**
-   * Make a request to the Hevy API via the backend proxy (which attaches the stored key)
+   * Clear the API key
+   */
+  clearApiKey() {
+    this.apiKey = null;
+  }
+
+  /**
+   * Make an authenticated request to the Hevy API via backend proxy
    */
   private async request<T>(
     endpoint: string,
     options: { method?: string; body?: unknown } = {}
   ): Promise<T> {
-    if (!this.configured) {
+    if (!this.apiKey) {
       throw new Error('Hevy API key not configured. Please set your API key in settings.');
     }
 
-    // The server resolves the user's encrypted key; nothing secret travels with the request.
     const url = `${HEVY_PROXY_BASE_URL}${endpoint}`;
+    const config = {
+      headers: {
+        'X-Hevy-Api-Key': this.apiKey,
+      },
+    };
 
     try {
       let response;
       if (options.method === 'POST') {
-        response = await apiClient.post(url, options.body);
+        response = await apiClient.post(url, options.body, config);
       } else if (options.method === 'PUT') {
-        response = await apiClient.put(url, options.body);
+        response = await apiClient.put(url, options.body, config);
       } else if (options.method === 'DELETE') {
-        response = await apiClient.delete(url);
+        response = await apiClient.delete(url, config);
       } else {
-        response = await apiClient.get(url);
+        response = await apiClient.get(url, config);
       }
       return response.data;
     } catch (error: unknown) {
@@ -153,6 +175,17 @@ class HevyApiService {
     const response = await this.request<{ routine: HevyRoutine }>(
       `/routines/${routineId}`
     );
+    return response.routine;
+  }
+
+  /**
+   * Create a new routine
+   */
+  async createRoutine(routine: HevyCreateRoutineRequest): Promise<HevyRoutine> {
+    const response = await this.request<{ routine: HevyRoutine }>('/routines', {
+      method: 'POST',
+      body: routine,
+    });
     return response.routine;
   }
 
@@ -263,6 +296,21 @@ class HevyApiService {
   // ==================== Routine Folders ====================
 
   /**
+   * Get paginated list of routine folders
+   * Note: Hevy API max pageSize for routine_folders is 10
+   */
+  async getRoutineFolders(
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<HevyRoutineFoldersResponse> {
+    // Clamp pageSize to max allowed by Hevy API
+    const clampedPageSize = Math.min(pageSize, 10);
+    return this.request<HevyRoutineFoldersResponse>(
+      `/routine_folders?page=${page}&page_size=${clampedPageSize}`
+    );
+  }
+
+  /**
    * Get a single routine folder by ID
    */
   async getRoutineFolder(folderId: number): Promise<HevyRoutineFolder> {
@@ -272,14 +320,47 @@ class HevyApiService {
     return response.routine_folder;
   }
 
+  /**
+   * Create a new routine folder
+   */
+  async createRoutineFolder(
+    folder: HevyCreateRoutineFolderRequest
+  ): Promise<HevyRoutineFolder> {
+    const response = await this.request<{ routine_folder: HevyRoutineFolder } | HevyRoutineFolder>(
+      '/routine_folders',
+      {
+        method: 'POST',
+        body: folder,
+      }
+    );
+    // Handle both wrapped and unwrapped response formats
+    if ('routine_folder' in response) {
+      return response.routine_folder;
+    }
+    return response as HevyRoutineFolder;
+  }
+
   // ==================== Utility Methods ====================
 
   /**
-   * Ask the server to validate the stored key against Hevy
+   * Validate the API key by making a test request
    */
   async validateApiKey(): Promise<boolean> {
-    const response = await apiClient.get(`${HEVY_PROXY_BASE_URL}/validate`);
-    return response.data?.valid === true;
+    if (!this.apiKey) {
+      return false;
+    }
+
+    try {
+      const response = await apiClient.get(`${HEVY_PROXY_BASE_URL}/validate`, {
+        headers: {
+          'X-Hevy-Api-Key': this.apiKey,
+        },
+      });
+      return response.data?.valid === true;
+    } catch (error: unknown) {
+      // Re-throw to let the caller handle it
+      throw error;
+    }
   }
 
   /**

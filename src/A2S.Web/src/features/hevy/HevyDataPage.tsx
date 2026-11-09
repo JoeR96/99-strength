@@ -37,29 +37,30 @@ interface HevyWorkoutListResponse {
   pageCount: number;
 }
 
-function useHevyWorkouts(page: number, enabled: boolean) {
+function useHevyWorkouts(page: number, apiKey: string | null) {
   return useQuery({
     queryKey: ['hevy-data-workouts', page],
     queryFn: async () => {
       const response = await apiClient.get<HevyWorkoutListResponse>(
-        `/hevy/data/workouts?page=${page}&pageSize=10`
+        `/hevy/data/workouts?page=${page}&pageSize=10`,
+        { headers: { 'X-Hevy-Api-Key': apiKey ?? '' } }
       );
       return response.data;
     },
-    enabled,
+    enabled: !!apiKey,
     staleTime: 1000 * 60 * 5,
   });
 }
 
 export function HevyDataPage() {
-  const { isConfigured, isValid } = useHevy();
+  const { apiKey, isConfigured, isValid } = useHevy();
   const [page, setPage] = useState(1);
   const [selectedExercise, setSelectedExercise] = useState<{
     templateId: string;
     title: string;
   } | null>(null);
 
-  const { data, isLoading, error } = useHevyWorkouts(page, isConfigured);
+  const { data, isLoading, error } = useHevyWorkouts(page, apiKey);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -227,6 +228,7 @@ export function HevyDataPage() {
           <HevyExerciseModal
             exerciseTemplateId={selectedExercise.templateId}
             exerciseTitle={selectedExercise.title}
+            apiKey={apiKey}
             onClose={() => setSelectedExercise(null)}
           />
         )}

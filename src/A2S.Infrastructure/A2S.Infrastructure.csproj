@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\A2S.Domain\A2S.Domain.csproj" />
@@ -6,12 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Net.Http.WebPush" Version="3.3.1" />
     <PackageReference Include="MediatR" Version="14.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.0" />
-    <!-- Pinned: DataProtection 9.0.0 pulls System.Security.Cryptography.Xml 9.0.0, which has high-severity advisories. -->
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.22" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
@@ -30,8 +25,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="SeedData\exercise-library.json" />
-    <EmbeddedResource Include="SeedData\hevy-exercises.json" />
-    <EmbeddedResource Include="SeedData\meals-seed.json" />
   </ItemGroup>
 
 </Project>

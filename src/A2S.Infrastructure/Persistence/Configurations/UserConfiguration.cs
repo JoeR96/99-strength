@@ -36,13 +36,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
-        // Protected (encrypted) form only. The legacy plaintext column "HevyApiKey" is intentionally
-        // unmapped; it is backfilled from at startup and dropped in a later phase.
-        builder.Property(u => u.HevyApiKeyProtected)
-            .HasColumnType("text")
+        builder.Property(u => u.HevyApiKey)
+            .HasMaxLength(256)
             .IsRequired(false);
-
-        builder.Ignore(u => u.HasHevyApiKey);
 
         builder.HasIndex(u => u.Email)
             .IsUnique();

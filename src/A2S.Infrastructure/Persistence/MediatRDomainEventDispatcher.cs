@@ -1,9 +1,13 @@
-using A2S.Application.Common;
 using A2S.Domain.Common;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace A2S.Infrastructure.Persistence;
+
+/// <summary>
+/// Wraps an IDomainEvent as a MediatR INotification for publishing.
+/// </summary>
+public sealed record DomainEventNotification(IDomainEvent DomainEvent) : INotification;
 
 /// <summary>
 /// Dispatches domain events via MediatR's notification pipeline.

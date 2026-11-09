@@ -20,7 +20,6 @@ public class SyncRoutineToHevyCommandHandlerTests
     private readonly IWorkoutRepository _workoutRepository;
     private readonly IHevyIntegrationService _hevyService;
     private readonly IA2SProgramProvider _programProvider;
-    private readonly IHevyKeyResolver _keyResolver;
     private readonly ILogger<SyncRoutineToHevyCommandHandler> _logger;
     private readonly SyncRoutineToHevyCommandHandler _handler;
 
@@ -33,10 +32,8 @@ public class SyncRoutineToHevyCommandHandlerTests
         _hevyService = Substitute.For<IHevyIntegrationService>();
         _programProvider = Substitute.For<IA2SProgramProvider>();
         _logger = Substitute.For<ILogger<SyncRoutineToHevyCommandHandler>>();
-        _keyResolver = Substitute.For<IHevyKeyResolver>();
-        _keyResolver.ForCurrentUserAsync(Arg.Any<CancellationToken>()).Returns("test-api-key");
         _handler = new SyncRoutineToHevyCommandHandler(
-            _workoutRepository, _hevyService, _programProvider, _keyResolver, _logger);
+            _workoutRepository, _hevyService, _programProvider, _logger);
     }
 
     [Fact]
@@ -50,7 +47,7 @@ public class SyncRoutineToHevyCommandHandlerTests
         _hevyService.SyncRoutineForDayAsync(Arg.Any<HevySyncRoutineRequest>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
 
-        var command = new SyncRoutineToHevyCommand(TestWorkoutId, 1, 1);
+        var command = new SyncRoutineToHevyCommand(TestWorkoutId, 1, 1, "test-api-key");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -65,45 +62,12 @@ public class SyncRoutineToHevyCommandHandlerTests
         _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
             .Returns(workout);
 
-        var command = new SyncRoutineToHevyCommand(TestWorkoutId, 99, 1);
+        var command = new SyncRoutineToHevyCommand(TestWorkoutId, 99, 1, "test-api-key");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Contain("Week number must be between");
-    }
-
-    [Fact]
-    public async Task Handle_WhenNoStoredKey_ReturnsValidationFailure_WithoutCallingHevy()
-    {
-        _keyResolver.ForCurrentUserAsync(Arg.Any<CancellationToken>()).Returns((string?)null);
-
-        var result = await _handler.Handle(new SyncRoutineToHevyCommand(TestWorkoutId, 1, 1), CancellationToken.None);
-
-        result.IsFailure.Should().BeTrue();
-        result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
-        result.Error.Should().Contain("Hevy API key");
-        await _hevyService.DidNotReceiveWithAnyArgs()
-            .SyncRoutineForDayAsync(default!, default!, default);
-    }
-
-    [Fact]
-    public async Task Handle_PassesResolvedKeyToHevyService()
-    {
-        var workout = CreateWorkout();
-        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>())
-            .Returns(workout);
-        _programProvider.GetWeekParameters(1)
-            .Returns(new WeekParameters { WeekNumber = 1, BlockNumber = 1, Intensity = 0.70m, Sets = 4, TargetReps = 5, IsDeload = false });
-        _keyResolver.ForCurrentUserAsync(Arg.Any<CancellationToken>()).Returns("resolved-key-9876");
-        _hevyService.SyncRoutineForDayAsync(Arg.Any<HevySyncRoutineRequest>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new HevyRoutineSyncResult { Success = true, RoutineId = "r1", RoutineTitle = "Week 1 - Day 1" });
-
-        var result = await _handler.Handle(new SyncRoutineToHevyCommand(TestWorkoutId, 1, 1), CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-        await _hevyService.Received(1).SyncRoutineForDayAsync(
-            Arg.Any<HevySyncRoutineRequest>(), "resolved-key-9876", Arg.Any<CancellationToken>());
     }
 
     private static Workout CreateWorkout()

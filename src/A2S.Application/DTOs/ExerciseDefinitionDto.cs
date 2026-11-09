@@ -14,12 +14,6 @@ public sealed record ExerciseTemplateDto
     public RepRangeDto? DefaultRepRange { get; init; }
     public int? DefaultSets { get; init; }
     public string Description { get; init; } = string.Empty;
-
-    /// <summary>Hevy primary muscle group (lower-case), e.g. "chest".</summary>
-    public string MuscleGroup { get; init; } = string.Empty;
-
-    /// <summary>Hevy secondary muscle groups (lower-case); each counts half a hard set in the volume budget.</summary>
-    public IReadOnlyList<string> SecondaryMuscleGroups { get; init; } = [];
 }
 
 /// <summary>

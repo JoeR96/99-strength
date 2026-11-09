@@ -1,32 +1,25 @@
-using A2S.Api.Authentication;
-using A2S.Api.Infrastructure;
 using A2S.Api.Middleware;
 using A2S.Api.Services;
 using A2S.Application;
 using A2S.Application.Common;
-using A2S.Domain.Aggregates.User;
-using A2S.Domain.Common;
-using A2S.Infrastructure.Security;
 using A2S.Infrastructure;
 using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.SeedData;
 using A2S.Integration.Hevy;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Serilog.Events;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Logging hygiene: EF command logging (which can echo parameters) is kept at Warning, and the
-// User aggregate is destructured without its protected key. ReadFrom.Services lets tests plug
-// in a capturing sink to prove no secret ever reaches a log event.
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
-    .Destructure.ByTransforming<User>(u => new { Id = u.Id.Value, u.Email, u.Name, u.HasHevyApiKey })
-    .ReadFrom.Services(services)
-    .WriteTo.Console()
-    .WriteTo.File("logs/app-.log", rollingInterval: RollingInterval.Day));
+builder.Host.UseSerilog();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -38,10 +31,7 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient("HevyApi");
 
-builder.Services.AddControllers(options =>
-{
-    options.Conventions.Add(new NonProductionActionsConvention(builder.Environment.IsProduction()));
-});
+builder.Services.AddControllers();
 
 var apiVersioning = builder.Services.AddApiVersioning(options =>
 {
@@ -60,12 +50,34 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-// Both have empty placeholders in appsettings.json; an unset or empty value stops the boot here.
-var clerkDomain = RequiredSettings.ClerkDomain(builder.Configuration);
-var corsOrigins = RequiredSettings.CorsOrigins(builder.Configuration);
+var clerkDomain = builder.Configuration["Clerk:Domain"]
+    ?? throw new InvalidOperationException("Clerk:Domain configuration is required. Set 'Clerk:Domain' in appsettings or environment variables.");
 
-// Clerk session JWTs for the web app, personal API tokens (nns_pat_…) for the desktop widget.
-builder.Services.AddA2SAuthentication(clerkDomain, requireHttpsMetadata: !builder.Environment.IsDevelopment());
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:Origins configuration is required. Set 'Cors:Origins' in appsettings or environment variables.");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = clerkDomain;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = clerkDomain,
+        NameClaimType = "name",
+        RoleClaimType = "role"
+    };
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
@@ -104,13 +116,6 @@ using (var scope = app.Services.CreateScope())
 
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     await ExerciseDefinitionSeeder.SeedAsync(dbContext, logger);
-
-    // Encrypt any pre-v2 plaintext Hevy keys. Idempotent; logs a count only.
-    var protector = scope.ServiceProvider.GetRequiredService<ISecretProtector>();
-    await HevyApiKeyBackfill.RunAsync(dbContext, protector, logger);
-
-    // Tag the exercise library with Hevy primary/secondary muscle groups for the volume budget. Idempotent.
-    await MuscleGroupBackfill.RunAsync(dbContext, logger);
 }
 
 if (app.Environment.IsDevelopment())
@@ -134,8 +139,6 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.UseAuthentication();
-// A personal API token only reaches endpoints marked [AllowApiToken]; anything else is 403.
-app.UseApiTokenScope();
 app.UseAuthorization();
 
 // Auto-provision user on first authenticated request

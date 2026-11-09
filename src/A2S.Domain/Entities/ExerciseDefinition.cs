@@ -18,14 +18,6 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
     public int? DefaultRepRangeMax { get; private set; }
     public int? DefaultSets { get; private set; }
 
-    private List<string> _secondaryMuscleGroups = [];
-
-    /// <summary>
-    /// Hevy muscle groups the exercise also trains (lower-case, distinct, never contains
-    /// <see cref="MuscleGroup"/>). Each counts half a hard set in the volume budget.
-    /// </summary>
-    public IReadOnlyList<string> SecondaryMuscleGroups => _secondaryMuscleGroups.AsReadOnly();
-
     // EF Core constructor
     private ExerciseDefinition()
     {
@@ -82,24 +74,4 @@ public sealed class ExerciseDefinition : Entity<ExerciseDefinitionId>
             defaultRepRangeMax,
             defaultSets);
     }
-
-    /// <summary>
-    /// Sets the primary and secondary muscle groups. Values are trimmed and lower-cased,
-    /// blanks and duplicates are dropped, and the primary group is excluded from the secondaries.
-    /// </summary>
-    public void SetMuscleGroups(string primary, IEnumerable<string> secondary)
-    {
-        var normalisedPrimary = Normalise(primary);
-        CheckRule(normalisedPrimary.Length > 0, "Primary muscle group cannot be empty");
-
-        MuscleGroup = normalisedPrimary;
-        _secondaryMuscleGroups = secondary
-            .Select(Normalise)
-            .Where(group => group.Length > 0 && group != normalisedPrimary)
-            .Distinct()
-            .ToList();
-    }
-
-    private static string Normalise(string? group) =>
-        (group ?? string.Empty).Trim().ToLowerInvariant();
 }

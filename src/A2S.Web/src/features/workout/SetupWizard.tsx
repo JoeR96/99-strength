@@ -118,7 +118,7 @@ export function SetupWizard() {
       });
 
       toast.success("Workout created successfully!");
-      navigate("/today");
+      navigate("/dashboard");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to create workout";
       toast.error(errorMessage);
@@ -232,7 +232,6 @@ export function SetupWizard() {
                   <label className="block text-sm font-semibold text-foreground">Total Weeks</label>
                   <Input
                     type="number"
-              inputMode="decimal"
                     value={totalWeeks}
                     onChange={(e) => setTotalWeeks(Number(e.target.value))}
                     min="1"

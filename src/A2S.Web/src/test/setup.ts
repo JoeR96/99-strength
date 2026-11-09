@@ -4,8 +4,6 @@
  */
 
 import '@testing-library/jest-dom/vitest';
-// A real (in-memory) IndexedDB so the offline queue works in every test.
-import 'fake-indexeddb/auto';
 import { vi } from 'vitest';
 
 // Mock localStorage
@@ -37,25 +35,22 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock ResizeObserver / IntersectionObserver. Real classes, because Vitest 4 refuses `new`
-// on an arrow-function mock and Recharts' ResponsiveContainer constructs a ResizeObserver.
-class ResizeObserverMock {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
 
-class IntersectionObserverMock {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-  takeRecords = vi.fn(() => []);
-  root = null;
-  rootMargin = '';
-  thresholds = [];
-}
-global.IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver;
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+}));
 
 // Reset mocks between tests
 beforeEach(() => {

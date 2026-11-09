@@ -17,12 +17,6 @@ public class HevyProxyControllerTests
 
     private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
-    private static async Task StoreTestKeyAsync(HttpClient client)
-    {
-        var response = await client.PutAsJsonAsync("/api/v1/users/me/hevy-api-key", new { apiKey = "test-key-12345" });
-        response.EnsureSuccessStatusCode();
-    }
-
     #region Validate API Key
 
     [Fact]
@@ -53,7 +47,7 @@ public class HevyProxyControllerTests
     public async Task ProxyGet_DisallowedResource_ReturnsBadRequest()
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.GetAsync("/api/v1/hevy/admin");
 
@@ -82,7 +76,7 @@ public class HevyProxyControllerTests
     public async Task ProxyGet_AllowedResources_DoNotReturnForbidden(string resource)
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.GetAsync($"/api/v1/hevy/{resource}");
 
@@ -94,7 +88,7 @@ public class HevyProxyControllerTests
     public async Task ProxyGet_SsrfAttempt_ReturnsBadRequest()
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.GetAsync("/api/v1/hevy/../../etc/passwd");
 
@@ -120,7 +114,7 @@ public class HevyProxyControllerTests
     public async Task ProxyPost_DisallowedResource_ReturnsBadRequest()
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.PostAsJsonAsync("/api/v1/hevy/users", new { name = "test" });
 
@@ -145,7 +139,7 @@ public class HevyProxyControllerTests
     public async Task ProxyPut_DisallowedResource_ReturnsBadRequest()
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.PutAsJsonAsync("/api/v1/hevy/users/123", new { name = "test" });
 
@@ -170,7 +164,7 @@ public class HevyProxyControllerTests
     public async Task ProxyDelete_DisallowedResource_ReturnsBadRequest()
     {
         var client = CreateClient();
-        await StoreTestKeyAsync(client);
+        client.DefaultRequestHeaders.Add("X-Hevy-Api-Key", "test-key-12345");
 
         var response = await client.DeleteAsync("/api/v1/hevy/users/123");
 

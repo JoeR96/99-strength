@@ -1,15 +1,23 @@
 /**
  * Hevy Sync Helpers
- * Types, unit conversion and exercise-template lookup for sending a completed workout to Hevy
+ * Types, utility functions, and template conversion for Hevy sync
  */
 
 import { hevyApi } from './hevyApi';
+import { getWeekParameters } from '@/utils/weekParameters';
 import { lbsToKg } from '@/utils/constants';
 import type {
+  HevyRoutineSet,
+  HevyRoutineExercise,
   HevyWorkoutExercise,
   HevyWorkoutSet,
 } from '@/types/hevy';
-import type { ExerciseDto } from '@/types/workout';
+import type {
+  ExerciseDto,
+  LinearProgressionDto,
+  RepsPerSetProgressionDto,
+  MinimalSetsProgressionDto,
+} from '@/types/workout';
 
 // Completed set data from workout session
 export interface CompletedSetData {
@@ -30,6 +38,9 @@ export interface SyncResult {
   success: boolean;
   message: string;
   workout?: import('@/types/hevy').HevyWorkout;
+  routine?: import('@/types/hevy').HevyRoutine;
+  routines?: import('@/types/hevy').HevyRoutine[];
+  errors?: string[];
 }
 
 /**
@@ -41,6 +52,21 @@ export function convertToKg(weight: number, unit: string): number {
     weightKg = lbsToKg(weight);
   }
   return Math.round(weightKg * 100) / 100;
+}
+
+/**
+ * Round weight to 2 decimal places
+ */
+export function roundWeight(weight: number): number {
+  return Math.round(weight * 100) / 100;
+}
+
+/**
+ * Round weight to nearest gym increment (2.5kg or 5lbs)
+ */
+export function roundToGymIncrement(weight: number, unit: 'kg' | 'lbs' = 'kg'): number {
+  const increment = unit === 'kg' ? 2.5 : 5;
+  return Math.round(weight / increment) * increment;
 }
 
 /**
@@ -135,6 +161,25 @@ export async function resolveHevyTemplateId(exerciseName: string, storedTemplate
 }
 
 /**
+ * Format the most recent completed performance for a note, e.g.
+ * "Last (W2): 12.5kg × 12/12/11" or per-set weights when they differ.
+ */
+export function formatLastPerformanceNote(exercise: ExerciseDto): string | null {
+  const last = exercise.lastPerformance;
+  if (!last || last.sets.length === 0) {
+    return null;
+  }
+
+  const unit = last.sets[0].weightUnit.toLowerCase() === 'pounds' ? 'lbs' : 'kg';
+  const uniformWeight = last.sets.every((s) => s.weight === last.sets[0].weight);
+  const summary = uniformWeight
+    ? `${last.sets[0].weight}${unit} × ${last.sets.map((s) => s.reps).join('/')}`
+    : last.sets.map((s) => `${s.reps}×${s.weight}${unit}`).join(', ');
+
+  return `Last (W${last.weekNumber}): ${summary}`;
+}
+
+/**
  * Convert completed exercise data to Hevy workout exercise format
  */
 export function convertCompletedExerciseToHevy(
@@ -169,6 +214,122 @@ export function convertCompletedExerciseToHevy(
   return {
     exercise_template_id: templateId,
     superset_id: null,
+    notes,
+    sets,
+  };
+}
+
+/**
+ * Convert exercise to Hevy routine exercise format (for routines/templates)
+ */
+export function convertExerciseToHevyRoutine(exercise: ExerciseDto, weekNumber: number, resolvedTemplateId?: string): HevyRoutineExercise {
+  const templateId = resolvedTemplateId || exercise.hevyExerciseTemplateId;
+  const sets: HevyRoutineSet[] = [];
+  let notes: string | null = null;
+
+  if (exercise.progression.type === 'Linear') {
+    const prog = exercise.progression as LinearProgressionDto;
+    const weekParams = getWeekParameters(weekNumber);
+
+    const trainingMaxKg = prog.trainingMax.unit === 1
+      ? prog.trainingMax.value
+      : lbsToKg(prog.trainingMax.value);
+    const workingWeight = roundToGymIncrement(trainingMaxKg * weekParams.intensity, 'kg');
+
+    for (let i = 0; i < weekParams.sets; i++) {
+      const isLastSet = i === weekParams.sets - 1;
+      const isAmrap = isLastSet && prog.useAmrap && !weekParams.isDeload;
+      sets.push({
+        type: isAmrap ? 'failure' : 'normal',
+        weight_kg: roundWeight(workingWeight),
+        reps: isAmrap && weekParams.repOutTarget != null
+          ? weekParams.repOutTarget
+          : weekParams.targetReps,
+      });
+    }
+
+    const noteParts: string[] = [];
+    if (weekParams.isDeload) {
+      noteParts.push('DELOAD WEEK');
+    }
+    noteParts.push(`TM: ${prog.trainingMax.value}${prog.trainingMax.unit === 1 ? 'kg' : 'lbs'}`);
+    noteParts.push(`Intensity: ${Math.round(weekParams.intensity * 100)}%`);
+    if (prog.useAmrap && weekParams.repOutTarget != null) {
+      noteParts.push(`AMRAP target: ${weekParams.repOutTarget}+ reps on last set`);
+    }
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
+    notes = noteParts.join(' | ');
+
+  } else if (exercise.progression.type === 'RepsPerSet') {
+    const prog = exercise.progression as RepsPerSetProgressionDto;
+
+    const weightKg = prog.weightUnit?.toLowerCase() === 'pounds'
+      ? lbsToKg(prog.currentWeight)
+      : prog.currentWeight;
+
+    const totalSets = prog.isUnilateral ? prog.currentSetCount * 2 : prog.currentSetCount;
+
+    for (let i = 0; i < totalSets; i++) {
+      sets.push({
+        type: 'normal',
+        weight_kg: roundWeight(weightKg),
+        reps: prog.repRange.maximum,
+      });
+    }
+
+    const effectiveMaxSets = Math.min(prog.targetSets, prog.isUnilateral ? 3 : 5);
+    const noteParts: string[] = [];
+    if (prog.pendingWeightConfirmation) {
+      const unitLabel = prog.weightUnit?.toLowerCase() === 'pounds' ? 'lbs' : 'kg';
+      noteParts.push(
+        `NEW WEIGHT: try ${prog.currentWeight}${unitLabel} — stacks vary, use the closest your gym has and log what you actually lift`
+      );
+    }
+    noteParts.push(`Rep range: ${prog.repRange.minimum}-${prog.repRange.maximum}`);
+    noteParts.push(`Sets: ${prog.currentSetCount}/${effectiveMaxSets}${prog.isUnilateral ? ' per side' : ''}`);
+    noteParts.push(
+      prog.currentSetCount < effectiveMaxSets
+        ? `Hit ${prog.repRange.maximum}s on every set to add a set`
+        : `Hit ${prog.repRange.maximum}s on every set to move up in weight`
+    );
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
+    notes = noteParts.join(' | ');
+
+  } else if (exercise.progression.type === 'MinimalSets') {
+    const prog = exercise.progression as MinimalSetsProgressionDto;
+
+    const weightKg = prog.weightUnit?.toLowerCase() === 'pounds'
+      ? lbsToKg(prog.currentWeight)
+      : prog.currentWeight;
+
+    const repsPerSet = Math.ceil(prog.targetTotalReps / prog.currentSetCount);
+
+    for (let i = 0; i < prog.currentSetCount; i++) {
+      sets.push({
+        type: 'normal',
+        weight_kg: roundWeight(weightKg),
+        reps: repsPerSet,
+      });
+    }
+
+    const noteParts = [`Target: ${prog.targetTotalReps} total reps across ${prog.minimumSets}-${prog.maximumSets} sets`];
+    const lastNote = formatLastPerformanceNote(exercise);
+    if (lastNote) {
+      noteParts.push(lastNote);
+    }
+    notes = noteParts.join(' | ');
+  }
+
+  return {
+    exercise_template_id: templateId,
+    superset_id: null,
+    rest_seconds: 120,
     notes,
     sets,
   };

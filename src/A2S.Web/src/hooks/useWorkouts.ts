@@ -11,7 +11,6 @@ export const workoutKeys = {
   list: () => [...workoutKeys.all, "list"] as const,
   exerciseLibrary: () => ["exerciseLibrary"] as const,
   history: (workoutId?: string) => [...workoutKeys.all, "history", workoutId] as const,
-  weekPlan: (workoutId: string, week: number, day: number) => [...workoutKeys.all, "week-plan", workoutId, week, day] as const,
 };
 
 /**
@@ -165,18 +164,6 @@ export function useWorkoutHistory(workoutId?: string, enabled = false) {
     queryFn: () => workoutsApi.getWorkoutHistory(workoutId),
     staleTime: 1000 * 60 * 5,
     enabled,
-  });
-}
-
-/**
- * The server's planned sets for a week/day; the session page builds its entries from this.
- */
-export function useWeekPlan(workoutId: string | undefined, week: number | undefined, day: number, enabled = true) {
-  return useQuery({
-    queryKey: workoutKeys.weekPlan(workoutId ?? "", week ?? 0, day),
-    queryFn: () => workoutsApi.getWeekPlan(workoutId!, week!, day),
-    enabled: enabled && Boolean(workoutId) && Boolean(week) && day >= 1 && day <= 6,
-    staleTime: 1000 * 60 * 5,
   });
 }
 

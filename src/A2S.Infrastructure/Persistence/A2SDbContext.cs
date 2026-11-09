@@ -1,17 +1,7 @@
-using A2S.Domain.Aggregates.ApiTokens;
-using A2S.Domain.Aggregates.Cardio;
-using A2S.Domain.Aggregates.Mobility;
-using A2S.Domain.Aggregates.Plan;
-using A2S.Domain.Aggregates.BodyWeight;
-using A2S.Domain.Aggregates.Habits;
-using A2S.Domain.Aggregates.HevySync;
-using A2S.Domain.Aggregates.Meals;
-using A2S.Domain.Aggregates.Push;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Aggregates.User;
 using A2S.Domain.Entities;
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2S.Infrastructure.Persistence;
@@ -19,7 +9,7 @@ namespace A2S.Infrastructure.Persistence;
 /// <summary>
 /// Entity Framework Core database context for the A2S application.
 /// </summary>
-public class A2SDbContext : DbContext, IDataProtectionKeyContext
+public class A2SDbContext : DbContext
 {
     private readonly IDomainEventDispatcher? _domainEventDispatcher;
 
@@ -40,30 +30,6 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<ExerciseProgression> ExerciseProgressions => Set<ExerciseProgression>();
     public DbSet<User> Users => Set<User>();
     public DbSet<ExerciseDefinition> ExerciseDefinitions => Set<ExerciseDefinition>();
-
-    // Whole Plan (PR 2): the plan beside the A2S2 workout, and its cardio/mobility definitions.
-    public DbSet<TrainingPlan> TrainingPlans => Set<TrainingPlan>();
-    public DbSet<CardioProtocol> CardioProtocols => Set<CardioProtocol>();
-    public DbSet<MobilityRoutine> MobilityRoutines => Set<MobilityRoutine>();
-    // Habits and body weight
-    public DbSet<HabitDefinition> Habits => Set<HabitDefinition>();
-    public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
-    public DbSet<BodyWeightEntry> BodyWeightEntries => Set<BodyWeightEntry>();
-    // Meals and the weekly shopping list (Phase 10)
-    public DbSet<Meal> Meals => Set<Meal>();
-    public DbSet<ShoppingList> ShoppingLists => Set<ShoppingList>();
-    // Web push (Phase 4 PR 7b): one subscription per device, one nudge-log row per user/day/kind.
-    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
-    public DbSet<PushNudgeLog> PushNudgeLogs => Set<PushNudgeLog>();
-    // Hevy push/pull (Phase 6): idempotent push links, pulled workout snapshots and the per-user pull cursor.
-    public DbSet<HevyLink> HevyLinks => Set<HevyLink>();
-    public DbSet<HevyWorkoutSnapshot> HevyWorkoutSnapshots => Set<HevyWorkoutSnapshot>();
-    public DbSet<HevyPullCursor> HevyPullCursors => Set<HevyPullCursor>();
-    // Personal API tokens for clients that cannot hold a Clerk session (the desktop habit widget).
-    public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
-
-    /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
-    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

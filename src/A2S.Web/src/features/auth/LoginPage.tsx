@@ -25,7 +25,7 @@ export function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md px-4 py-8">
+      <div className="relative z-10 w-full max-w-md px-4">
         {/* Hero Section */}
         <div className="mb-10 text-center">
           <div className="mb-6 flex justify-center">
@@ -37,10 +37,10 @@ export function LoginPage() {
             99 Strength
           </h1>
           <p className="mt-4 text-lg text-gold-light/80 font-medium">
-            Your whole training plan in one place
+            Track your strength journey
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to see what's on today
+            Sign in to continue to your dashboard
           </p>
         </div>
 
@@ -50,14 +50,14 @@ export function LoginPage() {
             routing="path"
             path="/sign-in"
             signUpUrl="/sign-up"
-            fallbackRedirectUrl="/today"
+            fallbackRedirectUrl="/dashboard"
             appearance={clerkAppearance}
           />
         </div>
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-muted-foreground/60">
-          Lifts, cardio, mobility, habits and weight
+          Built for strength athletes. Powered by Average to Savage 2.0
         </p>
       </div>
     </div>

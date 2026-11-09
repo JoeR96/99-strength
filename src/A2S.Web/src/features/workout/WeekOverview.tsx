@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useHevy } from "@/contexts/HevyContext";
-import { pullWorkoutFromHevy } from "@/services/hevySyncService";
+import { syncDayAsRoutine, syncWorkoutToHevy, pullWorkoutFromHevy, getOrCreateRoutineFolder } from "@/services/hevySyncService";
+import { workoutsApi } from "@/api/workouts";
 import toast from "react-hot-toast";
 import { type WorkoutDto, type ExerciseDto, type ExerciseTemplate } from "@/types/workout";
 import { EditExercisesModal } from "./EditExercisesModal";
@@ -13,15 +14,34 @@ import { useSubstituteExercise, useUpdateExercises, useUndoCompletion } from "@/
 import { hevyApi } from "@/services/hevyApi";
 import { UndoConfirmationModal } from "@/components/shared/UndoConfirmationModal";
 import { DayCard } from "./DayCard";
-import { PUSH_AGAIN_HINT } from "./workoutConfigHandlers";
 
 interface WeekOverviewProps {
   workout: WorkoutDto;
-  onWorkoutUpdated?: () => void; // Callback to refetch workout after a change
+  onWorkoutUpdated?: () => void; // Callback to refetch workout after sync
+}
+
+/**
+ * Get days that have already been synced to Hevy for the current week
+ */
+function getSyncedDaysForCurrentWeek(workout: WorkoutDto): Set<number> {
+  const syncedDays = new Set<number>();
+  const syncedRoutines = workout.hevySyncedRoutines || {};
+  const currentWeek = workout.currentWeek;
+
+  // Check each day to see if it's been synced for this week
+  for (let day = 1; day <= (workout.daysPerWeek || 4); day++) {
+    const key = `week${currentWeek}-day${day}`;
+    if (syncedRoutines[key]) {
+      syncedDays.add(day);
+    }
+  }
+
+  return syncedDays;
 }
 
 export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const { isConfigured, isValid } = useHevy();
+  const [isSyncingWeek, setIsSyncingWeek] = useState(false);
   const [editingDay, setEditingDay] = useState<number | null>(null);
   const [exerciseToSubstitute, setExerciseToSubstitute] = useState<ExerciseDto | null>(null);
   const navigate = useNavigate();
@@ -29,6 +49,20 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const updateExercisesMutation = useUpdateExercises();
   const undoCompletionMutation = useUndoCompletion();
   const [showUndoModal, setShowUndoModal] = useState(false);
+
+  // Get already synced days from the workout data (persisted in DB)
+  const persistedSyncedDays = useMemo(() => getSyncedDaysForCurrentWeek(workout), [workout]);
+
+  // Track additional syncs from this session (will be merged with persisted)
+  const [sessionSyncedDays, setSessionSyncedDays] = useState<Set<number>>(new Set());
+
+  // Track sync timestamps for this session (day -> timestamp)
+  const [syncTimestamps, setSyncTimestamps] = useState<Record<number, Date>>({});
+
+  // Combine persisted and session synced days
+  const syncedDays = useMemo(() => {
+    return new Set([...persistedSyncedDays, ...sessionSyncedDays]);
+  }, [persistedSyncedDays, sessionSyncedDays]);
 
   // Group exercises by day
   const exercisesByDay = workout.exercises.reduce((acc, exercise) => {
@@ -48,8 +82,80 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   const completedDays = new Set(workout.completedDaysInCurrentWeek || []);
   const currentDay = workout.currentDay || 1;
 
-  // Show the Hevy controls if a key is stored (even if validation is pending/null)
+  // Show Hevy buttons if configured (even if validation is pending/null)
   const hevyEnabled = isConfigured && isValid !== false;
+
+  // Check if already fully synced for this week
+  const isWeekFullySynced = syncedDays.size >= days.length;
+
+  const handleSyncWeekToHevy = async () => {
+    if (isWeekFullySynced) {
+      toast.error('This week has already been synced to Hevy');
+      return;
+    }
+
+    setIsSyncingWeek(true);
+    try {
+      const result = await syncWorkoutToHevy(workout);
+      if (result.success) {
+        toast.success(result.message);
+        // Mark all days as synced in this session with timestamps
+        const now = new Date();
+        setSessionSyncedDays(new Set(days));
+        const timestamps: Record<number, Date> = {};
+        days.forEach(d => { timestamps[d] = now; });
+        setSyncTimestamps(prev => ({ ...prev, ...timestamps }));
+        // Trigger refetch to update workout with new hevySyncedRoutines
+        onWorkoutUpdated?.();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sync week to Hevy';
+      toast.error(message);
+    } finally {
+      setIsSyncingWeek(false);
+    }
+  };
+
+  const handleSyncDayToHevy = async (dayNumber: number) => {
+    if (syncedDays.has(dayNumber)) {
+      toast.error(`Day ${dayNumber} has already been synced to Hevy`);
+      return;
+    }
+
+    try {
+      // Ensure the routine folder exists before syncing the day
+      let folderId = workout.hevyRoutineFolderId;
+      if (!folderId) {
+        const folderResult = await getOrCreateRoutineFolder(workout.name);
+        if (folderResult) {
+          folderId = folderResult.folderId;
+          // Persist folder ID to workout in database
+          try {
+            await workoutsApi.setHevyFolderId(workout.id, folderId);
+          } catch (err) {
+            console.error('Failed to save folder ID:', err);
+            // Continue anyway - folder was created in Hevy
+          }
+        }
+      }
+
+      const result = await syncDayAsRoutine(workout, dayNumber, folderId);
+      if (result.success) {
+        toast.success(result.message);
+        setSessionSyncedDays(prev => new Set([...prev, dayNumber]));
+        setSyncTimestamps(prev => ({ ...prev, [dayNumber]: new Date() }));
+        // Trigger refetch to update workout with new hevySyncedRoutines
+        onWorkoutUpdated?.();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sync day to Hevy';
+      toast.error(message);
+    }
+  };
 
   const handlePullWorkout = async (dayNumber: number) => {
     try {
@@ -181,6 +287,8 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
       }
 
       toast.success(`Substituted ${originalExercise.name} with ${substituteTemplate.name}`);
+      // Clear session synced days since exercises changed
+      setSessionSyncedDays(new Set());
       onWorkoutUpdated?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to substitute exercise";
@@ -213,23 +321,42 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
               Undo Last Workout
             </Button>
           )}
+          {hevyEnabled && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncWeekToHevy}
+              disabled={isSyncingWeek || isWeekFullySynced}
+              className="flex items-center gap-2"
+              title={isWeekFullySynced ? `Week ${workout.currentWeek} has already been synced to Hevy` : undefined}
+            >
+              {isSyncingWeek ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Syncing...
+                </>
+              ) : isWeekFullySynced ? (
+                <>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Week Synced
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Send Week to Hevy
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Routines are pushed by the server now; this is where the old Send buttons were. */}
-      {hevyEnabled && (
-        <div className="mb-4 text-sm text-muted-foreground" data-testid="hevy-push-pointer">
-          <p>Sessions are sent to Hevy from Today and Settings.</p>
-          <div className="flex flex-wrap gap-x-6">
-            <Link to="/today" className="inline-flex min-h-11 items-center font-medium text-primary underline">
-              Push to Hevy on Today
-            </Link>
-            <Link to="/settings" className="inline-flex min-h-11 items-center font-medium text-primary underline">
-              Push this week in Settings
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* Progress indicator */}
       <div className="mb-4">
@@ -266,6 +393,9 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
             isCompleted={completedDays.has(day)}
             isCurrent={day === currentDay && !completedDays.has(day)}
             hevyEnabled={hevyEnabled}
+            isSynced={syncedDays.has(day)}
+            syncTimestamp={syncTimestamps[day]}
+            onSyncToHevy={() => handleSyncDayToHevy(day)}
             onEdit={() => setEditingDay(day)}
             onPullWorkout={() => handlePullWorkout(day)}
             onSubstituteExercise={handleOpenSubstitution}
@@ -280,9 +410,11 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
         day={editingDay || 1}
         isOpen={editingDay !== null}
         onClose={() => setEditingDay(null)}
-        onExercisesChanged={() => {
+        onSyncRequired={() => {
+          // Clear session synced days when exercises are edited - they need to be re-synced
+          setSessionSyncedDays(new Set());
           onWorkoutUpdated?.();
-          toast.success(hevyEnabled ? `Exercises updated. ${PUSH_AGAIN_HINT}` : 'Exercises updated.');
+          toast.success('Exercises updated! Re-sync to Hevy to apply changes.');
         }}
       />
 

@@ -1,4 +1,0 @@
-# Shell scripts run inside Linux containers. A CRLF checkout (Windows, core.autocrlf=true) turns the
-# shebang into "#!/bin/sh<CR>" and the container dies with "exec /app/docker-entrypoint.sh: no such
-# file or directory", so these are always LF in the working tree.
-*.sh text eol=lf

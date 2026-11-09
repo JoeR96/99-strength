@@ -2,8 +2,6 @@ using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.UndoCompletion;
-using A2S.Application.DTOs;
-using A2S.Application.Queries.GetDayBudget;
 using A2S.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -51,41 +49,6 @@ public class DaysController : ControllerBase
 
         var command = new CompleteDayCommand(id, (DayNumber)day, request.Performances);
         var result = await _mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return result.ToProblemResult();
-        }
-
-        return Ok(result.Value);
-    }
-
-    /// <summary>
-    /// Weekly hard sets per muscle group, cap warnings and the session time estimate for a day.
-    /// Defaults to the workout's current week.
-    /// </summary>
-    [HttpGet("{id:guid}/days/{day:int}/budget")]
-    [ProducesResponseType(typeof(DayBudgetDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDayBudget(
-        [FromRoute] Guid id,
-        [FromRoute] int day,
-        [FromQuery] int? week,
-        CancellationToken cancellationToken)
-    {
-        if (day < 1 || day > 6)
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Validation Failed",
-                Detail = "Day must be between 1 and 6."
-            });
-        }
-
-        var result = await _mediator.Send(new GetDayBudgetQuery(id, (DayNumber)day, week), cancellationToken);
 
         if (result.IsFailure)
         {
