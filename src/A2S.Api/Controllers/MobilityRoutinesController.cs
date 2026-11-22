@@ -39,6 +39,26 @@ public class MobilityRoutinesController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : CreatedAtAction(nameof(List), null, result.Value);
     }
 
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(MobilityRoutineDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMobilityRoutineRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new UpdateMobilityRoutineCommand(id, request.Name, request.TargetMinutes), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new DeleteMobilityRoutineCommand(id), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : NoContent();
+    }
+
     [HttpPut("{id:guid}/drills")]
     [ProducesResponseType(typeof(MobilityRoutineDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> ReplaceDrills([FromRoute] Guid id, [FromBody] ReplaceDrillsRequest request, CancellationToken cancellationToken)

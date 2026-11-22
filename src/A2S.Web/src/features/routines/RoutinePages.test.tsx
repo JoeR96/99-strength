@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -36,13 +37,14 @@ function renderAt(path: string) {
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/routines" element={<RoutinesPage />} />
+          <Route path="/routines" element={<><p>Routines list</p><RoutinesPage /></>} />
           <Route path="/routines/new" element={<RoutineEditorPage />} />
           <Route path="/routines/:id/edit" element={<RoutineEditorPage />} />
           <Route path="/routines/:id/play" element={<RoutinePlayerPage />} />
           <Route path="/today" element={<p>Today page</p>} />
         </Routes>
       </MemoryRouter>
+      <Toaster />
     </QueryClientProvider>
   );
 }
@@ -111,6 +113,76 @@ describe('RoutineEditorPage', () => {
     await waitFor(() => expect(replace).toHaveBeenCalled());
     expect(replace.mock.calls[0][0]).toBe(MOBILITY_A_ID);
     expect(replace.mock.calls[0][1].map((d) => d.name)).toEqual(['Open books', '90/90 breathing']);
+  });
+});
+
+describe('RoutineEditorPage when editing', () => {
+  it('renames the routine and changes its minutes, then saves the drills', async () => {
+    const update = vi.spyOn(mobilityRoutinesApi, 'update');
+    const replace = vi.spyOn(mobilityRoutinesApi, 'replaceDrills');
+    renderAt(`/routines/${MOBILITY_A_ID}/edit`);
+
+    fireEvent.change(await screen.findByLabelText('Name'), { target: { value: 'Gym warm-up' } });
+    fireEvent.change(screen.getByLabelText('Target minutes'), { target: { value: '12' } });
+    fireEvent.click(screen.getByTestId('save-routine'));
+
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(update).toHaveBeenCalledWith(MOBILITY_A_ID, { name: 'Gym warm-up', targetMinutes: 12 });
+    expect(await screen.findByText('Routines list')).toBeInTheDocument();
+  });
+
+  it('leaves the name and minutes alone when only the drills changed', async () => {
+    const update = vi.spyOn(mobilityRoutinesApi, 'update');
+    const replace = vi.spyOn(mobilityRoutinesApi, 'replaceDrills');
+    renderAt(`/routines/${MOBILITY_A_ID}/edit`);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Move drill 2 up' }));
+    fireEvent.click(screen.getByTestId('save-routine'));
+
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('deletes the routine only after confirming', async () => {
+    const remove = vi.spyOn(mobilityRoutinesApi, 'remove');
+    renderAt(`/routines/${MOBILITY_A_ID}/edit`);
+
+    fireEvent.click(await screen.findByTestId('delete-routine'));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('Delete Mobility A?')).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Keep it' }));
+    expect(remove).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('delete-routine'));
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith(MOBILITY_A_ID));
+    expect(await screen.findByText('Routines list')).toBeInTheDocument();
+  });
+
+  it("shows the server's reason when the routine is still in the week", async () => {
+    installMobilityRoutinesHandlers({
+      ...mobilityRoutinesHandlers.default(),
+      remove: () =>
+        Promise.reject(
+          Object.assign(new Error('409'), {
+            response: { status: 409, data: { detail: "'Mobility A' is in the weekly schedule of 'Cut to 85'. Take it out of the week first." } },
+          })
+        ),
+    });
+    renderAt(`/routines/${MOBILITY_A_ID}/edit`);
+
+    fireEvent.click(await screen.findByTestId('delete-routine'));
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByText(/Take it out of the week first/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Edit Mobility A' })).toBeInTheDocument();
+  });
+
+  it('has no delete button on a new routine', () => {
+    renderAt('/routines/new');
+
+    expect(screen.queryByTestId('delete-routine')).not.toBeInTheDocument();
   });
 });
 

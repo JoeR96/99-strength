@@ -33,6 +33,12 @@ export interface MobilityRoutineDto {
   drills: MobilityDrillDto[];
 }
 
+/** PUT `/mobility-routines/{id}`: rename and change target minutes. */
+export interface UpdateMobilityRoutineRequest {
+  name: string;
+  targetMinutes: number;
+}
+
 /** Body for `POST /mobility-routines`. */
 export interface CreateMobilityRoutineRequest {
   name: string;

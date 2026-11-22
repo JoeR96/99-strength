@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mobilityRoutinesApi } from '@/api/mobilityRoutines';
-import type { CreateMobilityRoutineRequest, MobilityDrillDto, MobilityRoutineDto } from '@/types/mobility';
+import type { CreateMobilityRoutineRequest, MobilityDrillDto, MobilityRoutineDto, UpdateMobilityRoutineRequest } from '@/types/mobility';
 
 export const mobilityKeys = {
   all: ['mobility-routines'] as const,
@@ -38,6 +38,28 @@ export function useReplaceDrills() {
       queryClient.setQueryData<MobilityRoutineDto[]>(mobilityKeys.all, (old) =>
         (old ?? []).map((r) => (r.id === updated.id ? updated : r))
       );
+    },
+  });
+}
+
+export function useUpdateMobilityRoutine() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: UpdateMobilityRoutineRequest }) => mobilityRoutinesApi.update(id, request),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<MobilityRoutineDto[]>(mobilityKeys.all, (old) =>
+        (old ?? []).map((r) => (r.id === updated.id ? updated : r))
+      );
+    },
+  });
+}
+
+export function useDeleteMobilityRoutine() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => mobilityRoutinesApi.remove(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<MobilityRoutineDto[]>(mobilityKeys.all, (old) => (old ?? []).filter((r) => r.id !== id));
     },
   });
 }

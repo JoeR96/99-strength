@@ -100,6 +100,10 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
         return plan;
     }
 
+    /// <summary>True when any slot in the weekly schedule plays the given mobility routine.</summary>
+    public bool SchedulesMobilityRoutine(MobilityRoutineId routineId) =>
+        _schedule.Any(s => s.MobilityRoutineId == routineId);
+
     public void ReplaceSchedule(IEnumerable<ScheduledSession> schedule)
     {
         var ordered = OrderedSchedule(schedule);

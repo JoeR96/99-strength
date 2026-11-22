@@ -10,6 +10,8 @@ export const mobilityRoutinesHandlers = {
   default: (): Handlers => ({
     list: async () => structuredClone(mobilityRoutinesFixture),
     create: async (request) => ({ id: 'mob-new', ...request }),
+    update: async (id, request) => ({ ...structuredClone(mobilityRoutinesFixture.find((r) => r.id === id)!), ...request }),
+    remove: async () => {},
     replaceDrills: async (id, drills) => ({ ...structuredClone(mobilityRoutinesFixture.find((r) => r.id === id)!), drills }),
   }),
   empty: (): Handlers => ({ list: async () => [] }),

@@ -1,7 +1,7 @@
 /**
  * Create or edit a routine drill by drill. Drills reorder with up/down buttons (no drag needed,
- * WCAG 2.5.7). The API sets a routine's name and target minutes on create only, so those two are
- * read-only when editing; the drills can always be changed.
+ * WCAG 2.5.7). When editing, a changed name or target minutes is saved first, then the drills.
+ * Delete asks for confirmation; the server refuses while a plan's week still schedules the routine.
  */
 
 import { useMemo, useState } from 'react';
@@ -12,7 +12,14 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useCreateMobilityRoutine, useMobilityRoutine, useReplaceDrills } from '@/hooks/useMobilityRoutines';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import {
+  useCreateMobilityRoutine,
+  useDeleteMobilityRoutine,
+  useMobilityRoutine,
+  useReplaceDrills,
+  useUpdateMobilityRoutine,
+} from '@/hooks/useMobilityRoutines';
 import { DoseUnit, SideBias, type MobilityRoutineDto } from '@/types/mobility';
 import {
   draftFromRoutine,
@@ -30,6 +37,12 @@ import { estimateMinutes } from './routinePlayer';
 
 const selectClass =
   'flex h-11 w-full rounded-lg border border-border/50 bg-muted/30 px-3 text-base text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20';
+
+/** The server's explanation when it sent one (a ProblemDetails `detail`), otherwise the fallback. */
+function serverMessage(error: unknown, fallback: string): string {
+  const data = (error as { response?: { data?: { detail?: string } } } | null)?.response?.data;
+  return data?.detail || fallback;
+}
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
@@ -64,13 +77,16 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
   const navigate = useNavigate();
   const create = useCreateMobilityRoutine();
   const replace = useReplaceDrills();
+  const update = useUpdateMobilityRoutine();
+  const remove = useDeleteMobilityRoutine();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
 
   const [draft, setDraft] = useState<RoutineDraft>(() => (routine ? draftFromRoutine(routine) : emptyRoutine()));
   const [submitted, setSubmitted] = useState(false);
 
   const errors: RoutineErrors = useMemo(() => validateRoutine(draft), [draft]);
   const shown = submitted ? errors : { drill: {} };
-  const saving = create.isPending || replace.isPending;
+  const saving = create.isPending || replace.isPending || update.isPending || remove.isPending;
   const estimate = useMemo(
     () => (hasErrors({ ...errors, name: undefined, targetMinutes: undefined }) ? null : estimateMinutes({ id: '', name: '', targetMinutes: 1, drills: toDrillDtos(draft) })),
     [draft, errors]
@@ -90,9 +106,36 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
       toast.success(editing ? 'Routine saved' : 'Routine created');
       navigate('/routines');
     };
-    const onError = () => toast.error("Couldn't save the routine. Try again.");
-    if (editing && id) replace.mutate({ id, drills }, { onSuccess, onError });
-    else create.mutate({ name: draft.name.trim(), targetMinutes: Number(draft.targetMinutes), drills }, { onSuccess, onError });
+    const onError = (error: unknown) => toast.error(serverMessage(error, "Couldn't save the routine. Try again."));
+    const name = draft.name.trim();
+    const targetMinutes = Number(draft.targetMinutes);
+    if (!editing || !id) {
+      create.mutate({ name, targetMinutes, drills }, { onSuccess, onError });
+      return;
+    }
+    const detailsChanged = name !== routine.name || targetMinutes !== routine.targetMinutes;
+    const saveDrills = () => replace.mutate({ id, drills }, { onSuccess, onError });
+    if (detailsChanged) update.mutate({ id, request: { name, targetMinutes } }, { onSuccess: saveDrills, onError });
+    else saveDrills();
+  };
+
+  const askToDelete = async () => {
+    if (!routine) return;
+    const confirmed = await confirm({
+      title: `Delete ${routine.name}?`,
+      description: 'The routine and its drills go for good. Sessions you have already done stay in your history.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Keep it',
+      variant: 'destructive',
+    });
+    if (!confirmed) return;
+    remove.mutate(routine.id, {
+      onSuccess: () => {
+        toast.success(`${routine.name} deleted`);
+        navigate('/routines');
+      },
+      onError: (error) => toast.error(serverMessage(error, "Couldn't delete the routine. Try again.")),
+    });
   };
 
   return (
@@ -113,7 +156,6 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             <Input
               id="routine-name"
               value={draft.name}
-              readOnly={editing}
               aria-invalid={!!shown.name}
               aria-describedby={shown.name ? 'routine-name-error' : undefined}
               onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
@@ -129,7 +171,6 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
               id="routine-minutes"
               inputMode="numeric"
               value={draft.targetMinutes}
-              readOnly={editing}
               aria-invalid={!!shown.targetMinutes}
               aria-describedby={shown.targetMinutes ? 'routine-minutes-error' : 'routine-minutes-hint'}
               onChange={(e) => setDraft((d) => ({ ...d, targetMinutes: e.target.value }))}
@@ -138,7 +179,6 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             {!shown.targetMinutes && (
               <p id="routine-minutes-hint" className="mt-1 text-sm text-muted-foreground">
                 {estimate !== null ? `The drills below take about ${estimate} min.` : 'Fill in the drills to see how long it takes.'}
-                {editing && ' Name and target minutes are set when the routine is created.'}
               </p>
             )}
           </div>
@@ -251,6 +291,20 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             {saving ? 'Saving…' : editing ? 'Save changes' : 'Create routine'}
           </Button>
         </div>
+
+        {editing && (
+          <section aria-labelledby="danger-heading" className="space-y-2 rounded-lg border border-destructive/40 p-4">
+            <h2 id="danger-heading" className="text-lg font-semibold text-foreground">
+              Delete routine
+            </h2>
+            <p className="text-sm text-muted-foreground">Take it out of your plan's week first if it's scheduled.</p>
+            <Button type="button" variant="destructive" className="h-12 w-full" onClick={askToDelete} disabled={saving} data-testid="delete-routine">
+              <Trash2 aria-hidden="true" />
+              Delete routine
+            </Button>
+          </section>
+        )}
+        {ConfirmDialog}
       </main>
     </div>
   );

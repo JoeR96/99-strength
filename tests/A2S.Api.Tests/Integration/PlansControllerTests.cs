@@ -247,4 +247,68 @@ public class PlansControllerTests
         replaced.StatusCode.Should().Be(HttpStatusCode.OK);
         list.Should().ContainSingle().Which.Drills.Should().ContainSingle().Which.Name.Should().Be("Bird dog");
     }
+
+    private static CreateMobilityRoutineCommand MobilityABody() => new("Mobility A", 10,
+        [new MobilityDrillDto("Open books", 2, new DrillDoseDto(DoseUnit.Reps, 5), SideBias.Left, null, null, true)]);
+
+    [Fact]
+    public async Task MobilityRoutines_RenameChangeMinutesThenDelete()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var routine = await (await client.PostAsJsonAsync("/api/v1/mobility-routines", MobilityABody())).Content.ReadFromJsonAsync<MobilityRoutineDto>();
+
+        var renamed = await client.PutAsJsonAsync($"/api/v1/mobility-routines/{routine!.Id}", new UpdateMobilityRoutineRequest("Gym warm-up", 12));
+        var badRename = await client.PutAsJsonAsync($"/api/v1/mobility-routines/{routine.Id}", new UpdateMobilityRoutineRequest(" ", 12));
+        var afterRename = await client.GetFromJsonAsync<List<MobilityRoutineDto>>("/api/v1/mobility-routines");
+        var deleted = await client.DeleteAsync($"/api/v1/mobility-routines/{routine.Id}");
+        var deletedAgain = await client.DeleteAsync($"/api/v1/mobility-routines/{routine.Id}");
+        var afterDelete = await client.GetFromJsonAsync<List<MobilityRoutineDto>>("/api/v1/mobility-routines");
+
+        renamed.StatusCode.Should().Be(HttpStatusCode.OK);
+        badRename.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        afterRename.Should().ContainSingle().Which.Should().Match<MobilityRoutineDto>(r => r.Name == "Gym warm-up" && r.TargetMinutes == 12 && r.Drills.Count == 1);
+        deleted.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        deletedAgain.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        afterDelete.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task MobilityRoutines_DeleteWhileScheduledInAPlan_IsAConflict()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var routine = await (await client.PostAsJsonAsync("/api/v1/mobility-routines", MobilityABody())).Content.ReadFromJsonAsync<MobilityRoutineDto>();
+        var body = CreatePlanBody() with
+        {
+            Schedule =
+            [
+                new ScheduledSessionDto(DayOfWeek.Monday, SessionKind.Lift, DayNumber.Day1, null, null, "Upper A"),
+                new ScheduledSessionDto(DayOfWeek.Wednesday, SessionKind.Mobility, null, null, routine!.Id, "Mobility A")
+            ]
+        };
+        (await client.PostAsJsonAsync("/api/v1/plans", body)).StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var deleted = await client.DeleteAsync($"/api/v1/mobility-routines/{routine.Id}");
+        var list = await client.GetFromJsonAsync<List<MobilityRoutineDto>>("/api/v1/mobility-routines");
+
+        deleted.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        list.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task MobilityRoutines_AnotherUserCannotRenameOrDelete()
+    {
+        // The test host's current user is whichever client was created last, so make each client just before its calls.
+        var ownerId = $"user_{Guid.NewGuid():N}";
+        var owner = _factory.CreateAuthenticatedClient(ownerId);
+        var routine = await (await owner.PostAsJsonAsync("/api/v1/mobility-routines", MobilityABody())).Content.ReadFromJsonAsync<MobilityRoutineDto>();
+        var stranger = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+
+        var renamed = await stranger.PutAsJsonAsync($"/api/v1/mobility-routines/{routine!.Id}", new UpdateMobilityRoutineRequest("Mine", 5));
+        var deleted = await stranger.DeleteAsync($"/api/v1/mobility-routines/{routine.Id}");
+
+        renamed.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        deleted.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        owner = _factory.CreateAuthenticatedClient(ownerId);
+        (await owner.GetFromJsonAsync<List<MobilityRoutineDto>>("/api/v1/mobility-routines")).Should().ContainSingle().Which.Name.Should().Be("Mobility A");
+    }
 }
