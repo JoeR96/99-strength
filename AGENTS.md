@@ -208,11 +208,12 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `CreateUser` | Auto-provisions user from Clerk auth | |
 | `StartSuggestedPlan` | One-tap onboarding: builds "Cut to 85 — Nov 2026" from `SuggestedPlans/CutTo85Nov2026` (workout + cardio protocols + Mobility A/B + habits + linked plan) in one unit of work; idempotent while that plan is active | `POST /api/v1/plans/suggested/cut-to-85` |
 | Mobility: `CreateMobilityRoutine`, `UpdateMobilityRoutine`, `ReplaceDrills`, `DeleteMobilityRoutine` | Mobility routines and their ordered drills. Update renames and changes target minutes; delete returns 409 while any of the user's plans schedules the routine (past completions keep the id as history) | `POST /api/v1/mobility-routines`, `PUT /{id}`, `PUT /{id}/drills`, `DELETE /{id}` |
-| `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan | `PUT /api/v1/plans/{id}/schedule` |
+| `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan. A lift slot may carry `WarmUpRoutineId` and `FinisherCardioProtocolId` | `PUT /api/v1/plans/{id}/schedule` |
+| `FinishGymSession` | Gym mode finish: stages the plan's lift completion (and the finisher's cardio completion) and a `HevyWorkoutPost`, then runs `CompleteDay` unchanged, whose save commits it all; then tries the Hevy post once. Idempotent on `ClientSessionId` (a replay returns the stored result, `replayed: true`) | `POST /api/v1/gym-sessions` |
+| `RetryHevyPost` | "Not in Hevy yet" → Retry: makes a gym session's post due now and tries it | `POST /api/v1/gym-sessions/{clientSessionId}/hevy-retry` |
 | Habits: `CreateHabit`, `UpdateHabit`, `ArchiveHabit`, `UpsertHabitLog`, `IncrementHabit`, `ImportHabits` | Habit definitions and per-local-date logs (last write wins per habit/day) | `/api/v1/habits` |
 | `RecordBodyWeight` | Morning weigh-in; mirrored to Hevy | `/api/v1/body-weight` |
 | Cardio: `CreateCardioProtocol`, `AdvanceCouchToFiveK`, `SetRepeatWeek` | Cardio protocols and C25K week moves | `/api/v1/cardio-protocols` |
-| Mobility: `CreateMobilityRoutine`, `ReplaceDrills` | Mobility routines and their ordered drills | `/api/v1/mobility-routines` |
 | Plans: `CreateTrainingPlan`, `AddPhase`/`RemovePhase`, `AddCheckpoint`/`RemoveCheckpoint`, `LinkWorkout`, `CompleteSession`/`UndoSessionCompletion`, `UseAllowance`/`RemoveAllowanceUse`, `SetHighIntensityTarget` | The training plan around the A2S2 workout | `/api/v1/plans` |
 | Hevy: `PushSessionRoutine`, `PushWeekRoutines`, `PullHevyEvents`, `AssignHevyWorkout`, `IgnoreHevyWorkout` | Server-side push of sessions as routines; pull, match and complete workouts; unmatched inbox | `/api/v1/plans/{id}/sessions/push*`, `/api/v1/hevy/*` |
 | Push: `SubscribePush`, `UnsubscribePush` | Web Push subscriptions for the nudge service | `/api/v1/push` |
@@ -232,7 +233,36 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetCurrentUser` / `GetUser` | User profile |
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
 | Habits, body weight, Hevy inbox, meals, push and token queries | Read sides of the commands above |
+| `GetToday` | A plan day's sessions, phase and week goals. Lift sessions carry the slot's warm-up and finisher and, when finished in gym mode, `gymSessionId` + `hevyPostStatus` (Pending/Posted/Failed/Skipped) — `GET /api/v1/plans/today` |
 | `GetSuggestedPlans` | Previews the suggested plans for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
+
+## Gym mode
+
+Brief § 3a. At the gym the person opens `/gym/:day` (Today's Start): one checklist of warm-up drills
+(the slot's `WarmUpRoutineId`, else the routine named "Mobility A"), each lift's planned sets
+pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the attached finisher
+(minutes, level, floors, Easy/Solid/Brutal → RPE 4/7/9), then Finish or Finish early.
+
+- **Phone first.** Every tap is saved to localStorage (`a2s-gym-session:{workout}:{week}:{day}`); the
+  finish goes through the offline queue as a `gym.finish` op carrying the client session id (a v4 UUID
+  made when the session starts), so replays are idempotent. Screen Wake Lock is held; the rest timer
+  starts after each confirmed set from `PlannedExerciseDto.RestSeconds` (`RestDefaults`: main lifts 180 s,
+  others 90 s) and beeps at zero. The old `/workout/session/:day` page still works.
+- **Server.** `FinishGymSession` completes the A2S2 day through the unchanged `CompleteDay` path (exercises
+  left out keep their progression), records the plan completions and a `HevyWorkoutPost` (unique per user +
+  client session id). `HevyWorkoutPoster` posts `POST /v1/workouts` with real start/end times: ticked drills
+  as `warmup` sets, lifts as `normal` with the AMRAP set `failure`, the finisher as Stair Machine (Floors)
+  `4377A52B` (`custom_metric` = floors) when it is a stair finisher or floors were logged, else the cardio
+  kind's template. On success the Hevy id goes on the `SessionCompletion` (so the 15-minute pull dedupes)
+  and a `HevyLink` kind `Workout`, key `gym:{clientSessionId}`.
+- **Never two Hevy workouts.** A failed post is retried by `HevyPostRetryHostedService` (every 3 min;
+  per-post backoff 2, 4, 8 … min, max 6 h, gives up after 8 attempts or a permanent error). Once an attempt
+  may have reached Hevy, the poster first lists recent Hevy workouts and adopts one with the same title and
+  a start within a minute. The pull does the same for a pending post before matching, so a pull that sees
+  the workout before the post recorded its id never completes the session twice.
+- The browser never writes workouts to Hevy: the v1 Send to Hevy on the completion summary is gone and the
+  `/hevy/workouts` proxy refuses POST (GET stays for Pull from Hevy).
+- Settings → Gym sessions sets each lift slot's warm-up and finisher.
 
 ## Testing
 

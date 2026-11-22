@@ -38,6 +38,14 @@ see `PlansControllerTests.MobilityRoutines_AnotherUserCannotRenameOrDelete`.
 Run the Storybook suite one branch at a time: `playwright.storybook.config.ts` reuses an existing server on
 port 6007, so two worktrees running it together test each other's build. Set `STORYBOOK_PORT` to separate them.
 
+## Gym mode
+
+`/gym/:day` finishes through `POST /api/v1/gym-sessions` (`FinishGymSession`), idempotent on the
+`clientSessionId` the phone makes at the start. Hevy posts are `HevyWorkoutPost` rows (migration
+`AddHevyWorkoutPosts`); `HevyPostRetryHostedService` retries them every 3 minutes and is idle in the
+`Testing` environment. Before re-posting, `HevyWorkoutPoster` adopts a Hevy workout with the same title and
+a start within a minute, so a retry never creates a second one.
+
 ## Secrets
 
 Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,
