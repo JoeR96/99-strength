@@ -1,10 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Decorator, Meta, StoryObj } from '@storybook/react';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TodayPage } from './TodayPage';
 import { withAppProviders, withApiMocks, withHevyStatus, phoneParameters } from '@/mocks/storyProviders';
 import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
 import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
+import { addDays, todayLocal } from '@/lib/localDate';
 import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
 import { hevySyncHandlers, installHevySyncHandlers, installPushFlowHandlers } from '@/mocks/handlers/hevySync';
 import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
@@ -51,6 +54,7 @@ export const NotInHevyYet: Story = {
   ],
 };
 
+/** Rest day: "Up next" shows the next day with a session (tomorrow's Upper A, bench 5×5 @ 75 kg) and Preview. */
 export const RestDay: Story = {
   decorators: [
     withApiMocks(() => {
@@ -228,5 +232,29 @@ export const WithCardioTracks: Story = {
       installBodyWeightHandlers(bodyWeightHandlers.empty());
       installCardioTracksHandlers(cardioTracksHandlers.default());
     }),
+  ],
+};
+
+/** Moves the story's router to `/today{search}` before rendering (the meta's router starts at /today). */
+function withSearch(search: string): Decorator {
+  return function SearchDecorator(Story) {
+    const navigate = useNavigate();
+    const location = useLocation();
+    useEffect(() => {
+      if (location.search !== search) navigate(`/today${search}`, { replace: true });
+    }, [location.search, navigate]);
+    return location.search === search ? <Story /> : <></>;
+  };
+}
+
+/** Stepped two days ahead (`/today?date=…`): read-only, Preview instead of Start, Back to today, no habits. */
+export const SteppedToFutureDay: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.week());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+    withSearch(`?date=${addDays(todayLocal(), 2)}`),
   ],
 };

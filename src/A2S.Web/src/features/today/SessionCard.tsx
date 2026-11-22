@@ -4,11 +4,12 @@
  * Beside it sits Hevy: Open in Hevy once the session has a pushed routine, or
  * Push to Hevy when a key is stored and it has none. A paused day shows the
  * status and nothing to press. A lift finished in gym mode whose workout has not reached
- * Hevy yet says "Not in Hevy yet" with a Retry. Every button is at least 44 px tall.
+ * Hevy yet says "Not in Hevy yet" with a Retry. On another day than today (`readOnly`) the card offers
+ * only Preview. Every button is at least 44 px tall.
  */
 
 import { Link } from 'react-router-dom';
-import { CheckCircle2, CloudOff, Dumbbell, ExternalLink, HeartPulse, Moon, Play, RefreshCw, StretchHorizontal, Undo2, Upload } from 'lucide-react';
+import { CheckCircle2, CloudOff, Dumbbell, ExternalLink, Eye, HeartPulse, Moon, Play, RefreshCw, StretchHorizontal, Undo2, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -33,6 +34,9 @@ export interface SessionCardProps {
   /** A Hevy retry for this card is in flight. */
   retrying?: boolean;
   busy?: boolean;
+  /** Another day than today: nothing to start, log or push; a Preview button instead. */
+  readOnly?: boolean;
+  onPreview?: (session: TodaySessionDto) => void;
 }
 
 const kindIcon = {
@@ -79,12 +83,14 @@ export function SessionCard({
   onRetryHevy,
   retrying = false,
   busy = false,
+  readOnly = false,
+  onPreview,
 }: SessionCardProps) {
   const Icon = kindIcon[session.kind];
   const isRest = session.kind === SessionKind.Rest;
   const isDone = session.status === SessionStatus.Done;
   const inactive = paused || session.status === SessionStatus.Paused;
-  const canAct = !isRest && !isDone && !inactive;
+  const canAct = !readOnly && !isRest && !isDone && !inactive;
   const isPlanned = session.status === SessionStatus.Planned;
 
   const showOpenInHevy = canAct && isPlanned && !!session.hevyRoutineId;
@@ -200,10 +206,24 @@ export function SessionCard({
         </div>
       )}
 
-      {isDone && onUndo && session.completionId && (
+      {!readOnly && isDone && onUndo && session.completionId && (
         <Button variant="ghost" className="mt-3 h-11 w-full" onClick={() => onUndo(session)} disabled={busy}>
           <Undo2 aria-hidden="true" />
           Undo
+        </Button>
+      )}
+
+      {readOnly && !isRest && onPreview && (
+        <Button
+          variant="outline"
+          size="lg"
+          className="mt-4 w-full"
+          onClick={() => onPreview(session)}
+          aria-label={`Preview ${session.label}`}
+          data-testid="preview-session"
+        >
+          <Eye aria-hidden="true" />
+          Preview
         </Button>
       )}
 

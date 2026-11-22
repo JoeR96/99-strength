@@ -5,8 +5,8 @@
  */
 
 import { plansApi } from '@/api/plans';
-import { todayLocal, type LocalDate } from '@/lib/localDate';
-import type { TodayDto, TrainingPlanDto } from '@/types/plan';
+import { addDays, todayLocal, type LocalDate } from '@/lib/localDate';
+import { SessionKind, type TodayDto, type TrainingPlanDto, type UpcomingDayDto, type UpcomingLiftDto } from '@/types/plan';
 import {
   dayFromSchedule,
   pausedPlanFixture,
@@ -23,11 +23,36 @@ import { installHandlers, never, rejectWith } from './install';
 
 type PlansHandlers = Partial<typeof plansApi>;
 
+/** A lift's planned sets on `/plans/upcoming`: bench 5×5 @ 75 kg with the AMRAP last, then a seal row. */
+export function upcomingLiftFixture(liftDay: number, label: string): UpcomingLiftDto {
+  return {
+    liftDay: liftDay as UpcomingLiftDto['liftDay'],
+    label,
+    weekNumber: 2,
+    isDeloadWeek: false,
+    exercises: [
+      { name: 'Bench Press (Barbell)', category: 'MainLift', sets: [1, 2, 3, 4, 5].map((n) => ({ weightKg: 75, reps: n === 5 ? 10 : 5, isAmrap: n === 5 })) },
+      { name: 'Seal Row (Barbell)', category: 'Accessory', sets: [1, 2, 3].map(() => ({ weightKg: 40, reps: 10, isAmrap: false })) },
+    ],
+    finisher: null,
+  };
+}
+
+/** `days` days from `from`, each built from the weekly schedule, with lift blocks for lift days. */
+export function upcomingFromSchedule(from: LocalDate, days: number): UpcomingDayDto[] {
+  return Array.from({ length: days }, (_, i) => {
+    const day = dayFromSchedule(addDays(from, i));
+    const lifts = day.sessions.filter((s) => s.kind === SessionKind.Lift && s.liftDay).map((s) => upcomingLiftFixture(s.liftDay!, s.label));
+    return { date: day.date, phase: day.phase, sessions: day.sessions, lifts };
+  });
+}
+
 function withToday(build: (date: LocalDate) => TodayDto, plan: TrainingPlanDto | null = planFixture): PlansHandlers {
   return {
     getActive: async () => plan,
     getToday: async (date?: LocalDate) => build(date ?? todayLocal()),
     getWeeklyGoals: async (date?: LocalDate) => build(date ?? todayLocal()).week,
+    getUpcoming: async (from?: LocalDate, days = 14) => upcomingFromSchedule(from ?? todayLocal(), days),
     completeSession: async (_planId, request) => ({
       id: 'comp-new',
       date: request.date,
@@ -64,10 +89,11 @@ export const plansHandlers = {
   noPlan: (): PlansHandlers => ({
     getActive: async () => null,
     getToday: async () => null,
+    getUpcoming: async () => null,
     getWeeklyGoals: rejectWith(404),
   }),
-  loading: (): PlansHandlers => ({ getActive: never, getToday: never, getWeeklyGoals: never }),
-  error: (): PlansHandlers => ({ getActive: rejectWith(500), getToday: rejectWith(500), getWeeklyGoals: rejectWith(500) }),
+  loading: (): PlansHandlers => ({ getActive: never, getToday: never, getWeeklyGoals: never, getUpcoming: never }),
+  error: (): PlansHandlers => ({ getActive: rejectWith(500), getToday: rejectWith(500), getWeeklyGoals: rejectWith(500), getUpcoming: rejectWith(500) }),
 };
 
 export function installPlansHandlers(handlers: PlansHandlers = plansHandlers.default()): void {

@@ -5,20 +5,13 @@
  * mobility routine's name and minutes. Renders nothing until the data is there.
  */
 
-import { useActivePlan } from '@/hooks/usePlan';
 import { useCardioTracks } from '@/hooks/useCardioTracks';
 import { useCardioProtocols } from '@/hooks/useGymSession';
 import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
-import { isoWeekday, type LocalDate } from '@/lib/localDate';
-import { SessionKind, type ScheduledSessionDto, type TodaySessionDto, type UpcomingLiftDto } from '@/types/plan';
+import type { LocalDate } from '@/lib/localDate';
+import { SessionKind, type TodaySessionDto, type UpcomingLiftDto } from '@/types/plan';
 import { liftSummary } from './upNext';
-
-/** The weekly slot behind a session on `date` (the schedule uses .NET's DayOfWeek, Sunday = 0). */
-export function useScheduledSlot(session: TodaySessionDto, date: LocalDate): ScheduledSessionDto | null {
-  const { data: plan } = useActivePlan();
-  const weekday = (isoWeekday(date) + 1) % 7;
-  return plan?.schedule.find((s) => s.day === weekday && s.kind === session.kind && s.label === session.label) ?? null;
-}
+import { useScheduledSlot } from './useScheduledSlot';
 
 function LiftSummary({ lift }: { lift: UpcomingLiftDto }) {
   const text = liftSummary(lift);
@@ -34,7 +27,15 @@ function CardioSummary({ session, date }: { session: TodaySessionDto; date: Loca
   if (track) return <Line text={track.prescription.title} />;
   const protocol = protocols.data?.find((p) => p.id === session.cardioProtocolId);
   if (!protocol) return null;
-  return <Line text={protocol.notes ? `${protocol.totalMinutes} min · ${protocol.notes}` : `${protocol.totalMinutes} min`} />;
+  return (
+    <Line
+      text={
+        protocol.notes
+          ? `${protocol.totalMinutes} min · ${protocol.notes}`
+          : `${protocol.totalMinutes} min`
+      }
+    />
+  );
 }
 
 function MobilitySummary({ routineId }: { routineId: string }) {
@@ -51,12 +52,21 @@ function Line({ text }: { text: string }) {
   );
 }
 
-export function SessionSummary({ session, date, lifts = [] }: { session: TodaySessionDto; date: LocalDate; lifts?: UpcomingLiftDto[] }) {
+export function SessionSummary({
+  session,
+  date,
+  lifts = [],
+}: {
+  session: TodaySessionDto;
+  date: LocalDate;
+  lifts?: UpcomingLiftDto[];
+}) {
   if (session.kind === SessionKind.Lift) {
     const lift = lifts.find((l) => l.liftDay === session.liftDay && l.label === session.label);
     return lift ? <LiftSummary lift={lift} /> : null;
   }
   if (session.kind === SessionKind.Cardio) return <CardioSummary session={session} date={date} />;
-  if (session.kind === SessionKind.Mobility && session.mobilityRoutineId) return <MobilitySummary routineId={session.mobilityRoutineId} />;
+  if (session.kind === SessionKind.Mobility && session.mobilityRoutineId)
+    return <MobilitySummary routineId={session.mobilityRoutineId} />;
   return null;
 }

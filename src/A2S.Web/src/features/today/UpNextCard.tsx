@@ -32,7 +32,11 @@ export function UpNextCard({ today, onPreview }: UpNextCardProps) {
   const next = pickUpNext(upcoming.data);
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="up-next-heading" data-testid="up-next">
+    <section
+      className="rounded-lg border border-border bg-card p-4"
+      aria-labelledby="up-next-heading"
+      data-testid="up-next"
+    >
       <div className="flex items-center gap-2">
         <CalendarClock className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
         <h2 id="up-next-heading" className="text-sm font-medium text-muted-foreground">
@@ -50,7 +54,9 @@ export function UpNextCard({ today, onPreview }: UpNextCardProps) {
             {next.sessions.map((session, i) => (
               <li key={`${session.kind}-${session.label}-${i}`} className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-muted-foreground">{kindName[session.kind]}</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {kindName[session.kind]}
+                  </p>
                   <p className="truncate font-semibold text-foreground">{session.label}</p>
                   <SessionSummary session={session} date={next.date} lifts={next.lifts} />
                 </div>

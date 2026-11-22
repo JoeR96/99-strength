@@ -4,12 +4,15 @@
  * one request that completes the day in the app and posts the workout to Hevy from the server, and
  * goes through the offline queue (keyed by the client session id) when there is no signal. Keeps the
  * screen awake and runs the rest timer after each confirmed set.
+ *
+ * `?preview=1&date=yyyy-MM-dd` renders `GymPreview` instead: read-only, and it never mounts the runner,
+ * so no draft is saved, no wake lock is held and no rest timer or offline op exists.
  */
 
 import { useCardioTracks } from '@/hooks/useCardioTracks';
 import type { CardioTrackDto } from '@/types/cardioTracks';
 import { useCallback, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
@@ -31,6 +34,8 @@ import type { DayNumber } from '@/features/workout/workoutSessionTypes';
 import { CompletionSummary } from '@/features/workout/CompletionSummary';
 import { beep, primeAudio, useWakeLock } from '@/features/routines/playerEffects';
 import { GymChecklist } from './GymChecklist';
+import { GymPreview } from './GymPreview';
+import { dayHeading, parseDateParam } from '@/features/today/upNext';
 import { GymHevyStatus } from './GymSections';
 import { FinishedElsewhereNotice } from './FinishedElsewhereNotice';
 import {
@@ -56,7 +61,10 @@ const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satu
 export function GymModePage() {
   const { day: dayParam } = useParams<{ day: string }>();
   const day = Number(dayParam ?? '1');
-  const date = useLocalToday();
+  const localToday = useLocalToday();
+  const [searchParams] = useSearchParams();
+  const preview = searchParams.get('preview') === '1';
+  const date = (preview && parseDateParam(searchParams.get('date'))) || localToday;
 
   const workoutQuery = useCurrentWorkout();
   const workout = workoutQuery.data ?? null;
@@ -87,7 +95,7 @@ export function GymModePage() {
     return (
       <div className="min-h-dvh bg-background">
         <Navbar />
-        <p className="p-4 text-muted-foreground">Loading today's session…</p>
+        <p className="p-4 text-muted-foreground">{preview ? 'Loading the preview…' : "Loading today's session…"}</p>
       </div>
     );
   }
@@ -114,6 +122,17 @@ export function GymModePage() {
   const finisher = (finisherId && protocols.data?.find((p) => p.id === finisherId)) || null;
   const finisherTrack = (finisherTrackId && tracks.data?.find((t) => t.id === finisherTrackId)) || null;
   const label = slot?.label ?? scheduled?.label ?? `Day ${day}`;
+  const title = `${plan?.name ?? workout.name} · W${weekPlan.data.weekNumber} ${label}`;
+
+  if (preview) {
+    const state = createGymSession({ clientSessionId: 'preview', startedAt: '', title, plan: weekPlan.data, warmUp, finisher, finisherTrack });
+    return (
+      <div className="min-h-dvh bg-background">
+        <Navbar />
+        <GymPreview state={state} dayLabel={dayHeading(date, localToday)} startHref={date === localToday ? `/gym/${day}` : null} />
+      </div>
+    );
+  }
 
   return (
     <GymSessionRunner
@@ -121,7 +140,7 @@ export function GymModePage() {
       workout={workout}
       plan={weekPlan.data}
       day={day}
-      title={`${plan?.name ?? workout.name} · W${weekPlan.data.weekNumber} ${label}`}
+      title={title}
       label={label}
       warmUp={warmUp}
       finisher={finisher}

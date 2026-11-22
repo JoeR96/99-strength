@@ -73,7 +73,7 @@ public class ApiTokenAllowListTests
     }
 
     [Fact]
-    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayAndWhoAmIBesides()
+    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayUpcomingAndWhoAmIBesides()
     {
         var reachable = ControllerEndpoints(isProduction: true)
             .Where(endpoint => endpoint.Metadata.GetMetadata<AllowApiTokenAttribute>() is not null)
@@ -94,6 +94,7 @@ public class ApiTokenAllowListTests
             .Select(a => $"{a.ControllerTypeInfo.Name}.{a.ActionName}")
             .Should().BeEquivalentTo(
                 $"{nameof(PlansController)}.{nameof(PlansController.GetToday)}",
+                $"{nameof(PlansController)}.{nameof(PlansController.GetUpcoming)}",
                 $"{nameof(ApiTokensController)}.{nameof(ApiTokensController.WhoAmI)}");
     }
 
@@ -113,7 +114,9 @@ public class ApiTokenAllowListTests
             "PUT api/v1/users/me/hevy-api-key",
             "GET api/v1/users/me/hevy-api-key",
             "GET api/v1/plans/active",
-            "POST api/v1/plans"
+            "POST api/v1/plans",
+            "POST api/v1/plans/{id:guid}/completions",
+            "GET api/v1/workouts/{id:guid}/weeks/{week:int}/days/{day:int}/plan"
         ]);
         closed.Count.Should().BeGreaterThan(TokenReachable.Length);
     }

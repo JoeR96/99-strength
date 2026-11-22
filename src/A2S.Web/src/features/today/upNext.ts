@@ -4,11 +4,23 @@
  */
 
 import { addDays, formatDayLabel, type LocalDate } from '@/lib/localDate';
-import { SessionKind, SessionStatus, type PlanDayDto, type TodaySessionDto, type UpcomingDayDto, type UpcomingLiftDto } from '@/types/plan';
+import {
+  SessionKind,
+  SessionStatus,
+  type PlanDayDto,
+  type TodaySessionDto,
+  type UpcomingDayDto,
+  type UpcomingLiftDto,
+} from '@/types/plan';
 
 /** Sessions there is still something to do for (not rest, done or paused). */
 export function toDo(sessions: TodaySessionDto[]): TodaySessionDto[] {
-  return sessions.filter((s) => s.kind !== SessionKind.Rest && s.status !== SessionStatus.Done && s.status !== SessionStatus.Paused);
+  return sessions.filter(
+    (s) =>
+      s.kind !== SessionKind.Rest &&
+      s.status !== SessionStatus.Done &&
+      s.status !== SessionStatus.Paused
+  );
 }
 
 /** A rest day, an empty day, or a day where every session is done: time to show Up next. */
@@ -17,10 +29,13 @@ export function isAllDoneOrRest(sessions: TodaySessionDto[]): boolean {
 }
 
 /** The first day in `days` with a session still to do, and those sessions; null when there is none. */
-export function pickUpNext(days: (PlanDayDto | UpcomingDayDto)[] | null | undefined): { date: LocalDate; sessions: TodaySessionDto[]; lifts: UpcomingLiftDto[] } | null {
+export function pickUpNext(
+  days: (PlanDayDto | UpcomingDayDto)[] | null | undefined
+): { date: LocalDate; sessions: TodaySessionDto[]; lifts: UpcomingLiftDto[] } | null {
   for (const day of days ?? []) {
     const sessions = toDo(day.sessions);
-    if (sessions.length > 0) return { date: day.date, sessions, lifts: 'lifts' in day ? day.lifts : [] };
+    if (sessions.length > 0)
+      return { date: day.date, sessions, lifts: 'lifts' in day ? day.lifts : [] };
   }
   return null;
 }

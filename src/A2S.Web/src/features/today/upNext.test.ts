@@ -1,20 +1,50 @@
 import { describe, it, expect } from 'vitest';
-import { SessionKind, SessionStatus, type PlanDayDto, type TodaySessionDto, type UpcomingLiftDto } from '@/types/plan';
+import {
+  SessionKind,
+  SessionStatus,
+  type PlanDayDto,
+  type TodaySessionDto,
+  type UpcomingLiftDto,
+} from '@/types/plan';
 import { dayHeading, isAllDoneOrRest, liftSummary, parseDateParam, pickUpNext } from './upNext';
 
 function session(kind: SessionKind, status: SessionStatus, label = 'S'): TodaySessionDto {
-  return { kind, label, status, liftDay: kind === SessionKind.Lift ? 1 : null, cardioProtocolId: null, mobilityRoutineId: null, completionId: null, hevyRoutineId: null };
+  return {
+    kind,
+    label,
+    status,
+    liftDay: kind === SessionKind.Lift ? 1 : null,
+    cardioProtocolId: null,
+    mobilityRoutineId: null,
+    completionId: null,
+    hevyRoutineId: null,
+  };
 }
 
-const rest = (date: string): PlanDayDto => ({ date, phase: null, sessions: [session(SessionKind.Rest, SessionStatus.Rest)] });
+const rest = (date: string): PlanDayDto => ({
+  date,
+  phase: null,
+  sessions: [session(SessionKind.Rest, SessionStatus.Rest)],
+});
 
 describe('pickUpNext', () => {
   it('skips rest days and empty days and returns the first day with a session to do', () => {
     const days: PlanDayDto[] = [
       rest('2026-11-23'),
       { date: '2026-11-24', phase: null, sessions: [] },
-      { date: '2026-11-25', phase: null, sessions: [session(SessionKind.Rest, SessionStatus.Rest), session(SessionKind.Lift, SessionStatus.Planned, 'Lower A')] },
-      { date: '2026-11-26', phase: null, sessions: [session(SessionKind.Cardio, SessionStatus.Planned)] },
+      {
+        date: '2026-11-25',
+        phase: null,
+        sessions: [
+          session(SessionKind.Rest, SessionStatus.Rest),
+          session(SessionKind.Lift, SessionStatus.Planned, 'Lower A'),
+        ],
+      },
+      {
+        date: '2026-11-26',
+        phase: null,
+        sessions: [session(SessionKind.Cardio, SessionStatus.Planned)],
+      },
     ];
 
     const next = pickUpNext(days);
@@ -25,9 +55,21 @@ describe('pickUpNext', () => {
 
   it('skips paused and already done sessions', () => {
     const days: PlanDayDto[] = [
-      { date: '2026-11-23', phase: null, sessions: [session(SessionKind.Lift, SessionStatus.Paused)] },
-      { date: '2026-11-24', phase: null, sessions: [session(SessionKind.Lift, SessionStatus.Done)] },
-      { date: '2026-11-25', phase: null, sessions: [session(SessionKind.Mobility, SessionStatus.Planned, 'Mobility B')] },
+      {
+        date: '2026-11-23',
+        phase: null,
+        sessions: [session(SessionKind.Lift, SessionStatus.Paused)],
+      },
+      {
+        date: '2026-11-24',
+        phase: null,
+        sessions: [session(SessionKind.Lift, SessionStatus.Done)],
+      },
+      {
+        date: '2026-11-25',
+        phase: null,
+        sessions: [session(SessionKind.Mobility, SessionStatus.Planned, 'Mobility B')],
+      },
     ];
 
     expect(pickUpNext(days)?.date).toBe('2026-11-25');
@@ -36,7 +78,11 @@ describe('pickUpNext', () => {
   it('returns null with no plan or nothing in the window', () => {
     expect(pickUpNext(null)).toBeNull();
     expect(pickUpNext(undefined)).toBeNull();
-    expect(pickUpNext(Array.from({ length: 14 }, (_, i) => rest(`2026-12-${String(i + 1).padStart(2, '0')}`)))).toBeNull();
+    expect(
+      pickUpNext(
+        Array.from({ length: 14 }, (_, i) => rest(`2026-12-${String(i + 1).padStart(2, '0')}`))
+      )
+    ).toBeNull();
   });
 });
 
@@ -45,7 +91,12 @@ describe('isAllDoneOrRest', () => {
     expect(isAllDoneOrRest([session(SessionKind.Rest, SessionStatus.Rest)])).toBe(true);
     expect(isAllDoneOrRest([])).toBe(true);
     expect(isAllDoneOrRest([session(SessionKind.Lift, SessionStatus.Done)])).toBe(true);
-    expect(isAllDoneOrRest([session(SessionKind.Lift, SessionStatus.Done), session(SessionKind.Cardio, SessionStatus.Planned)])).toBe(false);
+    expect(
+      isAllDoneOrRest([
+        session(SessionKind.Lift, SessionStatus.Done),
+        session(SessionKind.Cardio, SessionStatus.Planned),
+      ])
+    ).toBe(false);
   });
 });
 
@@ -73,8 +124,16 @@ const upperALift: UpcomingLiftDto = {
   weekNumber: 3,
   isDeloadWeek: false,
   exercises: [
-    { name: 'Seal Row (Barbell)', category: 'Accessory', sets: [{ weightKg: 40, reps: 10, isAmrap: false }] },
-    { name: 'Bench Press (Barbell)', category: 'MainLift', sets: [1, 2, 3, 4, 5].map((n) => ({ weightKg: 75, reps: 5, isAmrap: n === 5 })) },
+    {
+      name: 'Seal Row (Barbell)',
+      category: 'Accessory',
+      sets: [{ weightKg: 40, reps: 10, isAmrap: false }],
+    },
+    {
+      name: 'Bench Press (Barbell)',
+      category: 'MainLift',
+      sets: [1, 2, 3, 4, 5].map((n) => ({ weightKg: 75, reps: 5, isAmrap: n === 5 })),
+    },
   ],
   finisher: null,
 };
