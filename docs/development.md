@@ -46,6 +46,18 @@ port 6007, so two worktrees running it together test each other's build. Set `ST
 `Testing` environment. Before re-posting, `HevyWorkoutPoster` adopts a Hevy workout with the same title and
 a start within a minute, so a retry never creates a second one.
 
+## Cardio tracks
+
+Domain: `Aggregates/Cardio/CardioTrack.cs`, `CardioStrategies.cs`, `StageStrategy`, `CardioTrackTemplates.cs`,
+persisted as jsonb in `CardioTracks` (migration `AddCardioTracks`). API `/api/v1/cardio-tracks`. Track
+sessions are idempotent on a key (`completion:`, `hevy:{workout}:{exerciseIndex}`, `client:`, `manual:`), so
+the Hevy pull and `CompleteSession` can run repeatedly. Finished cardio and mobility sessions post to Hevy
+through `SessionHevyPoster` on the gym-mode `HevyWorkoutPost` queue; the pull uses
+`CompleteSession(PostToHevy: false)` so nothing loops back. Built-in Hevy cardio template ids live in
+`HevyTemplateCatalogue` (checked against `scripts/hevy-exercises.json`). Story mocks are in
+`src/mocks/{fixtures,handlers}/cardioTracks.ts`; any story that renders `TodayCardioTracks` or
+`CardioTrackProgress` must install `cardioTracksHandlers`.
+
 ## Secrets
 
 Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,
