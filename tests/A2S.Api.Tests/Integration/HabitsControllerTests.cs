@@ -100,6 +100,34 @@ public class HabitsControllerTests
         today!.Habits.Single().Value.Should().Be(1);
     }
 
+    [Fact]
+    public async Task Increment_WithStep25_Goes0To25To50_AndMinusFloorsAtZero()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var created = await client.PostAsJsonAsync("/api/v1/habits", new
+        {
+            name = "Protein", type = "Counter", target = 180, minimum = 140, unit = "g", order = 0, icon = "meat", step = 25
+        });
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+        var protein = (await created.Content.ReadFromJsonAsync<HabitDto>())!;
+        protein.Step.Should().Be(25);
+        var url = $"/api/v1/habits/{protein.Id}/logs/{Day:yyyy-MM-dd}/increment";
+
+        (await Tap(client, url, 1, "2026-11-09T08:00:00Z")).Value.Should().Be(25);
+        (await Tap(client, url, 1, "2026-11-09T08:01:00Z")).Value.Should().Be(50);
+        (await Tap(client, url, -1, "2026-11-09T08:02:00Z")).Value.Should().Be(25);
+        (await Tap(client, url, -1, "2026-11-09T08:03:00Z")).Value.Should().Be(0);
+        (await Tap(client, url, -1, "2026-11-09T08:04:00Z")).Value.Should().Be(0);
+
+        var today = await client.GetFromJsonAsync<HabitsTodayDto>($"/api/v1/habits/today?date={Day:yyyy-MM-dd}");
+        today!.Habits.Single().Step.Should().Be(25);
+
+        var water = await CreateWater(client);
+        water.Step.Should().Be(1);
+        var edited = await client.PutAsJsonAsync($"/api/v1/habits/{protein.Id}", new { name = "Protein", target = 180, minimum = 140, unit = "g", order = 0, icon = "meat", step = 20 });
+        (await edited.Content.ReadFromJsonAsync<HabitDto>())!.Step.Should().Be(20);
+    }
+
     /// <summary>Posts a tap with the timestamp text exactly as given, the way a client puts it on the wire.</summary>
     private static async Task<HabitLogDto> Tap(HttpClient client, string url, int delta, string? clientTimestamp)
     {

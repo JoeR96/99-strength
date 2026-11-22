@@ -1,6 +1,6 @@
 /**
  * Create or edit a habit: name, type (fixed after creation), target, minimum,
- * unit and icon. Editing an existing habit also offers Archive, which hides it
+ * unit, step (counters: how far one tap moves the value) and icon. Editing an existing habit also offers Archive, which hides it
  * from Today and the streak while keeping its history.
  */
 
@@ -167,6 +167,30 @@ export function HabitEditSheet({ open, habit, onClose, onSave, onArchive, saving
                     </p>
                   )}
                 </div>
+              )}
+            </div>
+          )}
+
+          {values.type === 'Counter' && (
+            <div>
+              <Label htmlFor="habit-step">Step</Label>
+              <Input
+                id="habit-step"
+                inputMode="decimal"
+                value={values.step}
+                onChange={(e) => update('step', e.target.value)}
+                className="mt-1 h-12 w-28"
+                aria-invalid={errors.step ? true : undefined}
+                aria-describedby={errors.step ? 'habit-step-error' : 'habit-step-hint'}
+              />
+              {errors.step ? (
+                <p id="habit-step-error" className="mt-1 text-xs text-destructive">
+                  {errors.step}
+                </p>
+              ) : (
+                <p id="habit-step-hint" className="mt-1 text-xs text-muted-foreground">
+                  Each + or − tap adds or takes away this much (e.g. 25 for grams of protein).
+                </p>
               )}
             </div>
           )}

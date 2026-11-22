@@ -14,7 +14,8 @@ public sealed record CreateHabitCommand(
     decimal Minimum,
     string? Unit,
     int Order,
-    string? Icon = null) : ICommand<Result<HabitDto>>;
+    string? Icon = null,
+    decimal? Step = null) : ICommand<Result<HabitDto>>;
 
 public sealed class CreateHabitCommandValidator : AbstractValidator<CreateHabitCommand>
 {
@@ -25,6 +26,7 @@ public sealed class CreateHabitCommandValidator : AbstractValidator<CreateHabitC
         RuleFor(x => x.Unit).MaximumLength(30);
         RuleFor(x => x.Icon).MaximumLength(50);
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Step).GreaterThan(0).LessThanOrEqualTo(HabitDefinition.MaximumStep).When(x => x.Step is not null);
 
         When(x => x.Type != HabitType.Checkbox, () =>
         {

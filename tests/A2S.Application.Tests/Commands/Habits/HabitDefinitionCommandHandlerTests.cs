@@ -77,6 +77,39 @@ public class HabitDefinitionCommandHandlerTests
     }
 
     [Fact]
+    public async Task Create_WithStep_KeepsIt_AndWithoutOneDefaultsToOne()
+    {
+        var handler = new CreateHabitCommandHandler(_habits, _unitOfWork, _currentUser);
+
+        var protein = await handler.Handle(new CreateHabitCommand("Protein", HabitType.Counter, 180, 140, "g", 0, "meat", Step: 25), CancellationToken.None);
+        var water = await handler.Handle(new CreateHabitCommand("Water", HabitType.Counter, 6, 4, "bottles", 1), CancellationToken.None);
+
+        protein.Value.Step.Should().Be(25);
+        protein.Value.Icon.Should().Be("meat");
+        water.Value.Step.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Update_WithStep_ChangesIt_AndWithoutOneKeepsIt()
+    {
+        var protein = HabitDefinition.Create(Joe, "Protein", HabitType.Counter, 180, 140, "g", 0, step: 25);
+        _habits.GetByIdAsync(protein.Id, Arg.Any<CancellationToken>()).Returns(protein);
+        var handler = new UpdateHabitCommandHandler(_habits, _unitOfWork, _currentUser);
+
+        var kept = await handler.Handle(new UpdateHabitCommand(protein.Id.Value, "Protein", 180, 140, "g", 0, null), CancellationToken.None);
+        kept.Value.Step.Should().Be(25);
+
+        var changed = await handler.Handle(new UpdateHabitCommand(protein.Id.Value, "Protein", 180, 140, "g", 0, null, Step: 20), CancellationToken.None);
+        changed.Value.Step.Should().Be(20);
+    }
+
+    [Fact]
+    public void Validators_RejectANonPositiveStep()
+    {
+        new CreateHabitCommandValidator().Validate(new CreateHabitCommand("P", HabitType.Counter, 1, 1, null, 0, Step: 0)).IsValid.Should().BeFalse();
+        new UpdateHabitCommandValidator().Validate(new UpdateHabitCommand(Guid.Parse("11111111-1111-1111-1111-111111111111"), "P", 1, 1, null, 0, null, Step: -5)).IsValid.Should().BeFalse();
+    }
+    [Fact]
     public async Task Update_SomeoneElsesHabit_IsForbidden()
     {
         var theirs = HabitDefinition.Create(Other, "Water", HabitType.Counter, 6, 4, null, 0);

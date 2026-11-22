@@ -42,3 +42,20 @@ export const Loading: Story = {
 export const Error: Story = {
   decorators: [withApiMocks(() => installHabitsHandlers(habitsHandlers.error()))],
 };
+
+/** The edit sheet open on a protein counter that steps by 25 g, with the meat icon. */
+export const EditingStepCounter: Story = {
+  decorators: [withApiMocks(() => installHabitsHandlers(habitsHandlers.default()))],
+  render: () => (
+    <>
+      <HabitsPage />
+      <HabitEditSheet
+        open
+        habit={{ id: 'habit-protein', name: 'Protein', type: 'Counter', target: 180, minimum: 140, unit: 'g', order: 6, archived: false, icon: 'meat', externalKey: null, step: 25 }}
+        onClose={() => {}}
+        onSave={() => {}}
+        onArchive={() => {}}
+      />
+    </>
+  ),
+};

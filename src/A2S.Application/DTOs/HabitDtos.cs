@@ -15,7 +15,8 @@ public sealed record HabitDto(
     int Order,
     bool Archived,
     string? Icon,
-    string? ExternalKey)
+    string? ExternalKey,
+    decimal Step = 1)
 {
     public static HabitDto From(HabitDefinition habit) => new(
         habit.Id.Value,
@@ -27,7 +28,8 @@ public sealed record HabitDto(
         habit.Order,
         habit.Archived,
         habit.Icon,
-        habit.ExternalKey);
+        habit.ExternalKey,
+        habit.Step);
 }
 
 /// <summary>One habit's state for one day: definition, logged value and whether it met minimum / target.</summary>
@@ -42,7 +44,8 @@ public sealed record HabitTodayDto(
     bool MetMinimum,
     bool MetTarget,
     int Order,
-    string? Icon);
+    string? Icon,
+    decimal Step = 1);
 
 /// <summary>The streak as the client sees it.</summary>
 public sealed record HabitStreakDto(int Current, int Best, DateOnly? LastCountedDay, bool TodayCounted, bool GraceUsed)

@@ -34,6 +34,7 @@ public class HabitDefinitionConfiguration : IEntityTypeConfiguration<HabitDefini
 
         builder.Property(h => h.Target).HasPrecision(9, 2).IsRequired();
         builder.Property(h => h.Minimum).HasPrecision(9, 2).IsRequired();
+        builder.Property(h => h.Step).HasPrecision(9, 2).IsRequired();
         builder.Property(h => h.Unit).HasMaxLength(30);
         builder.Property(h => h.Order).IsRequired();
         builder.Property(h => h.Archived).IsRequired();

@@ -91,4 +91,40 @@ public class HabitDefinitionTests
         archived.Should().BeTrue();
         habit.Archived.Should().BeFalse();
     }
+
+    [Fact]
+    public void Create_DefaultsStepToOne()
+    {
+        HabitDefinition.Create(Joe, "Water", HabitType.Counter, 6, 4, "bottles", 0).Step.Should().Be(1);
+    }
+
+    [Fact]
+    public void Create_CounterWithStep_KeepsIt_AndSetStepChangesIt()
+    {
+        var protein = HabitDefinition.Create(Joe, "Protein", HabitType.Counter, 180, 140, "g", 0, icon: "meat", step: 25);
+        protein.Step.Should().Be(25);
+
+        protein.SetStep(10);
+
+        protein.Step.Should().Be(10);
+    }
+
+    [Fact]
+    public void Checkbox_AlwaysStepsByOne()
+    {
+        var creatine = HabitDefinition.Create(Joe, "Creatine", HabitType.Checkbox, 1, 1, null, 0, step: 5);
+
+        creatine.Step.Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(10001)]
+    public void Step_OutOfRange_Throws(int step)
+    {
+        var create = () => HabitDefinition.Create(Joe, "Protein", HabitType.Counter, 180, 140, "g", 0, step: step);
+
+        create.Should().Throw<BusinessRuleViolationException>();
+    }
 }

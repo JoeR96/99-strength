@@ -110,7 +110,7 @@ export function useIncrementHabit() {
       inFlight.current.set(key, (inFlight.current.get(key) ?? 0) + 1);
       await queryClient.cancelQueries({ queryKey: habitKeys.today(date) });
       queryClient.setQueryData<HabitsTodayDto>(habitKeys.today(date), (old) =>
-        applyValue(old, habitId, (h) => h.value + delta)
+        applyValue(old, habitId, (h) => h.value + delta * (h.step ?? 1))
       );
       return { key };
     },
@@ -126,7 +126,7 @@ export function useIncrementHabit() {
     },
     onError: (_error, { habitId, delta, date }) => {
       queryClient.setQueryData<HabitsTodayDto>(habitKeys.today(date), (old) =>
-        applyValue(old, habitId, (h) => h.value - delta)
+        applyValue(old, habitId, (h) => h.value - delta * (h.step ?? 1))
       );
       toast.error("Couldn't save that tap. Try again.");
     },

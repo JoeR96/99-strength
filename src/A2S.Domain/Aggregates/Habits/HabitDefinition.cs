@@ -18,7 +18,8 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
         string? unit,
         int order,
         string? icon,
-        string? externalKey)
+        string? externalKey,
+        decimal step)
         : base(id)
     {
         UserId = userId;
@@ -30,6 +31,7 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
         Order = order;
         Icon = icon;
         ExternalKey = externalKey;
+        Step = step;
     }
 
     // EF Core constructor
@@ -53,6 +55,12 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
     /// <summary>Stable key from an external source (e.g. <c>terran:walks</c>) so imports are idempotent.</summary>
     public string? ExternalKey { get; private set; }
 
+    public const decimal DefaultStep = 1;
+    public const decimal MaximumStep = 10000;
+
+    /// <summary>How far one +/- tap moves a counter (25 g of protein, 1 bottle). Always 1 for a checkbox.</summary>
+    public decimal Step { get; private set; } = DefaultStep;
+
     public static HabitDefinition Create(
         UserId userId,
         string name,
@@ -62,7 +70,8 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
         string? unit,
         int order,
         string? icon = null,
-        string? externalKey = null)
+        string? externalKey = null,
+        decimal step = DefaultStep)
     {
         var cleanName = CleanName(name);
         var (cleanTarget, cleanMinimum) = NormaliseTargets(type, target, minimum);
@@ -77,7 +86,8 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
             Clean(unit),
             order,
             Clean(icon),
-            Clean(externalKey));
+            Clean(externalKey),
+            NormaliseStep(type, step));
     }
 
     public void Rename(string name) => Name = CleanName(name);
@@ -90,6 +100,8 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
     public void SetUnit(string? unit) => Unit = Clean(unit);
 
     public void SetIcon(string? icon) => Icon = Clean(icon);
+
+    public void SetStep(decimal step) => Step = NormaliseStep(Type, step);
 
     public void SetOrder(int order) => Order = order;
 
@@ -105,6 +117,18 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
         var trimmed = name.Trim();
         CheckRule(trimmed.Length <= 100, "Habit name cannot be longer than 100 characters.");
         return trimmed;
+    }
+
+    private static decimal NormaliseStep(HabitType type, decimal step)
+    {
+        if (type == HabitType.Checkbox)
+        {
+            return DefaultStep;
+        }
+
+        CheckRule(step > 0, "Habit step must be greater than 0.");
+        CheckRule(step <= MaximumStep, "Habit step cannot be more than 10000.");
+        return step;
     }
 
     private static (decimal Target, decimal Minimum) NormaliseTargets(HabitType type, decimal target, decimal minimum)

@@ -383,4 +383,25 @@ public class HabitLogTests
         HabitRules.MetMinimum(water, null).Should().BeFalse();
         HabitRules.MetTarget(water, null).Should().BeFalse();
     }
+
+    [Fact]
+    public void Taps_WithAStep_MoveByTheStep_NeverBelowZero()
+    {
+        var log = HabitLog.CreateFromTap(Water, Joe, Day, HabitType.Counter, 1, T0, step: 25);
+        log.Value.Should().Be(25);
+
+        log.ApplyTap(HabitType.Counter, 1, T0.AddMinutes(1), step: 25);
+        log.Value.Should().Be(50);
+
+        log.ApplyTap(HabitType.Counter, -1, T0.AddMinutes(2), step: 25);
+        log.ApplyTap(HabitType.Counter, -1, T0.AddMinutes(3), step: 25);
+        log.ApplyTap(HabitType.Counter, -1, T0.AddMinutes(4), step: 25);
+        log.Value.Should().Be(0);
+    }
+
+    [Fact]
+    public void Checkbox_Tap_IgnoresTheStep()
+    {
+        HabitLog.CreateFromTap(Water, Joe, Day, HabitType.Checkbox, 1, T0, step: 25).Value.Should().Be(1);
+    }
 }
