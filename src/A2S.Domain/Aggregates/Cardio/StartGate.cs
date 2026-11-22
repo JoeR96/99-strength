@@ -247,5 +247,15 @@ public static class StartGate
         GateCondition.NoPainInAreas(["knee", "shin", "Achilles"], 4)
     ];
 
+    /// <summary>
+    /// The running gate without the walk-builder condition (trend ≤ 90 kg; no knee/shin/Achilles pain for 4 weeks), for plans
+    /// that do not run the Walk builder track. <see cref="RunningGate"/> stays the Walk → run template's default.
+    /// </summary>
+    public static IReadOnlyList<GateCondition> WeightAndPainRunningGate() =>
+    [
+        GateCondition.TrendWeightAtOrBelow(90m),
+        GateCondition.NoPainInAreas(["knee", "shin", "Achilles"], 4)
+    ];
+
     internal static string Number(decimal value) => value.ToString("0.#", CultureInfo.InvariantCulture);
 }

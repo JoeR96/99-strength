@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace A2S.Application.Commands.Habits;
 
-/// <summary>Changes a habit's name, targets, unit, order and icon. The type never changes.</summary>
+/// <summary>Changes a habit's name, targets, unit, order, icon and (when given) step. The type never changes.</summary>
 public sealed record UpdateHabitCommand(
     Guid HabitId,
     string Name,
@@ -12,7 +12,8 @@ public sealed record UpdateHabitCommand(
     decimal Minimum,
     string? Unit,
     int Order,
-    string? Icon) : ICommand<Result<HabitDto>>;
+    string? Icon,
+    decimal? Step = null) : ICommand<Result<HabitDto>>;
 
 public sealed class UpdateHabitCommandValidator : AbstractValidator<UpdateHabitCommand>
 {
@@ -23,6 +24,7 @@ public sealed class UpdateHabitCommandValidator : AbstractValidator<UpdateHabitC
         RuleFor(x => x.Unit).MaximumLength(30);
         RuleFor(x => x.Icon).MaximumLength(50);
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Step).GreaterThan(0).LessThanOrEqualTo(A2S.Domain.Aggregates.Habits.HabitDefinition.MaximumStep).When(x => x.Step is not null);
         RuleFor(x => x.Minimum).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Target).GreaterThanOrEqualTo(0);
     }

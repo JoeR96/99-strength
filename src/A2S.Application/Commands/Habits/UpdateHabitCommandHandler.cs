@@ -41,6 +41,10 @@ public sealed class UpdateHabitCommandHandler : IRequestHandler<UpdateHabitComma
             habit.SetUnit(request.Unit);
             habit.SetOrder(request.Order);
             habit.SetIcon(request.Icon);
+            if (request.Step is { } step)
+            {
+                habit.SetStep(step);
+            }
 
             _habits.Update(habit);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

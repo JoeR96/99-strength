@@ -267,6 +267,10 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("Step")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("numeric(9,2)");
+
                     b.Property<decimal>("Target")
                         .HasPrecision(9, 2)
                         .HasColumnType("numeric(9,2)");

@@ -155,6 +155,17 @@ public class StartGateTests
     }
 
     [Fact]
+    public void Evaluate_WeightAndPainRunningGate_NeedsNoWalkBuilderHistory()
+    {
+        var gate = StartGate.WeightAndPainRunningGate();
+
+        gate.Select(c => c.Type).Should().Equal(GateConditionType.TrendWeightAtOrBelow, GateConditionType.NoPainInAreas);
+        StartGate.Evaluate(gate, Inputs(89.9m, [])).AllMet.Should().BeTrue();
+        StartGate.Evaluate(gate, Inputs(90.4m, [])).AllMet.Should().BeFalse();
+        CardioTrackTemplates.DefaultGate(CardioTrackTemplates.WalkToRun).Should().HaveCount(3);
+    }
+
+    [Fact]
     public void Validate_RejectsIncompleteConditions()
     {
         var noKg = () => GateCondition.Validate(new GateCondition(GateConditionType.TrendWeightAtOrBelow));

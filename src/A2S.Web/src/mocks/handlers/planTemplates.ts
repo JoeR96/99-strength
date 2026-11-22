@@ -41,6 +41,12 @@ export const planTemplatesHandlers = {
     get: byKey,
     apply: async (_key, request) => (request.confirmReplace ? startedResult : replaceConflict()),
   }),
+  /** This template is already the active plan: returned unchanged until confirmReplace asks for a fresh copy. */
+  alreadyRunning: (): PlanTemplatesHandlers => ({
+    list: async () => planTemplatesFixture,
+    get: byKey,
+    apply: async (_key, request) => (request.confirmReplace ? startedResult : { ...startedResult, alreadyStarted: true }),
+  }),
   loading: (): PlanTemplatesHandlers => ({ list: never, get: never, apply: never }),
   error: (): PlanTemplatesHandlers => ({ list: rejectWith(500), get: rejectWith(500), apply: rejectWith(500) }),
 };

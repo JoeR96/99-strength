@@ -31,7 +31,8 @@ public sealed class CreateHabitCommandHandler : IRequestHandler<CreateHabitComma
         try
         {
             var habit = HabitDefinition.Create(
-                user.Value, request.Name, request.Type, request.Target, request.Minimum, request.Unit, request.Order, request.Icon);
+                user.Value, request.Name, request.Type, request.Target, request.Minimum, request.Unit, request.Order, request.Icon,
+                step: request.Step ?? HabitDefinition.DefaultStep);
 
             await _habits.AddAsync(habit, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

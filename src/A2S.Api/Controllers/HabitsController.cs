@@ -45,7 +45,7 @@ public class HabitsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateHabitRequest request, CancellationToken cancellationToken)
     {
         var command = new CreateHabitCommand(
-            request.Name, request.Type, request.Target, request.Minimum, request.Unit, request.Order, request.Icon);
+            request.Name, request.Type, request.Target, request.Minimum, request.Unit, request.Order, request.Icon, request.Step);
         var result = await _mediator.Send(command, cancellationToken);
         if (result.IsFailure)
         {
@@ -62,7 +62,7 @@ public class HabitsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateHabitRequest request, CancellationToken cancellationToken)
     {
-        var command = new UpdateHabitCommand(id, request.Name, request.Target, request.Minimum, request.Unit, request.Order, request.Icon);
+        var command = new UpdateHabitCommand(id, request.Name, request.Target, request.Minimum, request.Unit, request.Order, request.Icon, request.Step);
         var result = await _mediator.Send(command, cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }

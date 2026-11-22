@@ -213,4 +213,20 @@ public class IncrementHabitCommandHandlerTests
 
         result.ErrorCode.Should().Be(ErrorCode.Unauthenticated);
     }
+
+    [Fact]
+    public async Task Taps_MoveACounterByItsStep()
+    {
+        var protein = HabitDefinition.Create(Joe, "Protein", HabitType.Counter, 180, 140, "g", 1, step: 25);
+        _habits.GetByIdAsync(protein.Id, Arg.Any<CancellationToken>()).Returns(protein);
+        _habits.GetLogAsync(protein.Id, Day, Arg.Any<CancellationToken>()).Returns((HabitLog?)null);
+
+        var first = await _handler.Handle(new IncrementHabitCommand(protein.Id.Value, Day, 1, T0), CancellationToken.None);
+        first.Value.Value.Should().Be(25);
+
+        var log = HabitLog.Create(protein.Id, Joe, Day, 50, T0);
+        _habits.GetLogAsync(protein.Id, Day, Arg.Any<CancellationToken>()).Returns(log);
+        var minus = await _handler.Handle(new IncrementHabitCommand(protein.Id.Value, Day, -1, T0.AddMinutes(1)), CancellationToken.None);
+        minus.Value.Value.Should().Be(25);
+    }
 }

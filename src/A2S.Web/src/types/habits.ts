@@ -19,6 +19,8 @@ export interface HabitDto {
   archived: boolean;
   icon: string | null;
   externalKey: string | null;
+  /** How far one +/- tap moves a counter (default 1; always 1 for a tick). */
+  step?: number;
 }
 
 export interface HabitTodayDto {
@@ -33,6 +35,8 @@ export interface HabitTodayDto {
   metTarget: boolean;
   order: number;
   icon: string | null;
+  /** How far one +/- tap moves a counter (default 1). */
+  step?: number;
 }
 
 export interface HabitStreakDto {
@@ -79,6 +83,8 @@ export interface CreateHabitRequest {
   unit: string | null;
   order: number;
   icon: string | null;
+  /** Counter step; omitted = 1 on create, unchanged on update. */
+  step?: number;
 }
 
 /** The type cannot change after creation. */
@@ -89,6 +95,7 @@ export interface UpdateHabitRequest {
   unit: string | null;
   order: number;
   icon: string | null;
+  step?: number;
 }
 
 /** `clientTimestamp` is an ISO instant taken at tap time; the server keeps the newest. */

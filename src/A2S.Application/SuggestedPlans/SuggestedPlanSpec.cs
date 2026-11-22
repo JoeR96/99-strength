@@ -97,9 +97,14 @@ public sealed record SuggestedPlanSpec(
     WeeklyAllowances Allowances,
     IReadOnlyList<MobilityRoutineSpec>? ExtraRoutines = null,
     IReadOnlyList<string>? CardioTracks = null,
-    IReadOnlyList<int>? BlockSequence = null)
+    IReadOnlyList<int>? BlockSequence = null,
+    IReadOnlyDictionary<string, IReadOnlyList<GateCondition>>? TrackGates = null)
 {
     /// <summary>Every routine the plan creates: the two named ones, then the extras (home routines).</summary>
+    /// <summary>The start gate a track starts behind in this plan, overriding the template default (<see cref="TrackGates"/> by track key).</summary>
+    public IReadOnlyList<GateCondition> GateFor(string trackKey) =>
+        TrackGates is not null && TrackGates.TryGetValue(trackKey, out var gate) ? gate : CardioTrackTemplates.DefaultGate(trackKey);
+
     public IReadOnlyList<MobilityRoutineSpec> Routines => [MobilityA, MobilityB, .. ExtraRoutines ?? []];
 }
 

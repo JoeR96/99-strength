@@ -27,7 +27,7 @@ export const List: Story = {
   decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.default())), withAppProviders('/plans/templates')],
 };
 
-/** Plan v3 previewed: phases with dates, the week, Upper A and Lower A with slots 2a/2b, routines, tracks, what's left to fill in. */
+/** Plan v3 previewed: phases with dates, the week, Upper A and Lower A in straight sets, routines, tracks, what's left to fill in. */
 export const Preview: Story = {
   decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.default())), withAppProviders('/plans/templates/plan-v3')],
 };
@@ -42,4 +42,10 @@ export const ApplyDialog: Story = {
 export const ApplyReplaceConfirm: Story = {
   args: { initialApplyOpen: true, initialReplaceName: 'Lumbridge Lard Shed' },
   decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.needsReplace())), withAppProviders('/plans/templates/plan-v3')],
+};
+
+/** Plan v3 is already the active plan: start a fresh copy (the current one is kept) or keep it. */
+export const ApplyAlreadyRunning: Story = {
+  args: { initialApplyOpen: true },
+  decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.alreadyRunning())), withAppProviders('/plans/templates/plan-v3')],
 };

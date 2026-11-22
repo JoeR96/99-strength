@@ -52,16 +52,16 @@ public class PlanTemplatesControllerTests
         preview!.StartDate.Should().Be(new DateOnly(2030, 1, 14));
         preview.Phases.Should().HaveCount(3);
         preview.Sessions.Should().HaveCount(4);
-        preview.Slots.Should().HaveCount(13);
+        preview.Slots.Should().HaveCount(11);
         preview.Routines.Should().HaveCount(5);
-        preview.CardioTracks.Should().HaveCount(3);
-        preview.ToFillIn.Should().Contain(i => i.Contains("Pause Squat (Barbell)"));
+        preview.CardioTracks.Select(t => t.Key).Should().Equal("stair-finisher", "walk-to-run");
+        preview.ToFillIn.Should().Contain(i => i.Contains("Front Squat")).And.NotContain(i => i.Contains("Pause Squat (Barbell)"));
         preview.Inputs.Where(i => i.Key.EndsWith("Tm")).Should().OnlyContain(i => i.Optional);
         (await client.GetAsync("/api/v1/plans/templates/nope")).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task Apply_with_pending_tms_then_set_a_tm_and_finish_lower_a_with_the_cool_down()
+    public async Task Apply_with_pending_tms_then_set_a_tm_and_finish_lower_b_with_the_cool_down()
     {
         var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
 
@@ -86,19 +86,24 @@ public class PlanTemplatesControllerTests
 
         var workoutId = applied.WorkoutId!.Value;
         var lowerA = (await client.GetFromJsonAsync<WeekPlanDto>($"/api/v1/workouts/{workoutId}/weeks/1/days/2/plan"))!;
-        var pause = lowerA.Exercises.Single(e => e.Name == "Pause Squat (Barbell)");
-        pause.Metadata.IsTrainingMaxPending.Should().BeTrue();
-        pause.PlannedSets.Should().OnlyContain(s => s.WeightKg == 0m);
-        lowerA.Exercises.Where(e => e.SupersetGroup == 3).Select(e => e.Name).Should().Equal("Split Squat (Dumbbell)", "Hip Abduction (Machine)");
+        var pauseSquat = lowerA.Exercises.Single(e => e.Name == "Pause Squat (Barbell)");
+        pauseSquat.Metadata.IsTrainingMaxPending.Should().BeFalse();
+        pauseSquat.PlannedSets.Should().HaveCount(4);
+        lowerA.Exercises.Should().OnlyContain(e => e.SupersetGroup == null);
 
-        var tuesday = applied.StartDate.AddDays(1);
-        var started = new DateTimeOffset(tuesday.ToDateTime(new TimeOnly(18, 0)), TimeSpan.Zero);
-        FinishGymSessionCommand Finish(WeekPlanDto day) => new(Guid.NewGuid(), workoutId, DayNumber.Day2, started, started.AddMinutes(60),
+        var lowerB = (await client.GetFromJsonAsync<WeekPlanDto>($"/api/v1/workouts/{workoutId}/weeks/1/days/4/plan"))!;
+        var front = lowerB.Exercises.Single(e => e.Name == "Front Squat");
+        front.Metadata.IsTrainingMaxPending.Should().BeTrue();
+        front.PlannedSets.Should().OnlyContain(s => s.WeightKg == 0m);
+
+        var friday = applied.StartDate.AddDays(4);
+        var started = new DateTimeOffset(friday.ToDateTime(new TimeOnly(18, 0)), TimeSpan.Zero);
+        FinishGymSessionCommand Finish(WeekPlanDto day) => new(Guid.NewGuid(), workoutId, DayNumber.Day4, started, started.AddMinutes(60),
             [
                 new ExercisePerformanceRequest
                 {
-                    ExerciseId = pause.ExerciseId,
-                    CompletedSets = day.Exercises.Single(e => e.ExerciseId == pause.ExerciseId).PlannedSets.Select(s => new CompletedSetRequest
+                    ExerciseId = front.ExerciseId,
+                    CompletedSets = day.Exercises.Single(e => e.ExerciseId == front.ExerciseId).PlannedSets.Select(s => new CompletedSetRequest
                     {
                         SetNumber = s.SetNumber, Weight = 80m, WeightUnit = WeightUnit.Kilograms, ActualReps = s.TargetReps, WasAmrap = s.IsAmrap
                     }).ToList()
@@ -106,17 +111,17 @@ public class PlanTemplatesControllerTests
             ],
             Finisher: new FinisherLogRequest(600, Effort.Easy));
 
-        var blocked = await client.PostAsJsonAsync("/api/v1/gym-sessions", Finish(lowerA), Json);
+        var blocked = await client.PostAsJsonAsync("/api/v1/gym-sessions", Finish(lowerB), Json);
         blocked.IsSuccessStatusCode.Should().BeFalse();
-        (await blocked.Content.ReadAsStringAsync()).Should().Contain("Set your training max for Pause Squat (Barbell)");
+        (await blocked.Content.ReadAsStringAsync()).Should().Contain("Set your training max for Front Squat");
 
-        var tm = await client.PostAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises/{pause.ExerciseId}/training-max",
+        var tm = await client.PostAsJsonAsync($"/api/v1/workouts/{workoutId}/exercises/{front.ExerciseId}/training-max",
             new SetTrainingMaxRequest(null, 100m, 5, null));
         tm.StatusCode.Should().Be(HttpStatusCode.OK);
         (await tm.Content.ReadFromJsonAsync<SetTrainingMaxResult>())!.TrainingMax.Should().Be(105m);
 
-        var withTm = (await client.GetFromJsonAsync<WeekPlanDto>($"/api/v1/workouts/{workoutId}/weeks/1/days/2/plan"))!;
-        withTm.Exercises.Single(e => e.ExerciseId == pause.ExerciseId).PlannedSets.Should().OnlyContain(s => s.WeightKg > 0m);
+        var withTm = (await client.GetFromJsonAsync<WeekPlanDto>($"/api/v1/workouts/{workoutId}/weeks/1/days/4/plan"))!;
+        withTm.Exercises.Single(e => e.ExerciseId == front.ExerciseId).PlannedSets.Should().OnlyContain(s => s.WeightKg > 0m);
         var finished = await client.PostAsJsonAsync("/api/v1/gym-sessions", Finish(withTm), Json);
         finished.StatusCode.Should().Be(HttpStatusCode.OK, await finished.Content.ReadAsStringAsync());
         (await finished.Content.ReadFromJsonAsync<FinishGymSessionResult>(Json))!.FinisherCompletionId.Should().NotBeNull();
@@ -127,6 +132,28 @@ public class PlanTemplatesControllerTests
         var coolDown = saved.Completions.Single(c => c.Kind == SessionKind.Cardio);
         coolDown.Cardio!.DurationSeconds.Should().Be(600);
         coolDown.CardioTrackId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Applying_the_active_template_again_with_confirm_replace_starts_a_fresh_copy()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var first = (await (await client.PostAsJsonAsync("/api/v1/plans/templates/plan-v3/apply", PlanV3())).Content.ReadFromJsonAsync<StartSuggestedPlanResult>())!;
+
+        var fresh = await client.PostAsJsonAsync("/api/v1/plans/templates/plan-v3/apply", PlanV3(confirm: true));
+
+        fresh.StatusCode.Should().Be(HttpStatusCode.Created);
+        var second = (await fresh.Content.ReadFromJsonAsync<StartSuggestedPlanResult>())!;
+        second.AlreadyStarted.Should().BeFalse();
+        second.PlanId.Should().NotBe(first.PlanId);
+        second.WorkoutId.Should().NotBe(first.WorkoutId!.Value);
+        (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Id.Should().Be(second.PlanId);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
+        (await db.TrainingPlans.AsNoTracking().SingleAsync(p => p.Id == new TrainingPlanId(first.PlanId))).IsActive.Should().BeFalse();
+        (await db.Workouts.AsNoTracking().SingleAsync(w => w.Id == new WorkoutId(first.WorkoutId.Value)))
+            .Status.Should().Be(WorkoutStatus.Paused);
     }
 
     [Fact]

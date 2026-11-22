@@ -12,7 +12,8 @@ public sealed record CreateHabitRequest(
     decimal Minimum,
     string? Unit,
     int Order,
-    string? Icon);
+    string? Icon,
+    decimal? Step = null);
 
 /// <summary>Request body for updating a habit. The type cannot change.</summary>
 public sealed record UpdateHabitRequest(
@@ -21,7 +22,8 @@ public sealed record UpdateHabitRequest(
     decimal Minimum,
     string? Unit,
     int Order,
-    string? Icon);
+    string? Icon,
+    decimal? Step = null);
 
 /// <summary>Request body for setting a day's value. <paramref name="ClientTimestamp"/> drives last-write-wins.</summary>
 public sealed record SetHabitLogRequest(decimal Value, DateTimeOffset ClientTimestamp);

@@ -53,15 +53,18 @@ public sealed class PlanTemplateApplier
     }
 
     /// <summary>
-    /// Applies <paramref name="spec"/>. While a plan with the same name (or a previous name of that template) is active, returns it unchanged
-    /// (idempotent). Another active plan is only replaced when <paramref name="confirmReplace"/> is true:
-    /// it is made inactive (kept, with its history) and its workout paused.
+    /// Applies <paramref name="spec"/>. Another active plan is only replaced when <paramref name="confirmReplace"/>
+    /// is true: it is made inactive (kept, with its history) and its workout paused. While a plan with the same
+    /// name (or a previous name of that template) is active it is returned unchanged (idempotent), unless
+    /// <paramref name="refreshSameName"/> is true: then it is replaced the same way by a fresh copy.
+    /// <paramref name="at"/> stamps the audit line when an existing gated track moves onto the plan's gate.
     /// </summary>
-    public async Task<Result<StartSuggestedPlanResult>> ApplyAsync(UserId userId, SuggestedPlanSpec spec, bool confirmReplace, CancellationToken ct)
+    public async Task<Result<StartSuggestedPlanResult>> ApplyAsync(
+        UserId userId, SuggestedPlanSpec spec, bool confirmReplace, CancellationToken ct, bool refreshSameName = false, DateTimeOffset? at = null)
     {
         ArgumentNullException.ThrowIfNull(spec);
         var currentPlan = await _plans.GetActiveForUserAsync(userId, ct);
-        if (currentPlan is not null && PlanTemplates.IsSamePlan(currentPlan.Name, spec.Name))
+        if (currentPlan is not null && PlanTemplates.IsSamePlan(currentPlan.Name, spec.Name) && !refreshSameName)
         {
             return Result.Success(new StartSuggestedPlanResult(
                 currentPlan.Id.Value, currentPlan.LinkedWorkoutId?.Value, currentPlan.StartDate, AlreadyStarted: true, Warnings: []));
@@ -78,7 +81,7 @@ public sealed class PlanTemplateApplier
         {
             var workout = await CreateWorkoutAsync(userId, spec, ct);
             var protocols = await CreateCardioAsync(userId, spec, ct);
-            var tracks = await EnsureTracksAsync(userId, spec, ct);
+            var tracks = await EnsureTracksAsync(userId, spec, at ?? DateTimeOffset.UtcNow, ct);
             var routines = await EnsureMobilityAsync(userId, spec, ct);
             await EnsureHabitsAsync(userId, spec, ct);
 
@@ -131,6 +134,12 @@ public sealed class PlanTemplateApplier
             return Result.Failure<StartSuggestedPlanResult>(ex.Message, ErrorCode.DomainRuleViolation);
         }
     }
+
+    /// <summary>Gate conditions are records holding a list (areas), so compare them field by field.</summary>
+    private static bool SameGate(IReadOnlyList<GateCondition> a, IReadOnlyList<GateCondition> b) =>
+        a.Count == b.Count && a.Zip(b).All(p =>
+            p.First with { Areas = null } == p.Second with { Areas = null }
+            && (p.First.Areas ?? []).SequenceEqual(p.Second.Areas ?? [], StringComparer.OrdinalIgnoreCase));
 
     private static SessionFinisher? Finisher(FinisherSpec? spec, IReadOnlyDictionary<string, CardioTrack> tracks) => spec switch
     {
@@ -203,7 +212,9 @@ public sealed class PlanTemplateApplier
     }
 
     /// <summary>Starts each named track template, reusing a track of that template the user already has running.</summary>
-    private async Task<Dictionary<string, CardioTrack>> EnsureTracksAsync(UserId userId, SuggestedPlanSpec spec, CancellationToken ct)
+    /// A reused track still waiting on its gate moves onto the plan's gate when that differs (so a refreshed plan
+    /// drops conditions the plan no longer meets, such as the Walk builder one).
+    private async Task<Dictionary<string, CardioTrack>> EnsureTracksAsync(UserId userId, SuggestedPlanSpec spec, DateTimeOffset at, CancellationToken ct)
     {
         var result = new Dictionary<string, CardioTrack>(StringComparer.OrdinalIgnoreCase);
         if (spec.CardioTracks is not { Count: > 0 } keys || _tracks is null)
@@ -215,11 +226,17 @@ public sealed class PlanTemplateApplier
         foreach (var key in keys.Distinct(StringComparer.OrdinalIgnoreCase))
         {
             var running = existing.FirstOrDefault(t => string.Equals(t.TemplateKey, key, StringComparison.OrdinalIgnoreCase) && t.Status != CardioTrackStatus.Completed);
+            var gate = spec.GateFor(key);
             if (running is null)
             {
-                // A track with a default start gate (walk → run) is created waiting for it, never running.
-                running = CardioTrackTemplates.Create(key, userId, spec.StartDate, withGate: true);
+                // A track with a start gate (walk → run) is created waiting for it, never running.
+                running = CardioTrackTemplates.Create(key, userId, spec.StartDate, gate);
                 await _tracks.AddAsync(running, ct);
+            }
+            else if (running.Status == CardioTrackStatus.Gated && gate.Count > 0 && !SameGate(running.StartGate, gate))
+            {
+                running.SetStartGate(gate, at);
+                _tracks.Update(running);
             }
 
             result[key] = running;

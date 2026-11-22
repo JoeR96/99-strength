@@ -41,11 +41,11 @@ public sealed class IncrementHabitCommandHandler : IRequestHandler<IncrementHabi
 
             if (log is null)
             {
-                log = HabitLog.CreateFromTap(habit.Id, user.Value, request.Date, habit.Type, request.Delta, request.ClientTimestamp);
+                log = HabitLog.CreateFromTap(habit.Id, user.Value, request.Date, habit.Type, request.Delta, request.ClientTimestamp, habit.Step);
                 await _habits.AddLogAsync(log, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            else if (log.ApplyTap(habit.Type, request.Delta, request.ClientTimestamp))
+            else if (log.ApplyTap(habit.Type, request.Delta, request.ClientTimestamp, habit.Step))
             {
                 _habits.UpdateLog(log);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

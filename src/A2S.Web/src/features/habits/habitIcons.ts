@@ -14,6 +14,7 @@ import {
   Apple,
   Sun,
   Hash,
+  Beef,
   type LucideIcon,
 } from 'lucide-react';
 import type { HabitType } from '@/types/habits';
@@ -29,6 +30,8 @@ export const HABIT_ICONS: Record<string, LucideIcon> = {
   'book-open': BookOpen,
   apple: Apple,
   sun: Sun,
+  /** Protein. Terran CC maps "meat" (and "beef", "drumstick") to the same icon. */
+  meat: Beef,
 };
 
 export const HABIT_ICON_KEYS = Object.keys(HABIT_ICONS);

@@ -43,6 +43,19 @@ public static class CardioTrackTemplates
         return track;
     }
 
+    /// <summary>A fresh track from the template waiting on <paramref name="gate"/> (a plan's own gate); an empty gate starts it active.</summary>
+    public static CardioTrack Create(string key, UserId userId, DateOnly startedOn, IReadOnlyList<GateCondition> gate)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+        var track = Create(key, userId, startedOn);
+        if (gate.Count > 0)
+        {
+            track.InitialiseGate(gate);
+        }
+
+        return track;
+    }
+
     public static CardioTrack Create(string key, UserId userId, DateOnly startedOn) => key switch
     {
         WalkBuilder => CardioTrack.Create(userId, "Walk builder", CardioModality.Walk,

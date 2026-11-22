@@ -57,6 +57,7 @@ export function statefulHabitsHandlers(options: StatefulHabitsOptions = {}): Hab
           metTarget: value >= d.target,
           order: d.order,
           icon: d.icon,
+          step: d.step ?? 1,
         };
       });
     return { ...base, habits };
@@ -78,7 +79,8 @@ export function statefulHabitsHandlers(options: StatefulHabitsOptions = {}): Hab
       await delay(latencyMs);
       seed(date);
       const current = logs.get(`${id}|${date}`) ?? 0;
-      return log(id, date, Math.max(0, current + request.delta));
+      const step = definitions.find((d) => d.id === id)?.step ?? 1;
+      return log(id, date, Math.max(0, current + request.delta * step));
     },
     setLog: async (id, date, request) => {
       await delay(latencyMs);
@@ -96,6 +98,7 @@ export function statefulHabitsHandlers(options: StatefulHabitsOptions = {}): Hab
         archived: false,
         icon: request.icon,
         externalKey: null,
+        step: request.type === 'Counter' ? (request.step ?? 1) : 1,
       };
       definitions = [...definitions, created];
       return created;

@@ -54,7 +54,7 @@ public sealed class GetHabitsTodayQueryHandler : IRequestHandler<GetHabitsTodayQ
                     log?.Value ?? 0,
                     HabitRules.MetMinimum(h, log),
                     HabitRules.MetTarget(h, log),
-                    h.Order, h.Icon);
+                    h.Order, h.Icon, h.Step);
             })
             .ToList();
 

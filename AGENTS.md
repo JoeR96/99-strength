@@ -278,7 +278,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan. A lift slot may carry `WarmUpRoutineId` and `FinisherCardioProtocolId` | `PUT /api/v1/plans/{id}/schedule` |
 | `FinishGymSession` | Gym mode finish: stages the plan's lift completion (and the finisher's cardio completion) and a `HevyWorkoutPost`, then runs `CompleteDay` unchanged, whose save commits it all; then tries the Hevy post once. Idempotent on `ClientSessionId` (a replay returns the stored result, `replayed: true`) | `POST /api/v1/gym-sessions` |
 | `RetryHevyPost` | "Not in Hevy yet" → Retry: makes a gym session's post due now and tries it | `POST /api/v1/gym-sessions/{clientSessionId}/hevy-retry` |
-| Habits: `CreateHabit`, `UpdateHabit`, `ArchiveHabit`, `UpsertHabitLog`, `IncrementHabit`, `ImportHabits` | Habit definitions and per-local-date logs (last write wins per habit/day) | `/api/v1/habits` |
+| Habits: `CreateHabit`, `UpdateHabit`, `ArchiveHabit`, `UpsertHabitLog`, `IncrementHabit`, `ImportHabits` | Counters have a `Step` (default 1; a ±1 tap moves ±Step, floor 0; icon key `meat` for protein). Habit definitions and per-local-date logs (last write wins per habit/day) | `/api/v1/habits` |
 | `RecordBodyWeight` | Morning weigh-in; mirrored to Hevy | `/api/v1/body-weight` |
 | Cardio: `CreateCardioProtocol`, `AdvanceCouchToFiveK`, `SetRepeatWeek` | Cardio protocols and C25K week moves | `/api/v1/cardio-protocols` |
 | Plans: `CreateTrainingPlan`, `AddPhase`/`RemovePhase`, `AddCheckpoint`/`RemoveCheckpoint`, `LinkWorkout`, `CompleteSession`/`UndoSessionCompletion`, `UseAllowance`/`RemoveAllowanceUse`, `SetHighIntensityTarget` | The training plan around the A2S2 workout | `/api/v1/plans` |
@@ -345,7 +345,7 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
 - **Unilateral work is left side first**: gym mode lists Left then Right; Hevy routine/workout notes say "Left side first".
 - **Extra set** (`Exercise.ExtraSetSide` None/Left/Right, unilateral reps-per-set only): sent as
   `ExercisePerformanceRequest.ExtraSet`, outside `CompletedSets`, so RPS evaluation never sees it (tested
-  identical with/without); Hevy gets it as one more set with the note "Extra set: left". Plan v3 doesn't use it.
+  identical with/without); Hevy gets it as one more set with the note "Extra set: left". Plan v3 doesn't use it, nor supersets (its pause squat is reps per set, 4 × 5–8; its Walk → run gate has no walk-builder condition).
 - **Fixed cool-down finisher** (`SessionFinisher.Fixed` = `FixedActivity` Walk/Treadmill, 1–60 min, notes):
   no LISS rule, no track. Gym mode ticks it; the finish logs a plain cardio completion; Hevy gets Treadmill
   `243710DE` (or Walking) with the duration.

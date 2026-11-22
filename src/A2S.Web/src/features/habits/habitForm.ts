@@ -9,9 +9,11 @@ export interface HabitFormValues {
   minimum: string;
   unit: string;
   icon: string | null;
+  /** Counter only: how far one tap moves the value. */
+  step: string;
 }
 
-export type HabitFormErrors = Partial<Record<'name' | 'target' | 'minimum', string>>;
+export type HabitFormErrors = Partial<Record<'name' | 'target' | 'minimum' | 'step', string>>;
 
 export const EMPTY_HABIT_FORM: HabitFormValues = {
   name: '',
@@ -20,6 +22,7 @@ export const EMPTY_HABIT_FORM: HabitFormValues = {
   minimum: '1',
   unit: '',
   icon: null,
+  step: '1',
 };
 
 export function formFromHabit(habit: HabitDto): HabitFormValues {
@@ -30,6 +33,7 @@ export function formFromHabit(habit: HabitDto): HabitFormValues {
     minimum: String(habit.minimum),
     unit: habit.unit ?? '',
     icon: habit.icon,
+    step: String(habit.step ?? 1),
   };
 }
 
@@ -64,6 +68,14 @@ export function validateHabitForm(values: HabitFormValues): HabitFormResult {
     }
   }
 
+  let step = 1;
+  if (values.type === 'Counter') {
+    const parsed = parseNumber(values.step);
+    if (parsed === null || parsed <= 0) errors.step = 'Step must be more than 0';
+    else if (parsed > 10000) errors.step = 'Keep the step at 10000 or less';
+    else step = parsed;
+  }
+
   if (Object.keys(errors).length > 0) return { errors };
   const unit = values.unit.trim();
   return {
@@ -75,10 +87,11 @@ export function validateHabitForm(values: HabitFormValues): HabitFormResult {
       minimum: minimum!,
       unit: unit === '' ? null : unit,
       icon: values.icon,
+      ...(values.type === 'Counter' ? { step } : {}),
     },
   };
 }
 
 export function toUpdateRequest(request: Omit<CreateHabitRequest, 'order'>, order: number): UpdateHabitRequest {
-  return { name: request.name, target: request.target, minimum: request.minimum, unit: request.unit, order, icon: request.icon };
+  return { name: request.name, target: request.target, minimum: request.minimum, unit: request.unit, order, icon: request.icon, ...(request.step !== undefined ? { step: request.step } : {}) };
 }
