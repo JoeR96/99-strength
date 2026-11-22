@@ -64,6 +64,18 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
     /// <summary>Optional per-drill ticks for a mobility completion, in routine order.</summary>
     public IReadOnlyList<bool>? DrillTicks => _drillTicks?.AsReadOnly();
 
+    /// <summary>Stores the Hevy workout this completion was posted as. Idempotent for the same id; never overwrites a different one.</summary>
+    internal bool AttachHevyWorkout(string hevyWorkoutId)
+    {
+        if (HevyWorkoutId is null)
+        {
+            HevyWorkoutId = hevyWorkoutId;
+            return true;
+        }
+
+        return string.Equals(HevyWorkoutId, hevyWorkoutId, StringComparison.Ordinal);
+    }
+
     /// <summary>Whether this completion is for the same scheduled slot as the given one.</summary>
     internal bool MatchesSlot(DateOnly date, SessionKind kind, DayNumber? liftDay, CardioProtocolId? cardio, MobilityRoutineId? mobility) =>
         Date == date

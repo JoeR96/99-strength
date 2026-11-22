@@ -59,6 +59,7 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<HevyLink> HevyLinks => Set<HevyLink>();
     public DbSet<HevyWorkoutSnapshot> HevyWorkoutSnapshots => Set<HevyWorkoutSnapshot>();
     public DbSet<HevyPullCursor> HevyPullCursors => Set<HevyPullCursor>();
+    public DbSet<HevyWorkoutPost> HevyWorkoutPosts => Set<HevyWorkoutPost>();
     // Personal API tokens for clients that cannot hold a Clerk session (the desktop habit widget).
     public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
 
