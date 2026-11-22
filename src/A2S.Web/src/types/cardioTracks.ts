@@ -141,6 +141,8 @@ export interface CardioTrackDto {
   benchmark: TrackBenchmarkDto | null;
   benchmarkDue: boolean;
   safetyNote: string;
+  /** Client only: sessions logged on this phone that have not reached the server yet. */
+  pendingSessions?: number;
 }
 
 export interface CardioTrackSessionDto {

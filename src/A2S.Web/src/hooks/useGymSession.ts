@@ -30,7 +30,7 @@ export function useCardioProtocols(enabled = true) {
 export function useFinishGymSession(label?: string) {
   const queryClient = useQueryClient();
   return useOfflineMutation({
-    run: (request: FinishGymSessionRequest) => gymSessionsApi.finish(request),
+    run: (request: FinishGymSessionRequest, key) => gymSessionsApi.finish(request, key),
     toOp: (request: FinishGymSessionRequest) => ({
       kind: 'gym.finish' as const,
       localDate: formatLocal(new Date(request.startedAt)),

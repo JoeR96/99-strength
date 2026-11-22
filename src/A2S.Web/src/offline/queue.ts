@@ -57,7 +57,7 @@ export function createQueue(dbName: string = OFFLINE_DB_NAME): OfflineQueue {
 
   return {
     async enqueue(op) {
-      const full = { ...op, id: nanoid(), createdAt: new Date().toISOString(), attempts: 0 } as OfflineOp;
+      const full = { ...op, id: op.id ?? nanoid(), createdAt: new Date().toISOString(), attempts: 0 } as OfflineOp;
       await (await db()).add(STORE, full);
       return full;
     },

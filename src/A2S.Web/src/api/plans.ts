@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { idempotent } from './idempotency';
 import type { LocalDate } from '@/lib/localDate';
 import type {
   AllowanceKind,
@@ -66,8 +67,8 @@ export const plansApi = {
     return response.data;
   },
 
-  completeSession: async (planId: string, request: CompleteSessionRequest): Promise<SessionCompletionDto> => {
-    const response = await apiClient.post<SessionCompletionDto>(`/plans/${planId}/completions`, request);
+  completeSession: async (planId: string, request: CompleteSessionRequest, idempotencyKey?: string): Promise<SessionCompletionDto> => {
+    const response = await apiClient.post<SessionCompletionDto>(`/plans/${planId}/completions`, request, idempotent(idempotencyKey));
     return response.data;
   },
 

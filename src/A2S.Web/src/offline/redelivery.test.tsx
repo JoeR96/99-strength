@@ -83,7 +83,7 @@ describe('a retried tap is the same request', () => {
     post.mockRejectedValueOnce(networkError()).mockResolvedValueOnce(ok(3));
     const { manager, queue } = open(freshName());
     online = false;
-    await manager.enqueue(waterTap);
+    const queued = await manager.enqueue(waterTap);
     online = true;
 
     await manager.replayNow();
@@ -98,7 +98,7 @@ describe('a retried tap is the same request', () => {
 
     expect(post).toHaveBeenCalledTimes(2);
     const [first, retry] = post.mock.calls;
-    expect(first).toEqual([URL, { delta: 1, clientTimestamp: TAPPED_AT }]);
+    expect(first).toEqual([URL, { delta: 1, clientTimestamp: TAPPED_AT }, { headers: { 'Idempotency-Key': queued.id } }]);
     expect(retry).toEqual(first);
     expect(JSON.stringify(retry[1])).toBe(JSON.stringify(first[1]));
     expect(manager.getPendingCount()).toBe(0);
@@ -134,7 +134,7 @@ describe('a retried tap is the same request', () => {
     // The request leaves and the app dies before any answer: this promise never settles.
     post.mockReturnValueOnce(new Promise(() => {}));
     const before = open(name);
-    await before.manager.enqueue(waterTap);
+    const queued = await before.manager.enqueue(waterTap);
     await settle();
     expect(post).toHaveBeenCalledTimes(1);
     before.manager.stop();
@@ -147,7 +147,7 @@ describe('a retried tap is the same request', () => {
 
     expect(post).toHaveBeenCalledTimes(2);
     expect(post.mock.calls[1]).toEqual(post.mock.calls[0]);
-    expect(post.mock.calls[1]).toEqual([URL, { delta: 1, clientTimestamp: TAPPED_AT }]);
+    expect(post.mock.calls[1]).toEqual([URL, { delta: 1, clientTimestamp: TAPPED_AT }, { headers: { 'Idempotency-Key': queued.id } }]);
     expect(after.manager.getPendingCount()).toBe(0);
   });
 
@@ -177,7 +177,26 @@ describe('a retried tap is the same request', () => {
     await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(manager.getPendingCount()).toBe(0));
     const [direct, replayed] = post.mock.calls;
-    expect(direct).toEqual([URL, { delta: 1, clientTimestamp: tappedAt.toISOString() }]);
+    // The direct attempt already carried the key the queued op replays with, so the server counts it once.
+    expect(direct).toEqual([URL, { delta: 1, clientTimestamp: tappedAt.toISOString() }, { headers: { 'Idempotency-Key': expect.any(String) } }]);
     expect(replayed).toEqual(direct);
+  });
+
+  it('a queued cardio log replays with its op id as the key and its client key in the body', async () => {
+    post.mockResolvedValueOnce({ data: {} });
+    const { manager } = open(freshName());
+    online = false;
+    const request = {
+      completedAsPrescribed: true,
+      clientKey: '6b0f5f9e-1111-4c1a-9a51-000000000001',
+      log: { durationSeconds: 1800, avgHeartRate: null, rpe: null, distanceMeters: null, notes: null, highIntensityMinutes: null, effort: 'Solid' },
+    } as unknown as import('@/types/cardioTracks').LogTrackSessionRequest;
+    const queued = await manager.enqueue({ kind: 'cardio.log', localDate: '2026-11-09', target: { trackId: 'track-1' }, payload: request });
+    online = true;
+
+    await manager.replayNow();
+
+    expect(post.mock.calls[0]).toEqual(['/cardio-tracks/track-1/sessions', request, { headers: { 'Idempotency-Key': queued.id } }]);
+    expect(manager.getPendingCount()).toBe(0);
   });
 });

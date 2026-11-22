@@ -12,11 +12,15 @@ import type { IncrementHabitRequest, SetHabitLogRequest } from '@/types/habits';
 import type { CompleteSessionRequest } from '@/types/plan';
 import type { RecordBodyWeightRequest } from '@/types/bodyWeight';
 import type { FinishGymSessionRequest } from '@/types/gym';
+import type { LogTrackSessionRequest } from '@/types/cardioTracks';
 
-export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete' | 'gym.finish';
+export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete' | 'gym.finish' | 'cardio.log';
 
 interface OpBase {
-  /** Stable id (nanoid) used to remove or update the op. */
+  /**
+   * Stable id (nanoid) used to remove or update the op. It is also sent as the `Idempotency-Key` header,
+   * on the first attempt and on every replay, so the server runs the write once however often it arrives.
+   */
   id: string;
   /** Europe/London date the write belongs to, resolved when it was made. */
   localDate: LocalDate;
@@ -62,9 +66,22 @@ export interface GymFinishOp extends OpBase {
   payload: FinishGymSessionRequest;
 }
 
-export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp | GymFinishOp;
+/**
+ * A cardio track session from the log sheet. `payload.clientKey` is a UUID made when the sheet opened, so
+ * the server records the session once (`client:{key}`) even without the Idempotency-Key header.
+ */
+export interface CardioLogOp extends OpBase {
+  kind: 'cardio.log';
+  target: { trackId: string };
+  payload: LogTrackSessionRequest;
+}
+
+export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp | GymFinishOp | CardioLogOp;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-/** What callers hand to the queue; id, createdAt and attempts are filled in. */
-export type NewOfflineOp = DistributiveOmit<OfflineOp, 'id' | 'createdAt' | 'attempts'>;
+/**
+ * What callers hand to the queue; createdAt and attempts are filled in, and so is id unless given (the
+ * mutation passes the key it already sent on the first attempt, so a replay reuses it).
+ */
+export type NewOfflineOp = DistributiveOmit<OfflineOp, 'id' | 'createdAt' | 'attempts'> & { id?: string };

@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { habitsTodayFixture, WALKS_ID, WATER_ID } from '@/mocks/fixtures/habits';
 import { todayCardio, todayUpperA } from '@/mocks/fixtures/plan';
 import { SessionKind, SessionStatus } from '@/types/plan';
-import { overlayHabitOps, overlayPlanOps, overlayTrendOps } from './overlay';
+import { overlayCardioOps, overlayHabitOps, overlayPlanOps, overlayTrendOps } from './overlay';
+import { runTrack, walkTrack, WALK_TRACK_ID } from '@/mocks/fixtures/cardioTracks';
+import type { LogTrackSessionRequest } from '@/types/cardioTracks';
 import type { OfflineOp } from './types';
 
 const base = { id: 'x', createdAt: '2026-11-09T09:00:00.000Z', attempts: 0 };
@@ -94,5 +96,25 @@ describe('overlayTrendOps', () => {
       ['2026-11-08', 94.8],
       ['2026-11-09', 94.6],
     ]);
+  });
+});
+
+describe('overlayCardioOps', () => {
+  it('counts queued logs per track and leaves the prescription to the server', () => {
+    const payload = { completedAsPrescribed: true, clientKey: 'k', log: {} } as unknown as LogTrackSessionRequest;
+    const ops: OfflineOp[] = [
+      { ...base, id: 'a', kind: 'cardio.log', localDate: date, target: { trackId: WALK_TRACK_ID }, payload },
+      { ...base, id: 'b', kind: 'cardio.log', localDate: date, target: { trackId: WALK_TRACK_ID }, payload },
+    ];
+
+    const result = overlayCardioOps({ tracks: [walkTrack, runTrack] }, ops);
+
+    expect(result.tracks[0]).toEqual({ ...walkTrack, pendingSessions: 2 });
+    expect(result.tracks[1]).toBe(runTrack);
+  });
+
+  it('returns the data untouched with nothing queued', () => {
+    const data = { tracks: [walkTrack] };
+    expect(overlayCardioOps(data, [])).toBe(data);
   });
 });

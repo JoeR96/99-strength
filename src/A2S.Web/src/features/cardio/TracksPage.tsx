@@ -43,11 +43,15 @@ export function TracksPage() {
 
   const submitLog = (track: CardioTrackDto, request: LogTrackSessionRequest) =>
     log.mutate(
-      { id: track.id, request },
+      { id: track.id, request, label: track.name },
       {
-        onSuccess: (result) => {
+        onSuccess: (outcome) => {
           setLogging(null);
-          toast.success(`${result.reason}. Next: ${result.track.prescription.title}`);
+          toast.success(
+            outcome.queued
+              ? 'Saved on this phone. It will sync when you are back online.'
+              : `${outcome.data.reason}. Next: ${outcome.data.track.prescription.title}`
+          );
         },
         onError: fail,
       }

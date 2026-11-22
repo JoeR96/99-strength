@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cardioTracksApi } from '@/api/cardioTracks';
-import type { CardioTrackDto, LogTrackSessionRequest, UpdateCardioTrackRequest } from '@/types/cardioTracks';
+import { useOfflineSync } from '@/offline/context';
+import { overlayCardioOps } from '@/offline/overlay';
+import { useOfflineMutation } from '@/offline/useOfflineMutation';
+import { todayLocal } from '@/lib/localDate';
+import type { CardioTrackDto, LogTrackSessionRequest, TodayCardioDto, UpdateCardioTrackRequest } from '@/types/cardioTracks';
 
 export const cardioTrackKeys = {
   all: ['cardio-tracks'] as const,
@@ -10,8 +14,14 @@ export const cardioTrackKeys = {
   detail: (id: string) => [...cardioTrackKeys.all, 'detail', id] as const,
 };
 
+/** Track lists carry the logs still queued on this phone (a "Waiting to sync" badge per track). */
 export function useCardioTracks(enabled = true) {
-  return useQuery({ queryKey: cardioTrackKeys.list(), queryFn: () => cardioTracksApi.list(), enabled });
+  const sync = useOfflineSync();
+  return useQuery({
+    queryKey: cardioTrackKeys.list(),
+    queryFn: async () => overlayCardioOps({ tracks: await cardioTracksApi.list() }, await sync.queue.all()).tracks,
+    enabled,
+  });
 }
 
 export function useCardioTrackTemplates() {
@@ -19,7 +29,12 @@ export function useCardioTrackTemplates() {
 }
 
 export function useTodayCardio() {
-  return useQuery({ queryKey: cardioTrackKeys.today(), queryFn: () => cardioTracksApi.today(), retry: false });
+  const sync = useOfflineSync();
+  return useQuery({
+    queryKey: cardioTrackKeys.today(),
+    queryFn: async () => overlayCardioOps(await cardioTracksApi.today(), await sync.queue.all()),
+    retry: false,
+  });
 }
 
 export function useCardioTrack(id: string | undefined) {
@@ -47,8 +62,33 @@ export function useUpdateCardioTrack() {
   return useTrackMutation(({ id, request }: { id: string; request: UpdateCardioTrackRequest }) => cardioTracksApi.update(id, request));
 }
 
+/**
+ * Logs a track session. Offline (or when the request dies on the wire) it is queued as a `cardio.log` op;
+ * the request's `clientKey` (made when the sheet opened) keeps a replay to one session on the server.
+ * A queued log shows straight away as "Waiting to sync" on the track and in the offline badge.
+ */
 export function useLogTrackSession() {
-  return useTrackMutation(({ id, request }: { id: string; request: LogTrackSessionRequest }) => cardioTracksApi.logSession(id, request));
+  const queryClient = useQueryClient();
+  const sync = useOfflineSync();
+  return useOfflineMutation({
+    run: ({ id, request }: { id: string; request: LogTrackSessionRequest; label?: string }, key) => cardioTracksApi.logSession(id, request, key),
+    toOp: ({ id, request, label }) => ({
+      kind: 'cardio.log' as const,
+      localDate: request.date ?? todayLocal(),
+      label,
+      target: { trackId: id },
+      payload: request,
+    }),
+    onSuccess: async (outcome) => {
+      if (outcome.queued) {
+        const ops = await sync.queue.all();
+        queryClient.setQueryData<TodayCardioDto>(cardioTrackKeys.today(), (d) => (d ? overlayCardioOps(d, ops) : d));
+        queryClient.setQueryData<CardioTrackDto[]>(cardioTrackKeys.list(), (d) => (d ? overlayCardioOps({ tracks: d }, ops).tracks : d));
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: cardioTrackKeys.all });
+    },
+  });
 }
 
 export function useDecideSuggestion() {
