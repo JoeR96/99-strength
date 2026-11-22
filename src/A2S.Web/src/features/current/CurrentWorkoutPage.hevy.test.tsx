@@ -4,18 +4,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import toast from 'react-hot-toast';
-import { TodayPage } from './TodayPage';
+import { CurrentWorkoutPage } from './CurrentWorkoutPage';
+import { workoutsApi } from '@/api/workouts';
+import { installWorkoutsHandlers, workoutsHandlers } from '@/mocks/handlers/workouts';
 import { hevySyncApi } from '@/api/hevySync';
-import { plansApi } from '@/api/plans';
 import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers } from '@/mocks/handlers/habits';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
-import { hevySyncHandlers, installHevySyncHandlers, installPushFlowHandlers } from '@/mocks/handlers/hevySync';
+import { hevySyncHandlers, installHevySyncHandlers } from '@/mocks/handlers/hevySync';
 import { pullSummaryFixture } from '@/mocks/fixtures/hevyInbox';
-import { HEVY_ROUTINE_ID, PLAN_ID, todayDone } from '@/mocks/fixtures/plan';
+import { todayDone } from '@/mocks/fixtures/plan';
 import { HevyStatusStub } from '@/mocks/HevyStatusStub';
 import { PULL_TO_REFRESH_THRESHOLD_PX } from '@/hooks/usePullToRefresh';
-import { consumeHevyReturn, openHevyRoutine } from './hevyDeepLink';
+import { consumeHevyReturn } from '@/features/today/hevyDeepLink';
 
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: { firstName: 'Joe' } }),
@@ -35,17 +36,6 @@ vi.mock('react-hot-toast', () => ({
   default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }),
 }));
 
-// The real hand-over, minus actually navigating jsdom to hevy:// or opening hevy.com.
-vi.mock('./hevyDeepLink', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./hevyDeepLink')>();
-  return {
-    ...actual,
-    openHevyRoutine: vi.fn((routineId: string) =>
-      actual.openHevyRoutine(routineId, { navigate: () => {}, openWeb: () => {}, isVisible: () => false })
-    ),
-  };
-});
-
 const DATE = '2026-11-09';
 
 function renderToday({ hevyKey }: { hevyKey: boolean | null }) {
@@ -54,7 +44,7 @@ function renderToday({ hevyKey }: { hevyKey: boolean | null }) {
   });
   const page = (
     <MemoryRouter initialEntries={['/today']}>
-      <TodayPage />
+      <CurrentWorkoutPage />
     </MemoryRouter>
   );
   return render(
@@ -71,13 +61,6 @@ function setOnline(online: boolean) {
   });
 }
 
-function setVisibility(state: 'visible' | 'hidden') {
-  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
-  act(() => {
-    document.dispatchEvent(new Event('visibilitychange'));
-  });
-}
-
 function touch(type: 'touchstart' | 'touchmove' | 'touchend', clientY?: number) {
   const event = new Event(type, { bubbles: true });
   Object.defineProperty(event, 'touches', { value: clientY === undefined ? [] : [{ clientY }] });
@@ -86,11 +69,12 @@ function touch(type: 'touchstart' | 'touchmove' | 'touchend', clientY?: number) 
   });
 }
 
-describe('TodayPage with Hevy', () => {
+describe('CurrentWorkoutPage with Hevy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consumeHevyReturn();
     installPlansHandlers(plansHandlers.default());
+    installWorkoutsHandlers(workoutsHandlers.cycle());
     installHabitsHandlers(habitsHandlers.default());
     installBodyWeightHandlers(bodyWeightHandlers.empty());
     installHevySyncHandlers(hevySyncHandlers.empty());
@@ -108,8 +92,7 @@ describe('TodayPage with Hevy', () => {
     const getInbox = vi.spyOn(hevySyncApi, 'getInbox');
     renderToday({ hevyKey: false });
 
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
-    expect(screen.queryByTestId('push-to-hevy')).not.toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     expect(screen.queryByTestId('hevy-inbox-chip')).not.toBeInTheDocument();
     expect(pull).not.toHaveBeenCalled();
     expect(getInbox).not.toHaveBeenCalled();
@@ -119,7 +102,7 @@ describe('TodayPage with Hevy', () => {
     const pull = vi.spyOn(hevySyncApi, 'pull');
     renderToday({ hevyKey: null });
 
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     expect(pull).not.toHaveBeenCalled();
   });
 
@@ -131,7 +114,7 @@ describe('TodayPage with Hevy', () => {
     renderToday({ hevyKey: true });
 
     // The plan renders while the pull is still in flight.
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     expect(pull).toHaveBeenCalledTimes(1);
     expect(pull).toHaveBeenCalledWith(false);
 
@@ -141,21 +124,21 @@ describe('TodayPage with Hevy', () => {
   });
 
   it('without a key Refresh just re-reads the plan', async () => {
-    const getToday = vi.spyOn(plansApi, 'getToday');
+    const getCycle = vi.spyOn(workoutsApi, 'getCurrentCycle');
     const pull = vi.spyOn(hevySyncApi, 'pull');
     renderToday({ hevyKey: false });
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
-    expect(getToday).toHaveBeenCalledTimes(1);
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
+    expect(getCycle).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
 
-    await waitFor(() => expect(getToday).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getCycle).toHaveBeenCalledTimes(2));
     expect(pull).not.toHaveBeenCalled();
   });
 
   it('Refresh pulls and names the session Hevy completed', async () => {
     renderToday({ hevyKey: true });
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('today-refresh')).toBeEnabled());
 
     const pull = vi.spyOn(hevySyncApi, 'pull').mockImplementation(async () => {
@@ -166,13 +149,14 @@ describe('TodayPage with Hevy', () => {
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Matched Upper A from Hevy'));
     expect(pull).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(screen.queryByTestId('start-session')).not.toBeInTheDocument());
-    expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+    // The finished session shows as done; the page still shows the current session of the cycle.
+    expect(await screen.findByTestId('last-session')).toHaveTextContent('Upper A done.');
+    expect(screen.getByTestId('start-workout')).toBeInTheDocument();
   });
 
   it('Refresh with nothing new says so', async () => {
     renderToday({ hevyKey: true });
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('today-refresh')).toBeEnabled());
 
     fireEvent.click(screen.getByTestId('today-refresh'));
@@ -182,7 +166,7 @@ describe('TodayPage with Hevy', () => {
 
   it('pulling down from the top of the page refreshes', async () => {
     renderToday({ hevyKey: true });
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('today-refresh')).toBeEnabled());
     const pull = vi.spyOn(hevySyncApi, 'pull');
 
@@ -199,7 +183,7 @@ describe('TodayPage with Hevy', () => {
     installHevySyncHandlers(hevySyncHandlers.writesFail());
     renderToday({ hevyKey: true });
 
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     const notice = await screen.findByTestId('hevy-pull-failed');
     expect(notice).toHaveTextContent('Hevy is unavailable');
 
@@ -207,7 +191,7 @@ describe('TodayPage with Hevy', () => {
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
 
     await waitFor(() => expect(screen.queryByTestId('hevy-pull-failed')).not.toBeInTheDocument());
-    expect(screen.getByTestId('start-session')).toBeInTheDocument();
+    expect(screen.getByTestId('start-workout')).toBeInTheDocument();
   });
 
   it('shows how many workouts wait in the inbox and links to it', async () => {
@@ -219,61 +203,17 @@ describe('TodayPage with Hevy', () => {
     expect(chip).toHaveAttribute('href', '/hevy/inbox');
   });
 
-  it('Push to Hevy posts the session, then the card offers Open in Hevy', async () => {
-    installPushFlowHandlers();
-    const pushSession = vi.spyOn(hevySyncApi, 'pushSession');
-    renderToday({ hevyKey: true });
-
-    fireEvent.click(await screen.findByTestId('push-to-hevy'));
-
-    await waitFor(() => expect(pushSession).toHaveBeenCalledTimes(1));
-    expect(pushSession).toHaveBeenCalledWith(PLAN_ID, { date: DATE, kind: 1, liftDay: 1 });
-    expect(await screen.findByTestId('open-in-hevy')).toBeInTheDocument();
-    expect(screen.queryByTestId('push-to-hevy')).not.toBeInTheDocument();
-    expect(toast.success).toHaveBeenCalledWith('Upper A is in Hevy');
-  });
-
-  it("a push Hevy refuses shows the server's reason and keeps the button", async () => {
-    installHevySyncHandlers(hevySyncHandlers.writesFail());
-    renderToday({ hevyKey: true });
-
-    fireEvent.click(await screen.findByTestId('push-to-hevy'));
-
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Hevy is unavailable, your change is saved locally'));
-    expect(screen.getByTestId('push-to-hevy')).toBeEnabled();
-  });
-
-  it('Open in Hevy opens the routine, and coming back pulls again', async () => {
-    installPlansHandlers(plansHandlers.withHevyRoutine());
-    const pull = vi.spyOn(hevySyncApi, 'pull');
-    renderToday({ hevyKey: true });
-
-    const open = await screen.findByTestId('open-in-hevy');
-    await waitFor(() => expect(pull).toHaveBeenCalledTimes(1));
-    fireEvent.click(open);
-    expect(openHevyRoutine).toHaveBeenCalledWith(HEVY_ROUTINE_ID);
-
-    setVisibility('hidden');
-    expect(pull).toHaveBeenCalledTimes(1);
-    setVisibility('visible');
-
-    await waitFor(() => expect(pull).toHaveBeenCalledTimes(2));
-  });
-
-  it('offline with a key: no pull, a note, and Push to Hevy explains instead of failing', async () => {
+  it('offline with a key: no pull, a note, and Refresh explains instead of failing', async () => {
     setOnline(false);
     const pull = vi.spyOn(hevySyncApi, 'pull');
-    const pushSession = vi.spyOn(hevySyncApi, 'pushSession');
     renderToday({ hevyKey: true });
 
-    expect(await screen.findByTestId('start-session')).toBeInTheDocument();
+    expect(await screen.findByTestId('start-workout')).toBeInTheDocument();
     expect(screen.getByTestId('hevy-offline')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('push-to-hevy'));
     fireEvent.click(screen.getByTestId('today-refresh'));
 
     expect(pull).not.toHaveBeenCalled();
-    expect(pushSession).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/offline/i));
+    expect(toast).toHaveBeenCalledWith(expect.stringMatching(/offline/i));
 
     // Back online: the pull that could not run on open runs now.
     setOnline(true);

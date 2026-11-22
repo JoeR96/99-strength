@@ -7,6 +7,9 @@ import type { ReactNode } from 'react';
 import { RoutinesPage } from './RoutinesPage';
 import { RoutineEditorPage } from './RoutineEditorPage';
 import { RoutinePlayerPage } from './RoutinePlayerPage';
+import { RoutinePreviewPage } from './RoutinePreviewPage';
+import { groupRoutines } from './routineGroups';
+import { homeYogaFixture, followAlongFixture, mobilityRoutinesFixture } from '@/mocks/fixtures/mobility';
 import { mobilityRoutinesApi } from '@/api/mobilityRoutines';
 import { plansApi } from '@/api/plans';
 import { installMobilityRoutinesHandlers, mobilityRoutinesHandlers } from '@/mocks/handlers/mobilityRoutines';
@@ -38,6 +41,7 @@ function renderAt(path: string) {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/routines" element={<><p>Routines list</p><RoutinesPage /></>} />
+          <Route path="/routines/:id" element={<RoutinePreviewPage />} />
           <Route path="/routines/new" element={<RoutineEditorPage />} />
           <Route path="/routines/:id/edit" element={<RoutineEditorPage />} />
           <Route path="/routines/:id/play" element={<RoutinePlayerPage />} />
@@ -70,6 +74,44 @@ describe('RoutinesPage', () => {
     renderAt('/routines');
 
     expect(await screen.findByText('No routines yet')).toBeInTheDocument();
+  });
+
+  it('groups routines by kind under Mobility, each with Preview', async () => {
+    installMobilityRoutinesHandlers(mobilityRoutinesHandlers.home());
+    renderAt('/routines');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mobility' })).toBeInTheDocument();
+    const yoga = await screen.findByRole('region', { name: 'Yoga flow' });
+    expect(within(yoga).getByRole('article', { name: 'Home yoga' })).toBeInTheDocument();
+    expect(within(yoga).getByRole('link', { name: 'Preview Home yoga' })).toHaveAttribute('href', `/routines/${MOBILITY_YOGA_ID}`);
+    expect(screen.getByRole('region', { name: 'Follow-along' })).toHaveTextContent('Follow-along video');
+  });
+
+  it('orders the groups Warm-ups, Corrective, Stretch, Yoga flow, Follow-along', () => {
+    const routines = [followAlongFixture, homeYogaFixture, ...mobilityRoutinesFixture.map((r) => ({ ...r, kind: MobilityRoutineKind.WarmUp }))];
+    expect(groupRoutines(routines).map((g) => g.heading)).toEqual(['Warm-ups', 'Yoga flow', 'Follow-along']);
+  });
+});
+
+describe('RoutinePreviewPage', () => {
+  it('shows every pose with its dose, cues and the easier and harder versions, then Play', async () => {
+    installMobilityRoutinesHandlers(mobilityRoutinesHandlers.home());
+    renderAt(`/routines/${MOBILITY_YOGA_ID}`);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Home yoga' })).toBeInTheDocument();
+    const poses = within(screen.getByRole('list', { name: 'Poses' })).getAllByRole('listitem');
+    expect(poses).toHaveLength(homeYogaFixture.drills.length);
+    const ladder = screen.getByTestId('preview-drill-0');
+    expect(ladder).toHaveTextContent('Reverse plank ladder');
+    expect(ladder).toHaveTextContent(/Cues: /);
+    expect(ladder).toHaveTextContent(/Harder/);
+    expect(screen.getByTestId('preview-play')).toHaveAttribute('href', `/routines/${MOBILITY_YOGA_ID}/play`);
+  });
+
+  it('says when the routine is not there', async () => {
+    renderAt('/routines/nope');
+
+    expect(await screen.findByText('Routine not found')).toBeInTheDocument();
   });
 });
 

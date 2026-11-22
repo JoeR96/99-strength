@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/Navbar";
 import type { CompleteDayResult, WorkoutDto, DayNumber, ExerciseEntry } from "./workoutSessionTypes";
+import type { FinisherOutcomeDto } from "@/types/gym";
 import { outcomeToStatus, outcomeLabel, statusBadgeClass } from "@/lib/outcomeStatus";
 
 interface CompletionSummaryProps {
@@ -17,6 +18,8 @@ interface CompletionSummaryProps {
    * there is no browser-side "Send to Hevy" any more.
    */
   hevyNotice?: ReactNode;
+  /** The cardio finisher's progression, shown like the lifts' changes (gym mode). */
+  finisherOutcome?: FinisherOutcomeDto | null;
 }
 
 export function CompletionSummary({
@@ -26,6 +29,7 @@ export function CompletionSummary({
   exerciseEntries,
   onContinue,
   hevyNotice,
+  finisherOutcome,
 }: CompletionSummaryProps) {
   return (
     <div className="min-h-screen bg-background">
@@ -160,6 +164,16 @@ export function CompletionSummary({
                 </div>
               ))}
             </div>
+          </Card>
+        )}
+
+        {finisherOutcome && (
+          <Card className="p-6 mb-6" data-testid="finisher-outcome">
+            <h2 className="text-xl font-bold mb-2">Cardio finisher</h2>
+            <p className="font-medium text-foreground">{finisherOutcome.summary}</p>
+            {finisherOutcome.nextTime && (
+              <p className="mt-1 text-sm text-muted-foreground">{finisherOutcome.nextTime}</p>
+            )}
           </Card>
         )}
 

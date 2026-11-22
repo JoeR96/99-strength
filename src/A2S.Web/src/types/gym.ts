@@ -41,6 +41,24 @@ export interface FinishGymSessionResult {
   hevyStatus: HevyPostStatus;
   hevyWorkoutId: string | null;
   replayed: boolean;
+  /** What the finisher's track did and the next prescription (absent with no finisher logged). */
+  finisherOutcome?: FinisherOutcomeDto | null;
+}
+
+/** "Stair finisher: 5 → 6 min @ level 6" or "Hold: 1 more qualifying session to step up". */
+export interface FinisherOutcomeDto {
+  kind: 'Track' | 'Protocol' | 'Fixed';
+  name: string;
+  outcome: string;
+  reason: string;
+  qualified: boolean;
+  progressed: boolean;
+  before?: string | null;
+  next?: string | null;
+  sessionsToStepUp?: number | null;
+  summary: string;
+  /** "Next time: 6 min continuous @ level 6". */
+  nextTime?: string | null;
 }
 
 export interface HevyPostStatusDto {

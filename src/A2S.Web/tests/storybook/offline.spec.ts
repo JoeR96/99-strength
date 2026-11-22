@@ -1,15 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { storyUrl } from '../../scripts/storybook-harness.mjs';
 
-// Brief § 4 offline-first habits, Phase 4 PR 7 task 7.3: the Today/Offline story stubs the API in
+// Brief § 4 offline-first habits, Phase 4 PR 7 task 7.3: the Current workout/Offline story stubs the API in
 // memory and gives the page a "Go offline / Go online" switch that flips navigator.onLine and fires
 // the browser events. With no signal, two water taps must show straight away and be counted on
 // the pending badge; when the signal returns they replay in order and the stubbed server catches up.
 
-const STORY_ID = 'features-today-todaypage--offline';
+const STORY_ID = 'features-current-currentworkoutpage--offline';
 const WATER_ID = 'habit-water-0000-4000-8000-000000000001';
 
-test.describe('offline journey (Today/Offline story)', () => {
+test.describe('offline journey (Current workout/Offline story)', () => {
   test.beforeEach(async ({ page, baseURL }) => {
     await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (route) => route.abort());
     await page.goto(storyUrl(baseURL!, STORY_ID));
