@@ -177,6 +177,14 @@ describe('TodayPage', () => {
     await waitFor(() => expect(recordSpy).toHaveBeenCalledWith('2026-11-09', 94.2, expect.any(String)));
   });
 
+  it('hides the weigh-in when there is no weigh-in habit (archived)', async () => {
+    installHabitsHandlers(habitsHandlers.empty());
+    renderToday();
+    await screen.findByText(/upper a/i);
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
+    expect(screen.queryByTestId('weigh-in')).not.toBeInTheDocument();
+  });
+
   it('shows an error card with retry when the plan fails to load', async () => {
     installPlansHandlers(plansHandlers.error());
     renderToday();
