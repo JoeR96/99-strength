@@ -110,7 +110,7 @@ export function installPushFlowHandlers(): void {
     ...hevySyncHandlers.empty(),
     pushSession: async () => {
       pushed = true;
-      return { routineId: HEVY_ROUTINE_ID, title: 'Cut to 85 — Nov 2026 · W1 Upper A', outcome: 'created' };
+      return { routineId: HEVY_ROUTINE_ID, title: 'Lumbridge Lard Shed · W1 Upper A', outcome: 'created' };
     },
   });
 }

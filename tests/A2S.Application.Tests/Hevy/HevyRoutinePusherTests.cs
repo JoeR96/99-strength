@@ -109,7 +109,7 @@ public class HevyRoutinePusherTests
         result.IsSuccess.Should().BeTrue(result.Error);
         result.Value.Outcome.Should().Be(PushRoutineResult.Created);
         result.Value.RoutineId.Should().Be("R-1");
-        result.Value.Title.Should().Be("Cut to 85 — Nov 2026 · W1 Upper A");
+        result.Value.Title.Should().Be("Lumbridge Lard Shed · W1 Upper A");
 
         var draft = _posted.Should().ContainSingle().Subject;
         draft.FolderId.Should().Be(42);
@@ -143,7 +143,7 @@ public class HevyRoutinePusherTests
     [Fact]
     public async Task ReviewFocus3_PostTimesOutButLanded_IsFoundByTitleAndLinked_SoTheRetryUpdates()
     {
-        var title = "Cut to 85 — Nov 2026 · W1 Upper A";
+        var title = "Lumbridge Lard Shed · W1 Upper A";
         _hevy.CreateRoutineAsync(Key, Arg.Any<HevyRoutineDraft>(), Arg.Any<CancellationToken>())
             .Returns(HevyResult<HevyRoutine>.Failure(HevyError.Unavailable()));
         _hevy.GetRoutinesAsync(Key, 1, Arg.Any<CancellationToken>()).Returns(HevyResult<HevyPage<HevyRoutine>>.Success(new HevyPage<HevyRoutine>
@@ -233,7 +233,7 @@ public class HevyRoutinePusherTests
         var result = await _pusher.PushAsync(Key, _plan, Session(SessionKind.Cardio, Wed18Nov), Wed18Nov);
 
         result.IsSuccess.Should().BeTrue(result.Error);
-        result.Value.Title.Should().Be("Cut to 85 — Nov 2026 · Norwegian 4×4");
+        result.Value.Title.Should().Be("Lumbridge Lard Shed · Norwegian 4×4");
         var draft = _posted.Single();
         draft.Exercises.Single().ExerciseTemplateId.Should().Be("T-Norwegian 4×4");
         draft.Exercises.Single().Sets.Should().HaveCount(_fourByFour.Intervals.Count);
@@ -283,8 +283,8 @@ public class HevyRoutinePusherTests
         result.IsSuccess.Should().BeTrue(result.Error);
         result.Value.WeekStart.Should().Be(Mon16Nov);
         result.Value.Pushed.Should().Equal(
-            new PushedSession(Mon16Nov, "Upper A", "R-1", "Cut to 85 — Nov 2026 · W1 Upper A", PushRoutineResult.Created),
-            new PushedSession(Wed18Nov, "Norwegian 4×4", "R-2", "Cut to 85 — Nov 2026 · Norwegian 4×4", PushRoutineResult.Created));
+            new PushedSession(Mon16Nov, "Upper A", "R-1", "Lumbridge Lard Shed · W1 Upper A", PushRoutineResult.Created),
+            new PushedSession(Wed18Nov, "Norwegian 4×4", "R-2", "Lumbridge Lard Shed · Norwegian 4×4", PushRoutineResult.Created));
         var failure = result.Value.Failed.Should().ContainSingle().Subject;
         failure.Date.Should().Be(new DateOnly(2026, 11, 21));
         failure.Label.Should().Be("C25K run or LISS 30–40 min");

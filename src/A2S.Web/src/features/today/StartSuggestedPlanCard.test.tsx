@@ -70,7 +70,7 @@ describe('StartSuggestedPlanCard', () => {
     renderWithQuery(<StartSuggestedPlanCard today={wednesday11Nov2026} />);
 
     expect(screen.getByText('Start this plan')).toBeInTheDocument();
-    expect(screen.getByText(/Cut to 85, Nov 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Lumbridge Lard Shed/)).toBeInTheDocument();
     expect(screen.getByLabelText('Bench press TM')).toHaveAttribute('inputmode', 'decimal');
     expect(screen.getByLabelText('Squat TM')).toBeInTheDocument();
     expect(screen.getByLabelText('Overhead press TM')).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('StartSuggestedPlanCard', () => {
 });
 
 describe('StartSuggestedPlanCard with Plan v3', () => {
-  it('lists Plan v3 alongside Cut to 85 and starts it with every training max left blank (pending)', async () => {
+  it('lists Plan v3 alongside Lumbridge Lard Shed and starts it with every training max left blank (pending)', async () => {
     vi.mocked(suggestedPlansApi.list).mockResolvedValue([cutTo85Preview, planV3Preview]);
     const apply = vi.spyOn(planTemplatesApi, 'apply').mockResolvedValue(started);
     const onStarted = vi.fn();

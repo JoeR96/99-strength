@@ -284,7 +284,7 @@ public sealed class HevyRoutinePusher
             }
         }
 
-        var fromBrief = string.Equals(plan.Name, CutTo85Nov2026.Name, StringComparison.Ordinal);
+        var fromBrief = CutTo85Nov2026.IsNamed(plan.Name);
         var title = RoutineBuilder.LiftTitle(plan.Name, workout.CurrentWeek, session.Label);
         var draft = RoutineBuilder.Lift(
             title,

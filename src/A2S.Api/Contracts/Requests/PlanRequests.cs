@@ -50,6 +50,9 @@ public sealed record UseAllowanceRequest(DateOnly Date, AllowanceKind Kind);
 /// <summary>Weekly zone 4–5 minutes band.</summary>
 public sealed record SetHighIntensityTargetRequest(int MinMinutes, int MaxMinutes);
 
+/// <summary>New plan name: required, at most 200 characters (trimmed).</summary>
+public sealed record RenamePlanRequest(string Name);
+
 /// <summary>Body for <c>PUT /api/v1/cardio-protocols/{id}/repeat-week</c>.</summary>
 public sealed record SetRepeatWeekRequest(bool Repeat);
 

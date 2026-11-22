@@ -17,6 +17,7 @@ import { useDayBudget } from '@/hooks/useDayBudget';
 import { WeightTrendChart } from './WeightTrendChart';
 import { VolumeThisWeek } from './VolumeThisWeek';
 import { CheckpointsList } from './CheckpointsList';
+import { PlanNameWithRename } from '@/features/plans/RenamePlanDialog';
 import { CardioTrackProgress } from '@/features/cardio/CardioTrackProgress';
 
 const TREND_DAYS = 90;
@@ -37,7 +38,7 @@ export function ProgressPage() {
       <main className="container-page space-y-4 py-4">
         <header>
           <h1 className="text-2xl font-bold text-foreground">Progress</h1>
-          {plan && <p className="text-sm text-muted-foreground">{plan.name}</p>}
+          {plan && <PlanNameWithRename planId={plan.id} name={plan.name} />}
         </header>
 
         {trendQuery.isLoading && <div className="h-72 animate-pulse rounded-lg bg-muted" aria-hidden="true" />}

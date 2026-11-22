@@ -7,7 +7,7 @@ type SuggestedPlansHandlers = Partial<typeof suggestedPlansApi>;
 
 export const cutTo85Preview: SuggestedPlanPreview = {
   key: 'cut-to-85',
-  name: 'Cut to 85 — Nov 2026',
+  name: 'Lumbridge Lard Shed',
   description: 'A2S2 on the four main lifts, cardio twice a week, Mobility A as every warm-up, five daily habits.',
   startDate: '2026-11-16',
   inputs: [

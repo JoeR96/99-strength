@@ -428,4 +428,47 @@ public class TrainingPlanTests
         plan.SchedulesMobilityRoutine(MobilityB).Should().BeTrue();
         plan.SchedulesMobilityRoutine(new MobilityRoutineId(Guid.Parse("0b0b0b0b-0000-0000-0000-000000000099"))).Should().BeFalse();
     }
+
+    [Fact]
+    public void Rename_TrimsAndKeepsTheNewName()
+    {
+        var plan = CreatePlan();
+
+        plan.Rename("  Lumbridge Lard Shed  ");
+
+        plan.Name.Should().Be("Lumbridge Lard Shed");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Rename_ToABlankName_IsRefusedAndKeepsTheOldName(string name)
+    {
+        var plan = CreatePlan();
+
+        var act = () => plan.Rename(name);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("*name is required*");
+        plan.Name.Should().Be("Cut to 85 — Nov 2026");
+    }
+
+    [Fact]
+    public void Rename_ToMoreThan200Characters_IsRefused()
+    {
+        var plan = CreatePlan();
+
+        var act = () => plan.Rename(new string('a', 201));
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("*200*");
+    }
+
+    [Fact]
+    public void Rename_To200Characters_IsAllowed()
+    {
+        var plan = CreatePlan();
+
+        plan.Rename(new string('a', 200));
+
+        plan.Name.Should().HaveLength(200);
+    }
 }

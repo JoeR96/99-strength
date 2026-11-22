@@ -201,6 +201,44 @@ public class PlansControllerTests
     }
 
     [Fact]
+    public async Task Rename_ChangesTheName_TrimmedAndPersisted()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var plan = await CreatePlanAsync(client);
+
+        var response = await client.PutAsJsonAsync($"/api/v1/plans/{plan.Id}/name", new RenamePlanRequest("  Lumbridge Lard Shed "));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadFromJsonAsync<TrainingPlanDto>())!.Name.Should().Be("Lumbridge Lard Shed");
+        (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Name.Should().Be("Lumbridge Lard Shed");
+    }
+
+    [Fact]
+    public async Task Rename_WithABlankName_IsABadRequest()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var plan = await CreatePlanAsync(client);
+
+        var response = await client.PutAsJsonAsync($"/api/v1/plans/{plan.Id}/name", new RenamePlanRequest("   "));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Name.Should().Be(plan.Name);
+    }
+
+    [Fact]
+    public async Task Rename_AnotherUsersPlan_IsNotFound_AndUnchanged()
+    {
+        var ownerId = $"user_{Guid.NewGuid():N}";
+        var plan = await CreatePlanAsync(_factory.CreateAuthenticatedClient(ownerId));
+        var intruder = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+
+        var response = await intruder.PutAsJsonAsync($"/api/v1/plans/{plan.Id}/name", new RenamePlanRequest("Mine now"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await _factory.CreateAuthenticatedClient(ownerId).GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Name.Should().Be(plan.Name);
+    }
+
+    [Fact]
     public async Task OtherUsersPlan_IsNotFound()
     {
         var owner = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");

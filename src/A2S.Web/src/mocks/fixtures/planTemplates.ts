@@ -1,4 +1,4 @@
-/** Plan template previews for stories and tests: Plan v3 (Base/Build/Transition) and Cut to 85. */
+/** Plan template previews for stories and tests: Plan v3 (Base/Build/Transition) and Lumbridge Lard Shed. */
 
 import type { PlanTemplatePreview } from '@/api/planTemplates';
 import { cutTo85Preview } from '@/mocks/handlers/suggestedPlans';

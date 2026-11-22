@@ -11,13 +11,20 @@ using A2S.Domain.Services;
 namespace A2S.Application.SuggestedPlans;
 
 /// <summary>
-/// The "Cut to 85 — Nov 2026" plan from brief § 5, line by line. Pure: given the inputs it returns a
+/// The "Lumbridge Lard Shed" plan (key "cut-to-85", first shipped as "Cut to 85 — Nov 2026") from brief § 5, line by line. Pure: given the inputs it returns a
 /// <see cref="SuggestedPlanSpec"/>; it touches no repository.
 /// </summary>
 public static class CutTo85Nov2026
 {
     public const string Key = "cut-to-85";
-    public const string Name = "Cut to 85 — Nov 2026";
+    public const string Name = "Lumbridge Lard Shed";
+
+    /// <summary>Names this plan was created under before; plans with them are still this template.</summary>
+    public static IReadOnlyList<string> PreviousNames { get; } = ["Cut to 85 — Nov 2026"];
+
+    /// <summary>True when a plan with this name came from this template (current or previous name).</summary>
+    public static bool IsNamed(string planName) =>
+        string.Equals(planName, Name, StringComparison.Ordinal) || PreviousNames.Contains(planName, StringComparer.Ordinal);
     public const string Description =
         "A2S2 on the four main lifts with three accessories a day, Norwegian 4×4 and C25K/LISS cardio, " +
         "Mobility A as every warm-up, five daily habits and trend-weight checkpoints to 85 kg by 8 March 2027.";
@@ -363,16 +370,17 @@ public static class CutTo85Nov2026
     }
 }
 
-/// <summary>"Cut to 85" through the generic template path. Its four training maxes are required.</summary>
+/// <summary>Lumbridge Lard Shed (key "cut-to-85") through the generic template path. Its four training maxes are required.</summary>
 public sealed class CutTo85Template : IPlanTemplate
 {
     public string Key => CutTo85Nov2026.Key;
     public string Name => CutTo85Nov2026.Name;
+    public IReadOnlyList<string> PreviousNames => CutTo85Nov2026.PreviousNames;
     public string Description => CutTo85Nov2026.Description;
     public decimal DefaultStartWeightKg => CutTo85Nov2026.DefaultStartWeightKg;
     public IReadOnlyList<SuggestedPlanInputSpec> Inputs => CutTo85Nov2026.Inputs;
 
-    /// <summary>Cut to 85 starts the Monday on or after <see cref="PlanTemplateInputs.StartDate"/>.</summary>
+    /// <summary>This plan starts the Monday on or after <see cref="PlanTemplateInputs.StartDate"/>.</summary>
     public SuggestedPlanSpec Build(PlanTemplateInputs inputs)
     {
         ArgumentNullException.ThrowIfNull(inputs);

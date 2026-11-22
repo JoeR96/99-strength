@@ -34,7 +34,9 @@ public class CutTo85Nov2026Tests
     public void Build_NamesThePlanAsTheBriefDoes()
     {
         Spec.Key.Should().Be("cut-to-85");
-        Spec.Name.Should().Be("Cut to 85 — Nov 2026");
+        Spec.Name.Should().Be("Lumbridge Lard Shed");
+        CutTo85Nov2026.Key.Should().Be("cut-to-85");
+        CutTo85Nov2026.PreviousNames.Should().Equal("Cut to 85 — Nov 2026");
         Spec.Variant.Should().Be(ProgramVariant.FourDay);
         Spec.StartWeightKg.Should().Be(95m);
     }

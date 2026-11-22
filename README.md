@@ -81,10 +81,12 @@ of your estimated one-rep max).
 ## Plan templates
 
 **Plan templates** (in Settings next to Programmes, on the Programmes page, or on Today when you have no plan) lists the ready-made plans:
-"Cut to 85" and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
+"Lumbridge Lard Shed" (a cut to 85 kg by March 2027) and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
 session's exercises, warm-ups, home routines, cardio tracks and what's left to fill in. Pick a start date
 (it moves to a Monday), enter training maxes now or leave them for later, and apply. If you already have a
 plan, the app asks first; your old plan and its history are kept. Everything it creates is yours to edit.
+
+To rename your plan, tap the pencil next to its name at the top of Progress, type the new name and tap Save.
 
 ## How it connects
 

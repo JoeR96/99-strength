@@ -106,4 +106,10 @@ export const plansApi = {
     const response = await apiClient.put<HighIntensityTargetDto>(`/plans/${planId}/high-intensity-target`, request);
     return response.data;
   },
+
+  /** Renames the plan (trimmed, 1–200 characters); 404 when it is not the caller's. */
+  rename: async (planId: string, name: string): Promise<TrainingPlanDto> => {
+    const response = await apiClient.put<TrainingPlanDto>(`/plans/${planId}/name`, { name });
+    return response.data;
+  },
 };

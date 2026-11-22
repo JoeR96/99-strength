@@ -36,7 +36,7 @@ export interface StartSuggestedPlanCardProps {
   today?: Date;
   /** Starting values for the fields (e.g. from a previous workout). */
   initialValues?: Partial<Record<TmKey | 'startWeightKg', number>>;
-  /** Which suggested plan is chosen at first (stories); Cut to 85 by default. */
+  /** Which suggested plan is chosen at first (stories); Lumbridge Lard Shed (key cut-to-85) by default. */
   initialPlanKey?: string;
 }
 
@@ -80,7 +80,7 @@ function serverMessage(error: unknown): string {
 }
 
 /**
- * First-run card on Today: "Start this plan — Cut to 85, Nov 2026". Four training maxes and a
+ * First-run card on Today: "Start this plan — Lumbridge Lard Shed". Four training maxes and a
  * start weight (prefilled 95 kg) are the only inputs; one tap creates the whole plan starting the
  * coming Monday. The card is self-contained (TanStack mutation inside); the page mounts it.
  */
@@ -97,7 +97,7 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues, initia
     startWeightKg: (initialValues?.startWeightKg ?? DEFAULT_START_WEIGHT_KG).toString(),
   });
   const [errors, setErrors] = useState<FieldErrors>({});
-  // Every suggested plan (Cut to 85, Plan v3); Cut to 85 keeps its own form, the others use the template form.
+  // Every suggested plan (Lumbridge Lard Shed, Plan v3); Lumbridge Lard Shed keeps its own form, the others use the template form.
   const suggested = useQuery({ queryKey: ['plans', 'suggested'], queryFn: suggestedPlansApi.list, retry: false });
   const plans = suggested.data ?? [];
   const [selectedKey, setSelectedKey] = useState(initialPlanKey);
@@ -149,7 +149,7 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues, initia
             selected.name
           ) : (
             <>
-              Cut to 85, Nov 2026. A2S2 on the four main lifts, cardio twice a week, Mobility A as every
+              Lumbridge Lard Shed. A2S2 on the four main lifts, cardio twice a week, Mobility A as every
               warm-up, five daily habits. Starts {startDay}.
             </>
           )}

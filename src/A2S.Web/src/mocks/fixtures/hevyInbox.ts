@@ -52,12 +52,12 @@ export function pushWeekFixture(date: LocalDate): PushWeekResult {
   return {
     weekStart: monday,
     pushed: [
-      { date: monday, label: 'Upper A', routineId: 'rt_upper_a_w1', title: 'Cut to 85 — Nov 2026 · W1 Upper A', outcome: 'created' },
-      { date: addDays(monday, 1), label: 'Lower A', routineId: 'rt_lower_a_w1', title: 'Cut to 85 — Nov 2026 · W1 Lower A', outcome: 'created' },
-      { date: addDays(monday, 2), label: 'Norwegian 4×4', routineId: 'rt_4x4', title: 'Cut to 85 — Nov 2026 · Norwegian 4×4', outcome: 'updated' },
-      { date: addDays(monday, 2), label: 'Mobility B', routineId: 'rt_mob_b', title: 'Cut to 85 — Nov 2026 · Mobility B', outcome: 'updated' },
-      { date: addDays(monday, 3), label: 'Upper B', routineId: 'rt_upper_b_w1', title: 'Cut to 85 — Nov 2026 · W1 Upper B', outcome: 'created' },
-      { date: addDays(monday, 4), label: 'Lower B', routineId: 'rt_lower_b_w1', title: 'Cut to 85 — Nov 2026 · W1 Lower B', outcome: 'created' },
+      { date: monday, label: 'Upper A', routineId: 'rt_upper_a_w1', title: 'Lumbridge Lard Shed · W1 Upper A', outcome: 'created' },
+      { date: addDays(monday, 1), label: 'Lower A', routineId: 'rt_lower_a_w1', title: 'Lumbridge Lard Shed · W1 Lower A', outcome: 'created' },
+      { date: addDays(monday, 2), label: 'Norwegian 4×4', routineId: 'rt_4x4', title: 'Lumbridge Lard Shed · Norwegian 4×4', outcome: 'updated' },
+      { date: addDays(monday, 2), label: 'Mobility B', routineId: 'rt_mob_b', title: 'Lumbridge Lard Shed · Mobility B', outcome: 'updated' },
+      { date: addDays(monday, 3), label: 'Upper B', routineId: 'rt_upper_b_w1', title: 'Lumbridge Lard Shed · W1 Upper B', outcome: 'created' },
+      { date: addDays(monday, 4), label: 'Lower B', routineId: 'rt_lower_b_w1', title: 'Lumbridge Lard Shed · W1 Lower B', outcome: 'created' },
     ],
     failed: [
       { date: addDays(monday, 5), label: 'C25K run', error: 'This cardio slot has no protocol; choose one before pushing it to Hevy.' },
