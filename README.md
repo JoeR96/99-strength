@@ -38,7 +38,9 @@ amount, cues and an optional range, like holding 15 to 30 seconds in 5-second st
 level you're on and its cues, and the easier or harder version if you ask. When you finish, each drill is
 marked "felt clean" unless you tap "strained". After two clean sessions in a row the hold goes up a step, and
 at the top of the range the app suggests the next level, which you can accept or turn down. A strain takes the
-hold back a step. Every change is listed with its reason and the last one can be undone.
+hold back a step. Before you start a routine, its Progress section shows each drill's level and hold, any suggested
+level with **Accept** or **Not yet**, and the last 10 changes with their reasons, with **Undo last change**. The
+same Accept / Not yet appears on the finish screen when a session earns a new level.
 
 A **follow-along** routine is just a title, a link and the minutes it usually takes. Start opens the video in a
 new tab; when you come back, "I'm back — log it" records the minutes you actually did.

@@ -91,7 +91,7 @@ export const LadderStepUp: Story = {
   play: async ({ canvasElement }) => finishLadderAndSave(canvasElement),
 };
 
-/** At the top of Level 1: "Next time: Level 2: Hands on a bench, straight legs". */
+/** At the top of Level 1: "Next time: Level 2: Hands on a bench, straight legs" with Accept / Not yet. */
 export const LadderLevelUp: Story = {
   decorators: [homeMocks(true), withAppProviders(`/routines/${MOBILITY_YOGA_ID}/play`)],
   render: playerRoutes,
@@ -108,4 +108,16 @@ export const FollowAlong: Story = {
 export const FollowAlongLogIt: Story = {
   decorators: [homeMocks(), withAppProviders(`/routines/${MOBILITY_VIDEO_ID}/play`)],
   render: () => <FollowAlongPlayer routine={followAlongFixture} initiallyBack />,
+};
+
+/** Ready screen with Progress: each drill's level and dose, Level 2 waiting for Accept / Not yet, recent changes and Undo. */
+export const ReadyWithProgress: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installMobilityRoutinesHandlers(mobilityRoutinesHandlers.homePending());
+      installPlansHandlers(plansHandlers.homeYoga());
+    }),
+    withAppProviders(`/routines/${MOBILITY_YOGA_ID}/play`),
+  ],
+  render: playerRoutes,
 };

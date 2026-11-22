@@ -115,3 +115,25 @@ export function ladderLevelUpResult(): DrillFeedbackResultDto {
   routine.canUndo = true;
   return { routine, changes: [change] };
 }
+
+/** The ladder at the top of Level 1 with Level 2 suggested, and a short change history to undo. */
+export function homeYogaPendingFixture(): MobilityRoutineDto {
+  const { routine } = ladderLevelUpResult();
+  routine.recentChanges = [
+    ...ladderLevelUpResult().changes,
+    { changeId: 'chg-0', at: '2026-11-18T18:00:00Z', drillName: 'Reverse plank ladder', kind: DrillChangeKind.DoseIncreased, reason: '2 clean sessions: 25 s to 30 s', undone: false },
+  ];
+  return routine;
+}
+
+/** What accepting (or declining) a suggestion returns: moved up to the suggested level at its bottom, or stayed. */
+export function answeredSuggestion(routine: MobilityRoutineDto, drillName: string, accept: boolean): MobilityRoutineDto {
+  const next = structuredClone(routine);
+  next.drills = next.drills.map((d) => {
+    if (d.name !== drillName || d.suggestedLevel == null) return d;
+    if (!accept) return { ...d, suggestedLevel: null, cleanStreak: 0 };
+    const level = d.levels![d.suggestedLevel];
+    return { ...d, currentLevel: d.suggestedLevel, suggestedLevel: null, cleanStreak: 0, sets: level.sets, dose: { unit: level.dose.unit, amount: level.range?.min ?? level.dose.amount } };
+  });
+  return next;
+}

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useRecordDrillFeedback } from '@/hooks/useMobilityRoutines';
 import { DrillOutcome, type MobilityRoutineDto } from '@/types/mobility';
 import { defaultFeedback, drillsToRate, nextTimeLines, prescription } from './drillLevels';
+import { LevelSuggestionPrompt } from './RoutineProgress';
 
 interface Props {
   routine: MobilityRoutineDto;
@@ -25,7 +26,7 @@ export function DrillFeedbackPanel({ routine, ticks, sessionKey }: Props) {
   const [result, setResult] = useState<{ lines: string[]; queued: boolean } | null>(null);
   const record = useRecordDrillFeedback();
 
-  if (rate.length === 0) return null;
+  if (rate.length === 0 && !result) return null;
 
   const toggle = (name: string) =>
     setStrained((s) => {
@@ -59,6 +60,10 @@ export function DrillFeedbackPanel({ routine, ticks, sessionKey }: Props) {
           <p key={line} className="text-base font-medium text-foreground">
             {line}
           </p>
+        ))}
+        {/* `routine` is the live cached routine, so an answered suggestion disappears. */}
+        {routine.drills.map((d) => (
+          <LevelSuggestionPrompt key={d.name} routineId={routine.id} drill={d} />
         ))}
       </section>
     );

@@ -126,7 +126,9 @@ strain or stop steps back once / holds; skipped changes nothing) and the routine
 `SessionCompletions.DurationMinutes`; its Down drops them (tested in `MobilityLevelsPersistenceTests`).
 API: `POST /api/v1/mobility-routines/{id}/feedback` (idempotent on `sessionKey`; the phone queues it offline as
 `mobility.feedback`), `/suggestion`, `/progression/undo`, `/hold-increase` (the plan's phase bump, e.g. +15 s).
-Per-side drills always play left side first; `ExtraSetSide` still works for old routines but has no new UI.
+UI: `RoutineProgress` (player Ready screen: levels, pending suggestion Accept / Not yet, last 10 changes, undo) and
+`LevelSuggestionPrompt` (also on the finish screen). Accept / decline / undo are online-only mutations with an
+explicit offline toast. Per-side drills always play left side first; `ExtraSetSide` still works for old routines but has no new UI.
 Story mocks: `mobilityRoutinesHandlers.home()` / `homeLevelUp()` with `plansHandlers.homeYoga()`.
 
 ## Secrets

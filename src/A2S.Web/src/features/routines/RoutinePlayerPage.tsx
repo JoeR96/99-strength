@@ -22,6 +22,7 @@ import { beep, primeAudio, useWakeLock } from './playerEffects';
 import { levelLabel, levelNeighbours, shortDose } from './drillLevels';
 import { DrillFeedbackPanel } from './DrillFeedbackPanel';
 import { FollowAlongPlayer } from './FollowAlongPlayer';
+import { RoutineProgress } from './RoutineProgress';
 
 function newSessionKey(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `s-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -164,6 +165,7 @@ function Player({ routineId }: { routineId: string }) {
               <Play aria-hidden="true" />
               Start
             </Button>
+            <RoutineProgress routine={routine} />
           </div>
         )}
 
