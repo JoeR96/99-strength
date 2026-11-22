@@ -118,7 +118,7 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             IsAmrap = ps.IsAmrap
         }).ToList();
 
-        var metadata = CreateMetadata(exercise, weekParams);
+        var metadata = CreateMetadata(exercise, weekParams, weekNumber);
 
         return new PlannedExerciseDto
         {
@@ -129,13 +129,15 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             OrderInDay = exercise.OrderInDay,
             ExternalTemplateId = exercise.ExternalTemplateId,
             ProgressionType = exercise.Progression.ProgressionType,
-            RestSeconds = exercise.Category == ExerciseCategory.MainLift ? RestDefaults.MainLiftSeconds : RestDefaults.AccessorySeconds,
+            RestSeconds = RestDefaults.For(exercise),
             PlannedSets = setDtos,
-            Metadata = metadata
+            Metadata = metadata,
+            SupersetGroup = exercise.SupersetGroup,
+            ExtraSetSide = exercise.ExtraSetSide.ToString()
         };
     }
 
-    private static PlannedExerciseMetadataDto CreateMetadata(Exercise exercise, WeekParameters weekParams)
+    private static PlannedExerciseMetadataDto CreateMetadata(Exercise exercise, WeekParameters weekParams, int templateWeek)
     {
         var metadata = new PlannedExerciseMetadataDto();
         var progression = exercise.Progression;
@@ -150,7 +152,12 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             {
                 TrainingMaxValue = tm?.Value,
                 TrainingMaxUnit = tm?.Unit.ToString(),
-                Notes = weekParams.IsDeload
+                IsTrainingMaxPending = exercise.IsTrainingMaxPending,
+                Tier = (progression as LinearProgressionStrategy)?.Tier.ToString(),
+                IntensityPercentage = A2SHypertrophyProgram.GetWeekData(templateWeek, (progression as LinearProgressionStrategy)?.Tier ?? ProgramTier.Primary).Intensity,
+                Notes = exercise.IsTrainingMaxPending
+                    ? "Set your training max"
+                    : weekParams.IsDeload
                     ? $"DELOAD WEEK | TM: {tm}"
                     : $"TM: {tm} | Intensity: {weekParams.IntensityPercentage:0}%"
                         + (data.UseAmrap == true ? " | AMRAP on last set" : "")

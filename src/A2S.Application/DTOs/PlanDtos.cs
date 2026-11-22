@@ -19,7 +19,11 @@ public sealed record ScheduledSessionDto(
     Guid? WarmUpRoutineId = null,
     Guid? FinisherCardioProtocolId = null,
     Guid? CardioTrackId = null,
-    Guid? FinisherCardioTrackId = null);
+    Guid? FinisherCardioTrackId = null,
+    FixedActivityDto? FinisherFixed = null);
+
+/// <summary>A fixed cool-down finisher: Kind "Walk" or "Treadmill", minutes, optional notes ("Easy incline").</summary>
+public sealed record FixedActivityDto(string Kind, int Minutes, string? Notes);
 
 public sealed record PlanPhaseDto(
     PhaseType Type,
@@ -107,7 +111,8 @@ public sealed record TodaySessionDto(
     string? HevyPostStatus = null,
     Guid? WarmUpRoutineId = null,
     Guid? FinisherCardioProtocolId = null,
-    Guid? FinisherCardioTrackId = null);
+    Guid? FinisherCardioTrackId = null,
+    FixedActivityDto? FinisherFixed = null);
 
 public sealed record WeeklyGoalsDto(
     DateOnly WeekStart,

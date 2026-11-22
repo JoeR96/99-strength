@@ -82,7 +82,7 @@ public class RoutineBuilderTests
         facePull.SupersetId.Should().Be(0);
         cableRow.RestSeconds.Should().Be(RestDefaults.SupersetSeconds);
         facePull.RestSeconds.Should().Be(RestDefaults.SupersetSeconds);
-        cableRow.Notes.Should().Contain("Rep range: 10-10").And.Contain("Unilateral").And.EndWith("10 per side, extra set left. Superset with face pulls.");
+        cableRow.Notes.Should().Contain("Rep range: 10-10").And.Contain("Unilateral").And.Contain("10 per side, extra set left. Superset with face pulls.").And.EndWith("Left side first");
         cableRow.Sets.Should().HaveCount(3).And.AllSatisfy(s => { s.WeightKg.Should().Be(20m); s.Reps.Should().Be(10); s.Type.Should().Be(HevySetTypes.Normal); });
 
         var wallSlide = draft.Exercises[5];

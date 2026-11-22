@@ -123,8 +123,9 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 Type = "Linear",
                 TrainingMax = new TrainingMaxDto
                 {
-                    Value = trainingMax!.Value,
-                    Unit = (int)trainingMax.Unit
+                    // Pending TM ("start without weights"): 0 until the person enters one.
+                    Value = trainingMax?.Value ?? 0,
+                    Unit = (int)(trainingMax?.Unit ?? A2S.Domain.Enums.WeightUnit.Kilograms)
                 },
                 UseAmrap = data.UseAmrap ?? true,
                 BaseSetsPerExercise = data.BaseSetsPerExercise ?? 4
@@ -170,6 +171,9 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
             OrderInDay = exercise.OrderInDay,
             ExternalTemplateId = exercise.ExternalTemplateId,
             Progression = progressionDto,
+            SupersetGroup = exercise.SupersetGroup,
+            ExtraSetSide = exercise.ExtraSetSide.ToString(),
+            IsTrainingMaxPending = exercise.IsTrainingMaxPending,
             LastPerformance = MapLastPerformance(exercise, workout)
         };
     }

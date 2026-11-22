@@ -131,7 +131,11 @@ public sealed class GetUpcomingDaysQueryHandler : IRequestHandler<GetUpcomingDay
             }
 
             UpcomingFinisherDto? finisher = null;
-            if (slot.Finisher?.CardioTrackId is { } trackId && tracks.FirstOrDefault(t => t.Id == trackId) is { } track)
+            if (slot.Finisher?.Fixed is { } cooldown)
+            {
+                finisher = new UpcomingFinisherDto(cooldown.DisplayName(), cooldown.Describe());
+            }
+            else if (slot.Finisher?.CardioTrackId is { } trackId && tracks.FirstOrDefault(t => t.Id == trackId) is { } track)
             {
                 finisher = new UpcomingFinisherDto(track.Name, track.Prescription.Title);
             }

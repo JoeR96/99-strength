@@ -93,6 +93,15 @@ public sealed record ExerciseDto
 
     public ExerciseProgressionDto Progression { get; init; } = null!;
 
+    /// <summary>Superset pairing on the day (same number = done back to back). Null = on its own.</summary>
+    public int? SupersetGroup { get; init; }
+
+    /// <summary>None, Left or Right: a bonus set on that side, outside progression.</summary>
+    public string ExtraSetSide { get; init; } = "None";
+
+    /// <summary>A2S2 exercise created without a training max; set it before its first session.</summary>
+    public bool IsTrainingMaxPending { get; init; }
+
     /// <summary>
     /// The most recent completed performance for this exercise, if any.
     /// Used by the UI and Hevy sync notes to show "what you hit last time".

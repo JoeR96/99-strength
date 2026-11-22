@@ -23,6 +23,12 @@ public sealed record ExercisePerformanceRequest
     /// The performance is still recorded but the original exercise's progression state is preserved.
     /// </summary>
     public bool WasTemporarySubstitution { get; init; }
+
+    /// <summary>
+    /// The bonus set on one side (<c>Exercise.ExtraSetSide</c>). Kept out of <see cref="CompletedSets"/>
+    /// on purpose: it is posted to Hevy but never reaches progression evaluation.
+    /// </summary>
+    public CompletedSetRequest? ExtraSet { get; init; }
 }
 
 /// <summary>

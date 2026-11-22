@@ -115,3 +115,6 @@ public sealed record RetrofixLinearTmRequest
 {
     public required decimal OriginalStartingTm { get; init; }
 }
+
+/// <summary>Either a training max, or a recent set to estimate one from. Unit "Kilograms" (default) or "Pounds".</summary>
+public sealed record SetTrainingMaxRequest(decimal? TrainingMax, decimal? RecentWeight, int? RecentReps, string? Unit);

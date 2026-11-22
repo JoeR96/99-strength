@@ -59,7 +59,8 @@ public static class RoutineBuilder
             }
 
             var planned = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
-            var supersetId = SupersetIdFor(exercise.Name, pairs);
+            // The exercise's own superset group wins; the plan spec's pairs cover workouts made before groups existed.
+            var supersetId = exercise.SupersetGroup ?? SupersetIdFor(exercise.Name, pairs);
             var rest = exercise.Category == ExerciseCategory.MainLift
                 ? RestDefaults.MainLiftSeconds
                 : supersetId is null ? RestDefaults.AccessorySeconds : RestDefaults.SupersetSeconds;
@@ -76,13 +77,15 @@ public static class RoutineBuilder
                 notes.Add(briefNote);
             }
 
+            notes.AddRange(SideNotes(exercise));
+
             exercises.Add(new HevyRoutineExerciseDraft
             {
                 ExerciseTemplateId = templateId,
                 SupersetId = supersetId,
                 RestSeconds = rest,
                 Notes = notes.Count == 0 ? null : string.Join(" | ", notes),
-                Sets = planned.Select(set =>
+                Sets = WithExtraSet(exercise, planned.Select(set =>
                 {
                     var kg = Math.Round(set.Weight.ConvertTo(WeightUnit.Kilograms).Value, 2);
                     return new HevySetDraft
@@ -91,7 +94,7 @@ public static class RoutineBuilder
                         WeightKg = kg > 0 ? kg : null,
                         Reps = set.TargetReps
                     };
-                }).ToList()
+                }).ToList())
             });
         }
 
@@ -259,6 +262,33 @@ public static class RoutineBuilder
         }
 
         return tail.Count == 0 ? head : $"{head} · {string.Join(" · ", tail)}";
+    }
+
+    /// <summary>"Left side first" for unilateral work; "Extra set: left" when the exercise has one.</summary>
+    public static IEnumerable<string> SideNotes(Exercise exercise)
+    {
+        ArgumentNullException.ThrowIfNull(exercise);
+        if (exercise.IsUnilateral())
+        {
+            yield return "Left side first";
+        }
+
+        if (exercise.ExtraSetSide != ExtraSetSide.None)
+        {
+            yield return $"Extra set: {exercise.ExtraSetSide.ToString().ToLowerInvariant()}";
+        }
+    }
+
+    /// <summary>The bonus set is a copy of the last normal set, added after the planned ones.</summary>
+    private static List<HevySetDraft> WithExtraSet(Exercise exercise, List<HevySetDraft> sets)
+    {
+        if (exercise.ExtraSetSide == ExtraSetSide.None || sets.Count == 0)
+        {
+            return sets;
+        }
+
+        sets.Add(sets[^1] with { Type = HevySetTypes.Normal });
+        return sets;
     }
 
     private static int? SupersetIdFor(string exerciseName, IReadOnlyList<SupersetSpec> pairs)

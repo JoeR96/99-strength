@@ -36,7 +36,16 @@ public static class PlanMappings
         session.WarmUpRoutineId?.Value,
         session.Finisher?.CardioProtocolId?.Value,
         session.CardioTrackId?.Value,
-        session.Finisher?.CardioTrackId?.Value);
+        session.Finisher?.CardioTrackId?.Value,
+        session.Finisher?.Fixed?.ToDto());
+
+    public static FixedActivityDto ToDto(this FixedActivity activity) => new(activity.Kind.ToString(), activity.Minutes, activity.Notes);
+
+    public static FixedActivity ToDomain(this FixedActivityDto dto) => new(
+        Enum.TryParse<FixedActivityKind>(dto.Kind, ignoreCase: true, out var kind) ? kind
+            : throw new A2S.Domain.Common.BusinessRuleViolationException($"Unknown cool-down kind '{dto.Kind}'"),
+        dto.Minutes,
+        dto.Notes);
 
     public static ScheduledSession ToDomain(this ScheduledSessionDto dto) => new(
         dto.Day,
@@ -47,7 +56,8 @@ public static class PlanMappings
         dto.Label,
         dto.WarmUpRoutineId is { } warmUp ? new MobilityRoutineId(warmUp) : null,
         dto.FinisherCardioProtocolId is { } finisher ? new SessionFinisher(new CardioProtocolId(finisher))
-            : dto.FinisherCardioTrackId is { } finisherTrack ? SessionFinisher.ForTrack(new CardioTrackId(finisherTrack)) : null,
+            : dto.FinisherCardioTrackId is { } finisherTrack ? SessionFinisher.ForTrack(new CardioTrackId(finisherTrack))
+            : dto.FinisherFixed is { } finisherFixed ? SessionFinisher.ForFixed(finisherFixed.ToDomain()) : null,
         dto.CardioTrackId is { } track ? new CardioTrackId(track) : null);
 
     public static SessionCompletionDto ToDto(this SessionCompletion completion) => new(

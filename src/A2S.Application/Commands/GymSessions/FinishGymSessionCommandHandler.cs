@@ -125,6 +125,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                     finisher = plan.CompleteSession(date, SessionKind.Cardio, CompletionSource.Manual,
                         cardio: attached.CardioProtocolId, log: FinisherCardioLog(log), recordedAt: request.EndedAt,
                         cardioTrack: attached.CardioTrackId);
+                    // A fixed cool-down is a plain cardio log on the day: no protocol, no track, nothing evaluated.
                 }
 
                 _plans.Update(plan);
@@ -139,6 +140,8 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 Performances = request.Performances,
                 FinisherProtocolId = session?.Finisher?.CardioProtocolId?.Value,
                 FinisherTrackId = session?.Finisher?.CardioTrackId?.Value,
+                FinisherFixedKind = session?.Finisher?.Fixed?.Kind.ToString(),
+                FinisherFixedNotes = session?.Finisher?.Fixed?.Notes,
                 Finisher = request.Finisher
             };
 
