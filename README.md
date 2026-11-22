@@ -44,7 +44,9 @@ felt (Easy, Solid or Brutal), then tap **Finish**. **Finish early** saves only w
 you skipped keeps its progression for next time.
 
 A rest timer starts after every set and beeps when it ends, and the screen stays on. Everything you tick
-is saved on your phone, so it works with no signal and finishes when you are back online.
+is saved on your phone, so it works with no signal and finishes when you are back online. If you
+finish the same day on two devices, the second one says **This day was already finished on another
+device**, changes nothing, and lets you throw away that device's copy.
 
 When you finish, the session counts in the app straight away and the workout is sent to Hevy for you.
 If Hevy can't be reached, Today shows **Not in Hevy yet** with a **Retry** button, and the app keeps
@@ -59,7 +61,7 @@ and finisher under **Settings → Gym sessions**.
 | **Push notifications** | server → phone | "Time to train" at the session's start time, and an evening nudge when a habit is still under its minimum. Uses standard Web Push. On iPhone it only works from the installed home-screen app (iOS 16.4+). |
 | **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read today's session, and nothing else. The Terran CC habit widget uses one. |
 | **Sign-in** | — | Clerk. |
-| **Offline** | — | The app shell is cached. Habit taps made without signal are queued on the phone and synced later, each one dated to the day it was made. |
+| **Offline** | — | The app shell is cached. Habit taps, weigh-ins, finished sessions and cardio track logs made without signal are queued on the phone and synced later, each one dated to the day it was made and counted once even if it is sent twice. A track waiting to sync says so. If you leave a routine or a track's settings half edited, the app keeps your changes on the phone and offers **Restore unsaved changes?** next time, and asks before you navigate away. |
 
 Not connected, by design: MacroFactor (it has no usable API) and calorie or protein tracking.
 
