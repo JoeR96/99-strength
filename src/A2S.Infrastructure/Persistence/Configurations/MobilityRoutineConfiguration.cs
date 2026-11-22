@@ -44,6 +44,25 @@ public class MobilityRoutineConfiguration : IEntityTypeConfiguration<MobilityRou
             .IsRequired()
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.Property(r => r.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(MobilityRoutineKind.Stretch)
+            .HasSentinel((MobilityRoutineKind)(-1))
+            .IsRequired();
+
+        builder.Property(r => r.FollowAlongUrl).HasMaxLength(2000);
+
+        // Progression audit: one jsonb value; undo rewrites entries in place.
+        builder.Ignore(x => x.ProgressionLog);
+        builder.Property<List<DrillProgressionEntry>>("_progressionLog")
+            .HasColumnName("ProgressionLog")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonColumn.ValueConverter<List<DrillProgressionEntry>>(), JsonColumn.ValueComparer<List<DrillProgressionEntry>>())
+            .HasDefaultValueSql("'[]'::jsonb")
+            .IsRequired()
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.Ignore(r => r.DomainEvents);
 
         builder.HasIndex(r => r.UserId);

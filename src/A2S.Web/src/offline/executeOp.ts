@@ -8,6 +8,7 @@ import { plansApi } from '@/api/plans';
 import { bodyWeightApi } from '@/api/bodyWeight';
 import { gymSessionsApi } from '@/api/gymSessions';
 import { cardioTracksApi } from '@/api/cardioTracks';
+import { mobilityRoutinesApi } from '@/api/mobilityRoutines';
 import type { OfflineOp } from './types';
 
 export function executeOp(op: OfflineOp): Promise<unknown> {
@@ -24,5 +25,7 @@ export function executeOp(op: OfflineOp): Promise<unknown> {
       return gymSessionsApi.finish(op.payload, op.id);
     case 'cardio.log':
       return cardioTracksApi.logSession(op.target.trackId, op.payload, op.id);
+    case 'mobility.feedback':
+      return mobilityRoutinesApi.recordFeedback(op.target.routineId, op.payload, op.id);
   }
 }

@@ -72,7 +72,8 @@ public static class PlanMappings
         completion.RecordedAtUtc,
         completion.Cardio?.ToDto(),
         completion.DrillTicks,
-        completion.CardioTrackId?.Value);
+        completion.CardioTrackId?.Value,
+        completion.DurationMinutes);
 
     public static CardioLogDto ToDto(this CardioLog log) =>
         new(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes, log.HighIntensityMinutes,
@@ -126,7 +127,14 @@ public static class PlanMappings
         routine.Id.Value,
         routine.Name,
         routine.TargetMinutes,
-        routine.Drills.Select(ToDto).ToList());
+        routine.Drills.Select(ToDto).ToList(),
+        routine.Kind,
+        routine.FollowAlongUrl,
+        routine.ProgressionLog.Where(e => e.Kind != DrillChangeKind.SessionRecorded).TakeLast(20).Reverse().Select(ToDto).ToList(),
+        routine.ProgressionLog.Any(e => !e.Undone && e.Before is not null));
+
+    public static DrillProgressionEntryDto ToDto(this DrillProgressionEntry entry) =>
+        new(entry.ChangeId, entry.At, entry.DrillName, entry.Kind, entry.Reason, entry.Undone);
 
     public static MobilityDrillDto ToDto(this MobilityDrill drill) => new(
         drill.Name,
@@ -135,7 +143,12 @@ public static class PlanMappings
         drill.ExtraSetSide,
         drill.Cues,
         drill.StandingAlternative,
-        drill.PerSide);
+        drill.PerSide,
+        drill.Levels.Select(l => new DrillLevelDto(l.Name, l.Description, l.Sets, new DrillDoseDto(l.Dose.Unit, l.Dose.Amount),
+            l.Range is { } r ? new DoseRangeDto(r.Min, r.Max, r.Step) : null, l.Cues)).ToList(),
+        drill.CurrentLevel,
+        drill.CleanStreak,
+        drill.SuggestedLevel);
 
     public static MobilityDrill ToDomain(this MobilityDrillDto dto) => new(
         dto.Name,
@@ -144,5 +157,10 @@ public static class PlanMappings
         dto.ExtraSetSide,
         dto.Cues,
         dto.StandingAlternative,
-        dto.PerSide);
+        dto.PerSide,
+        dto.Levels?.Select(l => new DrillLevel(l.Name, l.Description, l.Sets, new DrillDose(l.Dose.Unit, l.Dose.Amount),
+            l.Range is { } r ? new DoseRange(r.Min, r.Max, r.Step) : null, l.Cues)).ToList(),
+        dto.CurrentLevel,
+        dto.CleanStreak,
+        dto.SuggestedLevel);
 }

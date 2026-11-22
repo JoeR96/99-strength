@@ -73,6 +73,13 @@ public class PlanTemplatesControllerTests
         (await again.Content.ReadFromJsonAsync<StartSuggestedPlanResult>())!.AlreadyStarted.Should().BeTrue();
 
         var plan = (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!;
+        var routines = (await client.GetFromJsonAsync<List<MobilityRoutineDto>>("/api/v1/mobility-routines"))!;
+        routines.Single(r => r.Name == "Full-body flow").Kind.Should().Be(A2S.Domain.Aggregates.Mobility.MobilityRoutineKind.YogaFlow);
+        routines.Single(r => r.Name == "Warm-up (upper)").Kind.Should().Be(A2S.Domain.Aggregates.Mobility.MobilityRoutineKind.WarmUp);
+        var ladder = routines.Single(r => r.Name == "Upper back & chest").Drills.Single(d => d.Name == "Reverse plank ladder");
+        ladder.Levels!.Should().HaveCount(3);
+        ladder.CurrentLevel.Should().Be(0);
+        routines.Single(r => r.Name == "Hips & lower back").Drills.Single(d => d.Name == "Side plank").Levels![1].Range.Should().Be(new DoseRangeDto(20, 30, 5));
         plan.Name.Should().Be("Plan v3 — Base/Build/Transition");
         plan.Schedule.Single(s => s.Label == "Lower A").FinisherFixed.Should().Be(new FixedActivityDto("Treadmill", 10, "Easy incline"));
         plan.Schedule.Single(s => s.Label == "Upper A").FinisherCardioTrackId.Should().NotBeNull();

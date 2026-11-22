@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
 using FluentValidation;
@@ -8,7 +9,13 @@ using MediatR;
 namespace A2S.Application.Commands.Mobility;
 
 /// <summary>Renames a mobility routine and changes its target minutes. Drills are left as they are.</summary>
-public sealed record UpdateMobilityRoutineCommand(Guid RoutineId, string Name, int TargetMinutes) : ICommand<Result<MobilityRoutineDto>>;
+/// <remarks>With a kind, the kind (and follow-along link) change too; without one they stay.</remarks>
+public sealed record UpdateMobilityRoutineCommand(
+    Guid RoutineId,
+    string Name,
+    int TargetMinutes,
+    MobilityRoutineKind? Kind = null,
+    string? FollowAlongUrl = null) : ICommand<Result<MobilityRoutineDto>>;
 
 public sealed class UpdateMobilityRoutineCommandValidator : AbstractValidator<UpdateMobilityRoutineCommand>
 {
@@ -17,6 +24,8 @@ public sealed class UpdateMobilityRoutineCommandValidator : AbstractValidator<Up
         RuleFor(x => x.RoutineId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().Must(n => !string.IsNullOrWhiteSpace(n)).MaximumLength(200);
         RuleFor(x => x.TargetMinutes).GreaterThan(0);
+        RuleFor(x => x.Kind).IsInEnum().When(x => x.Kind.HasValue);
+        RuleFor(x => x.FollowAlongUrl).MaximumLength(2000);
     }
 }
 
@@ -50,6 +59,11 @@ public sealed class UpdateMobilityRoutineCommandHandler : IRequestHandler<Update
         try
         {
             routine.UpdateDetails(request.Name, request.TargetMinutes);
+            if (request.Kind is { } kind)
+            {
+                routine.ChangeKind(kind, request.FollowAlongUrl);
+            }
+
             _routines.Update(routine);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success(routine.ToDto());

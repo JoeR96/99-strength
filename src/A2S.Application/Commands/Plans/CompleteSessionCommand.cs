@@ -28,7 +28,8 @@ public sealed record CompleteSessionCommand(
     string? HevyWorkoutId = null,
     Guid? CardioTrackId = null,
     bool CompletedAsPrescribed = true,
-    bool PostToHevy = true) : ICommand<Result<SessionCompletionDto>>;
+    bool PostToHevy = true,
+    int? DurationMinutes = null) : ICommand<Result<SessionCompletionDto>>;
 
 public sealed class CompleteSessionCommandValidator : AbstractValidator<CompleteSessionCommand>
 {
@@ -39,6 +40,7 @@ public sealed class CompleteSessionCommandValidator : AbstractValidator<Complete
         RuleFor(x => x.LiftDay).NotNull().When(x => x.Kind == SessionKind.Lift)
             .WithMessage("A lift completion needs the A2S2 day it trained.");
         RuleFor(x => x.HevyWorkoutId).MaximumLength(100);
+        RuleFor(x => x.DurationMinutes).InclusiveBetween(1, 600).When(x => x.DurationMinutes.HasValue);
         When(x => x.Cardio is not null, () =>
         {
             RuleFor(x => x.Cardio!.DurationSeconds).GreaterThan(0);
@@ -116,7 +118,8 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
                 log: log,
                 drillTicks: request.DrillTicks,
                 recordedAt: _clock.NowUtc(),
-                cardioTrack: trackId);
+                cardioTrack: trackId,
+                durationMinutes: request.Kind == SessionKind.Mobility ? request.DurationMinutes : null);
 
             // A cardio slot pointing at a track evaluates it, idempotently per completion.
             if (completion.CardioTrackId is { } track && _trackRecorder is not null)

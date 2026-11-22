@@ -274,6 +274,50 @@ public class PlansControllerTests
         list.Should().ContainSingle().Which.Drills.Should().ContainSingle().Which.Name.Should().Be("Bird dog");
     }
 
+    [Fact]
+    public async Task MobilityLevels_FeedbackStepsUp_ThenUndoAndHoldIncrease()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var range = new DoseRangeDto(15, 30, 5);
+        var ladder = new MobilityDrillDto("Reverse plank ladder", 3, new DrillDoseDto(DoseUnit.Seconds, 15), SideBias.None, null, null, false,
+        [
+            new DrillLevelDto("Level 1", "Reverse tabletop, knees bent", 3, new DrillDoseDto(DoseUnit.Seconds, 15), range, null),
+            new DrillLevelDto("Level 2", "Hands on a bench, straight legs", 3, new DrillDoseDto(DoseUnit.Seconds, 15), range, null)
+        ]);
+        var routine = await (await client.PostAsJsonAsync("/api/v1/mobility-routines",
+            new CreateMobilityRoutineCommand("Home yoga", 20, [ladder], MobilityRoutineKind.YogaFlow))).Content.ReadFromJsonAsync<MobilityRoutineDto>();
+
+        var clean = new[] { new DrillFeedbackDto("Reverse plank ladder", DrillOutcome.Clean) };
+        await client.PostAsJsonAsync($"/api/v1/mobility-routines/{routine!.Id}/feedback", new DrillFeedbackRequest("s1", clean));
+        var second = await client.PostAsJsonAsync($"/api/v1/mobility-routines/{routine.Id}/feedback", new DrillFeedbackRequest("s2", clean));
+        var stepped = await second.Content.ReadFromJsonAsync<DrillFeedbackResultDto>();
+        var undo = await client.PostAsync($"/api/v1/mobility-routines/{routine.Id}/progression/undo", null);
+        var bump = await client.PostAsJsonAsync($"/api/v1/mobility-routines/{routine.Id}/hold-increase", new HoldIncreaseRequest(15));
+        var suggestion = await client.PostAsJsonAsync($"/api/v1/mobility-routines/{routine.Id}/suggestion", new DrillSuggestionRequest("Reverse plank ladder", true));
+
+        routine.Kind.Should().Be(MobilityRoutineKind.YogaFlow);
+        stepped!.Changes.Should().ContainSingle().Which.Kind.Should().Be(DrillChangeKind.DoseIncreased);
+        stepped.Routine.Drills[0].Dose.Amount.Should().Be(20);
+        (await undo.Content.ReadFromJsonAsync<MobilityRoutineDto>())!.Drills[0].Dose.Amount.Should().Be(15);
+        (await bump.Content.ReadFromJsonAsync<MobilityRoutineDto>())!.Drills[0].Dose.Amount.Should().Be(30);
+        suggestion.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task FollowAlongRoutine_IsCreatedWithALinkAndNoDrills()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+
+        var created = await client.PostAsJsonAsync("/api/v1/mobility-routines",
+            new CreateMobilityRoutineCommand("Hip video", 25, [], MobilityRoutineKind.FollowAlong, "https://example.com/flow"));
+        var unsafeLink = await client.PostAsJsonAsync("/api/v1/mobility-routines",
+            new CreateMobilityRoutineCommand("Bad", 25, [], MobilityRoutineKind.FollowAlong, "javascript:alert(1)"));
+
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+        (await created.Content.ReadFromJsonAsync<MobilityRoutineDto>())!.FollowAlongUrl.Should().Be("https://example.com/flow");
+        unsafeLink.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+    }
+
     private static CreateMobilityRoutineCommand MobilityABody() => new("Mobility A", 10,
         [new MobilityDrillDto("Open books", 2, new DrillDoseDto(DoseUnit.Reps, 5), SideBias.Left, null, null, true)]);
 

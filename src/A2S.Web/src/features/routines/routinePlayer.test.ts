@@ -27,6 +27,15 @@ const routine = (drills: MobilityDrillDto[]): MobilityRoutineDto => ({ id: 'r1',
 const run = (state: PlayerState, ...actions: Parameters<typeof playerReducer>[1][]) => actions.reduce(playerReducer, state);
 const ticks = (n: number) => Array.from({ length: n }, () => ({ type: 'tick' as const }));
 
+function ladderLevels() {
+  const range = { min: 15, max: 30, step: 5 };
+  return [
+    { name: 'Level 1', description: 'Reverse tabletop, knees bent', sets: 3, dose: { unit: DoseUnit.Seconds, amount: 15 }, range, cues: 'Hips high' },
+    { name: 'Level 2', description: 'Hands on a bench, straight legs', sets: 3, dose: { unit: DoseUnit.Seconds, amount: 15 }, range, cues: 'Body in one line' },
+    { name: 'Level 3', description: 'Full reverse plank', sets: 3, dose: { unit: DoseUnit.Seconds, amount: 15 }, range, cues: null },
+  ];
+}
+
 describe('buildSteps', () => {
   it('alternates sides set by set and adds the extra set on the biased side last', () => {
     const steps = buildSteps(routine([drill({ perSide: true, extraSetSide: SideBias.Left })]));
@@ -34,10 +43,17 @@ describe('buildSteps', () => {
     expect(steps.map((s) => `${s.side}${s.setNumber}/${s.setsOnSide}`)).toEqual(['left1/3', 'right1/2', 'left2/3', 'right2/2', 'left3/3']);
   });
 
-  it('starts on the biased side when it is the right', () => {
+  it('always starts on the left side, even with an old right-side extra set', () => {
     const steps = buildSteps(routine([drill({ perSide: true, sets: 1, extraSetSide: SideBias.Right })]));
 
-    expect(steps.map((s) => s.side)).toEqual(['right', 'left', 'right']);
+    expect(steps.map((s) => s.side)).toEqual(['left', 'right', 'right']);
+  });
+
+  it('uses the current level name and cues for a drill with levels', () => {
+    const steps = buildSteps(routine([drill({ cues: 'Drill cue', levels: ladderLevels(), currentLevel: 1 })]));
+
+    expect(steps[0].levelName).toBe('Level 2');
+    expect(steps[0].cues).toBe('Body in one line');
   });
 
   it('gives a drill that is not per side its extra set at the end, labelled with the side', () => {
@@ -115,7 +131,8 @@ describe('playerReducer', () => {
 
 describe('describeDrill', () => {
   it('reads like the plan', () => {
-    expect(describeDrill(drill({ perSide: true, extraSetSide: SideBias.Left }))).toBe('2 × 30 s per side, extra set left');
+    expect(describeDrill(drill({ perSide: true, extraSetSide: SideBias.Left }))).toBe('2 × 30 s per side, left side first, extra set left');
+    expect(describeDrill(drill({ perSide: true }))).toBe('2 × 30 s per side, left side first');
     expect(describeDrill(drill({ sets: 2, dose: { unit: DoseUnit.Breaths, amount: 5 } }))).toBe('2 × 5 breaths');
   });
 });

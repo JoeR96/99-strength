@@ -19,6 +19,8 @@ export const CARDIO_4X4_ID = 'c4c4c4c4-0000-4000-8000-000000000001';
 export const CARDIO_C25K_ID = 'c25kc25k-0000-4000-8000-000000000002';
 export const MOBILITY_A_ID = 'mob0000a-0000-4000-8000-000000000001';
 export const MOBILITY_B_ID = 'mob0000b-0000-4000-8000-000000000002';
+export const MOBILITY_YOGA_ID = 'mob0000c-0000-4000-8000-000000000003';
+export const MOBILITY_VIDEO_ID = 'mob0000d-0000-4000-8000-000000000004';
 
 export const planFixture: TrainingPlanDto = {
   id: PLAN_ID,
@@ -215,5 +217,25 @@ export function pausedPlanFixture(date: LocalDate): TrainingPlanDto {
   return {
     ...planFixture,
     phases: [...planFixture.phases, { type: PhaseType.Pause, from: addDays(date, -2), to: addDays(date, 5), note: 'Holiday' }],
+  };
+}
+
+/** Home day: the yoga routine with the reverse plank ladder, and a follow-along video, both planned. */
+export function todayHomeYoga(date: LocalDate): TodayDto {
+  const mobility = (id: string, label: string) => ({
+    kind: SessionKind.Mobility,
+    label,
+    status: SessionStatus.Planned,
+    liftDay: null,
+    cardioProtocolId: null,
+    mobilityRoutineId: id,
+    completionId: null,
+    hevyRoutineId: null,
+  });
+  return {
+    date,
+    phase: PhaseType.Cut,
+    sessions: [mobility(MOBILITY_YOGA_ID, 'Home yoga'), mobility(MOBILITY_VIDEO_ID, 'Hip flow video')],
+    week: weeklyGoalsFixture(date, { liftsDone: 2 }),
   };
 }

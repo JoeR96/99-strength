@@ -12,6 +12,7 @@ import {
   pausedPlanFixture,
   planFixture,
   todayCardio,
+  todayHomeYoga,
   todayDone,
   todayDoneNotInHevy,
   todayPaused,
@@ -66,6 +67,7 @@ function withToday(build: (date: LocalDate) => TodayDto, plan: TrainingPlanDto |
       recordedAtUtc: new Date().toISOString(),
       cardio: request.cardio ?? null,
       drillTicks: request.drillTicks ?? null,
+      durationMinutes: request.durationMinutes ?? null,
     }),
     undoCompletion: async () => {},
     useAllowance: async (_planId, request) => request,
@@ -85,6 +87,8 @@ export const plansHandlers = {
   doneNotInHevy: (): PlansHandlers => withToday(todayDoneNotInHevy),
   rest: (): PlansHandlers => withToday(todayRest),
   cardio: (): PlansHandlers => withToday(todayCardio),
+  /** Home yoga routine (with a level ladder) and a follow-along video planned today. */
+  homeYoga: (): PlansHandlers => withToday(todayHomeYoga),
   paused: (): PlansHandlers => withToday(todayPaused, pausedPlanFixture(todayLocal())),
   /** First run: no plan yet (`/plans/active` and `/plans/today` are 404 → null). */
   noPlan: (): PlansHandlers => ({

@@ -81,6 +81,8 @@ public class SessionCompletionConfiguration : IEntityTypeConfiguration<SessionCo
             log.Ignore(l => l.EffectiveRpe);
         });
 
+        builder.Property(c => c.DurationMinutes);
+
         builder.Property(c => c.CardioTrackId)
             .HasConversion(new ValueConverter<CardioTrackId?, Guid?>(
                 id => id.HasValue ? id.Value.Value : null,

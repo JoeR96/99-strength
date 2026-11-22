@@ -43,7 +43,12 @@ public sealed record ScheduledSessionSpec(
 /// </summary>
 public sealed record FinisherSpec(string? TrackKey = null, FixedActivity? Fixed = null);
 
-public sealed record MobilityRoutineSpec(string Name, int TargetMinutes, IReadOnlyList<MobilityDrillDto> Drills);
+/// <remarks>Without a kind, the applier picks one from the name (<see cref="A2S.Domain.Aggregates.Mobility.MobilityRoutine.DefaultKindFor"/>).</remarks>
+public sealed record MobilityRoutineSpec(
+    string Name,
+    int TargetMinutes,
+    IReadOnlyList<MobilityDrillDto> Drills,
+    A2S.Domain.Aggregates.Mobility.MobilityRoutineKind? Kind = null);
 
 public sealed record CardioProtocolSpec(CardioProtocolKind Kind, int? WeekIndex, int? Minutes, string? Note);
 

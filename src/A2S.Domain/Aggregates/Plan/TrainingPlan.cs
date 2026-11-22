@@ -186,7 +186,8 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
         CardioLog? log = null,
         IReadOnlyList<bool>? drillTicks = null,
         DateTimeOffset? recordedAt = null,
-        CardioTrackId? cardioTrack = null)
+        CardioTrackId? cardioTrack = null,
+        int? durationMinutes = null)
     {
         if (!string.IsNullOrWhiteSpace(hevyWorkoutId))
         {
@@ -219,7 +220,8 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
             recordedAt ?? DateTimeOffset.UtcNow,
             log,
             drillTicks,
-            cardioTrack);
+            cardioTrack,
+            durationMinutes);
 
         _completions.Add(completion);
         AddDomainEvent(new SessionCompleted(Id, completion.Id, date, kind, source, completion.RecordedAtUtc));

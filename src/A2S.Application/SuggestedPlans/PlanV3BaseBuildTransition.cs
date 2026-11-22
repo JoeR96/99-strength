@@ -96,7 +96,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         new(DayOfWeek.Friday, SessionKind.Lift, DayNumber.Day4, null, null, "Lower B", WarmUpLower, CoolDown),
         new(DayOfWeek.Friday, SessionKind.Mobility, null, null, UpperBackAndChest, "Upper back & chest (15 min)"),
         new(DayOfWeek.Saturday, SessionKind.Cardio, null, null, null, "Long walk outdoors, 45–75 min", CardioTrack: CardioTrackTemplates.WalkBuilder),
-        new(DayOfWeek.Saturday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min)"),
+        new(DayOfWeek.Saturday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min), or a follow-along video"),
         new(DayOfWeek.Sunday, SessionKind.Rest, null, null, null, "Rest — daily steps")
     ];
 
@@ -200,7 +200,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
 
     // ---- Warm-ups (8 min, one set of each) -------------------------------------------------------
 
-    private static MobilityRoutineSpec WarmUpUpperRoutine() => new(WarmUpUpper, 8,
+    private static MobilityRoutineSpec WarmUpUpperRoutine() => new(WarmUpUpper, 8, Kind: MobilityRoutineKind.WarmUp, Drills:
     [
         Drill("90/90 breathing, feet on a bench", 1, DrillDose.Breaths(5),
             "Exhale fully until the ribs drop; tongue on the roof of your mouth, jaw loose"),
@@ -209,7 +209,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Drill("Band pull-apart", 1, DrillDose.Reps(15), "Arms straight, shoulders down away from the ears")
     ]);
 
-    private static MobilityRoutineSpec WarmUpLowerRoutine() => new(WarmUpLower, 8,
+    private static MobilityRoutineSpec WarmUpLowerRoutine() => new(WarmUpLower, 8, Kind: MobilityRoutineKind.WarmUp, Drills:
     [
         Drill("90/90 breathing, feet on a bench", 1, DrillDose.Breaths(5),
             "Exhale fully until the ribs drop; tongue on the roof of your mouth, jaw loose"),
@@ -219,85 +219,112 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Drill("Bodyweight pause squat (3 s hold)", 1, DrillDose.Reps(5), "Spread the floor with your feet; same depth and hip path every rep")
     ]);
 
-    // ---- Home routines (easier/harder in the cues until drill levels exist) -----------------------
+    // ---- Home routines: each pose is Easier / Standard / Harder, starting at Standard -------------
+    // Hips and upper back are Corrective: each targets an area the one-sided compensations affect (the doc's framing);
+    // the flow is a YogaFlow (logged in Hevy as Yoga).
 
-    private static MobilityRoutineSpec HipsRoutine() => new(HipsAndLowerBack, 15,
+    private static MobilityRoutineSpec HipsRoutine() => new(HipsAndLowerBack, 15, Kind: MobilityRoutineKind.Corrective, Drills:
     [
-        Drill("90/90 breathing, feet on a wall or sofa", 1, DrillDose.Breaths(6),
-            Cue("Flatten the lower back gently; exhale until the ribs drop; feel the hamstrings switch on lightly",
-                "Feet on the floor, knees bent", "Hold a balloon or foam roller between the knees")),
-        Drill("Half-kneeling hip flexor stretch", 2, DrillDose.Seconds(30),
-            Cue("Left side first. Tuck the tail under first; squeeze the back glute; only then shift forward a few centimetres",
-                "Back knee on a cushion, smaller forward shift", "Reach the same-side arm overhead and lean slightly away"), perSide: true),
-        Drill("90/90 hip switches", 1, DrillDose.Reps(6),
-            Cue("Sit tall, hands behind you; rotate both knees side to side; move from the hips, not the lower back",
-                "Hands supporting, small range", "Hands off the floor, then lift the back knee at each end"), perSide: true),
-        Drill("Side-lying clamshell", 2, DrillDose.Reps(12),
-            Cue("Left side first. Heels together, hips stacked; open the top knee without rolling back; feel it in the side of the hip",
-                "Smaller range", "Mini band above the knees, or in a side plank on the knees"), perSide: true),
-        Drill("Child's pose with side reach", 1, DrillDose.Seconds(30),
-            Cue("Left side first. Walk both hands to one side; sink the hips back; breathe into the opposite ribs",
-                "Cushion under the hips", "Cross the far wrist over the near one for more lat"), perSide: true),
-        Drill("Figure-4 on your back", 1, DrillDose.Seconds(30),
-            Cue("Ankle on the opposite knee; draw the thigh toward you; keep the tailbone down",
-                "Foot against a wall instead of pulling", "Seated figure-4 with a tall spine"), perSide: true),
-        Drill("Side plank", 2, DrillDose.Seconds(20),
-            Cue("20–30 s. Left side first. Elbow under shoulder; hips pushed forward in one straight line; bottom-side waist lifted off the floor",
-                "Knees bent and down", "Lift the top leg, or reach the top arm up"), perSide: true),
-        Drill("Copenhagen plank, short lever", 2, DrillDose.Seconds(15),
-            Cue("15–20 s. Top knee on a sofa or bench edge; squeeze it down to lift the hips; body stays in one line",
-                "Bottom foot lightly touching the floor", "Ankle on the edge instead of the knee (long lever)"), perSide: true)
+        Levelled("90/90 breathing, feet on a wall or sofa", 1, DrillDose.Breaths(6),
+            "Flatten the lower back gently; exhale until the ribs drop; feel the hamstrings switch on lightly",
+            "Feet on the floor, knees bent", "Hold a balloon or foam roller between the knees"),
+        Levelled("Half-kneeling hip flexor stretch", 2, DrillDose.Seconds(30),
+            "Left side first. Tuck the tail under first; squeeze the back glute; only then shift forward a few centimetres",
+            "Back knee on a cushion, smaller forward shift", "Reach the same-side arm overhead and lean slightly away", perSide: true),
+        Levelled("90/90 hip switches", 1, DrillDose.Reps(6),
+            "Sit tall, hands behind you; rotate both knees side to side; move from the hips, not the lower back",
+            "Hands supporting, small range", "Hands off the floor, then lift the back knee at each end", perSide: true),
+        Levelled("Side-lying clamshell", 2, DrillDose.Reps(12),
+            "Left side first. Heels together, hips stacked; open the top knee without rolling back; feel it in the side of the hip",
+            "Smaller range", "Mini band above the knees, or in a side plank on the knees", perSide: true),
+        Levelled("Child's pose with side reach", 1, DrillDose.Seconds(30),
+            "Left side first. Walk both hands to one side; sink the hips back; breathe into the opposite ribs",
+            "Cushion under the hips", "Cross the far wrist over the near one for more lat", perSide: true),
+        Levelled("Figure-4 on your back", 1, DrillDose.Seconds(30),
+            "Ankle on the opposite knee; draw the thigh toward you; keep the tailbone down",
+            "Foot against a wall instead of pulling", "Seated figure-4 with a tall spine", perSide: true),
+        Levelled("Side plank", 2, DrillDose.Seconds(20),
+            "Left side first. Elbow under shoulder; hips pushed forward in one straight line; bottom-side waist lifted off the floor",
+            "Knees bent and down", "Lift the top leg, or reach the top arm up", perSide: true, range: new DoseRangeDto(20, 30, 5)),
+        Levelled("Copenhagen plank, short lever", 2, DrillDose.Seconds(15),
+            "Top knee on a sofa or bench edge; squeeze it down to lift the hips; body stays in one line",
+            "Bottom foot lightly touching the floor", "Ankle on the edge instead of the knee (long lever)", perSide: true, range: new DoseRangeDto(15, 20, 5))
     ]);
 
-    private static MobilityRoutineSpec UpperBackRoutine() => new(UpperBackAndChest, 15,
+    private static MobilityRoutineSpec UpperBackRoutine() => new(UpperBackAndChest, 15, Kind: MobilityRoutineKind.Corrective, Drills:
     [
-        Drill("Cat-cow", 1, DrillDose.Reps(8),
-            Cue("Slow reps. Move one vertebra at a time; exhale to round, inhale to lift the chest; keep the elbows straight",
-                "Smaller range", "Hold each end for 2 breaths")),
-        Drill("Thread the needle", 1, DrillDose.Reps(5),
-            Cue("5 reps + 20 s hold. Hips over knees; slide the arm through and rest the shoulder down; look under the arm",
-                "Stay on the forearm", "Top arm reaches up and over the head on the hold"), perSide: true),
-        Drill("Open book", 1, DrillDose.Reps(5),
-            Cue("Left side first. Knees stacked and pinned with the bottom hand; let the top arm open toward the floor; breathe out at the end",
-                "Top arm bent, hand on the chest", "Pause 3 s at the open end, reaching longer"), perSide: true),
-        Drill("Doorway chest stretch", 2, DrillDose.Seconds(30),
-            Cue("One set at each angle. Elbow at shoulder height, then higher; step through gently; shoulder stays down and back",
-                "Smaller step through", "Rotate the chest away from the arm"), perSide: true),
-        Drill("Puppy pose (upper-back extension)", 1, DrillDose.Breaths(6),
-            Cue("Hips over knees, walk the hands forward; melt the chest down; ribs stay in, not flaring",
-                "Forearms on the floor", "Hands on a block or book, chest lower")),
-        Drill("Reverse plank ladder", 3, DrillDose.Seconds(15),
-            "At your level, 15 → 30 s. Hands under shoulders, fingers toward your feet; press the floor away; hips level, chest open. " +
-            "Level 1: reverse tabletop, knees bent. Level 2: hands on a bench or sofa edge, legs straight. Level 3: full reverse plank on the floor. " +
-            "Add 5 s per set after 2 clean sessions; move up a level from the top of the range."),
-        Drill("Dead bug", 2, DrillDose.Reps(6),
-            Cue("6–8 each side. Lower back pressed gently into the floor; exhale as the arm and leg reach; stop before the back lifts",
-                "Move only the legs, heels tapping", "Hold a light weight or squeeze a ball between hand and knee"), perSide: true)
+        Levelled("Cat-cow", 1, DrillDose.Reps(8),
+            "Slow reps. Move one vertebra at a time; exhale to round, inhale to lift the chest; keep the elbows straight",
+            "Smaller range", "Hold each end for 2 breaths"),
+        Levelled("Thread the needle", 1, DrillDose.Reps(5),
+            "5 reps + 20 s hold. Hips over knees; slide the arm through and rest the shoulder down; look under the arm",
+            "Stay on the forearm", "Top arm reaches up and over the head on the hold", perSide: true),
+        Levelled("Open book", 1, DrillDose.Reps(5),
+            "Left side first. Knees stacked and pinned with the bottom hand; let the top arm open toward the floor; breathe out at the end",
+            "Top arm bent, hand on the chest", "Pause 3 s at the open end, reaching longer", perSide: true),
+        Levelled("Doorway chest stretch", 2, DrillDose.Seconds(30),
+            "One set at each angle. Elbow at shoulder height, then higher; step through gently; shoulder stays down and back",
+            "Smaller step through", "Rotate the chest away from the arm", perSide: true),
+        Levelled("Puppy pose (upper-back extension)", 1, DrillDose.Breaths(6),
+            "Hips over knees, walk the hands forward; melt the chest down; ribs stay in, not flaring",
+            "Forearms on the floor", "Hands on a block or book, chest lower"),
+        Ladder(),
+        Levelled("Dead bug", 2, DrillDose.Reps(6),
+            "6–8 each side. Lower back pressed gently into the floor; exhale as the arm and leg reach; stop before the back lifts",
+            "Move only the legs, heels tapping", "Hold a light weight or squeeze a ball between hand and knee", perSide: true)
     ]);
 
-    private static MobilityRoutineSpec FlowRoutine() => new(FullBodyFlow, 20,
+    private static MobilityRoutineSpec FlowRoutine() => new(FullBodyFlow, 20, Kind: MobilityRoutineKind.YogaFlow, Drills:
     [
-        Drill("Warm-up flow", 1, DrillDose.Reps(5),
-            Cue("5 slow rounds: reach up → fold → half lift → plank → knees down → cobra → downward dog. One breath per move; soft knees in the fold; in downward dog push the hips back rather than the heels down",
-                "Hands on a chair; skip the plank", "Low plank instead of knees down; hold downward dog for 5 breaths")),
-        Drill("Low lunge with overhead reach", 1, DrillDose.Breaths(5),
-            Cue("Left side first. Back knee down, tail tucked; reach up and slightly away from the front leg; ribs down",
-                "Hands on the front thigh", "Lift the back knee (high lunge)"), perSide: true),
-        Drill("Warrior 2 → reverse warrior", 1, DrillDose.Breaths(5),
-            Cue("5 breaths in each pose. Front knee tracks over the middle toes; hips open to the side; slide the back hand down the back leg on the reverse",
-                "Shorter stance", "Deeper front knee, longer stance"), perSide: true),
-        Drill("Lizard", 1, DrillDose.Breaths(5),
-            Cue("Front foot outside the hand; back knee down; sink the hips forward and down",
-                "Forearms on a block or the sofa", "Forearms to the floor"), perSide: true),
-        Drill("Bridge", 3, DrillDose.Breaths(5),
-            Cue("Tilt the pelvis first, then peel up one vertebra at a time; push through the heels; no lower-back arch at the top",
-                "Smaller lift", "Single-leg bridge, left side first")),
-        Drill("Supine twist, then rest", 1, DrillDose.Seconds(30),
-            Cue("Then 2 min rest. Knees together; both shoulders heavy on the floor; let go of the jaw",
-                "Cushion under the knees", "Straight top leg"), perSide: true)
+        Levelled("Warm-up flow", 1, DrillDose.Reps(5),
+            "5 slow rounds: reach up → fold → half lift → plank → knees down → cobra → downward dog. One breath per move; soft knees in the fold; in downward dog push the hips back rather than the heels down",
+            "Hands on a chair; skip the plank", "Low plank instead of knees down; hold downward dog for 5 breaths"),
+        Levelled("Low lunge with overhead reach", 1, DrillDose.Breaths(5),
+            "Left side first. Back knee down, tail tucked; reach up and slightly away from the front leg; ribs down",
+            "Hands on the front thigh", "Lift the back knee (high lunge)", perSide: true),
+        Levelled("Warrior 2 → reverse warrior", 1, DrillDose.Breaths(5),
+            "5 breaths in each pose. Front knee tracks over the middle toes; hips open to the side; slide the back hand down the back leg on the reverse",
+            "Shorter stance", "Deeper front knee, longer stance", perSide: true),
+        Levelled("Lizard", 1, DrillDose.Breaths(5),
+            "Front foot outside the hand; back knee down; sink the hips forward and down",
+            "Forearms on a block or the sofa", "Forearms to the floor", perSide: true),
+        Levelled("Bridge", 3, DrillDose.Breaths(5),
+            "Tilt the pelvis first, then peel up one vertebra at a time; push through the heels; no lower-back arch at the top",
+            "Smaller lift", "Single-leg bridge, left side first"),
+        Levelled("Supine twist, then rest", 1, DrillDose.Seconds(30),
+            "Then 2 min rest. Knees together; both shoulders heavy on the floor; let go of the jaw",
+            "Cushion under the knees", "Straight top leg", perSide: true)
     ]);
 
-    private static string Cue(string cues, string easier, string harder) => $"{cues}. Easier: {easier}. Harder: {harder}.";
+    /// <summary>Level 1-3, each 3 × 15 → 30 s, +5 s a set after 2 clean sessions; up a level from the top. Starts at Level 1.</summary>
+    private static MobilityDrillDto Ladder()
+    {
+        var range = new DoseRangeDto(15, 30, 5);
+        var dose = new DrillDoseDto(DoseUnit.Seconds, 15);
+        const string cues = "Hands under shoulders, fingers toward your feet; press the floor away; hips level, chest open";
+        return new MobilityDrillDto("Reverse plank ladder", 3, dose, SideBias.None, cues, null, false,
+        [
+            new DrillLevelDto("Level 1", "Reverse tabletop, knees bent", 3, dose, range, cues),
+            new DrillLevelDto("Level 2", "Hands on a bench or sofa edge, legs straight", 3, dose, range, cues),
+            new DrillLevelDto("Level 3", "Full reverse plank on the floor", 3, dose, range, cues)
+        ], CurrentLevel: 0);
+    }
+
+    /// <summary>
+    /// A pose with Easier / Standard / Harder levels at the same sets and dose (Standard = the usual cues), starting at
+    /// Standard. With a range, every level holds through it and the dose starts at its bottom.
+    /// </summary>
+    private static MobilityDrillDto Levelled(string name, int sets, DrillDose dose, string cues, string easier, string harder,
+        bool perSide = false, DoseRangeDto? range = null)
+    {
+        var d = new DrillDoseDto(dose.Unit, range?.Min ?? dose.Amount);
+        return new MobilityDrillDto(name, sets, d, SideBias.None, cues, null, perSide,
+        [
+            new DrillLevelDto("Easier", easier, sets, d, range, cues),
+            new DrillLevelDto("Standard", null, sets, d, range, cues),
+            new DrillLevelDto("Harder", harder, sets, d, range, cues)
+        ], CurrentLevel: 1);
+    }
 
     private static MobilityDrillDto Drill(string name, int sets, DrillDose dose, string cues, bool perSide = false) =>
         new(name, sets, new DrillDoseDto(dose.Unit, dose.Amount), SideBias.None, cues, null, perSide);

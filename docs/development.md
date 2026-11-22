@@ -115,6 +115,22 @@ through `SessionHevyPoster` on the gym-mode `HevyWorkoutPost` queue; the pull us
 
 Readiness (`ReadinessEntries`), cardio start gates (`CardioTracks.StartGate` jsonb) and phase changes (inside the `Phases` jsonb) arrive with migration `AddCoachSignals` (additive; Down tested in `CoachSignalsPersistenceTests`). Story mocks: `src/mocks/handlers/readiness.ts` (`installPlansHandlers` also resets readiness to "not set" and the phase heads-up to null, so install readiness/heads-up stubs **after** it), `src/mocks/fixtures/gates.ts` and `phaseHeadsUp.ts`. The `PhaseChange` push is the one nudge logged against a date other than today (the phase start), which is what makes it once per phase.
 
+## Mobility levels
+
+Domain: `Aggregates/Mobility/` — `MobilityRoutineKind`, `DrillLevel` + `DoseRange`, `DrillProgressionRule`
+(N clean sessions, default 2: inside the range add the step, at the top or with no range suggest the next level;
+strain or stop steps back once / holds; skipped changes nothing) and the routine's `ProgressionLog` (entries share a
+`ChangeId`; `UndoLastChange` restores each entry's `Before` drill). Drill levels and progress live inside the
+`Drills` jsonb; migration `AddMobilityLevels` adds `MobilityRoutines.Kind` (string, backfilled: "Mobility A"/"warm"
+→ WarmUp, "yoga" → YogaFlow, else Stretch), `FollowAlongUrl`, `ProgressionLog` (jsonb) and
+`SessionCompletions.DurationMinutes`; its Down drops them (tested in `MobilityLevelsPersistenceTests`).
+API: `POST /api/v1/mobility-routines/{id}/feedback` (idempotent on `sessionKey`; the phone queues it offline as
+`mobility.feedback`), `/suggestion`, `/progression/undo`, `/hold-increase` (the plan's phase bump, e.g. +15 s).
+UI: `RoutineProgress` (player Ready screen: levels, pending suggestion Accept / Not yet, last 10 changes, undo) and
+`LevelSuggestionPrompt` (also on the finish screen). Accept / decline / undo are online-only mutations with an
+explicit offline toast. Per-side drills always play left side first; `ExtraSetSide` still works for old routines but has no new UI.
+Story mocks: `mobilityRoutinesHandlers.home()` / `homeLevelUp()` with `plansHandlers.homeYoga()`.
+
 ## Secrets
 
 Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,

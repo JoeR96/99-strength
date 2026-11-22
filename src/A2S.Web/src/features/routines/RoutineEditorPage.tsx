@@ -2,6 +2,7 @@
  * Create or edit a routine drill by drill. Drills reorder with up/down buttons (no drag needed,
  * WCAG 2.5.7). When editing, a changed name or target minutes is saved first, then the drills.
  * Delete asks for confirmation; the server refuses while a plan's week still schedules the routine.
+ * A routine has a kind; a follow-along is just a link and minutes. Drills can have levels (DrillLevelsEditor).
  */
 
 import { useMemo, useRef, useState } from 'react';
@@ -23,13 +24,15 @@ import {
   useReplaceDrills,
   useUpdateMobilityRoutine,
 } from '@/hooks/useMobilityRoutines';
-import { DoseUnit, SideBias, type MobilityRoutineDto } from '@/types/mobility';
+import { DoseUnit, MobilityRoutineKind, SideBias, routineKindLabel, type MobilityRoutineDto } from '@/types/mobility';
+import { DrillLevelsEditor } from './DrillLevelsEditor';
 import {
   draftFromRoutine,
   emptyDrill,
   emptyRoutine,
   hasErrors,
   moveDrill,
+  newLevelKey,
   toDrillDtos,
   validateRoutine,
   type DrillDraft,
@@ -48,16 +51,19 @@ function serverMessage(error: unknown, fallback: string): string {
 }
 
 /** Bump when RoutineDraft changes shape, so an old draft is dropped instead of restored. */
-const ROUTINE_DRAFT_VERSION = 1;
+const ROUTINE_DRAFT_VERSION = 2;
 
 /** The draft without the drills' row keys (random per load), so "unchanged" means unchanged. */
 function comparable(draft: RoutineDraft): RoutineDraft {
-  return { ...draft, drills: draft.drills.map((d) => ({ ...d, key: '' })) };
+  return { ...draft, drills: draft.drills.map((d) => ({ ...d, key: '', levels: d.levels.map((l) => ({ ...l, key: '' })) })) };
 }
 
 /** A restored draft gets fresh row keys. */
 function withKeys(draft: RoutineDraft): RoutineDraft {
-  return { ...draft, drills: draft.drills.map((d) => ({ ...d, key: emptyDrill().key })) };
+  return {
+    ...draft,
+    drills: draft.drills.map((d) => ({ ...d, key: emptyDrill().key, levels: (d.levels ?? []).map((l) => ({ ...l, key: newLevelKey() })) })),
+  };
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -104,11 +110,15 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
   const unsaved = useFormDraft({ key: `routine:${id ?? 'new'}`, version: ROUTINE_DRAFT_VERSION, value: comparable(draft), initial: comparable(initial) });
 
   const errors: RoutineErrors = useMemo(() => validateRoutine(draft), [draft]);
-  const shown = submitted ? errors : { drill: {} };
+  const shown: RoutineErrors = submitted ? errors : { drill: {}, level: {} };
+  const followAlong = draft.kind === MobilityRoutineKind.FollowAlong;
   const saving = create.isPending || replace.isPending || update.isPending || remove.isPending;
   const estimate = useMemo(
-    () => (hasErrors({ ...errors, name: undefined, targetMinutes: undefined }) ? null : estimateMinutes({ id: '', name: '', targetMinutes: 1, drills: toDrillDtos(draft) })),
-    [draft, errors]
+    () =>
+      followAlong || hasErrors({ ...errors, name: undefined, targetMinutes: undefined })
+        ? null
+        : estimateMinutes({ id: '', name: '', targetMinutes: 1, drills: toDrillDtos(draft) }),
+    [draft, errors, followAlong]
   );
 
   const updateDrill = (key: string, patch: Partial<DrillDraft>) =>
@@ -130,14 +140,24 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
     const onError = (error: unknown) => toast.error(serverMessage(error, "Couldn't save the routine. Try again."));
     const name = draft.name.trim();
     const targetMinutes = Number(draft.targetMinutes);
+    const kind = draft.kind ?? MobilityRoutineKind.Stretch;
+    const followAlongUrl = followAlong ? (draft.followAlongUrl ?? '').trim() : null;
     if (!editing || !id) {
-      create.mutate({ name, targetMinutes, drills }, { onSuccess, onError });
+      create.mutate({ name, targetMinutes, drills, kind, followAlongUrl }, { onSuccess, onError });
       return;
     }
-    const detailsChanged = name !== routine.name || targetMinutes !== routine.targetMinutes;
-    const saveDrills = () => replace.mutate({ id, drills }, { onSuccess, onError });
-    if (detailsChanged) update.mutate({ id, request: { name, targetMinutes } }, { onSuccess: saveDrills, onError });
-    else saveDrills();
+    const detailsChanged =
+      name !== routine.name ||
+      targetMinutes !== routine.targetMinutes ||
+      kind !== (routine.kind ?? MobilityRoutineKind.Stretch) ||
+      (followAlongUrl ?? null) !== (routine.followAlongUrl ?? null);
+    // A follow-along has no drills to save; switching away from one saves the drills first so the kind change is valid.
+    const saveDrills = followAlong ? onSuccess : () => replace.mutate({ id, drills }, { onSuccess, onError });
+    const saveDetails = (then: () => void) => update.mutate({ id, request: { name, targetMinutes, kind, followAlongUrl } }, { onSuccess: then, onError });
+    const wasFollowAlong = routine.kind === MobilityRoutineKind.FollowAlong;
+    if (!detailsChanged) saveDrills();
+    else if (wasFollowAlong && !followAlong) replace.mutate({ id, drills }, { onSuccess: () => saveDetails(onSuccess), onError });
+    else saveDetails(saveDrills);
   };
 
   const askToDelete = async () => {
@@ -198,6 +218,45 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             <FieldError id="routine-name-error" message={shown.name} />
           </div>
           <div>
+            <label htmlFor="routine-kind" className="mb-1 block text-sm font-medium text-foreground">
+              Kind
+            </label>
+            <select
+              id="routine-kind"
+              className={selectClass}
+              value={draft.kind ?? MobilityRoutineKind.Stretch}
+              onChange={(e) => setDraft((d) => ({ ...d, kind: Number(e.target.value) as MobilityRoutineKind }))}
+            >
+              {Object.values(MobilityRoutineKind).map((k) => (
+                <option key={k} value={k}>
+                  {routineKindLabel[k]}
+                </option>
+              ))}
+            </select>
+          </div>
+          {followAlong && (
+            <div>
+              <label htmlFor="routine-url" className="mb-1 block text-sm font-medium text-foreground">
+                Video link
+              </label>
+              <Input
+                id="routine-url"
+                inputMode="url"
+                value={draft.followAlongUrl ?? ''}
+                aria-invalid={!!shown.followAlongUrl}
+                aria-describedby={shown.followAlongUrl ? 'routine-url-error' : 'routine-url-hint'}
+                onChange={(e) => setDraft((d) => ({ ...d, followAlongUrl: e.target.value }))}
+                placeholder="https://www.youtube.com/watch?v=…"
+              />
+              <FieldError id="routine-url-error" message={shown.followAlongUrl} />
+              {!shown.followAlongUrl && (
+                <p id="routine-url-hint" className="mt-1 text-sm text-muted-foreground">
+                  Start opens it in a new tab; you log the minutes when you come back. Logged in Hevy as Yoga.
+                </p>
+              )}
+            </div>
+          )}
+          <div>
             <label htmlFor="routine-minutes" className="mb-1 block text-sm font-medium text-foreground">
               Target minutes
             </label>
@@ -212,12 +271,17 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             <FieldError id="routine-minutes-error" message={shown.targetMinutes} />
             {!shown.targetMinutes && (
               <p id="routine-minutes-hint" className="mt-1 text-sm text-muted-foreground">
-                {estimate !== null ? `The drills below take about ${estimate} min.` : 'Fill in the drills to see how long it takes.'}
+                {followAlong
+                  ? 'How long the video usually takes.'
+                  : estimate !== null
+                    ? `The drills below take about ${estimate} min.`
+                    : 'Fill in the drills to see how long it takes.'}
               </p>
             )}
           </div>
         </section>
 
+        {!followAlong && (
         <section aria-labelledby="drills-heading" className="space-y-3">
           <h2 id="drills-heading" className="text-lg font-semibold text-foreground">
             Drills
@@ -309,6 +373,13 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
                     </label>
                     <Input id={fid('alt')} value={drill.standingAlternative} onChange={(ev) => updateDrill(drill.key, { standingAlternative: ev.target.value })} placeholder="For when the floor is out" />
                   </div>
+                  <DrillLevelsEditor
+                    drill={drill}
+                    drillNumber={index + 1}
+                    errors={shown.level}
+                    selectClass={selectClass}
+                    onChange={(patch) => updateDrill(drill.key, patch)}
+                  />
                 </li>
               );
             })}
@@ -319,6 +390,7 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
             Add drill
           </Button>
         </section>
+        )}
 
         <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-4">
           <Button type="button" size="lg" className="h-12 w-full" onClick={save} disabled={saving} data-testid="save-routine">

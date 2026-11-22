@@ -23,7 +23,8 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
         DateTimeOffset recordedAtUtc,
         CardioLog? cardio,
         IReadOnlyList<bool>? drillTicks,
-        CardioTrackId? cardioTrackId = null)
+        CardioTrackId? cardioTrackId = null,
+        int? durationMinutes = null)
         : base(id)
     {
         CheckRule(kind != SessionKind.Rest, "A rest day is not completed");
@@ -34,6 +35,8 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
         CheckRule(kind == SessionKind.Cardio || cardio is null, "Only cardio completions carry a cardio log");
         CheckRule(kind == SessionKind.Mobility || mobilityRoutineId is null, "Only mobility completions carry a mobility routine");
         CheckRule(kind == SessionKind.Mobility || drillTicks is null, "Only mobility completions carry drill ticks");
+        CheckRule(kind == SessionKind.Mobility || durationMinutes is null, "Only mobility completions carry minutes done");
+        CheckRule(durationMinutes is null or > 0 and <= 600, "Minutes done must be between 1 and 600");
         CheckRule(source != CompletionSource.Hevy || !string.IsNullOrWhiteSpace(hevyWorkoutId), "A Hevy completion needs the Hevy workout id");
 
         Date = date;
@@ -47,6 +50,7 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
         Cardio = cardio;
         _drillTicks = drillTicks?.ToList();
         CardioTrackId = cardioTrackId;
+        DurationMinutes = durationMinutes;
     }
 
     // EF Core constructor
@@ -66,6 +70,9 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
 
     /// <summary>The cardio track this session was evaluated against, when the slot pointed at one.</summary>
     public CardioTrackId? CardioTrackId { get; private set; }
+
+    /// <summary>Minutes actually done for a mobility session (e.g. a follow-along video); null means the routine's target.</summary>
+    public int? DurationMinutes { get; private set; }
 
     /// <summary>The idempotency key the track uses for this completion.</summary>
     public string TrackSessionKey => $"completion:{Id.Value:N}";
