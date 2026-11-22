@@ -67,7 +67,25 @@ public class SessionCompletionConfiguration : IEntityTypeConfiguration<SessionCo
             log.Property(l => l.DistanceMeters);
             log.Property(l => l.Notes).HasMaxLength(1000);
             log.Property(l => l.HighIntensityMinutes);
+            log.Property(l => l.Effort).HasConversion<string>();
+            log.Property(l => l.IntensityUnit).HasConversion<string>();
+            log.Property(l => l.IntensityValue);
+            log.Property(l => l.Floors);
+            log.Property(l => l.Steps);
+            log.Property(l => l.MaxHeartRate);
+            log.Property(l => l.Zone5Minutes);
+            log.Property(l => l.Pain).HasConversion<string>();
+            log.Property(l => l.PainArea).HasMaxLength(100);
+            log.Property(l => l.Source).HasConversion<string>();
+            log.Ignore(l => l.EffectiveEffort);
+            log.Ignore(l => l.EffectiveRpe);
         });
+
+        builder.Property(c => c.CardioTrackId)
+            .HasConversion(new ValueConverter<CardioTrackId?, Guid?>(
+                id => id.HasValue ? id.Value.Value : null,
+                value => value.HasValue ? new CardioTrackId(value.Value) : null));
+        builder.Ignore(c => c.TrackSessionKey);
 
         var drillTicksConverter = new ValueConverter<List<bool>?, string?>(
             v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),

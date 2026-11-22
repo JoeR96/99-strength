@@ -5,7 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { ChevronRight, History, LineChart, RefreshCw } from 'lucide-react';
+import { Activity, ChevronRight, History, LineChart, RefreshCw } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { addDays } from '@/lib/localDate';
@@ -17,6 +17,7 @@ import { useDayBudget } from '@/hooks/useDayBudget';
 import { WeightTrendChart } from './WeightTrendChart';
 import { VolumeThisWeek } from './VolumeThisWeek';
 import { CheckpointsList } from './CheckpointsList';
+import { CardioTrackProgress } from '@/features/cardio/CardioTrackProgress';
 
 const TREND_DAYS = 90;
 
@@ -67,7 +68,20 @@ export function ProgressPage() {
 
         {plan && trendQuery.data && <CheckpointsList checkpoints={plan.checkpoints} points={trendQuery.data.points} today={date} />}
 
+        <CardioTrackProgress />
+
         <nav aria-label="More progress" className="grid gap-2">
+          <Link
+            to="/cardio-tracks"
+            className="flex min-h-14 items-center gap-3 rounded-lg border border-border bg-card px-4 transition-colors hover:bg-muted"
+          >
+            <Activity className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            <span className="flex-1">
+              <span className="block font-medium text-foreground">Cardio tracks</span>
+              <span className="block text-xs text-muted-foreground">Walks, runs and the stair finisher, stepping up on their own</span>
+            </span>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+          </Link>
           <Link
             to="/history"
             className="flex min-h-14 items-center gap-3 rounded-lg border border-border bg-card px-4 transition-colors hover:bg-muted"

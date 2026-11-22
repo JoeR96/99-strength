@@ -1,5 +1,6 @@
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Enums;
 using FluentValidation;
@@ -29,7 +30,10 @@ public sealed record FinisherLogRequest(
     int DurationSeconds,
     [property: JsonConverter(typeof(JsonStringEnumConverter<Effort>))] Effort Effort,
     int? Level = null,
-    int? Floors = null);
+    int? Floors = null,
+    [property: JsonConverter(typeof(JsonStringEnumConverter<PainFlag>))] PainFlag Pain = PainFlag.None,
+    string? PainArea = null,
+    bool CompletedAsPrescribed = true);
 
 /// <summary>The answer to a finish (or to its replay).</summary>
 public sealed record FinishGymSessionResult
@@ -69,6 +73,8 @@ public sealed class FinishGymSessionCommandValidator : AbstractValidator<FinishG
         });
         When(x => x.Finisher is not null, () =>
         {
+            RuleFor(x => x.Finisher!.Pain).IsInEnum();
+            RuleFor(x => x.Finisher!.PainArea).MaximumLength(100);
             RuleFor(x => x.Finisher!.DurationSeconds).InclusiveBetween(1, 4 * 3600);
             RuleFor(x => x.Finisher!.Effort).IsInEnum();
             RuleFor(x => x.Finisher!.Level).InclusiveBetween(1, 100).When(x => x.Finisher!.Level.HasValue);
@@ -86,5 +92,34 @@ public sealed record GymSessionPayload
     public IReadOnlyList<bool>? WarmUpTicks { get; init; }
     public IReadOnlyList<ExercisePerformanceRequest> Performances { get; init; } = [];
     public Guid? FinisherProtocolId { get; init; }
+    public Guid? FinisherTrackId { get; init; }
+
+    /// <summary>A walk, run or cardio protocol session finished outside gym mode (posted to Hevy on its own).</summary>
+    public CardioSessionPost? Cardio { get; init; }
+
+    /// <summary>A home routine (mobility, stretching, yoga) played in the app.</summary>
+    public RoutineSessionPost? Routine { get; init; }
     public FinisherLogRequest? Finisher { get; init; }
+}
+
+/// <summary>A cardio session to write to Hevy: what was logged, and which track or protocol it was for.</summary>
+public sealed record CardioSessionPost
+{
+    public Guid? CardioTrackId { get; init; }
+    public Guid? CardioProtocolId { get; init; }
+    public string? Prescription { get; init; }
+    public int DurationSeconds { get; init; }
+    public int? DistanceMeters { get; init; }
+    public int? Floors { get; init; }
+    public decimal? IntensityValue { get; init; }
+    public int? Rpe { get; init; }
+}
+
+/// <summary>A home routine to write to Hevy as one Stretching (or Yoga) block.</summary>
+public sealed record RoutineSessionPost
+{
+    public Guid MobilityRoutineId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public int DurationSeconds { get; init; }
+    public IReadOnlyList<bool>? DrillTicks { get; init; }
 }

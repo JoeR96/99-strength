@@ -33,7 +33,9 @@ public static class PlanMappings
         session.MobilityRoutineId?.Value,
         session.Label,
         session.WarmUpRoutineId?.Value,
-        session.Finisher?.CardioProtocolId.Value);
+        session.Finisher?.CardioProtocolId?.Value,
+        session.CardioTrackId?.Value,
+        session.Finisher?.CardioTrackId?.Value);
 
     public static ScheduledSession ToDomain(this ScheduledSessionDto dto) => new(
         dto.Day,
@@ -43,7 +45,9 @@ public static class PlanMappings
         dto.MobilityRoutineId is { } mobility ? new MobilityRoutineId(mobility) : null,
         dto.Label,
         dto.WarmUpRoutineId is { } warmUp ? new MobilityRoutineId(warmUp) : null,
-        dto.FinisherCardioProtocolId is { } finisher ? new SessionFinisher(new CardioProtocolId(finisher)) : null);
+        dto.FinisherCardioProtocolId is { } finisher ? new SessionFinisher(new CardioProtocolId(finisher))
+            : dto.FinisherCardioTrackId is { } finisherTrack ? SessionFinisher.ForTrack(new CardioTrackId(finisherTrack)) : null,
+        dto.CardioTrackId is { } track ? new CardioTrackId(track) : null);
 
     public static SessionCompletionDto ToDto(this SessionCompletion completion) => new(
         completion.Id.Value,
@@ -56,13 +60,18 @@ public static class PlanMappings
         completion.HevyWorkoutId,
         completion.RecordedAtUtc,
         completion.Cardio?.ToDto(),
-        completion.DrillTicks);
+        completion.DrillTicks,
+        completion.CardioTrackId?.Value);
 
     public static CardioLogDto ToDto(this CardioLog log) =>
-        new(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes, log.HighIntensityMinutes);
+        new(log.DurationSeconds, log.AvgHeartRate, log.Rpe, log.DistanceMeters, log.Notes, log.HighIntensityMinutes,
+            log.Effort, log.IntensityUnit, log.IntensityValue, log.Floors, log.Steps, log.MaxHeartRate, log.Zone5Minutes,
+            log.Pain, log.PainArea, log.Source);
 
     public static CardioLog ToDomain(this CardioLogDto dto) =>
-        new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes, dto.HighIntensityMinutes);
+        new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes, dto.HighIntensityMinutes,
+            dto.Effort, dto.IntensityUnit, dto.IntensityValue, dto.Floors, dto.Steps, dto.MaxHeartRate, dto.Zone5Minutes,
+            dto.Pain, dto.PainArea, dto.Source);
 
     public static TodaySessionDto ToDto(this PlanDaySession session) => session.ToDto(hevyRoutineId: null);
 

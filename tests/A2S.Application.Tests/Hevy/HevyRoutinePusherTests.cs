@@ -300,4 +300,69 @@ public class HevyRoutinePusherTests
         result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
         _posted.Should().BeEmpty();
     }
+
+    private HevyRoutinePusher PusherWith(ICardioTrackRepository tracks, IUserRepository? users = null)
+    {
+        var clock = new LocalClock(new FakeTimeProvider(Now));
+        var catalogue = new HevyTemplateCatalogue(_hevy, _links, Substitute.For<IExerciseLibraryProvider>(), _unitOfWork, clock);
+        return new HevyRoutinePusher(_hevy, _links, catalogue, _workouts, _protocols, _routines, new A2SProgramProvider(), _unitOfWork, clock,
+            NullLogger<HevyRoutinePusher>.Instance, tracks, users);
+    }
+
+    [Fact]
+    public async Task LiftPush_WithATrackFinisher_AppendsStairMachineFloorsLast_AndATrackSlotPushesTheTrack()
+    {
+        var stairs = CardioTrackTemplates.Create(CardioTrackTemplates.StairFinisher, Joe, Mon16Nov);
+        var tracks = Substitute.For<ICardioTrackRepository>();
+        tracks.GetByIdAsync(stairs.Id, Arg.Any<CancellationToken>()).Returns(stairs);
+        var pusher = PusherWith(tracks);
+        var plan = TrainingPlan.Create(Joe, CutTo85Nov2026.Name, Mon16Nov,
+        [
+            ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A", finisher: SessionFinisher.ForTrack(stairs.Id)),
+            ScheduledSession.Cardio(DayOfWeek.Wednesday, null, "Stairs", stairs.Id)
+        ], 95m);
+        plan.LinkWorkout(_workout.Id);
+
+        var lift = await pusher.PushAsync(Key, plan, plan.SessionsOn(Mon16Nov).First(s => s.Kind == SessionKind.Lift), Mon16Nov);
+        var slot = await pusher.PushAsync(Key, plan, plan.SessionsOn(Wed18Nov).First(s => s.Kind == SessionKind.Cardio), Wed18Nov);
+
+        lift.IsSuccess.Should().BeTrue(lift.Error);
+        slot.IsSuccess.Should().BeTrue(slot.Error);
+        _posted[0].Exercises[^1].ExerciseTemplateId.Should().Be("4377A52B");
+        _posted[0].Exercises[^1].Notes.Should().Contain("5 min continuous @ level 6");
+        _posted[1].Exercises.Should().ContainSingle().Which.ExerciseTemplateId.Should().Be("4377A52B");
+    }
+
+    [Fact]
+    public async Task LiftPush_ACardioSlotOnTheSameDay_IsNoLongerTreatedAsAFinisher()
+    {
+        var stairs = CardioTrackTemplates.Create(CardioTrackTemplates.StairFinisher, Joe, Mon16Nov);
+        var tracks = Substitute.For<ICardioTrackRepository>();
+        tracks.GetByIdAsync(stairs.Id, Arg.Any<CancellationToken>()).Returns(stairs);
+        var plan = TrainingPlan.Create(Joe, CutTo85Nov2026.Name, Mon16Nov,
+        [
+            ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A"),
+            ScheduledSession.Cardio(DayOfWeek.Monday, null, "Stairs", stairs.Id)
+        ], 95m);
+        plan.LinkWorkout(_workout.Id);
+
+        await PusherWith(tracks).PushAsync(Key, plan, plan.SessionsOn(Mon16Nov).First(s => s.Kind == SessionKind.Lift), Mon16Nov);
+
+        _posted.Single().Exercises.Should().NotContain(e => e.ExerciseTemplateId == "4377A52B");
+    }
+
+    [Fact]
+    public async Task Push_WhenTheUserTurnedRoutinePushOff_IsRefused_AndSendsNothing()
+    {
+        var users = Substitute.For<IUserRepository>();
+        var user = A2S.Domain.Aggregates.User.User.Create("joe@example.com", "Joe", Joe, new DateTime(2026, 1, 1));
+        user.SetPushRoutinesToHevy(false);
+        users.GetByIdAsync(Joe, Arg.Any<CancellationToken>()).Returns(user);
+
+        var result = await PusherWith(Substitute.For<ICardioTrackRepository>(), users).PushAsync(Key, _plan, Session(SessionKind.Lift, Mon16Nov), Mon16Nov);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Contain("turned off");
+        _posted.Should().BeEmpty();
+    }
 }

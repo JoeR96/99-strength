@@ -1,9 +1,11 @@
 using System.Text.Json;
+using A2S.Application.Cardio;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
 using A2S.Application.Hevy;
 using A2S.Application.Interfaces;
 using A2S.Application.SuggestedPlans;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
@@ -35,6 +37,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
     private readonly ILogger<FinishGymSessionCommandHandler> _logger;
+    private readonly CardioTrackSessionRecorder? _trackRecorder;
 
     public FinishGymSessionCommandHandler(
         ISender sender,
@@ -47,8 +50,10 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUser,
         ILocalClock clock,
-        ILogger<FinishGymSessionCommandHandler> logger)
+        ILogger<FinishGymSessionCommandHandler> logger,
+        CardioTrackSessionRecorder? trackRecorder = null)
     {
+        _trackRecorder = trackRecorder;
         _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         _workouts = workouts ?? throw new ArgumentNullException(nameof(workouts));
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
@@ -109,7 +114,8 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 if (request.Finisher is { } log && session?.Finisher is { } attached)
                 {
                     finisher = plan.CompleteSession(date, SessionKind.Cardio, CompletionSource.Manual,
-                        cardio: attached.CardioProtocolId, log: FinisherCardioLog(log), recordedAt: request.EndedAt);
+                        cardio: attached.CardioProtocolId, log: FinisherCardioLog(log), recordedAt: request.EndedAt,
+                        cardioTrack: attached.CardioTrackId);
                 }
 
                 _plans.Update(plan);
@@ -122,7 +128,8 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 WarmUpRoutineId = warmUpRoutineId?.Value,
                 WarmUpTicks = request.WarmUpTicks,
                 Performances = request.Performances,
-                FinisherProtocolId = session?.Finisher?.CardioProtocolId.Value,
+                FinisherProtocolId = session?.Finisher?.CardioProtocolId?.Value,
+                FinisherTrackId = session?.Finisher?.CardioTrackId?.Value,
                 Finisher = request.Finisher
             };
 
@@ -146,6 +153,13 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 FinisherCompletionId = finisher?.Id.Value
             };
 
+            // A track finisher is evaluated once, keyed on its completion (a replay never gets here).
+            if (finisher is { CardioTrackId: { } trackId } && _trackRecorder is not null && request.Finisher is { } logged)
+            {
+                await _trackRecorder.RecordAsync(userId, trackId, finisher.TrackSessionKey, date, finisher.Cardio,
+                    logged.CompletedAsPrescribed && logged.Pain != PainFlag.Stop, _clock.NowUtc(), cancellationToken, plan);
+            }
+
             post.RecordResult(JsonSerializer.Serialize(result, Json));
             if (string.IsNullOrEmpty(await _keys.ForUserAsync(userId, cancellationToken)))
             {
@@ -168,23 +182,19 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         }
     }
 
-    /// <summary>Easy/Solid/Brutal become RPE 4/7/9; level and floors go in the notes until the cardio log carries them.</summary>
-    public static CardioLog FinisherCardioLog(FinisherLogRequest log)
-    {
-        var notes = new List<string>();
-        if (log.Level is { } level)
-        {
-            notes.Add($"Level {level}");
-        }
-
-        if (log.Floors is { } floors)
-        {
-            notes.Add($"{floors} floors");
-        }
-
-        notes.Add(log.Effort.ToString());
-        return new CardioLog(log.DurationSeconds, null, log.Effort.ToRpe(), null, string.Join(" · ", notes));
-    }
+    /// <summary>The finisher as a cardio log: Easy/Solid/Brutal (RPE 4/7/9), stair level, floors and any pain flag.</summary>
+    public static CardioLog FinisherCardioLog(FinisherLogRequest log) => new(
+        log.DurationSeconds,
+        null,
+        log.Effort.ToRpe(),
+        null,
+        null,
+        effort: log.Effort switch { Effort.Easy => EffortRating.Easy, Effort.Brutal => EffortRating.Brutal, _ => EffortRating.Solid },
+        intensityUnit: log.Level is null ? null : IntensityUnit.Level,
+        intensityValue: log.Level,
+        floors: log.Floors,
+        pain: log.Pain,
+        painArea: log.PainArea);
 
     private async Task TryPostAsync(HevyWorkoutPost post, CancellationToken ct)
     {

@@ -145,6 +145,93 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("CardioProtocols", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.Cardio.CardioTrack", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Benchmark")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("LastSnapshot")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Modality")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateOnly>("StartedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TemplateKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("_audit")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Audit")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_benchmarks")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Benchmarks")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_sessions")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Sessions")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_stages")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Stages")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CardioTracks", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.Habits.HabitDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -572,6 +659,9 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<Guid?>("CardioProtocolId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CardioTrackId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -770,13 +860,24 @@ namespace A2S.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("HeartRateZonePercents")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("HevyApiKeyProtected")
                         .HasColumnType("text");
+
+                    b.Property<int?>("MaxHeartRate")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("PushRoutinesToHevy")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.HasKey("Id");
 
@@ -1112,14 +1213,47 @@ namespace A2S.Infrastructure.Migrations
                             b1.Property<int>("DurationSeconds")
                                 .HasColumnType("integer");
 
+                            b1.Property<string>("Effort")
+                                .HasColumnType("text");
+
+                            b1.Property<int?>("Floors")
+                                .HasColumnType("integer");
+
                             b1.Property<int?>("HighIntensityMinutes")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("IntensityUnit")
+                                .HasColumnType("text");
+
+                            b1.Property<decimal?>("IntensityValue")
+                                .HasColumnType("numeric");
+
+                            b1.Property<int?>("MaxHeartRate")
                                 .HasColumnType("integer");
 
                             b1.Property<string>("Notes")
                                 .HasMaxLength(1000)
                                 .HasColumnType("character varying(1000)");
 
+                            b1.Property<string>("Pain")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("PainArea")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
+
                             b1.Property<int?>("Rpe")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Source")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int?>("Steps")
+                                .HasColumnType("integer");
+
+                            b1.Property<int?>("Zone5Minutes")
                                 .HasColumnType("integer");
 
                             b1.HasKey("SessionCompletionId");

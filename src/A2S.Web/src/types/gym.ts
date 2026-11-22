@@ -16,6 +16,7 @@ export interface FinisherLogRequest {
   effort: Effort;
   level?: number | null;
   floors?: number | null;
+  pain?: 'None' | 'Niggle' | 'Stop';
 }
 
 /** Body for `POST /gym-sessions`. `clientSessionId` is generated when the session starts and makes the finish idempotent. */

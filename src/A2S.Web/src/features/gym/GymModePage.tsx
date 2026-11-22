@@ -6,6 +6,8 @@
  * screen awake and runs the rest timer after each confirmed set.
  */
 
+import { useCardioTracks } from '@/hooks/useCardioTracks';
+import type { CardioTrackDto } from '@/types/cardioTracks';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -66,6 +68,8 @@ export function GymModePage() {
   );
   const scheduled = plan?.schedule.find((s) => s.kind === SessionKind.Lift && s.liftDay === day) ?? null;
   const finisherId = slot?.finisherCardioProtocolId ?? scheduled?.finisherCardioProtocolId ?? null;
+  const finisherTrackId = slot?.finisherCardioTrackId ?? scheduled?.finisherCardioTrackId ?? null;
+  const tracks = useCardioTracks(Boolean(finisherTrackId));
   const warmUpId = slot?.warmUpRoutineId ?? scheduled?.warmUpRoutineId ?? null;
   const protocols = useCardioProtocols(Boolean(finisherId));
 
@@ -73,7 +77,8 @@ export function GymModePage() {
     weekPlan.data !== undefined &&
     !routines.isLoading &&
     !todayQuery.isLoading &&
-    (!finisherId || protocols.isSuccess || protocols.isError);
+    (!finisherId || protocols.isSuccess || protocols.isError) &&
+    (!finisherTrackId || tracks.isSuccess || tracks.isError);
 
   if (workoutQuery.isLoading || (workout && !ready && !weekPlan.isError)) {
     return (
@@ -104,6 +109,7 @@ export function GymModePage() {
   const routineList = routines.data ?? [];
   const warmUp = (warmUpId && routineList.find((r) => r.id === warmUpId)) || routineList.find((r) => r.name.toLowerCase() === MOBILITY_A) || null;
   const finisher = (finisherId && protocols.data?.find((p) => p.id === finisherId)) || null;
+  const finisherTrack = (finisherTrackId && tracks.data?.find((t) => t.id === finisherTrackId)) || null;
   const label = slot?.label ?? scheduled?.label ?? `Day ${day}`;
 
   return (
@@ -116,6 +122,7 @@ export function GymModePage() {
       label={label}
       warmUp={warmUp}
       finisher={finisher}
+      finisherTrack={finisherTrack}
     />
   );
 }
@@ -128,16 +135,17 @@ interface RunnerProps {
   label: string;
   warmUp: MobilityRoutineDto | null;
   finisher: CardioProtocolDto | null;
+  finisherTrack: CardioTrackDto | null;
 }
 
 /** Owns one session from its first render: resumes what this phone saved, or starts a new one. */
-function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher }: RunnerProps) {
+function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, finisherTrack }: RunnerProps) {
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const [state, setState] = useState<GymSessionState>(() => {
     const saved = loadGymSession(workout.id, plan.weekNumber, day);
     if (saved) return saved;
-    const created = createGymSession({ clientSessionId: newClientSessionId(), startedAt: new Date().toISOString(), title, plan, warmUp, finisher });
+    const created = createGymSession({ clientSessionId: newClientSessionId(), startedAt: new Date().toISOString(), title, plan, warmUp, finisher, finisherTrack });
     saveGymSession(created);
     return created;
   });

@@ -36,12 +36,16 @@ public sealed class UpdateScheduleCommandHandler : IRequestHandler<UpdateSchedul
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
 
+    private readonly ICardioTrackRepository? _tracks;
+
     public UpdateScheduleCommandHandler(
         ITrainingPlanRepository plans,
         ICardioProtocolRepository protocols,
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        ICardioTrackRepository? tracks = null)
     {
+        _tracks = tracks;
         _plans = plans;
         _protocols = protocols;
         _unitOfWork = unitOfWork;
@@ -72,7 +76,8 @@ public sealed class UpdateScheduleCommandHandler : IRequestHandler<UpdateSchedul
             var protocols = await _protocols.ListForUserAsync(user.Value, cancellationToken);
             var warnings = PlanScheduleRules.Warnings(
                 plan.Schedule,
-                id => protocols.FirstOrDefault(p => p.Id == id)?.Kind);
+                id => protocols.FirstOrDefault(p => p.Id == id)?.Kind,
+                await HardTracksAsync(user.Value, cancellationToken));
 
             return Result.Success(new UpdateScheduleResult(
                 plan.ToDto(),
@@ -82,5 +87,17 @@ public sealed class UpdateScheduleCommandHandler : IRequestHandler<UpdateSchedul
         {
             return PlanAccess.FromDomain<UpdateScheduleResult>(ex);
         }
+    }
+
+    /// <summary>Which tracks are hard cardio (zone 4–5 work), for the "no hard cardio before Lower" rules.</summary>
+    private async Task<Func<CardioTrackId, bool>?> HardTracksAsync(UserId userId, CancellationToken ct)
+    {
+        if (_tracks is null)
+        {
+            return null;
+        }
+
+        var hard = (await _tracks.ListForUserAsync(userId, ct)).Where(t => t.IsHard).Select(t => t.Id).ToHashSet();
+        return id => hard.Contains(id);
     }
 }

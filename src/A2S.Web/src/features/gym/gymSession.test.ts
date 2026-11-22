@@ -13,7 +13,7 @@ import {
   toggleSet,
   updateFinisher,
 } from './gymSession';
-import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession } from './gymFixtures';
+import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession, trackFinisherGymSession } from './gymFixtures';
 
 const ENDED_AT = '2026-11-16T18:58:00.000Z';
 
@@ -97,6 +97,21 @@ describe('toFinishRequest', () => {
     const state = updateFinisher(midGymSession(), { minutes: 12.5, level: 8, floors: 41, effort: 'Brutal' });
 
     expect(toFinishRequest(state, ENDED_AT).finisher).toEqual({ durationSeconds: 750, effort: 'Brutal', level: 8, floors: 41 });
+  });
+
+  it('uses a track finisher: its prescription, level and step-up line, and sends a pain flag', () => {
+    const state = trackFinisherGymSession();
+
+    expect(state.finisher).toMatchObject({
+      trackId: '6a1e0000-0000-4000-8000-000000000003',
+      name: 'Stair finisher',
+      prescription: '7 min continuous @ level 6',
+      stepUp: '2 more sessions to step up',
+      minutes: 7,
+      level: 6,
+    });
+    const logged = updateFinisher(state, { floors: 30, effort: 'Brutal', pain: 'Niggle' });
+    expect(toFinishRequest(logged, ENDED_AT).finisher).toEqual({ durationSeconds: 420, effort: 'Brutal', level: 6, floors: 30, pain: 'Niggle' });
   });
 
   it('never ends before it started', () => {

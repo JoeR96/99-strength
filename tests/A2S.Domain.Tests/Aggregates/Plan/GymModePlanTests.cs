@@ -50,6 +50,21 @@ public class GymModePlanTests
         act.Should().Throw<BusinessRuleViolationException>();
     }
 
+    [Fact]
+    public void Finisher_CanPointAtATrack_ButNotBothOrNeither()
+    {
+        var track = new CardioTrackId(Guid.Parse("7a7a7a7a-0000-0000-0000-000000000001"));
+
+        var session = ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A", finisher: SessionFinisher.ForTrack(track));
+
+        session.Finisher!.CardioTrackId.Should().Be(track);
+        session.Finisher.CardioProtocolId.Should().BeNull();
+        var both = () => new SessionFinisher(Stairs, track);
+        var neither = () => new SessionFinisher();
+        both.Should().Throw<BusinessRuleViolationException>();
+        neither.Should().Throw<BusinessRuleViolationException>();
+    }
+
     [Theory]
     [InlineData(Effort.Easy, 4)]
     [InlineData(Effort.Solid, 7)]

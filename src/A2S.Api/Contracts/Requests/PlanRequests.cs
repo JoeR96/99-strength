@@ -28,7 +28,9 @@ public sealed record CompleteSessionRequest(
     Guid? MobilityRoutineId = null,
     CardioLogDto? Cardio = null,
     IReadOnlyList<bool>? DrillTicks = null,
-    string? HevyWorkoutId = null);
+    string? HevyWorkoutId = null,
+    Guid? CardioTrackId = null,
+    bool CompletedAsPrescribed = true);
 
 /// <summary>Body for <c>POST /api/v1/plans/{id}/sessions/push</c>: the scheduled session of that kind on that date.</summary>
 public sealed record PushSessionRequest(DateOnly Date, SessionKind Kind, DayNumber? LiftDay = null);

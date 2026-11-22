@@ -21,6 +21,7 @@ import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
 import { MealsPage } from './features/meals/MealsPage';
 import { RoutinesPage } from './features/routines/RoutinesPage';
+import { TracksPage } from './features/cardio/TracksPage';
 import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
 import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
@@ -97,6 +98,7 @@ function AppContent() {
         <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><SimulationPage /></ProtectedRoute>} />
         <Route path="/meals" element={<ProtectedRoute><MealsPage /></ProtectedRoute>} />
+        <Route path="/cardio-tracks" element={<ProtectedRoute><TracksPage /></ProtectedRoute>} />
         <Route path="/routines" element={<ProtectedRoute><RoutinesPage /></ProtectedRoute>} />
         <Route path="/routines/new" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />
         <Route path="/routines/:id/edit" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />

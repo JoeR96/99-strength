@@ -36,6 +36,7 @@ src/
 ├── contexts/         # React contexts (HevyContext, hevyStatusContext)
 ├── features/         # Feature-folder organized pages
 │   ├── auth/         # Login, SignUp, Dashboard pages
+│   ├── cardio/       # Cardio tracks page, effort log sheet, Today card, Progress charts
 │   ├── exercises/    # Exercise library page
 │   ├── hevy/         # Hevy routines, data and the unmatched-workout inbox
 │   ├── history/      # Workout history page

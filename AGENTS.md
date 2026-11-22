@@ -62,7 +62,23 @@ Workout (AggregateRoot<WorkoutId>)
 └── BlockSequence (List<int>) — block ordering
 ```
 
-**User** (aggregate root) — `Aggregates/User/User.cs`. Holds the Hevy API key only in protected form (`HevyApiKeyProtected`, via `ISecretProtector`); `RevealHevyApiKey` is the single way to read it and the value must never be logged, persisted elsewhere or returned by an endpoint.
+**User** (aggregate root) — `Aggregates/User/User.cs`. Also holds `MaxHeartRate` and editable `HeartRateZonePercents` (WHOOP default Z1–Z5 = 50/60/70/80/90 % of max) exposed as the `HeartRateZones` VO.
+
+**CardioTrack** (aggregate root) — `Aggregates/Cardio/CardioTrack.cs`. A cardio progression track:
+
+```
+CardioTrack (AggregateRoot<CardioTrackId>)
+├── Stages: List<TrackStage> (VO) — each a WeekProgram or DoubleProgression with its own settings
+├── State: CardioTrackState (VO) — stage index, week / volume / intensity, counters, pending suggestion
+├── Sessions: List<CardioTrackSession> (VO) — every judged session, keyed for idempotency
+├── Audit: List<CardioTrackAuditEntry> (VO) — action, reason, prescription before → after
+├── Benchmarks: List<BenchmarkResult> (VO) — PR history; Benchmark: TrackBenchmark (every N weeks)
+└── LastSnapshot: CardioTrackSnapshot (VO) — one-level undo of the last evaluation, decision or edit
+```
+
+Created from `CardioTrackTemplates` (walk-builder, walk-to-run, stair-finisher) as editable copies. Persisted as jsonb columns (`CardioTracks` table).
+
+**CardioProtocol** (aggregate root) — fixed Norwegian 4×4 / Couch to 5K weeks / LISS; unchanged. `CouchToFiveKWeek(n)` exposes a week's intervals to templates.. Holds the Hevy API key only in protected form (`HevyApiKeyProtected`, via `ISecretProtector`); `RevealHevyApiKey` is the single way to read it and the value must never be logged, persisted elsewhere or returned by an endpoint.
 
 **ExerciseDefinition** — reference data entity (exercise library, read-only)
 
@@ -75,6 +91,7 @@ Workout (AggregateRoot<WorkoutId>)
 | `ExerciseProgressionId` | `readonly record struct` | `Guid` |
 | `ExerciseDefinitionId` | `readonly record struct` | `Guid` |
 | `UserId` | `readonly record struct` | `string` (Clerk ID) |
+| `CardioTrackId` | `readonly record struct` | `Guid` |
 
 ### Value Objects
 
@@ -89,6 +106,9 @@ Workout (AggregateRoot<WorkoutId>)
 | `ExercisePerformance` | Completed sets + metadata for a single exercise. |
 | `ProgressionSnapshot` | Serializable progression state for undo capability. |
 | `WorkoutActivity` | Completed day record with snapshots and performances. |
+| `CardioPrescription` | What a track asks for today ("7 min continuous @ level 9", "C25K wk 4 day 2"); derived from state. |
+| `CardioLog` | A logged cardio session: duration, HR, RPE, distance, zone 4–5 and zone 5 minutes, effort button, intensity setting (level / incline % / speed), floors, steps, max HR, pain flag + area, source (manual / Hevy / WHOOP). New fields are nullable. |
+| `HeartRateZones` | Max HR + five zone floors as % of max. |
 
 ### Enums
 
@@ -101,6 +121,11 @@ Workout (AggregateRoot<WorkoutId>)
 | `ExerciseCategory` | MainLift, Auxiliary, Accessory |
 | `EquipmentType` | Barbell, Dumbbell, Cable, Machine, Bodyweight |
 | `WeightUnit` | Kilograms, Pounds |
+| `CardioModality` | Walk, Run, StairClimber, Bike, Row, Other |
+| `CardioTrackStatus` | Active, Paused, Completed |
+| `EffortRating` | Easy (=RPE 4), Solid (=7), Brutal (=9) |
+| `PainFlag` | None, Niggle, Stop |
+| `TrackSuggestion` | None, RepeatWeek, DropBackWeek, NextStage |
 
 ## Ubiquitous Language
 
@@ -120,6 +145,13 @@ Workout (AggregateRoot<WorkoutId>)
 | **Progression** | Automatic weight/set/rep adjustment after each session based on performance. |
 | **Substitution** | Replacing an exercise. Permanent = new exercise + optional progression change. Temporary = skip progression for one session. |
 | **Unilateral** | Exercise performed one side at a time. Max 3 sets per side for RPS exercises. |
+| **Cardio track** | A cardio progression (walk builder, walk → run, stair finisher) that prescribes each session and steps up after enough qualifying sessions. Walking and running are separate tracks. |
+| **Prescription** | Today's session for a track, derived from its state. |
+| **Qualifying session** | Completed as prescribed, no pain flag, and not Brutal (easy stages; avg HR at or under the zone ceiling when logged) or ≥ the zone 4–5 share of work time (hard stages; falls back to effort ≥ Solid without HR). |
+| **Effort (Easy / Solid / Brutal)** | The one-tap rating for a cardio session, stored as RPE 4 / 7 / 9. An exact RPE is optional. |
+| **Stage** | One part of a track with its own strategy; reaching its top suggests the next stage, which the person accepts. |
+| **Finisher** | A short hard cardio block after lifting (stair finisher). Meant for upper-body days. |
+| **Benchmark** | A periodic test on a track (default every 4 weeks), kept as PR history. Never changes progression. |
 
 ## Progression Strategies
 
@@ -159,6 +191,18 @@ For bodyweight/assisted exercises. Target total reps in fewest sets.
 - Weight is user-controlled (not auto-adjusted)
 - Bounded by MinimumSets/MaximumSets
 
+### Cardio strategies — `Aggregates/Cardio/CardioStrategies.cs`
+
+Lifting strategies above are untouched. Cardio tracks use their own (pure, unit-tested) strategies; all decisions append an audit entry, and every change is undoable once.
+
+- **WeekProgramStrategy** (generalised C25K): a list of weeks. Sessions needed at a week = the sessions the plan schedules for the track per week (cardio slots + lift finishers pointing at it, via `CardioWeekContext`), never fewer than `SessionsToAdvance` (walk → run: 2 a week, still 3 to advance); `SessionsToAdvance` alone without a plan slot. A planned session missed on the calendar since the week started (paused days excluded) counts against the week. After the needed sessions: all qualified → next week (last week → stage complete); otherwise suggest **repeat week**. Two niggles in a week or any stop → suggest **drop back a week**. The person accepts or declines (decline of repeat = advance anyway).
+- **DoubleProgressionStrategy**: volume (minutes or interval rounds) from min to max by a step (or a %, rounded up); at the top, intensity (level / incline / speed) +1 step and volume resets. One step per N qualifying sessions (default 2). Non-qualifying completed sessions hold; two missed prescriptions in a row step back once. Top of volume and intensity → stage complete.
+- **StageStrategy** (track level): the ordered stages, each with its own strategy and exit condition (`StageExit.AtTop` = done at the top of its range, `Never` = hold). Reaching an `AtTop` exit with a stage after it raises a **NextStage** suggestion; `MoveToNext` runs only when the person accepts. `CardioTrack` delegates prescription, evaluation and edits (`Fit`) to it. While a suggestion is pending, or the track is paused, sessions are recorded but not evaluated.
+- **Finishers**: `SessionFinisher` on a lift slot points at exactly one cardio protocol or cardio track. `FinishGymSession` records a track finisher as a cardio completion with `CardioTrackId` and evaluates the track once (completion key); level, floors, effort and pain go on the `CardioLog`. The Hevy pull completes a lift's finisher slot (or a same-day track slot) from the built-in cardio exercise in the workout (`CompleteSession` with `PostToHevy: false`).
+- **Session posts** (`SessionHevyPoster`): cardio and mobility completions recorded in the app, and track sessions logged on the Tracks page, become a `HevyWorkoutPost` (client session id = completion id, or the phone's UUID) with the gym-mode retry/adopt; payload `Cardio` (Walking 33EDD7DB / Treadmill 243710DE / Running AC1BB830 / Stair Machine (Floors) 4377A52B) or `Routine` (Stretching 527DA061 / Yoga 8C9D2928).
+- **User preference** `PushRoutinesToHevy` (default true, `GET|PUT /api/v1/users/me/preferences`) gates `HevyRoutinePusher`; finished sessions are posted regardless.
+- Sessions are idempotent on a key: `completion:{id}` (plan session completion), `hevy:{workoutId}:{exerciseIndex}` (Hevy pull), `client:{key}` (log sheet), `manual:{guid}`.
+
 ## A2S2 Program Table
 
 21 weeks = 3 blocks × 7 weeks. Defined in `A2SHypertrophyProgram`.
@@ -181,6 +225,8 @@ For bodyweight/assisted exercises. Target total reps in fewest sets.
 | `CompletionUndone` | `Workout.UndoLastCompletion()` | WorkoutId, RestoredWeek, RestoredDay |
 | `ProgressionSkipped` | `Exercise.ApplyProgression()` (temp sub) | ExerciseId, Reason |
 | `ProgramRestarted` | `Workout.UpdateBlockSequence()` | WorkoutId, NewBlockSequence |
+
+Cardio API: `/api/v1/cardio-tracks` (`GET`, `POST`, `GET /templates`, `GET /today`, `GET|PUT /heart-rate-zones`, `GET|PUT /{id}`, `POST /{id}/sessions|suggestion|undo|pause|resume|benchmarks`). Schedule guardrails (`PlanScheduleRules`, warnings only): 4×4 or any hard track the day before a Lower day, a hard track on a Lower day (finisher), weekly zone 4–5 minutes above `HighIntensityTarget.Max`. Hevy: built-in templates `Stair Machine (Floors)` 4377A52B, `Walking` 33EDD7DB, `Treadmill` 243710DE, `Running` AC1BB830 (`HevyTemplateCatalogue`); push appends a same-day stair track to the lift routine; pull logs those exercises against the matching track (`HevyCardioTrackLogger`).
 
 Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no consumers — extensibility point for future cross-aggregate concerns.
 
@@ -206,6 +252,15 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `RetrofixLinearTm` | Recalculates TM history from AMRAP data | |
 | `SyncRoutineToHevy` | Pushes routine to Hevy via ACL; the key is resolved server-side via `IHevyKeyResolver` | |
 | `CreateUser` | Auto-provisions user from Clerk auth | |
+| `CreateCardioTrack` | Starts a track from a template (editable copy) | |
+| `UpdateCardioTrack` | Edits name, notes, stages and benchmark; keeps position inside the new ranges | |
+| `LogCardioTrackSession` | Logs and evaluates a session (idempotent on client key); ticks the Walks habit for walks | |
+| `DecideCardioTrackSuggestion` | Accepts or declines repeat / drop back / next stage | |
+| `UndoCardioTrack` | Restores the exact state before the last evaluation, decision or edit | |
+| `SetCardioTrackPaused` | Pause / resume | |
+| `RecordCardioBenchmark` | Adds a benchmark result (PR history) | |
+| `SetHeartRateZones` | Max HR and zone boundaries on the user | |
+| `CompleteSession` (cardio slot with a track) | Also evaluates the track once per completion | |
 | `StartSuggestedPlan` | One-tap onboarding: builds "Cut to 85 — Nov 2026" from `SuggestedPlans/CutTo85Nov2026` (workout + cardio protocols + Mobility A/B + habits + linked plan) in one unit of work; idempotent while that plan is active | `POST /api/v1/plans/suggested/cut-to-85` |
 | Mobility: `CreateMobilityRoutine`, `UpdateMobilityRoutine`, `ReplaceDrills`, `DeleteMobilityRoutine` | Mobility routines and their ordered drills. Update renames and changes target minutes; delete returns 409 while any of the user's plans schedules the routine (past completions keep the id as history) | `POST /api/v1/mobility-routines`, `PUT /{id}`, `PUT /{id}/drills`, `DELETE /{id}` |
 | `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan. A lift slot may carry `WarmUpRoutineId` and `FinisherCardioProtocolId` | `PUT /api/v1/plans/{id}/schedule` |
@@ -234,6 +289,10 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
 | Habits, body weight, Hevy inbox, meals, push and token queries | Read sides of the commands above |
 | `GetToday` | A plan day's sessions, phase and week goals. Lift sessions carry the slot's warm-up and finisher and, when finished in gym mode, `gymSessionId` + `hevyPostStatus` (Pending/Posted/Failed/Skipped) — `GET /api/v1/plans/today` |
+| `ListCardioTracks` / `GetCardioTrack` | Tracks with prescriptions; one track with sessions, audit, benchmarks and chart points |
+| `ListCardioTrackTemplates` | The shipped templates |
+| `GetTodayCardio` | Active tracks' prescriptions, this week's zone 4–5 minutes and guardrail warnings |
+| `GetHeartRateZones` | Max HR and zones |
 | `GetSuggestedPlans` | Previews the suggested plans for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
 
 ## Gym mode

@@ -151,7 +151,9 @@ public class PlansController : ControllerBase
             request.MobilityRoutineId,
             request.Cardio,
             request.DrillTicks,
-            request.HevyWorkoutId);
+            request.HevyWorkoutId,
+            request.CardioTrackId,
+            request.CompletedAsPrescribed);
         var result = await _mediator.Send(command, cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }

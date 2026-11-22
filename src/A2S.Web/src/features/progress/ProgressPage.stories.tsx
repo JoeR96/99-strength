@@ -5,6 +5,7 @@ import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/bodyWeight';
 import { installBudgetHandlers, budgetHandlers } from '@/mocks/handlers/budget';
 import { installWorkoutsHandlers, workoutsHandlers } from '@/mocks/handlers/workouts';
+import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
 
 const meta = {
   title: 'Features/Progress/ProgressPage',
@@ -76,5 +77,15 @@ export const Error: Story = {
       () => installWorkoutsHandlers(workoutsHandlers.error()),
       () => installBudgetHandlers(budgetHandlers.error())
     ),
+  ],
+};
+
+/** A chart per cardio track, with each step and why, below the weight trend. */
+export const WithCardioTracks: Story = {
+  decorators: [
+    scenario(() => {
+      installBodyWeightHandlers(bodyWeightHandlers.onPace());
+      installCardioTracksHandlers(cardioTracksHandlers.default());
+    }),
   ],
 };

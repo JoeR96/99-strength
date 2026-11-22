@@ -11,3 +11,6 @@ public readonly record struct MobilityRoutineId(Guid Value);
 
 /// <summary>Strongly-typed ID for a SessionCompletion entity owned by a TrainingPlan.</summary>
 public readonly record struct SessionCompletionId(Guid Value);
+
+/// <summary>Strongly-typed ID for the CardioTrack aggregate root.</summary>
+public readonly record struct CardioTrackId(Guid Value);

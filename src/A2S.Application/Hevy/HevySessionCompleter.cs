@@ -24,9 +24,11 @@ public sealed class HevySessionCompleter
 {
     private readonly ISender _sender;
     private readonly IMobilityRoutineRepository _routines;
+    private readonly HevyCardioTrackLogger? _cardioTracks;
 
-    public HevySessionCompleter(ISender sender, IMobilityRoutineRepository routines)
+    public HevySessionCompleter(ISender sender, IMobilityRoutineRepository routines, HevyCardioTrackLogger? cardioTracks = null)
     {
+        _cardioTracks = cardioTracks;
         _sender = sender ?? throw new ArgumentNullException(nameof(sender));
         _routines = routines ?? throw new ArgumentNullException(nameof(routines));
     }
@@ -57,7 +59,8 @@ public sealed class HevySessionCompleter
                 plan.Id.Value, date, SessionKind.Cardio,
                 CardioProtocolId: session.CardioProtocolId?.Value,
                 Cardio: CardioLogFrom(workout),
-                HevyWorkoutId: workout.Id)),
+                HevyWorkoutId: workout.Id,
+                CardioTrackId: session.CardioTrackId?.Value)),
             SessionKind.Mobility => Result.Success(new CompleteSessionCommand(
                 plan.Id.Value, date, SessionKind.Mobility,
                 MobilityRoutineId: session.MobilityRoutineId?.Value,
@@ -72,9 +75,46 @@ public sealed class HevySessionCompleter
         }
 
         var completion = await _sender.Send(command.Value, ct);
-        return completion.IsFailure
-            ? PlanAccess.Fail<SessionCompletionId>(completion)
-            : Result.Success(new SessionCompletionId(completion.Value.Id));
+        if (completion.IsFailure)
+        {
+            return PlanAccess.Fail<SessionCompletionId>(completion);
+        }
+
+        // Finishers, walks and runs inside the workout: a lift's finisher track (or another cardio slot's track that
+        // day) completes that slot, so Today shows it done and the track is evaluated once on its completion; any
+        // other built-in cardio exercise just evaluates the person's track of that kind.
+        if (_cardioTracks is not null)
+        {
+            var handled = new List<CardioTrackId>();
+            if (session.CardioTrackId is { } own)
+            {
+                handled.Add(own);
+            }
+
+            var slotTracks = new List<CardioTrackId>();
+            if (session.Finisher?.CardioTrackId is { } finisherTrack)
+            {
+                slotTracks.Add(finisherTrack);
+            }
+
+            slotTracks.AddRange(plan.SessionsOn(date)
+                .Where(s => s.Kind == SessionKind.Cardio && s.CardioTrackId is not null && s.CardioTrackId != session.CardioTrackId)
+                .Select(s => s.CardioTrackId!.Value));
+
+            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, ct))
+            {
+                var slot = await _sender.Send(new CompleteSessionCommand(plan.Id.Value, date, SessionKind.Cardio,
+                    Cardio: log.ToDto(), CardioTrackId: track.Value, PostToHevy: false), ct);
+                if (slot.IsSuccess)
+                {
+                    handled.Add(track);
+                }
+            }
+
+            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, ct);
+        }
+
+        return Result.Success(new SessionCompletionId(completion.Value.Id));
     }
 
     private async Task<Result<CompleteSessionCommand>> LiftAsync(
@@ -170,12 +210,18 @@ public sealed class HevySessionCompleter
     {
         ArgumentNullException.ThrowIfNull(workout);
         var rpe = workout.Exercises.SelectMany(e => e.Sets).Select(s => s.Rpe).Where(r => r.HasValue).Select(r => (int)Math.Round(r!.Value)).DefaultIfEmpty(0).Max();
+        var floors = workout.Exercises
+            .Where(e => e.ExerciseTemplateId == HevyTemplateCatalogue.StairMachineFloors)
+            .SelectMany(e => e.Sets)
+            .Sum(s => s.CustomMetric ?? 0m);
         return new CardioLogDto(
             Math.Max(1, workout.TotalDurationSeconds()),
             null,
             rpe is >= 1 and <= 10 ? rpe : null,
             workout.TotalDistanceMeters(),
-            null);
+            null,
+            Floors: floors > 0 ? (int)floors : null,
+            Source: A2S.Domain.Aggregates.Cardio.CardioLogSource.Hevy);
     }
 
     /// <summary>One tick per drill of the session's routine: done when the drill's template is in the workout.</summary>

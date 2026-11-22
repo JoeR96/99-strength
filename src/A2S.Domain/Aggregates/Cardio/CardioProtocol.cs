@@ -182,6 +182,13 @@ public sealed class CardioProtocol : AggregateRoot<CardioProtocolId>
             $"Couch to 5K week must be between {CouchToFiveKFirstWeek} and {CouchToFiveKLastWeek}");
     }
 
+    /// <summary>The intervals of one Couch to 5K week (1–9), for templates that build on it.</summary>
+    public static IReadOnlyList<CardioInterval> CouchToFiveKWeek(int weekIndex)
+    {
+        CheckCouchToFiveKWeek(weekIndex);
+        return CouchToFiveKIntervals(weekIndex);
+    }
+
     private static string CouchToFiveKName(int weekIndex) => $"Couch to 5K — Week {weekIndex}";
 
     private static IReadOnlyList<CardioInterval> CouchToFiveKIntervals(int weekIndex)

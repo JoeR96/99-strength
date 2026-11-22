@@ -86,14 +86,15 @@ export function FinisherCard({
   onChange,
 }: {
   finisher: GymFinisher;
-  onChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort'>>) => void;
+  onChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
 }) {
   return (
     <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
       <h2 id="finisher-heading" className="text-lg font-semibold text-foreground">
         Finisher: {finisher.name}
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground">{finisher.prescription}</p>
+      <p className="mt-1 text-sm text-muted-foreground" data-testid="finisher-prescription">{finisher.prescription}</p>
+      {finisher.stepUp && <p className="text-sm text-foreground">{finisher.stepUp}</p>}
 
       <div className="mt-3 grid grid-cols-3 gap-2">
         <div>
@@ -130,6 +131,28 @@ export function FinisherCard({
           ))}
         </div>
       </fieldset>
+
+      {finisher.trackId && (
+        <fieldset className="mt-3">
+          <legend className="text-sm font-medium text-foreground">Any pain?</legend>
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            {(['None', 'Niggle', 'Stop'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={cn(
+                  'min-h-12 rounded-md border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  (finisher.pain ?? 'None') === value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                )}
+                aria-pressed={(finisher.pain ?? 'None') === value}
+                onClick={() => onChange({ pain: value })}
+              >
+                {value === 'None' ? 'No pain' : value === 'Stop' ? 'Had to stop' : 'Niggle'}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </section>
   );
 }

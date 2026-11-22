@@ -1,3 +1,5 @@
+using A2S.Api.Extensions;
+using A2S.Application.Commands.Users;
 using A2S.Api.Contracts.Responses;
 using A2S.Application.Common;
 using A2S.Application.Queries.Users;
@@ -87,6 +89,23 @@ public class UsersController : ControllerBase
         }
 
         return Ok(new UserResponse(result.Id, result.Email, result.Name, result.CreatedAt));
+    }
+
+    /// <summary>The current user's preferences (Settings), e.g. whether routines are pushed into Hevy.</summary>
+    [HttpGet("me/preferences")]
+    [ProducesResponseType(typeof(UserPreferencesDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPreferences([FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetUserPreferencesQuery(), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    [HttpPut("me/preferences")]
+    [ProducesResponseType(typeof(UserPreferencesDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetPreferences([FromServices] IMediator mediator, [FromBody] SetUserPreferencesCommand command, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(command, cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
     /// <summary>

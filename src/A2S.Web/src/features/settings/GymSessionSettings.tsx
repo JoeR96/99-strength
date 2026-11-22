@@ -13,6 +13,7 @@ import { useActivePlan } from '@/hooks/usePlan';
 import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
 import { useCardioProtocols, useUpdateSchedule } from '@/hooks/useGymSession';
 import { SessionKind, type ScheduledSessionDto } from '@/types/plan';
+import { useCardioTracks } from '@/hooks/useCardioTracks';
 
 const DAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SELECT = 'mt-1 h-12 w-full rounded-md border border-border bg-muted/50 px-3 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary';
@@ -21,6 +22,7 @@ export function GymSessionSettings() {
   const { data: plan } = useActivePlan();
   const routines = useMobilityRoutines();
   const protocols = useCardioProtocols(Boolean(plan));
+  const tracks = useCardioTracks();
   const save = useUpdateSchedule();
   // Unsaved choices per schedule index, laid over the plan's schedule.
   const [edits, setEdits] = useState<Record<number, Partial<ScheduledSessionDto>>>({});
@@ -63,10 +65,23 @@ export function GymSessionSettings() {
                 <select
                   id={`finisher-${i}`}
                   className={SELECT}
-                  value={s.finisherCardioProtocolId ?? ''}
-                  onChange={(e) => change(i, { finisherCardioProtocolId: e.target.value || null })}
+                  value={s.finisherCardioTrackId ? `track:${s.finisherCardioTrackId}` : (s.finisherCardioProtocolId ?? '')}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    change(
+                      i,
+                      value.startsWith('track:')
+                        ? { finisherCardioTrackId: value.slice(6), finisherCardioProtocolId: null }
+                        : { finisherCardioProtocolId: value || null, finisherCardioTrackId: null }
+                    );
+                  }}
                 >
                   <option value="">None</option>
+                  {(tracks.data ?? []).map((t) => (
+                    <option key={t.id} value={`track:${t.id}`}>
+                      {t.name} (track)
+                    </option>
+                  ))}
                   {(protocols.data ?? []).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}

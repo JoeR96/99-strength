@@ -54,6 +54,41 @@ public sealed class HevyTemplateCatalogue
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
     }
 
+    // Hevy's built-in cardio templates (ids checked against scripts/hevy-exercises.json).
+    public const string StairMachineFloors = "4377A52B"; // floors_duration
+    public const string StairMachineSteps = "4377A52C";  // steps_duration
+    public const string Walking = "33EDD7DB";            // distance_duration
+    public const string Treadmill = "243710DE";          // distance_duration
+    public const string Running = "AC1BB830";            // distance_duration
+    public const string Stretching = "527DA061";         // duration
+    public const string Yoga = "8C9D2928";               // duration
+
+    /// <summary>The built-in template a cardio track is pushed as: stairs → Stair Machine (Floors), treadmill walks → Treadmill.</summary>
+    public static string BuiltInTemplateFor(CardioTrack track)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+        return track.Modality switch
+        {
+            CardioModality.StairClimber => StairMachineFloors,
+            CardioModality.Run => Running,
+            CardioModality.Walk when track.CurrentStage.DoubleProgression?.IntensityUnit is IntensityUnit.InclinePercent or IntensityUnit.SpeedKmh
+                || (track.Notes?.Contains("treadmill", StringComparison.OrdinalIgnoreCase) ?? false) => Treadmill,
+            _ => Walking
+        };
+    }
+
+    /// <summary>Which track modalities a built-in Hevy cardio template can log against (empty for anything else).</summary>
+    public static IReadOnlyList<CardioModality> ModalitiesForTemplate(string? templateId) => templateId switch
+    {
+        StairMachineFloors or StairMachineSteps => [CardioModality.StairClimber],
+        Walking => [CardioModality.Walk],
+        Running => [CardioModality.Run],
+        Treadmill => [CardioModality.Walk, CardioModality.Run],
+        _ => []
+    };
+
+    public static bool IsBuiltInCardio(string? templateId) => ModalitiesForTemplate(templateId).Count > 0;
+
     public static bool IsCustom(string? externalTemplateId) =>
         externalTemplateId is not null && externalTemplateId.StartsWith(CustomPrefix, StringComparison.OrdinalIgnoreCase);
 

@@ -63,6 +63,53 @@ and finisher under **Settings → Gym sessions**.
 
 Not connected, by design: MacroFactor (it has no usable API) and calorie or protein tracking.
 
+## Cardio tracks
+
+Cardio now progresses on its own, the way your lifts do. Open **Progress → Cardio tracks** (or
+`/cardio-tracks`) and start a track from one of three templates. Every number in a template can
+be changed afterwards in the track's **Info** sheet.
+
+- **Walk builder**: easy treadmill walking. It starts at 20 minutes and adds 5 minutes at a time up to 45. After that it keeps you at 45 minutes and raises the incline by 1 % at a time, up to 10 %.
+- **Walk → run**: Couch to 5K over 9 weeks, two runs a week. You move to the next week after 3 good sessions. After week 9, a "5 K builder" makes your continuous run about 10 % longer at a time, up to 35 minutes. Treadmill or grass is best.
+- **Stair finisher**: a hard finish after an upper-body lifting day. It starts at 5 minutes of steady climbing and adds a minute at a time up to 10. Then the level goes up one and you drop back to 5 minutes. After that come 1 minute hard / 1 minute easy intervals, from 4 rounds to 8, and then the hard level goes up one.
+
+**Logging takes one tap.** Pick **Easy**, **Solid** or **Brutal** (saved as RPE 4, 7 or 9) and
+you're done. Under **More details** you can add minutes, the machine level or incline, floors,
+heart rate, minutes in zone 4–5, an exact RPE, or a pain flag (a niggle, or "had to stop", plus
+where it hurts).
+
+**How a track moves:**
+- A session counts when you did it as prescribed, you had no pain, and either it wasn't Brutal (on easy tracks) or you spent at least half the work time in zone 4–5 (on hard tracks). Heart rate is optional. If you log no heart rate, the app goes by your effort instead.
+- Two good sessions move you up one step. Two missed sessions in a row move you back one step.
+- If it wants to repeat a week, drop back a week, or move you to the next stage, it asks first. You can say yes or carry on.
+- **Undo** puts the track back exactly as it was before your last log, decision or edit. **Pause** keeps a track where it is while you're ill or away.
+- Each track has a check-in test every 4 weeks (for example floors in 5 minutes, or your 5 K time). Your best results are kept.
+
+Today shows each track's session and how many more good sessions you need before it steps up.
+It also warns you when your zone 4–5 minutes for the week go over your plan's maximum. Progress
+shows a chart for each track, with every change and the reason for it, and the same data as a
+table.
+
+Walks also tick your **Walks** habit, if you have one, so you don't have to log them twice.
+Set your max heart rate and zones in **Settings → Heart rate**. The zones start as WHOOP's
+50/60/70/80/90 % of max, and you can change them. Without a max heart rate, tracks go by your
+effort alone.
+
+**Weeks of Couch to 5K follow your plan.** If your plan has two runs a week for the track, you
+still need three good sessions before the next week. A run that was planned and missed counts
+against the week, so the app suggests repeating it.
+
+**Stair finisher in gym mode:** in **Settings → Gym sessions**, pick the stair finisher track as a
+lifting day's finisher. The gym checklist then shows today's stair session, how many more good
+sessions you need before it steps up, and a pain flag. When you tap Finish, the track moves on
+once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors and level.
+
+**With Hevy:**
+- Walks, runs and home routines you finish in the app are sent to Hevy from the server, just like gym sessions: Walking, Treadmill or Running for cardio, Stretching or Yoga for routines. If Hevy is down, they are retried, and never sent twice.
+- If you finish a workout in Hevy instead, the pull reads the time, floors, distance and RPE and moves the track on. A finisher done inside a lifting workout also marks the finisher done in the app.
+- A workout pulled twice, or edited in Hevy after it was matched, never counts twice.
+- **Settings → Hevy routines → Push routines into Hevy** (on by default) controls whether planned routines are pushed into Hevy. Finished sessions are always sent.
+
 ## Install on your phone
 
 **iPhone (Safari, iOS 16.4+)**: open the site, tap **Share → Add to Home Screen → Add**, then launch it from

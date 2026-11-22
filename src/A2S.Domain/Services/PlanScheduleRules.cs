@@ -14,6 +14,8 @@ public sealed record ScheduleWarning(string Code, string Message);
 public static class PlanScheduleRules
 {
     public const string FourByFourBeforeLowerDay = "FourByFourBeforeLowerDay";
+    public const string HardCardioBeforeLowerDay = "HardCardioBeforeLowerDay";
+    public const string FinisherOnLowerDay = "FinisherOnLowerDay";
 
     /// <summary>
     /// One warning for every Norwegian 4×4 slot scheduled the day before a lower-body lift.
@@ -23,7 +25,8 @@ public static class PlanScheduleRules
     /// </summary>
     public static IReadOnlyList<ScheduleWarning> Warnings(
         IEnumerable<ScheduledSession> schedule,
-        Func<CardioProtocolId, CardioProtocolKind?>? protocolKind = null)
+        Func<CardioProtocolId, CardioProtocolKind?>? protocolKind = null,
+        Func<CardioTrackId, bool>? isHardTrack = null)
     {
         ArgumentNullException.ThrowIfNull(schedule);
 
@@ -41,8 +44,48 @@ public static class PlanScheduleRules
             }
         }
 
+        // Generalised (brief § 4d): any hard cardio track (stair intervals, …) the day before a lower day.
+        foreach (var cardio in sessions.Where(s => s.Kind == SessionKind.Cardio && !IsFourByFour(s, protocolKind)
+                     && s.CardioTrackId is { } track && isHardTrack?.Invoke(track) == true))
+        {
+            var nextDay = (DayOfWeek)(((int)cardio.Day + 1) % 7);
+            foreach (var lift in sessions.Where(s => s.Kind == SessionKind.Lift && s.Day == nextDay && IsLowerBody(s)))
+            {
+                warnings.Add(new ScheduleWarning(
+                    HardCardioBeforeLowerDay,
+                    $"{cardio.Label} on {cardio.Day} is hard cardio the day before {lift.Label} ({nextDay}). Consider moving it."));
+            }
+        }
+
+        // Finishers default to upper-body days: a hard track on the same day as a lower lift warns.
+        foreach (var cardio in sessions.Where(s => s.Kind == SessionKind.Cardio
+                     && s.CardioTrackId is { } track && isHardTrack?.Invoke(track) == true))
+        {
+            foreach (var lift in sessions.Where(s => s.Kind == SessionKind.Lift && s.Day == cardio.Day && IsLowerBody(s)))
+            {
+                warnings.Add(new ScheduleWarning(
+                    FinisherOnLowerDay,
+                    $"{cardio.Label} is on {lift.Label} ({cardio.Day}). Finishers are meant for upper-body days."));
+            }
+        }
+
         return warnings;
     }
+
+    /// <summary>
+    /// A warning when the week's zone 4–5 minutes (stair finisher and 4×4 both count) go over the
+    /// plan's <see cref="HighIntensityTarget"/> maximum. Never blocks anything.
+    /// </summary>
+    public static ScheduleWarning? HighIntensityOverMax(int minutesThisWeek, HighIntensityTarget target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return minutesThisWeek > target.MaxMinutes
+            ? new ScheduleWarning(HighIntensityAboveMax,
+                $"{minutesThisWeek} min in zone 4–5 this week, above your {target.MaxMinutes} min max. Keep the rest easy.")
+            : null;
+    }
+
+    public const string HighIntensityAboveMax = "HighIntensityAboveMax";
 
     private static bool IsFourByFour(ScheduledSession session, Func<CardioProtocolId, CardioProtocolKind?>? protocolKind)
     {

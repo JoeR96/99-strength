@@ -43,6 +43,9 @@ public static class DependencyInjection
         services.AddScoped<Hevy.HevyWorkoutPoster>();
         services.AddScoped<Hevy.HevyPostRetryRunner>();
         services.AddScoped<AmbientUser>();
+        services.AddScoped<Cardio.CardioTrackSessionRecorder>();
+        services.AddScoped<Hevy.HevyCardioTrackLogger>();
+        services.AddScoped<Hevy.SessionHevyPoster>();
 
         // Personal API tokens: resolves a presented token to its user for the API's token scheme.
         services.AddScoped<ApiTokens.IApiTokenAuthenticator, ApiTokens.ApiTokenAuthenticator>();

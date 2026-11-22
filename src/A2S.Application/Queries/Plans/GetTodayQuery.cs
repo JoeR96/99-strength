@@ -87,7 +87,8 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
         return session with
         {
             WarmUpRoutineId = slot?.WarmUpRoutineId?.Value,
-            FinisherCardioProtocolId = slot?.Finisher?.CardioProtocolId.Value,
+            FinisherCardioProtocolId = slot?.Finisher?.CardioProtocolId?.Value,
+            FinisherCardioTrackId = slot?.Finisher?.CardioTrackId?.Value,
             GymSessionId = post?.ClientSessionId,
             HevyPostStatus = post?.Status.ToString()
         };

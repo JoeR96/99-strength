@@ -32,4 +32,17 @@ public static class JsonColumn
         (a, b) => (a ?? new List<T>()).SequenceEqual(b ?? new List<T>()),
         list => list.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),
         list => list.ToList());
+
+    /// <summary>
+    /// Any value (one record, or a list of records with nested lists) as jsonb. Change tracking compares
+    /// the serialised JSON, so nested collections don't need value equality.
+    /// </summary>
+    public static ValueConverter<T, string> ValueConverter<T>() => new(
+        value => JsonSerializer.Serialize(value, Options),
+        json => JsonSerializer.Deserialize<T>(json, Options)!);
+
+    public static ValueComparer<T> ValueComparer<T>() => new(
+        (a, b) => JsonSerializer.Serialize(a, Options) == JsonSerializer.Serialize(b, Options),
+        value => JsonSerializer.Serialize(value, Options).GetHashCode(),
+        value => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Options), Options)!);
 }
