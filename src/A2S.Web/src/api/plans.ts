@@ -7,6 +7,7 @@ import type {
   CompleteSessionRequest,
   HighIntensityTargetDto,
   PlanDayDto,
+  UpcomingDayDto,
   SetHighIntensityTargetRequest,
   SessionCompletionDto,
   TodayDto,
@@ -48,6 +49,17 @@ export const plansApi = {
   getToday: async (date?: LocalDate): Promise<TodayDto | null> => {
     try {
       const response = await apiClient.get<TodayDto>('/plans/today', { params: date ? { date } : undefined });
+      return response.data;
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
+  },
+
+  /** The next `days` days from `from` (today by default); `null` when there is no active plan. */
+  getUpcoming: async (from?: LocalDate, days = 14): Promise<UpcomingDayDto[] | null> => {
+    try {
+      const response = await apiClient.get<UpcomingDayDto[]>('/plans/upcoming', { params: from ? { from, days } : { days } });
       return response.data;
     } catch (error) {
       if (isNotFound(error)) return null;

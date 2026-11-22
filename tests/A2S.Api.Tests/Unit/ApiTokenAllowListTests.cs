@@ -33,6 +33,7 @@ public class ApiTokenAllowListTests
         "POST api/v1/habits/{id:guid}/logs/{date}/increment",
         "POST api/v1/habits/{id:guid}/unarchive",
         "GET api/v1/plans/today",
+        "GET api/v1/plans/upcoming",
         "GET api/v1/users/me/api-tokens/whoami"
     ];
 

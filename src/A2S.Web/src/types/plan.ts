@@ -34,6 +34,8 @@ export interface ScheduledSessionDto {
   cardioProtocolId: string | null;
   mobilityRoutineId: string | null;
   label: string;
+  /** Cardio slots only: the cardio track this slot follows. */
+  cardioTrackId?: string | null;
   /** Lift slots only: the warm-up routine; null falls back to the routine named "Mobility A". */
   warmUpRoutineId?: string | null;
   /** Lift slots only: the cardio protocol done as a finisher straight after the lifts. */
@@ -170,6 +172,21 @@ export interface PlanDayDto {
   date: LocalDate;
   phase: PhaseType | null;
   sessions: TodaySessionDto[];
+}
+
+/** A lift's planned sets on `GET /plans/upcoming` (current A2S2 week). An AMRAP set's `reps` is its rep-out target. */
+export interface UpcomingLiftDto {
+  liftDay: PlanDayNumber;
+  label: string;
+  weekNumber: number;
+  isDeloadWeek: boolean;
+  exercises: { name: string; category: string; sets: { weightKg: number; reps: number; isAmrap: boolean }[] }[];
+  finisher: { name: string; prescription: string } | null;
+}
+
+/** A day on `GET /plans/upcoming`: the calendar day plus its lifts' planned sets. */
+export interface UpcomingDayDto extends PlanDayDto {
+  lifts: UpcomingLiftDto[];
 }
 
 /** Body for `POST /plans/{id}/completions`. */

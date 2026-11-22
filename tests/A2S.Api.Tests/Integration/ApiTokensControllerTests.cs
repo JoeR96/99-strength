@@ -153,6 +153,9 @@ public class ApiTokensControllerTests
             ["GET whoami"] = await token.GetAsync($"{TokensUrl}/whoami")
         };
         var planToday = await token.GetAsync("/api/v1/plans/today");
+        var planTodayDated = await token.GetAsync($"/api/v1/plans/today?date={Day:yyyy-MM-dd}");
+        var upcomingViaClerk = await clerk.Client.GetAsync("/api/v1/plans/upcoming?days=3");
+        var upcoming = await token.GetAsync("/api/v1/plans/upcoming?days=3");
 
         foreach (var (route, response) in responses)
         {
@@ -161,6 +164,9 @@ public class ApiTokensControllerTests
 
         planToday.StatusCode.Should().Be(planTodayViaClerk.StatusCode, "a token sees plans/today exactly as its owner's session does");
         planToday.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized).And.NotBe(HttpStatusCode.Forbidden);
+        planTodayDated.StatusCode.Should().Be(planToday.StatusCode);
+        upcoming.StatusCode.Should().Be(upcomingViaClerk.StatusCode, "a token sees plans/upcoming exactly as its owner's session does");
+        upcoming.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized).And.NotBe(HttpStatusCode.Forbidden);
         var trend = await clerk.Client.GetFromJsonAsync<WeightTrendDto>($"/api/v1/body-weight/trend?from={Day:yyyy-MM-dd}&to={Day:yyyy-MM-dd}");
         trend!.Points.Should().ContainSingle().Which.Kg.Should().Be(94.6m);
     }
@@ -198,6 +204,8 @@ public class ApiTokensControllerTests
             ["GET plans/active"] = await token.GetAsync("/api/v1/plans/active"),
             ["GET plans/calendar"] = await token.GetAsync("/api/v1/plans/calendar?year=2026&month=11"),
             ["POST plans"] = await token.PostAsJsonAsync("/api/v1/plans", new { }),
+            ["POST completion"] = await token.PostAsJsonAsync($"/api/v1/plans/{Guid.NewGuid()}/completions", new { date = "2030-01-07", kind = "Lift", liftDay = 1 }),
+            ["GET week plan"] = await token.GetAsync($"/api/v1/workouts/{Guid.NewGuid()}/weeks/1/days/1/plan"),
             ["GET workouts"] = await token.GetAsync("/api/v1/workouts"),
             ["GET meals"] = await token.GetAsync("/api/v1/meals"),
             ["GET push"] = await token.GetAsync("/api/v1/push/subscriptions"),

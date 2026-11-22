@@ -156,12 +156,13 @@ public class PlansControllerTests
         var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
         await CreatePlanAsync(client);
 
-        var days = await client.GetFromJsonAsync<List<PlanDayDto>>($"/api/v1/plans/upcoming?from={Mon7Jan2030:yyyy-MM-dd}&days=3");
+        var days = await client.GetFromJsonAsync<List<UpcomingDayDto>>($"/api/v1/plans/upcoming?from={Mon7Jan2030:yyyy-MM-dd}&days=3");
         var invalid = await client.GetAsync("/api/v1/plans/upcoming?days=40");
 
         days!.Select(d => d.Date).Should().Equal(Mon7Jan2030, Mon7Jan2030.AddDays(1), Wed9Jan2030);
         days[0].Sessions.Should().ContainSingle().Which.Label.Should().Be("Upper A");
         days[2].Sessions.Select(s => s.Kind).Should().Equal(SessionKind.Cardio, SessionKind.Mobility);
+        days.Should().AllSatisfy(d => d.Lifts.Should().BeEmpty("this plan has no linked workout"));
         invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 

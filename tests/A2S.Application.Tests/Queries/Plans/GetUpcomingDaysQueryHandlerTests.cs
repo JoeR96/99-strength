@@ -1,5 +1,9 @@
 using A2S.Application.Common;
+using A2S.Application.DTOs;
+using A2S.Application.Queries.GetWeekPlan;
 using A2S.Application.Queries.Plans;
+using A2S.Tests.Shared.Builders;
+using MediatR;
 using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
@@ -22,6 +26,9 @@ public class GetUpcomingDaysQueryHandlerTests
     private readonly ITrainingPlanRepository _plans = Substitute.For<ITrainingPlanRepository>();
     private readonly IWorkoutRepository _workouts = Substitute.For<IWorkoutRepository>();
     private readonly IHevyLinkRepository _hevyLinks = Substitute.For<IHevyLinkRepository>();
+    private readonly ICardioProtocolRepository _protocols = Substitute.For<ICardioProtocolRepository>();
+    private readonly ICardioTrackRepository _tracks = Substitute.For<ICardioTrackRepository>();
+    private readonly ISender _sender = Substitute.For<ISender>();
     private readonly ICurrentUserService _currentUser = Substitute.For<ICurrentUserService>();
     private readonly GetUpcomingDaysQueryHandler _handler;
 
@@ -30,16 +37,50 @@ public class GetUpcomingDaysQueryHandlerTests
         var clock = new LocalClock(new FakeTimeProvider(new DateTimeOffset(2026, 11, 22, 9, 0, 0, TimeSpan.Zero)));
         _hevyLinks.ListAsync(Arg.Any<UserId>(), Arg.Any<HevyLinkKind>(), Arg.Any<CancellationToken>()).Returns(Array.Empty<HevyLink>());
         _currentUser.UserId.Returns(TestUserId.Value);
-        _handler = new GetUpcomingDaysQueryHandler(_plans, _workouts, _hevyLinks, _currentUser, new PlanCalendarService(clock), clock);
+        _handler = new GetUpcomingDaysQueryHandler(_plans, _workouts, _hevyLinks, _protocols, _tracks, _currentUser, new PlanCalendarService(clock), clock, _sender);
     }
 
-    private void GivenPlan() =>
-        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(
-            TrainingPlan.Create(TestUserId, "Plan", Mon2Nov,
-            [
-                ScheduledSession.Lift(DayOfWeek.Tuesday, DayNumber.Day1, "Upper A"),
-                ScheduledSession.Rest(DayOfWeek.Sunday)
-            ], 95m));
+    private TrainingPlan GivenPlan()
+    {
+        var plan = TrainingPlan.Create(TestUserId, "Plan", Mon2Nov,
+        [
+            ScheduledSession.Lift(DayOfWeek.Tuesday, DayNumber.Day1, "Upper A"),
+            ScheduledSession.Rest(DayOfWeek.Sunday)
+        ], 95m);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(plan);
+        return plan;
+    }
+
+    [Fact]
+    public async Task Handle_WithALinkedWorkout_AddsEachLiftsPlannedSetsFromTheCurrentWeek()
+    {
+        var plan = GivenPlan();
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).Build();
+        plan.LinkWorkout(workout.Id);
+        _workouts.GetByIdAsync(workout.Id, Arg.Any<CancellationToken>()).Returns(workout);
+        _sender.Send(Arg.Is<GetWeekPlanQuery>(q => q.DayNumber == 1 && q.WeekNumber == workout.CurrentWeek), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new WeekPlanDto
+            {
+                WeekNumber = workout.CurrentWeek,
+                Exercises =
+                [
+                    new PlannedExerciseDto
+                    {
+                        Name = "Bench Press", Category = "MainLift", OrderInDay = 1,
+                        PlannedSets = [new PlannedSetDto { WeightKg = 75m, TargetReps = 5 }, new PlannedSetDto { WeightKg = 75m, TargetReps = 10, IsAmrap = true }]
+                    }
+                ]
+            }));
+
+        var result = await _handler.Handle(new GetUpcomingDaysQuery(null, 3), CancellationToken.None);
+
+        result.Value[0].Lifts.Should().BeEmpty();
+        var lift = result.Value[2].Lifts.Should().ContainSingle().Subject;
+        lift.Label.Should().Be("Upper A");
+        lift.WeekNumber.Should().Be(workout.CurrentWeek);
+        lift.Exercises.Single().Sets.Should().Equal(new UpcomingSetDto(75m, 5, false), new UpcomingSetDto(75m, 10, true));
+        lift.Finisher.Should().BeNull();
+    }
 
     [Fact]
     public async Task Handle_WithoutFrom_ReturnsTheNextDaysFromTodayInOrder()

@@ -14,6 +14,7 @@ export const planKeys = {
   today: (date: LocalDate) => [...planKeys.all, 'today', date] as const,
   weeklyGoals: (date: LocalDate) => [...planKeys.all, 'weekly-goals', date] as const,
   calendar: (year: number, month: number) => [...planKeys.all, 'calendar', year, month] as const,
+  upcoming: (from: LocalDate, days: number) => [...planKeys.all, 'upcoming', from, days] as const,
 };
 
 /** The active plan; `null` on first run. */
@@ -51,11 +52,22 @@ export function usePlanCalendar(year: number, month: number, enabled = true) {
   });
 }
 
+/** The next `days` days from `from`, for Today's "Up next"; `null` when there is no plan. */
+export function useUpcomingDays(from: LocalDate, days = 14, enabled = true) {
+  return useQuery({
+    queryKey: planKeys.upcoming(from, days),
+    queryFn: () => plansApi.getUpcoming(from, days),
+    staleTime: 60 * 1000,
+    enabled,
+  });
+}
+
 function invalidatePlanViews(queryClient: ReturnType<typeof useQueryClient>) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'today'] }),
     queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'weekly-goals'] }),
     queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'calendar'] }),
+    queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'upcoming'] }),
     queryClient.invalidateQueries({ queryKey: planKeys.active() }),
   ]);
 }
