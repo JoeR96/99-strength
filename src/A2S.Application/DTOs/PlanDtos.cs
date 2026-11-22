@@ -215,7 +215,11 @@ public sealed record UpcomingDayDto(DateOnly Date, PhaseType? Phase, IReadOnlyLi
 /// <summary>A lift session's plan from the linked workout's current week. <c>Reps</c> of an AMRAP set is its rep-out target.</summary>
 public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNumber, bool IsDeloadWeek, IReadOnlyList<UpcomingExerciseDto> Exercises, UpcomingFinisherDto? Finisher);
 
-public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets);
+/// <summary>
+/// <see cref="IsTrainingMaxPending"/>: an A2S2 lift with no training max yet; its sets weigh 0, so show reps and
+/// <see cref="IntensityPercentage"/> (0.70 = 70 %) and "Set your training max" instead of kg.
+/// </summary>
+public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets, bool IsTrainingMaxPending = false, decimal? IntensityPercentage = null);
 
 public sealed record UpcomingSetDto(decimal WeightKg, int Reps, bool IsAmrap);
 

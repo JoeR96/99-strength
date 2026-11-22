@@ -65,12 +65,21 @@ function formatWeight(weight: number): string {
   return Number.isInteger(weight) ? String(weight) : weight.toFixed(1);
 }
 
-/** "2 exercises · Bench Press (Barbell) 5×5 @ 75 kg": the main lift (MainLift first, else the first) and its top set. */
+/**
+ * "2 exercises · Bench Press (Barbell) 5×5 @ 75 kg": the main lift (MainLift first, else the first) and its top set.
+ * A main lift with no training max yet shows reps and intensity instead of 0 kg:
+ * "… Pause Squat (Barbell) 5×5 @ 70 % · Set your training max".
+ */
 export function liftSummary(lift: UpcomingLiftDto): string | null {
   const exercises = lift.exercises.filter((e) => e.sets.length > 0);
   if (exercises.length === 0) return null;
   const main = exercises.find((e) => e.category === 'MainLift') ?? exercises[0];
-  const top = main.sets.reduce((best, s) => (s.weightKg > best.weightKg ? s : best));
   const count = exercises.length === 1 ? '1 exercise' : `${exercises.length} exercises`;
+  if (main.isTrainingMaxPending) {
+    const reps = main.sets[0].reps;
+    const intensity = main.intensityPercentage ? ` @ ${Math.round(main.intensityPercentage * 100)} %` : '';
+    return `${count} · ${main.name} ${main.sets.length}×${reps}${intensity} · Set your training max`;
+  }
+  const top = main.sets.reduce((best, s) => (s.weightKg > best.weightKg ? s : best));
   return `${count} · ${main.name} ${main.sets.length}×${top.reps} @ ${formatWeight(top.weightKg)} kg`;
 }

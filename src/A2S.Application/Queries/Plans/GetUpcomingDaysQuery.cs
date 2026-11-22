@@ -152,7 +152,8 @@ public sealed class GetUpcomingDaysQueryHandler : IRequestHandler<GetUpcomingDay
                 week.Value.Exercises
                     .Where(e => e.PlannedSets.Count > 0)
                     .OrderBy(e => e.OrderInDay)
-                    .Select(e => new UpcomingExerciseDto(e.Name, e.Category, e.PlannedSets.Select(s => new UpcomingSetDto(s.WeightKg, s.TargetReps, s.IsAmrap)).ToList()))
+                    .Select(e => new UpcomingExerciseDto(e.Name, e.Category, e.PlannedSets.Select(s => new UpcomingSetDto(s.WeightKg, s.TargetReps, s.IsAmrap)).ToList(),
+                        e.Metadata.IsTrainingMaxPending, e.Metadata.IntensityPercentage))
                     .ToList(),
                 finisher);
         }

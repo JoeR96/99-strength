@@ -218,7 +218,15 @@ export interface UpcomingLiftDto {
   label: string;
   weekNumber: number;
   isDeloadWeek: boolean;
-  exercises: { name: string; category: string; sets: { weightKg: number; reps: number; isAmrap: boolean }[] }[];
+  exercises: {
+    name: string;
+    category: string;
+    sets: { weightKg: number; reps: number; isAmrap: boolean }[];
+    /** A2S2 lift with no training max yet: sets weigh 0, show reps and intensity instead. */
+    isTrainingMaxPending?: boolean;
+    /** This week's A2S2 intensity (0.70 = 70 %), when the lift is A2S2. */
+    intensityPercentage?: number | null;
+  }[];
   finisher: { name: string; prescription: string } | null;
 }
 
