@@ -14,7 +14,7 @@ import type { ReadinessColour, ReadinessDto } from '@/types/readiness';
 const colours: { value: ReadinessColour; label: string; selected: string }[] = [
   { value: 'Green', label: 'Green', selected: 'bg-success text-success-foreground border-success' },
   { value: 'Yellow', label: 'Yellow', selected: 'bg-warning text-warning-foreground border-warning' },
-  { value: 'Red', label: 'Red', selected: 'bg-destructive text-destructive-foreground border-destructive' },
+  { value: 'Red', label: 'Red', selected: 'bg-destructive text-background border-destructive' },
 ];
 
 export interface ReadinessCardProps {
