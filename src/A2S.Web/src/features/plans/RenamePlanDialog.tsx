@@ -11,16 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRenamePlan } from '@/hooks/usePlan';
-
-export const MAX_PLAN_NAME_LENGTH = 200;
-
-/** Null when the name is fine, else what is wrong with it. */
-export function planNameError(name: string): string | null {
-  const trimmed = name.trim();
-  if (trimmed === '') return 'Give the plan a name.';
-  if (trimmed.length > MAX_PLAN_NAME_LENGTH) return `Keep it to ${MAX_PLAN_NAME_LENGTH} characters or fewer.`;
-  return null;
-}
+import { MAX_PLAN_NAME_LENGTH, planNameError } from './planName';
 
 function serverMessage(error: unknown): string {
   const data = (error as { response?: { data?: { detail?: string; title?: string } } })?.response?.data;
