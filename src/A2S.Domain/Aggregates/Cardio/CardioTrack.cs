@@ -85,7 +85,7 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         TemplateKey = templateKey;
         Notes = notes;
         Status = CardioTrackStatus.Active;
-        State = _stages[0].Strategy.Start(_stages[0], 0);
+        State = new StageStrategy(_stages).Start() with { WeekStartedOn = startedOn };
     }
 
     // EF Core constructor
@@ -111,9 +111,15 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     public IReadOnlyList<CardioTrackAuditEntry> Audit => _audit.AsReadOnly();
     public IReadOnlyList<BenchmarkResult> Benchmarks => _benchmarks.AsReadOnly();
 
-    public TrackStage CurrentStage => _stages[Math.Min(State.StageIndex, _stages.Count - 1)];
-    public CardioPrescription Prescription => CurrentStage.Strategy.Prescribe(CurrentStage, State);
-    public int SessionsToStepUp => CurrentStage.Strategy.SessionsToStepUp(CurrentStage, State);
+    /// <summary>The stage strategy over this track's stages (ordered stages, exits, next-stage suggestion).</summary>
+    public StageStrategy Strategy => new(_stages);
+
+    public TrackStage CurrentStage => Strategy.Current(State);
+    public CardioPrescription Prescription => Strategy.Prescribe(State);
+    public int SessionsToStepUp => Strategy.SessionsToStepUp(State);
+
+    /// <summary>Sessions to the next step given what the plan schedules this week.</summary>
+    public int SessionsToStepUpGiven(WeekContext? context) => Strategy.SessionsToStepUp(State, context);
     public bool CanUndo => LastSnapshot is not null;
 
     /// <summary>Hard tracks (zone 4–5 work) count toward the weekly high-intensity guardrails.</summary>
@@ -143,7 +149,14 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     /// "hevy:{workoutId}:{exerciseIndex}"). Paused tracks and tracks waiting on a suggestion record
     /// the session without moving.
     /// </summary>
-    public TrackEvaluationResult LogSession(string key, DateOnly date, CardioLog log, bool completedAsPrescribed, HeartRateZones? zones, DateTimeOffset at)
+    public TrackEvaluationResult LogSession(
+        string key,
+        DateOnly date,
+        CardioLog log,
+        bool completedAsPrescribed,
+        HeartRateZones? zones,
+        DateTimeOffset at,
+        WeekContext? week = null)
     {
         CheckRule(!string.IsNullOrWhiteSpace(key), "A session key is required");
         ArgumentNullException.ThrowIfNull(log);
@@ -173,14 +186,11 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         }
         else
         {
-            evaluation = stage.Strategy.Evaluate(stage, State, check);
-            if (evaluation.Outcome == TrackOutcome.StageComplete && State.StageIndex < _stages.Count - 1)
+            evaluation = Strategy.Evaluate(State, check, week);
+            if (evaluation.State.Week != State.Week || evaluation.State.StageIndex != State.StageIndex)
             {
-                evaluation = evaluation with
-                {
-                    State = evaluation.State with { Suggestion = TrackSuggestion.NextStage },
-                    Reason = $"{evaluation.Reason}. Suggest moving on to {_stages[State.StageIndex + 1].Name}"
-                };
+                // A new week starts the day after the session that earned it.
+                evaluation = evaluation with { State = evaluation.State with { WeekStartedOn = date.AddDays(1) } };
             }
         }
 
@@ -195,7 +205,7 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     }
 
     /// <summary>Accepts the pending suggestion: repeat the week, drop back a week, or move to the next stage.</summary>
-    public void AcceptSuggestion(DateTimeOffset at)
+    public void AcceptSuggestion(DateTimeOffset at, DateOnly? today = null)
     {
         CheckRule(State.Suggestion != TrackSuggestion.None, "There is no suggestion to accept");
         TakeSnapshot();
@@ -205,25 +215,24 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         switch (State.Suggestion)
         {
             case TrackSuggestion.RepeatWeek:
-                State = WeekProgramStrategy.ResetWeek(State);
+                State = WeekProgramStrategy.ResetWeek(State, today);
                 AddAudit(at, null, "RepeatAccepted", "You chose to repeat the week", before, null);
                 break;
             case TrackSuggestion.DropBackWeek:
                 State = stage.Kind == TrackStageKind.WeekProgram
-                    ? WeekProgramStrategy.DropBack(stage, State)
+                    ? WeekProgramStrategy.DropBack(stage, State) with { WeekStartedOn = today ?? State.WeekStartedOn }
                     : State with { Suggestion = TrackSuggestion.None };
                 AddAudit(at, null, "DropBackAccepted", "You chose to drop back a week", before, null);
                 break;
             case TrackSuggestion.NextStage:
-                var next = State.StageIndex + 1;
-                State = _stages[next].Strategy.Start(_stages[next], next) with { Step = State.Step + 1 };
-                AddAudit(at, null, "StageAccepted", $"Moved on to {_stages[next].Name}", before, null);
+                State = Strategy.MoveToNext(State) with { WeekStartedOn = today ?? State.WeekStartedOn };
+                AddAudit(at, null, "StageAccepted", $"Moved on to {CurrentStage.Name}", before, null);
                 break;
         }
     }
 
     /// <summary>Declines the pending suggestion: advance anyway (repeat), carry on (drop back), or stay (next stage).</summary>
-    public void DeclineSuggestion(DateTimeOffset at)
+    public void DeclineSuggestion(DateTimeOffset at, DateOnly? today = null)
     {
         CheckRule(State.Suggestion != TrackSuggestion.None, "There is no suggestion to decline");
         TakeSnapshot();
@@ -234,13 +243,13 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         switch (suggestion)
         {
             case TrackSuggestion.RepeatWeek:
-                var advanced = WeekProgramStrategy.Advance(stage, State, "Overridden").State;
-                State = advanced.StageComplete && State.StageIndex < _stages.Count - 1
+                var advanced = WeekProgramStrategy.Advance(stage, State, "Overridden").State with { WeekStartedOn = today ?? State.WeekStartedOn };
+                State = advanced.StageComplete && Strategy.HasNext(State) && stage.Exit == StageExit.AtTop
                     ? advanced with { Suggestion = TrackSuggestion.NextStage }
                     : advanced;
                 break;
             case TrackSuggestion.DropBackWeek:
-                State = WeekProgramStrategy.ResetWeek(State);
+                State = WeekProgramStrategy.ResetWeek(State, today);
                 break;
             default:
                 State = State with { Suggestion = TrackSuggestion.None };
@@ -256,14 +265,9 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         CheckRule(stages is { Count: > 0 }, "A track needs at least one stage");
         TakeSnapshot();
         var before = Prescription.Title;
-        var index = Math.Min(State.StageIndex, stages.Count - 1);
-        var stage = stages[index];
-        var current = index == State.StageIndex && stage.Kind == _stages[State.StageIndex].Kind
-            ? State with { StageIndex = index }
-            : stage.Strategy.Start(stage, index);
-
+        var previous = _stages.ToList();
         _stages = stages.ToList();
-        State = stage.Strategy.Clamp(stage, current);
+        State = Strategy.Fit(State, previous);
         AddAudit(at, null, "Edited", "Track settings changed", before, null);
     }
 

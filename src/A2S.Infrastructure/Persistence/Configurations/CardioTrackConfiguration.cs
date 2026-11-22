@@ -62,6 +62,7 @@ public class CardioTrackConfiguration : IEntityTypeConfiguration<CardioTrack>
         builder.Ignore(t => t.Audit);
         builder.Ignore(t => t.Benchmarks);
         builder.Ignore(t => t.CurrentStage);
+        builder.Ignore(t => t.Strategy);
         builder.Ignore(t => t.Prescription);
         builder.Ignore(t => t.SessionsToStepUp);
         builder.Ignore(t => t.CanUndo);

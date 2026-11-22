@@ -116,7 +116,7 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
             if (completion.CardioTrackId is { } track && _trackRecorder is not null)
             {
                 await _trackRecorder.RecordAsync(user.Value, track, completion.TrackSessionKey, completion.Date, completion.Cardio,
-                    request.CompletedAsPrescribed, _clock.NowUtc(), cancellationToken);
+                    request.CompletedAsPrescribed, _clock.NowUtc(), cancellationToken, load.Value);
             }
 
             _plans.Update(load.Value);

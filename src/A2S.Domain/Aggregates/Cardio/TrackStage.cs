@@ -152,6 +152,9 @@ public sealed record TrackStage
 
     public string? Note { get; init; }
 
+    /// <summary>The stage's exit condition. <see cref="StageExit.AtTop"/> suggests the next stage once the top is reached.</summary>
+    public StageExit Exit { get; init; }
+
     public TrackStage(
         string name,
         TrackStageKind kind,
@@ -160,7 +163,8 @@ public sealed record TrackStage
         DoubleProgressionSettings? doubleProgression,
         int? hrCeilingZone = null,
         decimal? zoneTargetFraction = null,
-        string? note = null)
+        string? note = null,
+        StageExit exit = StageExit.AtTop)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -195,6 +199,7 @@ public sealed record TrackStage
         HrCeilingZone = hrCeilingZone;
         ZoneTargetFraction = zoneTargetFraction;
         Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        Exit = exit;
     }
 
     public static TrackStage Weeks(string name, WeekProgramSettings settings, string? note = null) =>
@@ -231,4 +236,6 @@ public sealed record CardioTrackState(
     int WeekNiggles,
     bool StageComplete,
     TrackSuggestion Suggestion,
-    int Step);
+    int Step,
+    int WeekMissed = 0,
+    DateOnly? WeekStartedOn = null);

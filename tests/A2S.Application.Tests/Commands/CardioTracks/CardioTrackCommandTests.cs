@@ -290,4 +290,51 @@ public class CardioTrackCommandTests
         result.Value.HighIntensityMinutesThisWeek.Should().Be(35);
         result.Value.Warnings.Should().ContainSingle().Which.Code.Should().Be("HighIntensityAboveMax");
     }
+
+    [Fact]
+    public async Task CompleteSession_WeekProgramSlots_AMissedPlannedSessionBlocksTheWeek()
+    {
+        var run = GivenTrack(CardioTrackTemplates.WalkToRun);
+        var plan = TrainingPlan.Create(Owner, "Plan", Mon16Nov,
+        [
+            ScheduledSession.Cardio(DayOfWeek.Tuesday, null, "Run", run.Id),
+            ScheduledSession.Cardio(DayOfWeek.Thursday, null, "Run", run.Id)
+        ], 95m);
+        _plans.GetByIdAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
+        var handler = new CompleteSessionCommandHandler(_plans, _unitOfWork, _currentUser, _clock, _protocols, _recorder);
+        var easy = new CardioLogDto(1800, null, null, null, null, Effort: EffortRating.Easy);
+
+        foreach (var day in new[] { 1, 8, 10 })
+        {
+            await handler.Handle(new CompleteSessionCommand(plan.Id.Value, Mon16Nov.AddDays(day), SessionKind.Cardio, Cardio: easy), CancellationToken.None);
+        }
+
+        run.Sessions.Should().HaveCount(3);
+        run.State.Week.Should().Be(1);
+        run.State.Suggestion.Should().Be(TrackSuggestion.RepeatWeek, "Thursday 19 Nov was planned and missed");
+        run.Audit[^1].Reason.Should().Contain("missed");
+    }
+
+    [Fact]
+    public async Task CompleteSession_WeekProgramSlots_AllPlannedDone_AdvancesAfterThree()
+    {
+        var run = GivenTrack(CardioTrackTemplates.WalkToRun);
+        var plan = TrainingPlan.Create(Owner, "Plan", Mon16Nov,
+        [
+            ScheduledSession.Cardio(DayOfWeek.Tuesday, null, "Run", run.Id),
+            ScheduledSession.Cardio(DayOfWeek.Thursday, null, "Run", run.Id)
+        ], 95m);
+        _plans.GetByIdAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
+        var handler = new CompleteSessionCommandHandler(_plans, _unitOfWork, _currentUser, _clock, _protocols, _recorder);
+        var easy = new CardioLogDto(1800, null, null, null, null, Effort: EffortRating.Easy);
+
+        foreach (var day in new[] { 1, 3 })
+        {
+            await handler.Handle(new CompleteSessionCommand(plan.Id.Value, Mon16Nov.AddDays(day), SessionKind.Cardio, Cardio: easy), CancellationToken.None);
+        }
+
+        run.State.Week.Should().Be(1, "walk → run needs 3 qualifying sessions even at 2 a week");
+        await handler.Handle(new CompleteSessionCommand(plan.Id.Value, Mon16Nov.AddDays(8), SessionKind.Cardio, Cardio: easy), CancellationToken.None);
+        run.State.Week.Should().Be(2);
+    }
 }

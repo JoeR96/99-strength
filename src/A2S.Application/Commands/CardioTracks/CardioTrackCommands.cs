@@ -255,11 +255,11 @@ public sealed class DecideCardioTrackSuggestionCommandHandler : IRequestHandler<
         {
             if (request.Accept)
             {
-                track.AcceptSuggestion(_clock.NowUtc());
+                track.AcceptSuggestion(_clock.NowUtc(), _clock.Today());
             }
             else
             {
-                track.DeclineSuggestion(_clock.NowUtc());
+                track.DeclineSuggestion(_clock.NowUtc(), _clock.Today());
             }
         }, cancellationToken);
 }

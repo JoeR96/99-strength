@@ -91,13 +91,19 @@ public sealed record SessionCheck(
 
 public sealed record StageEvaluation(CardioTrackState State, TrackOutcome Outcome, string Reason);
 
+/// <summary>
+/// What the plan says about the track's current week: how many sessions are scheduled for it a week, and how
+/// many of those were missed (scheduled on a past day this week with no completion). Null without a plan slot.
+/// </summary>
+public sealed record WeekContext(int? PlannedSessionsThisWeek, int MissedPlannedSessions);
+
 /// <summary>A stage's progression rule. Pure: state in, state out.</summary>
 public interface ICardioStageStrategy
 {
     CardioTrackState Start(TrackStage stage, int stageIndex);
     CardioPrescription Prescribe(TrackStage stage, CardioTrackState state);
-    StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check);
-    int SessionsToStepUp(TrackStage stage, CardioTrackState state);
+    StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check, WeekContext? context = null);
+    int SessionsToStepUp(TrackStage stage, CardioTrackState state, WeekContext? context = null);
 
     /// <summary>Moves <paramref name="state"/> inside the (possibly edited) ranges of <paramref name="stage"/>.</summary>
     CardioTrackState Clamp(TrackStage stage, CardioTrackState state);
@@ -139,7 +145,7 @@ public sealed class DoubleProgressionStrategy : ICardioStageStrategy
             s.VolumeUnit, state.Volume, s.IntensityUnit, state.Intensity, null, null, null, stage.Note);
     }
 
-    public StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check)
+    public StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check, WeekContext? context = null)
     {
         var s = stage.DoubleProgression!;
         var (qualifies, reason) = check.Judge(stage);
@@ -196,7 +202,7 @@ public sealed class DoubleProgressionStrategy : ICardioStageStrategy
             $"{reason}: top of this stage reached");
     }
 
-    public int SessionsToStepUp(TrackStage stage, CardioTrackState state) =>
+    public int SessionsToStepUp(TrackStage stage, CardioTrackState state, WeekContext? context = null) =>
         Math.Max(0, stage.DoubleProgression!.SessionsToAdvance - state.Qualifying);
 
     public CardioTrackState Clamp(TrackStage stage, CardioTrackState state)
@@ -270,15 +276,16 @@ public sealed class WeekProgramStrategy : ICardioStageStrategy
             null, null, IntensityUnit.None, null, null, null, week.Number, stage.Note ?? week.Description);
     }
 
-    public StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check)
+    public StageEvaluation Evaluate(TrackStage stage, CardioTrackState state, SessionCheck check, WeekContext? context = null)
     {
-        var s = stage.WeekProgram!;
         var (qualifies, reason) = check.Judge(stage);
+        var required = Required(stage, context);
         var next = state with
         {
             WeekSessions = state.WeekSessions + 1,
             WeekFailures = state.WeekFailures + (qualifies ? 0 : 1),
-            WeekNiggles = state.WeekNiggles + (check.Pain == PainFlag.Niggle ? 1 : 0)
+            WeekNiggles = state.WeekNiggles + (check.Pain == PainFlag.Niggle ? 1 : 0),
+            WeekMissed = Math.Max(state.WeekMissed, context?.MissedPlannedSessions ?? 0)
         };
 
         if (check.Pain == PainFlag.Stop || next.WeekNiggles >= 2)
@@ -288,16 +295,21 @@ public sealed class WeekProgramStrategy : ICardioStageStrategy
                 $"{why}: suggest dropping back a week");
         }
 
-        if (next.WeekSessions < s.SessionsToAdvance)
+        if (next.WeekSessions < required)
         {
             return new StageEvaluation(next, qualifies ? TrackOutcome.Qualified : TrackOutcome.Held,
-                $"{reason} ({next.WeekSessions} of {s.SessionsToAdvance} this week)");
+                $"{reason} ({next.WeekSessions} of {required} this week)");
         }
 
-        if (next.WeekFailures > 0)
+        if (next.WeekFailures > 0 || next.WeekMissed > 0)
         {
+            var why = next.WeekMissed > 0 && next.WeekFailures == 0
+                ? $"{next.WeekMissed} planned session(s) missed"
+                : next.WeekMissed > 0
+                    ? $"{next.WeekFailures} session(s) didn't qualify and {next.WeekMissed} planned session(s) missed"
+                    : $"{next.WeekFailures} session(s) this week didn't qualify";
             return new StageEvaluation(next with { Suggestion = TrackSuggestion.RepeatWeek }, TrackOutcome.SuggestRepeat,
-                $"{next.WeekFailures} session(s) this week didn't qualify: suggest repeating the week");
+                $"{why}: suggest repeating the week");
         }
 
         return Advance(stage, next, "Every session this week qualified");
@@ -326,11 +338,28 @@ public sealed class WeekProgramStrategy : ICardioStageStrategy
         return ResetWeek(state) with { Week = weeks[index].Number, StageComplete = false };
     }
 
-    internal static CardioTrackState ResetWeek(CardioTrackState state) =>
-        state with { WeekSessions = 0, WeekFailures = 0, WeekNiggles = 0, Suggestion = TrackSuggestion.None };
+    internal static CardioTrackState ResetWeek(CardioTrackState state, DateOnly? weekStartsOn = null) =>
+        state with
+        {
+            WeekSessions = 0,
+            WeekFailures = 0,
+            WeekNiggles = 0,
+            WeekMissed = 0,
+            Suggestion = TrackSuggestion.None,
+            WeekStartedOn = weekStartsOn ?? state.WeekStartedOn
+        };
 
-    public int SessionsToStepUp(TrackStage stage, CardioTrackState state) =>
-        Math.Max(0, stage.WeekProgram!.SessionsToAdvance - state.WeekSessions);
+    public int SessionsToStepUp(TrackStage stage, CardioTrackState state, WeekContext? context = null) =>
+        Math.Max(0, Required(stage, context) - state.WeekSessions);
+
+    /// <summary>
+    /// Sessions needed at a week: the planned sessions from the schedule when known (never fewer than
+    /// <see cref="WeekProgramSettings.SessionsToAdvance"/>, so walk → run at 2 a week still needs 3), else SessionsToAdvance.
+    /// </summary>
+    internal static int Required(TrackStage stage, WeekContext? context) =>
+        context?.PlannedSessionsThisWeek is { } planned and > 0
+            ? Math.Max(planned, stage.WeekProgram!.SessionsToAdvance)
+            : stage.WeekProgram!.SessionsToAdvance;
 
     public CardioTrackState Clamp(TrackStage stage, CardioTrackState state)
     {
@@ -353,5 +382,83 @@ public sealed class WeekProgramStrategy : ICardioStageStrategy
         }
 
         return weeks.Count - 1;
+    }
+}
+
+/// <summary>
+/// The track-level strategy (brief § 4b.3): an ordered list of stages, each with its own strategy and exit
+/// condition. Reaching a stage's exit (<see cref="StageExit.AtTop"/>) with another stage after it raises a
+/// <see cref="TrackSuggestion.NextStage"/> suggestion; moving on happens only when the person accepts it.
+/// </summary>
+public sealed class StageStrategy
+{
+    private readonly IReadOnlyList<TrackStage> _stages;
+
+    public StageStrategy(IReadOnlyList<TrackStage> stages)
+    {
+        if (stages is null || stages.Count == 0)
+        {
+            throw new A2S.Domain.Common.BusinessRuleViolationException("A track needs at least one stage");
+        }
+
+        _stages = stages;
+    }
+
+    public IReadOnlyList<TrackStage> Stages => _stages;
+
+    public CardioTrackState Start() => _stages[0].Strategy.Start(_stages[0], 0);
+
+    public TrackStage Current(CardioTrackState state) => _stages[Math.Clamp(state.StageIndex, 0, _stages.Count - 1)];
+
+    public CardioPrescription Prescribe(CardioTrackState state) => Current(state).Strategy.Prescribe(Current(state), state);
+
+    public int SessionsToStepUp(CardioTrackState state, WeekContext? context = null) =>
+        Current(state).Strategy.SessionsToStepUp(Current(state), state, context);
+
+    public bool HasNext(CardioTrackState state) => state.StageIndex + 1 < _stages.Count;
+
+    public StageEvaluation Evaluate(CardioTrackState state, SessionCheck check, WeekContext? context = null)
+    {
+        var stage = Current(state);
+        var evaluation = stage.Strategy.Evaluate(stage, state, check, context);
+        if (evaluation.Outcome != TrackOutcome.StageComplete)
+        {
+            return evaluation;
+        }
+
+        if (stage.Exit == StageExit.Never)
+        {
+            return evaluation with { Outcome = TrackOutcome.AtTop, State = evaluation.State with { StageComplete = false } };
+        }
+
+        return HasNext(state)
+            ? evaluation with
+            {
+                State = evaluation.State with { Suggestion = TrackSuggestion.NextStage },
+                Reason = $"{evaluation.Reason}. Suggest moving on to {_stages[state.StageIndex + 1].Name}"
+            }
+            : evaluation;
+    }
+
+    /// <summary>Starts the next stage (the accepted NextStage suggestion). One step on the chart.</summary>
+    public CardioTrackState MoveToNext(CardioTrackState state)
+    {
+        if (!HasNext(state))
+        {
+            throw new A2S.Domain.Common.BusinessRuleViolationException("There is no next stage");
+        }
+
+        var next = state.StageIndex + 1;
+        return _stages[next].Strategy.Start(_stages[next], next) with { Step = state.Step + 1, WeekStartedOn = state.WeekStartedOn };
+    }
+
+    /// <summary>Keeps <paramref name="state"/> (from the previous stage list) inside these stages' ranges.</summary>
+    public CardioTrackState Fit(CardioTrackState state, IReadOnlyList<TrackStage> previous)
+    {
+        var index = Math.Min(state.StageIndex, _stages.Count - 1);
+        var stage = _stages[index];
+        var sameKind = index == state.StageIndex && index < previous.Count && stage.Kind == previous[index].Kind;
+        var current = sameKind ? state : stage.Strategy.Start(stage, index) with { Step = state.Step };
+        return stage.Strategy.Clamp(stage, current);
     }
 }

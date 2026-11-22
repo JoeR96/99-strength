@@ -69,6 +69,13 @@ public enum VolumeUnit
     Rounds
 }
 
+/// <summary>When a stage is done: at the top of its range (then the next stage is suggested), or never (hold there).</summary>
+public enum StageExit
+{
+    AtTop,
+    Never
+}
+
 public enum TrackStageKind
 {
     WeekProgram,

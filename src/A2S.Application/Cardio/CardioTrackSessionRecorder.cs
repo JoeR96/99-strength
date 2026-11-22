@@ -3,6 +3,7 @@ using A2S.Domain.Aggregates.Habits;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
+using A2S.Domain.Services;
 
 namespace A2S.Application.Cardio;
 
@@ -17,9 +18,11 @@ public sealed class CardioTrackSessionRecorder
     private readonly ICardioTrackRepository _tracks;
     private readonly IUserRepository _users;
     private readonly IHabitRepository _habits;
+    private readonly ITrainingPlanRepository? _plans;
 
-    public CardioTrackSessionRecorder(ICardioTrackRepository tracks, IUserRepository users, IHabitRepository habits)
+    public CardioTrackSessionRecorder(ICardioTrackRepository tracks, IUserRepository users, IHabitRepository habits, ITrainingPlanRepository? plans = null)
     {
+        _plans = plans;
         _tracks = tracks;
         _users = users;
         _habits = habits;
@@ -34,7 +37,8 @@ public sealed class CardioTrackSessionRecorder
         CardioLog? log,
         bool completedAsPrescribed,
         DateTimeOffset at,
-        CancellationToken ct)
+        CancellationToken ct,
+        TrainingPlan? plan = null)
     {
         var track = await _tracks.GetByIdAsync(trackId, ct);
         if (track is null || track.UserId != userId)
@@ -46,7 +50,10 @@ public sealed class CardioTrackSessionRecorder
         log ??= new CardioLog(Math.Max(1, track.Prescription.Minutes) * 60, null, null, null, null);
 
         var user = await _users.GetByIdAsync(userId, ct);
-        var result = track.LogSession(key, date, log, completedAsPrescribed, user?.HeartRateZones, at);
+        // The plan's schedule sets a week program's gate (planned and missed sessions this week).
+        plan ??= _plans is null ? null : await _plans.GetActiveForUserAsync(userId, ct);
+        var week = CardioWeekContext.For(plan, track.Id, date, track.State.WeekStartedOn);
+        var result = track.LogSession(key, date, log, completedAsPrescribed, user?.HeartRateZones, at, week);
         _tracks.Update(track);
 
         if (!result.AlreadyRecorded && track.Modality == CardioModality.Walk)

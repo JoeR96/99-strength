@@ -29,7 +29,8 @@ public sealed record TrackStageDto(
     DoubleProgressionSettingsDto? DoubleProgression,
     int? HrCeilingZone,
     decimal? ZoneTargetFraction,
-    string? Note);
+    string? Note,
+    StageExit Exit = StageExit.AtTop);
 
 public sealed record TrackBenchmarkDto(string Name, string Unit, bool HigherIsBetter, int EveryWeeks);
 
@@ -133,7 +134,7 @@ public sealed record TodayCardioDto(
 
 public static class CardioTrackMappings
 {
-    public static CardioTrackDto ToDto(this CardioTrack track, DateOnly today)
+    public static CardioTrackDto ToDto(this CardioTrack track, DateOnly today, WeekContext? week = null)
     {
         var p = track.Prescription;
         return new CardioTrackDto(
@@ -150,7 +151,7 @@ public static class CardioTrackMappings
                 track.State.Qualifying, track.State.ConsecutiveMisses, track.State.WeekSessions, track.State.StageComplete,
                 track.State.Suggestion, track.State.Step),
             p.ToDto(),
-            track.SessionsToStepUp,
+            track.SessionsToStepUpGiven(week),
             track.State.Suggestion,
             SuggestionText(track),
             track.CanUndo,
@@ -201,7 +202,8 @@ public static class CardioTrackMappings
             : null,
         s.HrCeilingZone,
         s.ZoneTargetFraction,
-        s.Note);
+        s.Note,
+        s.Exit);
 
     public static TrackStage ToDomain(this TrackStageDto s) => new(
         s.Name,
@@ -217,7 +219,8 @@ public static class CardioTrackMappings
             : null,
         s.HrCeilingZone,
         s.ZoneTargetFraction,
-        s.Note);
+        s.Note,
+        s.Exit);
 
     public static HeartRateZonesDto ToZonesDto(int? maxHeartRate, IReadOnlyList<int>? lowerPercents)
     {

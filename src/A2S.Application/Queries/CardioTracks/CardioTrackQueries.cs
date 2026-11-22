@@ -143,7 +143,9 @@ public sealed class GetTodayCardioQueryHandler : IRequestHandler<GetTodayCardioQ
             warnings.Add(new CardioGuardrailDto(over.Code, over.Message));
         }
 
-        var active = tracks.Where(t => t.Status == CardioTrackStatus.Active).Select(t => t.ToDto(today)).ToList();
+        var active = tracks.Where(t => t.Status == CardioTrackStatus.Active)
+            .Select(t => t.ToDto(today, CardioWeekContext.For(plan, t.Id, today, t.State.WeekStartedOn)))
+            .ToList();
         return Result.Success(new TodayCardioDto(active, minutes, warnings));
     }
 }
