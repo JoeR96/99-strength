@@ -7,5 +7,11 @@ public enum PushNudgeKind
     SessionStart = 0,
 
     /// <summary>"Still under minimum: Water 2/4" at 20:00 local.</summary>
-    HabitsUnderMinimum = 1
+    HabitsUnderMinimum = 1,
+
+    /// <summary>
+    /// "Build starts Monday: back squat replaces pause squat…" once per phase, in the week before it starts.
+    /// Logged against the phase's start date (not the send date), so each phase is announced once.
+    /// </summary>
+    PhaseChange = 2
 }

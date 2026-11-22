@@ -15,7 +15,10 @@ public enum CardioTrackStatus
 {
     Active,
     Paused,
-    Completed
+    Completed,
+
+    /// <summary>Not started: waiting on its start gate (see <see cref="StartGate"/>). Sessions are recorded, not evaluated.</summary>
+    Gated
 }
 
 /// <summary>The three big effort buttons. The numeric value is the RPE stored for each.</summary>

@@ -124,6 +124,15 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
     /// <summary>Removes the phase starting on <paramref name="from"/>. False when there is none.</summary>
     public bool RemovePhase(DateOnly from) => _phases.RemoveAll(p => p.From == from) > 0;
 
+    /// <summary>Sets the label, the changes and the exercise swaps of the phase starting on <paramref name="from"/>.</summary>
+    public PlanPhase SetPhaseChanges(DateOnly from, string? label, IReadOnlyList<string> changes, IReadOnlyList<PhaseSwap> swaps)
+    {
+        var index = _phases.FindIndex(p => p.From == from);
+        CheckRule(index >= 0, "There is no phase starting on that date");
+        _phases[index] = _phases[index].WithChanges(label, changes, swaps);
+        return _phases[index];
+    }
+
     public void AddCheckpoint(Checkpoint checkpoint)
     {
         CheckRule(checkpoint is not null, "Checkpoint is required");
