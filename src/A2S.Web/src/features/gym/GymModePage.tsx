@@ -20,6 +20,7 @@ import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
 import { useCardioProtocols, useFinishGymSession, useRetryHevyPost } from '@/hooks/useGymSession';
 import { useLocalToday } from '@/hooks/useLocalToday';
 import { useOnlineStatus } from '@/offline/useOnlineStatus';
+import { statusOf } from '@/offline/errors';
 import type { OfflineOutcome } from '@/offline/useOfflineMutation';
 import { SessionKind } from '@/types/plan';
 import type { CardioProtocolDto, FinishGymSessionResult } from '@/types/gym';
@@ -31,11 +32,13 @@ import { CompletionSummary } from '@/features/workout/CompletionSummary';
 import { beep, primeAudio, useWakeLock } from '@/features/routines/playerEffects';
 import { GymChecklist } from './GymChecklist';
 import { GymHevyStatus } from './GymSections';
+import { FinishedElsewhereNotice } from './FinishedElsewhereNotice';
 import {
   allDrillsDone,
   clearGymSession,
   createGymSession,
   editSet,
+  expireGymDrafts,
   loadGymSession,
   newClientSessionId,
   saveGymSession,
@@ -143,6 +146,8 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const [state, setState] = useState<GymSessionState>(() => {
+    // Drafts from earlier weeks of this workout, or more than a week old, are never resumed.
+    expireGymDrafts(new Date(), { workoutId: workout.id, currentWeek: workout.currentWeek });
     const saved = loadGymSession(workout.id, plan.weekNumber, day);
     if (saved) return saved;
     const created = createGymSession({ clientSessionId: newClientSessionId(), startedAt: new Date().toISOString(), title, plan, warmUp, finisher, finisherTrack });
@@ -150,6 +155,7 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
     return created;
   });
   const [outcome, setOutcome] = useState<OfflineOutcome<FinishGymSessionResult> | null>(null);
+  const [finishedElsewhere, setFinishedElsewhere] = useState<string | null>(null);
   const finish = useFinishGymSession(label);
   const retry = useRetryHevyPost();
   const rest = useRestTimer(() => {
@@ -180,8 +186,19 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         clearGymSession(state.workoutId, state.week, state.day);
         setOutcome(result);
       },
-      onError: (error) => toast.error(error instanceof Error ? error.message : 'Could not finish the session'),
+      onError: (error) => {
+        if (statusOf(error) === 409) {
+          setFinishedElsewhere(conflictMessage(error));
+          return;
+        }
+        toast.error(error instanceof Error ? error.message : 'Could not finish the session');
+      },
     });
+  };
+
+  const discardDraft = () => {
+    clearGymSession(state.workoutId, state.week, state.day);
+    navigate('/today');
   };
 
   if (outcome) {
@@ -222,6 +239,9 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
   return (
     <div className="min-h-dvh bg-background">
       <Navbar />
+      {finishedElsewhere && (
+        <FinishedElsewhereNotice message={finishedElsewhere} onDiscard={discardDraft} onKeep={() => setFinishedElsewhere(null)} />
+      )}
       <GymChecklist
         state={state}
         rest={{ remaining: rest.remaining, total: rest.total, running: rest.running, onAdjust: rest.adjust, onSkip: rest.skip }}
@@ -236,4 +256,12 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
       />
     </div>
   );
+}
+
+const FINISHED_ELSEWHERE = 'This day was already finished on another device';
+
+/** The server's 409 detail ("This day was already finished on another device"), or that text. */
+function conflictMessage(error: unknown): string {
+  const data = (error as { response?: { data?: { detail?: unknown } } })?.response?.data;
+  return typeof data?.detail === 'string' && data.detail.trim() !== '' ? data.detail : FINISHED_ELSEWHERE;
 }

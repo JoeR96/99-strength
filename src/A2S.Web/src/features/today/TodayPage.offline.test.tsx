@@ -90,7 +90,7 @@ describe('TodayPage offline', () => {
     });
     await waitFor(() => expect(incrementSpy).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByTestId('pending-sync')).not.toBeInTheDocument());
-    expect(incrementSpy.mock.calls[0]).toEqual([WATER_ID, DATE, expect.objectContaining({ delta: 1 })]);
+    expect(incrementSpy.mock.calls[0]).toEqual([WATER_ID, DATE, expect.objectContaining({ delta: 1 }), ops[0].id]);
     await waitFor(() => expect(within(water).getByText('4')).toBeInTheDocument());
   });
 

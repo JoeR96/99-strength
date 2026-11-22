@@ -66,6 +66,7 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
 
     /// <summary>ASP.NET Core Data Protection key ring (encrypts the Hevy API key at rest).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -87,7 +87,7 @@ function markDoneLocally(today: TodayDto | null | undefined, request: CompleteSe
 export function useCompleteSession() {
   const queryClient = useQueryClient();
   return useOfflineMutation({
-    run: ({ planId, request }: CompleteSessionVariables) => plansApi.completeSession(planId, request),
+    run: ({ planId, request }: CompleteSessionVariables, key) => plansApi.completeSession(planId, request, key),
     toOp: ({ planId, request, label }) => ({
       kind: 'plan.complete',
       localDate: request.date,

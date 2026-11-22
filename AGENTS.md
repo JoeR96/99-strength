@@ -322,6 +322,22 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
 - The browser never writes workouts to Hevy: the v1 Send to Hevy on the completion summary is gone and the
   `/hevy/workouts` proxy refuses POST (GET stays for Pull from Hevy).
 - Settings → Gym sessions sets each lift slot's warm-up and finisher.
+- **Two devices.** `FinishGymSession` refuses (`ErrorCode.Conflict`, 409, "This day was already finished on
+  another device") when the workout's current week already has the day recorded under a different client
+  session id; nothing is staged and progression is untouched. The same client session id still replays.
+  Drafts are versioned (`GymSessionState.version`, `migrateGymSession`) and drafts older than 7 days or for
+  earlier weeks are removed (`expireGymDrafts`, on app start and when gym mode loads).
+
+## Offline writes and idempotency
+
+Queued writes (habit increment/set, body weight, plan completion, gym finish, cardio track session) carry an
+`Idempotency-Key` header: the offline op id, sent on the first attempt and every replay. `[Idempotent]`
+(`A2S.Api/Infrastructure/IdempotentAttribute.cs`, an MVC filter, not a MediatR behaviour, because the key and
+the replayed answer are HTTP concerns) stores the first 2xx status + body per user + key in
+`IdempotencyRecords` (`IIdempotencyStore`, 7 days) and replays it without running the action; the same key
+with a different route/arguments answers 422. Failures are not stored. Requests without the header run as
+before. Put `[Idempotent]` on any new endpoint the offline queue calls. See docs/development.md
+"Offline and saving".
 
 ## Testing
 

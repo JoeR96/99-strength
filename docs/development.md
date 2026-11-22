@@ -46,6 +46,36 @@ port 6007, so two worktrees running it together test each other's build. Set `ST
 `Testing` environment. Before re-posting, `HevyWorkoutPoster` adopts a Hevy workout with the same title and
 a start within a minute, so a retry never creates a second one.
 
+## Offline and saving
+
+What the phone keeps, and how a write sent twice is still done once.
+
+- **Offline queue** (`src/A2S.Web/src/offline`). `useOfflineMutation` tries the request; offline, or when it
+  dies on the wire, the write is stored in IndexedDB (`a2s-offline`) as an op and replayed by `syncManager`.
+  Op kinds: `habit.increment`, `habit.set`, `bodyweight.put`, `plan.complete`, `gym.finish`, `cardio.log`.
+  Queries overlay pending ops (`overlay.ts`) so the screen shows server + pending; a track with queued logs
+  shows **Waiting to sync**. A 4xx on replay drops the op with a toast (`reconcile.ts`).
+- **Idempotency keys.** Each mutation call makes one key (nanoid) before the first attempt. It is sent as
+  `Idempotency-Key` and becomes the op id, so the replay of a request whose answer was lost carries the same
+  key. Server side, `[Idempotent]` on the action stores the first 2xx answer (status + JSON body) in
+  `IdempotencyRecords` (migration `AddIdempotencyRecords`, unique on user + key, kept 7 days and purged on
+  the next keyed write) and returns it for a repeat without running the action again. The same key with a
+  different route or body answers 422. Gym finish (`clientSessionId`) and cardio logs (`clientKey` →
+  `client:{key}`) also have natural keys, so they stay idempotent without the header.
+- **Gym drafts** stay in localStorage (`a2s-gym-session:{workout}:{week}:{day}`), deliberately not IndexedDB.
+  The shape is versioned (`GymSessionState.version`); `loadGymSession` upgrades older shapes through
+  `migrateGymSession` (no version = v1) and discards only data it cannot read. `expireGymDrafts` removes
+  drafts started more than 7 days ago (app start, `main.tsx`) and the current workout's drafts for earlier
+  weeks (gym mode load).
+- **Two devices.** Finishing a day that another device already finished (a different client session id)
+  answers 409 "This day was already finished on another device" and applies no progression; the gym page
+  shows it with **Discard this phone's session**.
+- **Form drafts.** `useFormDraft({ key, version, value, initial })` writes `a2s-draft:{key}` while the form
+  differs from where it started, offers `pendingDraft` on reopening (`DraftRestorePrompt`, "Restore unsaved
+  changes?") and is cleared on save or Discard. Bump `version` when the form's shape changes; older drafts
+  are dropped. `UnsavedChangesGuard` adds `beforeunload` and a react-router `useBlocker` dialog, which is why
+  `App.tsx` uses `createBrowserRouter`. Used by `RoutineEditorPage` and the cardio track info sheet.
+
 ## Cardio tracks
 
 Domain: `Aggregates/Cardio/CardioTrack.cs`, `CardioStrategies.cs`, `StageStrategy`, `CardioTrackTemplates.cs`,

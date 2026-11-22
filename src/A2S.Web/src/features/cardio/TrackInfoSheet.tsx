@@ -12,6 +12,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { IntensityUnit, intensityLabel, type CardioTrackDto, type TrackStageDto, type UpdateCardioTrackRequest } from '@/types/cardioTracks';
 import { describeStage } from './trackText';
 import { optionalNumber } from './TrackLogSheet';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { TRACK_DRAFT_VERSION, trackDraftKey } from './trackInfoDraft';
+import { DraftRestorePrompt } from '@/components/shared/DraftRestorePrompt';
+import { UnsavedChangesGuard } from '@/components/shared/UnsavedChangesGuard';
+
+
+interface TrackInfoForm {
+  name: string;
+  notes: string;
+  stages: StageForm[];
+}
 
 export interface TrackInfoSheetProps {
   track: CardioTrackDto | null;
@@ -76,9 +87,22 @@ function NumberField({ id, label, value, onChange }: { id: string; label: string
 }
 
 export function TrackInfoSheet({ track, onClose, onSave, saving = false }: TrackInfoSheetProps) {
-  const [name, setName] = useState(track?.name ?? '');
-  const [notes, setNotes] = useState(track?.notes ?? '');
-  const [forms, setForms] = useState<StageForm[]>(() => track?.stages.map(toForm) ?? []);
+  const [initial] = useState<TrackInfoForm>(() => ({ name: track?.name ?? '', notes: track?.notes ?? '', stages: track?.stages.map(toForm) ?? [] }));
+  const [name, setName] = useState(initial.name);
+  const [notes, setNotes] = useState(initial.notes);
+  const [forms, setForms] = useState<StageForm[]>(initial.stages);
+  const unsaved = useFormDraft<TrackInfoForm>({
+    key: trackDraftKey(track?.id ?? 'none'),
+    version: TRACK_DRAFT_VERSION,
+    value: { name, notes, stages: forms },
+    initial,
+  });
+  const restore = () => {
+    const draft = unsaved.restore();
+    setName(draft.name);
+    setNotes(draft.notes);
+    setForms(draft.stages);
+  };
 
   const setField = (index: number, field: keyof StageForm, value: string) =>
     setForms((current) => current.map((f, i) => (i === index ? { ...f, [field]: value } : f)));
@@ -102,6 +126,8 @@ export function TrackInfoSheet({ track, onClose, onSave, saving = false }: Track
             <DialogTitle>{track?.name ?? 'Track'}</DialogTitle>
             <DialogDescription>{track?.safetyNote}</DialogDescription>
           </DialogHeader>
+          <UnsavedChangesGuard when={unsaved.isDirty} />
+          {unsaved.pendingDraft && <DraftRestorePrompt savedAt={unsaved.pendingDraft.savedAt} onRestore={restore} onDiscard={unsaved.discard} />}
 
           <div>
             <Label htmlFor="track-name">Name</Label>

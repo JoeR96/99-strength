@@ -12,6 +12,9 @@ import { cardioTracksApi } from '@/api/cardioTracks';
 import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
 import { RUN_TRACK_ID, STAIR_TRACK_ID, WALK_TRACK_ID, runTrack, stairDetailFixture, stairTrack, walkTrack } from '@/mocks/fixtures/cardioTracks';
 import { CardioTrackStatus, EffortRating, IntensityUnit, PainFlag } from '@/types/cardioTracks';
+import { OfflineContext } from '@/offline/context';
+import { createQueue } from '@/offline/queue';
+import { createSyncManager } from '@/offline/syncManager';
 
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: { firstName: 'Joe' } }),
@@ -158,6 +161,61 @@ describe('CardioTrackChart', () => {
     expect(screen.getByText('Not enough time in zone 4–5: holding')).toBeInTheDocument();
     expect(screen.getByRole('table', { name: 'Stair finisher sessions' })).toBeInTheDocument();
     expect(screen.getByText(/Floors in 5 min, all out: best 30 floors/)).toBeInTheDocument();
+  });
+});
+
+describe('offline and drafts', () => {
+  let store: Map<string, string>;
+  beforeEach(() => {
+    store = new Map<string, string>();
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
+    vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
+    vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+  });
+
+  it('queues a log offline with its client key and shows the track as waiting to sync', async () => {
+    const logSession = vi.spyOn(cardioTracksApi, 'logSession');
+    const queue = createQueue(`tracks-${Math.random().toString(36).slice(2)}`);
+    const manager = createSyncManager({ queue, isOnline: () => false });
+    renderWithProviders(
+      <OfflineContext.Provider value={manager}>
+        <TracksPage />
+      </OfflineContext.Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Log session: Walk builder' }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Easy/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Log session' }));
+
+    const walk = await screen.findByRole('article', { name: 'Walk builder' });
+    await waitFor(() => expect(within(walk).getByText('Waiting to sync')).toBeInTheDocument());
+    expect(logSession).not.toHaveBeenCalled();
+    const [op] = await queue.all();
+    expect(op.kind).toBe('cardio.log');
+    expect(op.target).toEqual({ trackId: WALK_TRACK_ID });
+    expect((op.payload as { clientKey: string }).clientKey).toMatch(/^[0-9a-f-]{36}$/);
+    expect(manager.getPendingCount()).toBe(1);
+    await queue.close();
+  });
+
+  it('keeps an unsaved info-sheet edit and offers to restore it when the sheet opens again', async () => {
+    const update = vi.spyOn(cardioTracksApi, 'update');
+    renderWithProviders(<TracksPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Info about Walk builder' }));
+    fireEvent.change(await screen.findByLabelText('Up to', { selector: '#stage-0-max' }), { target: { value: '41' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Info about Walk builder' }));
+    expect(await screen.findByRole('heading', { name: 'Restore unsaved changes?' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+    expect(screen.getByLabelText('Up to', { selector: '#stage-0-max' })).toHaveValue('41');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(update).toHaveBeenCalled());
+    expect(update.mock.calls.map((c) => c[1].stages[0].doubleProgression?.volumeMax)).toEqual([41]);
+    await waitFor(() => expect([...store.keys()].filter((k) => k.startsWith('a2s-draft:'))).toEqual([]));
   });
 });
 

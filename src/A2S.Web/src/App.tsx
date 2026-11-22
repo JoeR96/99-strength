@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Routes, Route, Navigate } from 'react-router-dom';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useInitializeApiClient } from './api';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
@@ -127,12 +127,12 @@ function AppContent() {
   );
 }
 
+// A data router (one splat route around the existing <Routes>) so forms can use useBlocker to warn
+// before unsaved changes are left behind.
+const router = createBrowserRouter([{ path: '*', element: <AppContent /> }]);
+
 function App() {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

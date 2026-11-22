@@ -111,4 +111,21 @@ describe('GymModePage', () => {
     expect(ops[0].kind).toBe('gym.finish');
     expect(ops[0].target).toEqual({ clientSessionId: (ops[0].payload as { clientSessionId: string }).clientSessionId });
   });
+
+  it('shows "already finished on another device" on a 409 and lets the draft be discarded', async () => {
+    const conflict = Object.assign(new Error('Request failed with status code 409'), {
+      isAxiosError: true,
+      response: { status: 409, data: { detail: 'This day was already finished on another device' } },
+    });
+    vi.spyOn(gymSessionsApi, 'finish').mockRejectedValue(conflict);
+    renderPage();
+
+    await tickOneSetAndFinishEarly();
+
+    const notice = await screen.findByTestId('gym-finished-elsewhere');
+    expect(notice).toHaveTextContent('This day was already finished on another device');
+    vi.mocked(localStorage.removeItem).mockClear();
+    fireEvent.click(within(notice).getByRole('button', { name: "Discard this phone's session" }));
+    expect(localStorage.removeItem).toHaveBeenCalledWith('a2s-gym-session:w-1:3:1');
+  });
 });

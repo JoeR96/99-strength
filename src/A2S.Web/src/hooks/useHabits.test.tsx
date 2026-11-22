@@ -125,7 +125,8 @@ describe('useIncrementHabit', () => {
     expect(habitsApi.increment).toHaveBeenCalledWith(
       WATER_ID,
       DATE,
-      expect.objectContaining({ delta: 1, clientTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/) })
+      expect.objectContaining({ delta: 1, clientTimestamp: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/) }),
+      expect.any(String)
     );
   });
 
@@ -236,7 +237,8 @@ describe('useSetHabitValue', () => {
     expect(habitsApi.setLog).toHaveBeenCalledWith(
       WATER_ID,
       DATE,
-      expect.objectContaining({ value: 5, clientTimestamp: expect.any(String) })
+      expect.objectContaining({ value: 5, clientTimestamp: expect.any(String) }),
+      expect.any(String)
     );
   });
 });

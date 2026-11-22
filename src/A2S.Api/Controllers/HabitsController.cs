@@ -1,3 +1,4 @@
+using A2S.Api.Infrastructure;
 using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
@@ -106,6 +107,7 @@ public class HabitsController : ControllerBase
     }
 
     /// <summary>Sets a day's value. An older <c>clientTimestamp</c> than the stored one is ignored and the stored log returned.</summary>
+    [Idempotent]
     [HttpPut("{id:guid}/logs/{date}")]
     [ProducesResponseType(typeof(HabitLogDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -125,6 +127,7 @@ public class HabitsController : ControllerBase
     /// same tap delivered again, so it changes nothing and the stored log is returned with 200. Send the
     /// timestamp taken at the tap, unchanged, on every retry. Taps with any other timestamp always count.
     /// </summary>
+    [Idempotent]
     [HttpPost("{id:guid}/logs/{date}/increment")]
     [ProducesResponseType(typeof(HabitLogDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

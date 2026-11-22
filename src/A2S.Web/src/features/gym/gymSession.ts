@@ -52,7 +52,12 @@ export interface GymFinisher {
   pain?: 'None' | 'Niggle' | 'Stop';
 }
 
+/** Bump when GymSessionState changes shape, and teach `migrateGymSession` to upgrade the old one. */
+export const GYM_SESSION_VERSION = 1;
+
 export interface GymSessionState {
+  /** Saved-shape version; a draft saved before versioning (no field) is v1. */
+  version: typeof GYM_SESSION_VERSION;
   clientSessionId: string;
   workoutId: string;
   day: number;
@@ -90,6 +95,7 @@ function doseText(drill: MobilityRoutineDto['drills'][number]): string {
 export function createGymSession(input: CreateGymSessionInput): GymSessionState {
   const { plan } = input;
   return {
+    version: GYM_SESSION_VERSION,
     clientSessionId: input.clientSessionId,
     workoutId: plan.workoutId,
     day: plan.dayNumber,
@@ -236,7 +242,35 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
   };
 }
 
-const storageKey = (workoutId: string, week: number, day: number) => `a2s-gym-session:${workoutId}:${week}:${day}`;
+export const GYM_SESSION_PREFIX = 'a2s-gym-session:';
+const storageKey = (workoutId: string, week: number, day: number) => `${GYM_SESSION_PREFIX}${workoutId}:${week}:${day}`;
+
+/** Drafts older than this are dropped: nobody resumes a gym session a week later. */
+export const GYM_DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/**
+ * Brings a saved draft up to the current shape. A draft without `version` is v1 (the shape before
+ * versioning was added). Anything else that cannot be read as a session (wrong types, a version from a
+ * newer app) returns null so the caller can discard it; a recognisable draft is never thrown away.
+ */
+export function migrateGymSession(raw: unknown): GymSessionState | null {
+  if (!isRecord(raw)) return null;
+  const version = raw.version ?? 1;
+  if (version !== 1) return null;
+  const valid =
+    typeof raw.clientSessionId === 'string' &&
+    raw.clientSessionId !== '' &&
+    typeof raw.workoutId === 'string' &&
+    typeof raw.day === 'number' &&
+    typeof raw.week === 'number' &&
+    typeof raw.startedAt === 'string' &&
+    Array.isArray(raw.lifts) &&
+    (raw.drills === undefined || Array.isArray(raw.drills));
+  if (!valid) return null;
+  return { ...(raw as unknown as GymSessionState), drills: (raw.drills as GymDrill[] | undefined) ?? [], finisher: (raw.finisher as GymFinisher | null | undefined) ?? null, version: GYM_SESSION_VERSION };
+}
 
 export function saveGymSession(state: GymSessionState): void {
   try {
@@ -250,11 +284,63 @@ export function loadGymSession(workoutId: string, week: number, day: number): Gy
   try {
     const raw = localStorage.getItem(storageKey(workoutId, week, day));
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as GymSessionState;
-    return parsed && parsed.clientSessionId && Array.isArray(parsed.lifts) ? parsed : null;
+    let parsed: unknown = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      /* unreadable: discarded below */
+    }
+    const migrated = migrateGymSession(parsed);
+    if (!migrated) localStorage.removeItem(storageKey(workoutId, week, day));
+    return migrated;
   } catch {
     return null;
   }
+}
+
+export interface ExpireGymDraftsOptions {
+  /** With `currentWeek`, drafts for this workout's earlier weeks go too. */
+  workoutId?: string;
+  currentWeek?: number;
+}
+
+/**
+ * Removes stale gym drafts: any started more than 7 days before `now`, and, when the workout and its
+ * current week are known, that workout's drafts for earlier weeks. Unreadable drafts are left for
+ * `loadGymSession` to deal with. Returns the keys it removed.
+ */
+export function expireGymDrafts(now: Date = new Date(), options: ExpireGymDraftsOptions = {}): string[] {
+  const removed: string[] = [];
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(GYM_SESSION_PREFIX)) keys.push(key);
+    }
+    for (const key of keys) {
+      let draft: GymSessionState | null = null;
+      try {
+        draft = migrateGymSession(JSON.parse(localStorage.getItem(key) ?? 'null'));
+      } catch {
+        continue;
+      }
+      if (!draft) continue;
+      const started = Date.parse(draft.startedAt);
+      const tooOld = Number.isFinite(started) && now.getTime() - started > GYM_DRAFT_MAX_AGE_MS;
+      const pastWeek =
+        options.workoutId !== undefined &&
+        options.currentWeek !== undefined &&
+        draft.workoutId === options.workoutId &&
+        draft.week < options.currentWeek;
+      if (tooOld || pastWeek) {
+        localStorage.removeItem(key);
+        removed.push(key);
+      }
+    }
+  } catch {
+    /* storage unavailable: nothing to expire */
+  }
+  return removed;
 }
 
 export function clearGymSession(workoutId: string, week: number, day: number): void {

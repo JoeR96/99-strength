@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WeightUnit } from '@/types/workout';
 import {
   allDrillsDone,
   clearGymSession,
   editSet,
+  expireGymDrafts,
+  GYM_SESSION_VERSION,
   loadGymSession,
+  migrateGymSession,
   newClientSessionId,
   progressOf,
   restSecondsFor,
@@ -119,13 +122,42 @@ describe('toFinishRequest', () => {
   });
 });
 
+let store = new Map<string, string>();
+
+// The test setup mocks localStorage with spies; back them with a real map here.
+function backLocalStorageWithAMap() {
+  store = new Map<string, string>();
+  vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
+  vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
+  vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+  vi.mocked(localStorage.key).mockImplementation((i: number) => [...store.keys()][i] ?? null);
+  Object.defineProperty(localStorage, 'length', { configurable: true, get: () => store.size });
+}
+
 describe('local save', () => {
-  // The test setup mocks localStorage with spies; back them with a real map here.
-  beforeEach(() => {
-    const store = new Map<string, string>();
-    vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
-    vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
-    vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+  beforeEach(backLocalStorageWithAMap);
+
+  it('saves the current version', () => {
+    saveGymSession(midGymSession());
+
+    expect(JSON.parse(store.get('a2s-gym-session:w-1:3:1')!).version).toBe(GYM_SESSION_VERSION);
+  });
+
+  it('upgrades a draft saved before versioning (no version field) and keeps everything logged', () => {
+    const { version: _dropped, ...unversioned } = midGymSession();
+    void _dropped;
+    localStorage.setItem('a2s-gym-session:w-1:3:1', JSON.stringify(unversioned));
+
+    expect(loadGymSession('w-1', 3, 1)).toEqual(midGymSession());
+  });
+
+  it('discards a draft it cannot recognise, and only that', () => {
+    localStorage.setItem('a2s-gym-session:w-1:3:1', JSON.stringify({ version: 99, clientSessionId: 'x', lifts: [] }));
+    localStorage.setItem('a2s-gym-session:w-1:3:2', JSON.stringify({ ...midGymSession(), day: 2 }));
+
+    expect(loadGymSession('w-1', 3, 1)).toBeNull();
+    expect(store.has('a2s-gym-session:w-1:3:1')).toBe(false);
+    expect(loadGymSession('w-1', 3, 2)?.clientSessionId).toBe(midGymSession().clientSessionId);
   });
 
   it('round-trips the session and clears it after finishing', () => {
@@ -141,6 +173,57 @@ describe('local save', () => {
     localStorage.setItem('a2s-gym-session:w-1:3:1', '{not json');
 
     expect(loadGymSession('w-1', 3, 1)).toBeNull();
+  });
+});
+
+describe('migrateGymSession', () => {
+  it('rejects shapes that are not a session', () => {
+    expect(migrateGymSession(null)).toBeNull();
+    expect(migrateGymSession([])).toBeNull();
+    expect(migrateGymSession({ clientSessionId: 'a', workoutId: 'w', day: '1', week: 3, startedAt: 'x', lifts: [] })).toBeNull();
+  });
+});
+
+describe('expireGymDrafts', () => {
+  const NOW = new Date('2026-11-23T09:00:00.000Z');
+  const draft = (workoutId: string, week: number, day: number, startedAt: string) =>
+    localStorage.setItem(`a2s-gym-session:${workoutId}:${week}:${day}`, JSON.stringify({ ...midGymSession(), workoutId, week, day, startedAt }));
+
+  beforeEach(() => {
+    backLocalStorageWithAMap();
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('removes drafts started more than 7 days ago and keeps newer ones', () => {
+    draft('w-1', 3, 1, '2026-11-16T08:59:00.000Z'); // 7 days and a minute
+    draft('w-1', 3, 2, '2026-11-16T09:01:00.000Z'); // just inside 7 days
+    localStorage.setItem('other-key', 'kept');
+
+    const removed = expireGymDrafts();
+
+    expect(removed).toEqual(['a2s-gym-session:w-1:3:1']);
+    expect([...store.keys()]).toEqual(['a2s-gym-session:w-1:3:2', 'other-key']);
+  });
+
+  it("removes a workout's drafts for weeks before the current one, not other workouts'", () => {
+    draft('w-1', 2, 1, '2026-11-22T18:00:00.000Z');
+    draft('w-1', 3, 1, '2026-11-22T18:00:00.000Z');
+    draft('w-2', 1, 1, '2026-11-22T18:00:00.000Z');
+
+    expireGymDrafts(new Date(), { workoutId: 'w-1', currentWeek: 3 });
+
+    expect([...store.keys()]).toEqual(['a2s-gym-session:w-1:3:1', 'a2s-gym-session:w-2:1:1']);
+  });
+
+  it('moves with the clock: a draft kept today expires a week later', () => {
+    draft('w-1', 3, 1, '2026-11-22T18:00:00.000Z');
+    expect(expireGymDrafts()).toEqual([]);
+
+    vi.setSystemTime(new Date('2026-11-30T09:00:00.000Z'));
+
+    expect(expireGymDrafts()).toEqual(['a2s-gym-session:w-1:3:1']);
   });
 });
 

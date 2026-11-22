@@ -37,6 +37,7 @@ export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, bus
           {track.isHard && <Badge variant="warning">Zone 4–5</Badge>}
           {paused && <Badge variant="neutral">Paused</Badge>}
           {track.benchmarkDue && <Badge variant="primary">Benchmark due</Badge>}
+          {(track.pendingSessions ?? 0) > 0 && <Badge variant="neutral">Waiting to sync</Badge>}
         </div>
       </div>
 

@@ -97,7 +97,7 @@ export function useIncrementHabit() {
 
   const mutation = useOfflineMutation<HabitLogDto, IncrementVariables, { key: string }>({
     mutationKey: habitKeys.increment(),
-    run: ({ habitId, delta, date, clientTimestamp }) => habitsApi.increment(habitId, date, { delta, clientTimestamp }),
+    run: ({ habitId, delta, date, clientTimestamp }, key) => habitsApi.increment(habitId, date, { delta, clientTimestamp }, key),
     toOp: ({ habitId, delta, date, clientTimestamp }) => ({
       kind: 'habit.increment',
       localDate: date,
@@ -161,7 +161,7 @@ export function useSetHabitValue() {
   const queryClient = useQueryClient();
 
   const mutation = useOfflineMutation<HabitLogDto, SetValueVariables, { previous: HabitsTodayDto | undefined }>({
-    run: ({ habitId, value, date, clientTimestamp }) => habitsApi.setLog(habitId, date, { value, clientTimestamp }),
+    run: ({ habitId, value, date, clientTimestamp }, key) => habitsApi.setLog(habitId, date, { value, clientTimestamp }, key),
     toOp: ({ habitId, value, date, clientTimestamp }) => ({
       kind: 'habit.set',
       localDate: date,

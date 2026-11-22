@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { idempotent } from './idempotency';
 import type {
   BenchmarkResultDto,
   CardioTrackDetailDto,
@@ -28,8 +29,8 @@ export const cardioTracksApi = {
   update: async (id: string, request: UpdateCardioTrackRequest): Promise<CardioTrackDto> =>
     (await apiClient.put<CardioTrackDto>(`/cardio-tracks/${id}`, request)).data,
 
-  logSession: async (id: string, request: LogTrackSessionRequest): Promise<TrackEvaluationDto> =>
-    (await apiClient.post<TrackEvaluationDto>(`/cardio-tracks/${id}/sessions`, request)).data,
+  logSession: async (id: string, request: LogTrackSessionRequest, idempotencyKey?: string): Promise<TrackEvaluationDto> =>
+    (await apiClient.post<TrackEvaluationDto>(`/cardio-tracks/${id}/sessions`, request, idempotent(idempotencyKey))).data,
 
   decide: async (id: string, accept: boolean): Promise<CardioTrackDto> =>
     (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/suggestion`, { accept })).data,

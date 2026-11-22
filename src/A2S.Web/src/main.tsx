@@ -9,12 +9,16 @@ import { HevyProvider } from './contexts/HevyContext';
 import { OfflineProvider } from './offline/OfflineProvider';
 import './index.css';
 import App from './App.tsx';
+import { expireGymDrafts } from './features/gym/gymSession';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error('Missing Clerk Publishable Key');
 }
+
+// Gym drafts started more than a week ago are never resumed; drop them before anything reads them.
+expireGymDrafts();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { idempotent } from './idempotency';
 import type { LocalDate } from '@/lib/localDate';
 import type {
   CreateHabitRequest,
@@ -46,13 +47,13 @@ export const habitsApi = {
     return response.data;
   },
 
-  setLog: async (id: string, date: LocalDate, request: SetHabitLogRequest): Promise<HabitLogDto> => {
-    const response = await apiClient.put<HabitLogDto>(`/habits/${id}/logs/${date}`, request);
+  setLog: async (id: string, date: LocalDate, request: SetHabitLogRequest, idempotencyKey?: string): Promise<HabitLogDto> => {
+    const response = await apiClient.put<HabitLogDto>(`/habits/${id}/logs/${date}`, request, idempotent(idempotencyKey));
     return response.data;
   },
 
-  increment: async (id: string, date: LocalDate, request: IncrementHabitRequest): Promise<HabitLogDto> => {
-    const response = await apiClient.post<HabitLogDto>(`/habits/${id}/logs/${date}/increment`, request);
+  increment: async (id: string, date: LocalDate, request: IncrementHabitRequest, idempotencyKey?: string): Promise<HabitLogDto> => {
+    const response = await apiClient.post<HabitLogDto>(`/habits/${id}/logs/${date}/increment`, request, idempotent(idempotencyKey));
     return response.data;
   },
 };

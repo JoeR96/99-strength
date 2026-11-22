@@ -4,7 +4,7 @@
  * Delete asks for confirmation; the server refuses while a plan's week still schedules the routine.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -13,6 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { DraftRestorePrompt } from '@/components/shared/DraftRestorePrompt';
+import { UnsavedChangesGuard } from '@/components/shared/UnsavedChangesGuard';
 import {
   useCreateMobilityRoutine,
   useDeleteMobilityRoutine,
@@ -42,6 +45,19 @@ const selectClass =
 function serverMessage(error: unknown, fallback: string): string {
   const data = (error as { response?: { data?: { detail?: string } } } | null)?.response?.data;
   return data?.detail || fallback;
+}
+
+/** Bump when RoutineDraft changes shape, so an old draft is dropped instead of restored. */
+const ROUTINE_DRAFT_VERSION = 1;
+
+/** The draft without the drills' row keys (random per load), so "unchanged" means unchanged. */
+function comparable(draft: RoutineDraft): RoutineDraft {
+  return { ...draft, drills: draft.drills.map((d) => ({ ...d, key: '' })) };
+}
+
+/** A restored draft gets fresh row keys. */
+function withKeys(draft: RoutineDraft): RoutineDraft {
+  return { ...draft, drills: draft.drills.map((d) => ({ ...d, key: emptyDrill().key })) };
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -81,8 +97,11 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
   const remove = useDeleteMobilityRoutine();
   const { confirm, ConfirmDialog } = useConfirmDialog();
 
-  const [draft, setDraft] = useState<RoutineDraft>(() => (routine ? draftFromRoutine(routine) : emptyRoutine()));
+  const [initial] = useState<RoutineDraft>(() => (routine ? draftFromRoutine(routine) : emptyRoutine()));
+  const [draft, setDraft] = useState<RoutineDraft>(initial);
   const [submitted, setSubmitted] = useState(false);
+  const saved = useRef(false);
+  const unsaved = useFormDraft({ key: `routine:${id ?? 'new'}`, version: ROUTINE_DRAFT_VERSION, value: comparable(draft), initial: comparable(initial) });
 
   const errors: RoutineErrors = useMemo(() => validateRoutine(draft), [draft]);
   const shown = submitted ? errors : { drill: {} };
@@ -103,6 +122,8 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
     }
     const drills = toDrillDtos(draft);
     const onSuccess = () => {
+      saved.current = true;
+      unsaved.clear();
       toast.success(editing ? 'Routine saved' : 'Routine created');
       navigate('/routines');
     };
@@ -131,6 +152,8 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
     if (!confirmed) return;
     remove.mutate(routine.id, {
       onSuccess: () => {
+        saved.current = true;
+        unsaved.clear();
         toast.success(`${routine.name} deleted`);
         navigate('/routines');
       },
@@ -147,6 +170,17 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
           Routines
         </Link>
         <h1 className="text-2xl font-bold text-foreground">{editing ? `Edit ${routine?.name}` : 'New routine'}</h1>
+        <UnsavedChangesGuard
+          when={() => unsaved.isDirty && !saved.current}
+          detail="Your changes stay on this phone, and you can restore them next time you open this routine."
+        />
+        {unsaved.pendingDraft && (
+          <DraftRestorePrompt
+            savedAt={unsaved.pendingDraft.savedAt}
+            onRestore={() => setDraft(withKeys(unsaved.restore()))}
+            onDiscard={unsaved.discard}
+          />
+        )}
 
         <section className="space-y-3 rounded-lg border border-border bg-card p-4">
           <div>

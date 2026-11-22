@@ -40,7 +40,7 @@ function upsertPoint(trend: WeightTrendDto | undefined, date: LocalDate, kg: num
 export function useRecordWeight() {
   const queryClient = useQueryClient();
   return useOfflineMutation({
-    run: ({ date, kg }: { date: LocalDate; kg: number }) => bodyWeightApi.record(date, kg),
+    run: ({ date, kg }: { date: LocalDate; kg: number }, key) => bodyWeightApi.record(date, kg, key),
     toOp: ({ date, kg }) => ({ kind: 'bodyweight.put', localDate: date, target: {}, payload: { kg } }),
     onSuccess: (outcome, { date, kg }) => {
       if (outcome.queued) {

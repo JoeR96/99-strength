@@ -1,11 +1,12 @@
 import apiClient from './apiClient';
+import { idempotent } from './idempotency';
 import type { LocalDate } from '@/lib/localDate';
 import type { BodyWeightEntryDto, WeightTrendDto } from '@/types/bodyWeight';
 
 /** `/api/v1/body-weight`: morning weigh-ins and the smoothed trend. */
 export const bodyWeightApi = {
-  record: async (date: LocalDate, kg: number): Promise<BodyWeightEntryDto> => {
-    const response = await apiClient.put<BodyWeightEntryDto>(`/body-weight/${date}`, { kg });
+  record: async (date: LocalDate, kg: number, idempotencyKey?: string): Promise<BodyWeightEntryDto> => {
+    const response = await apiClient.put<BodyWeightEntryDto>(`/body-weight/${date}`, { kg }, idempotent(idempotencyKey));
     return response.data;
   },
 

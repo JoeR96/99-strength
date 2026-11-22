@@ -9,6 +9,7 @@
 import type { HabitsTodayDto } from '@/types/habits';
 import { SessionKind, SessionStatus, type TodayDto } from '@/types/plan';
 import type { WeightTrendDto } from '@/types/bodyWeight';
+import type { CardioTrackDto } from '@/types/cardioTracks';
 import type { OfflineOp } from './types';
 
 export function overlayHabitOps(data: HabitsTodayDto, ops: OfflineOp[]): HabitsTodayDto {
@@ -82,4 +83,17 @@ export function overlayTrendOps(trend: WeightTrendDto, ops: OfflineOp[]): Weight
   }
   points.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   return { ...trend, points };
+}
+
+/**
+ * Cardio track logs still on the phone. The next prescription is the server's to work out, so nothing is
+ * guessed: each track only learns how many of its sessions are waiting to sync, which the card shows.
+ */
+export function overlayCardioOps<T extends { tracks: CardioTrackDto[] }>(data: T, ops: OfflineOp[]): T {
+  const counts = new Map<string, number>();
+  for (const op of ops) {
+    if (op.kind === 'cardio.log') counts.set(op.target.trackId, (counts.get(op.target.trackId) ?? 0) + 1);
+  }
+  if (counts.size === 0) return data;
+  return { ...data, tracks: data.tracks.map((t) => (counts.has(t.id) ? { ...t, pendingSessions: counts.get(t.id) } : t)) };
 }

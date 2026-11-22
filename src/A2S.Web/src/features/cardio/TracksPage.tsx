@@ -24,6 +24,7 @@ import type { CardioTrackDto, LogTrackSessionRequest, UpdateCardioTrackRequest }
 import { TrackCard } from './TrackCard';
 import { TrackLogSheet } from './TrackLogSheet';
 import { TrackInfoSheet } from './TrackInfoSheet';
+import { clearTrackInfoDraft } from './trackInfoDraft';
 
 export function TracksPage() {
   const tracksQuery = useCardioTracks();
@@ -43,18 +44,31 @@ export function TracksPage() {
 
   const submitLog = (track: CardioTrackDto, request: LogTrackSessionRequest) =>
     log.mutate(
-      { id: track.id, request },
+      { id: track.id, request, label: track.name },
       {
-        onSuccess: (result) => {
+        onSuccess: (outcome) => {
           setLogging(null);
-          toast.success(`${result.reason}. Next: ${result.track.prescription.title}`);
+          toast.success(
+            outcome.queued
+              ? 'Saved on this phone. It will sync when you are back online.'
+              : `${outcome.data.reason}. Next: ${outcome.data.track.prescription.title}`
+          );
         },
         onError: fail,
       }
     );
 
   const save = (track: CardioTrackDto, request: UpdateCardioTrackRequest) =>
-    update.mutate({ id: track.id, request }, { onSuccess: () => setInfo(null), onError: fail });
+    update.mutate(
+      { id: track.id, request },
+      {
+        onSuccess: () => {
+          clearTrackInfoDraft(track.id);
+          setInfo(null);
+        },
+        onError: fail,
+      }
+    );
 
   return (
     <div className="min-h-screen bg-background">

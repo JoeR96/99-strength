@@ -1,3 +1,4 @@
+using A2S.Api.Infrastructure;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.GymSessions;
 using MediatR;
@@ -26,6 +27,7 @@ public class GymSessionsController : ControllerBase
     /// Finish a gym session. Idempotent on <c>clientSessionId</c>: sending the same session again (an offline
     /// replay) returns the first result with <c>replayed: true</c> and completes nothing twice.
     /// </summary>
+    [Idempotent]
     [HttpPost]
     [ProducesResponseType(typeof(FinishGymSessionResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

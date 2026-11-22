@@ -64,7 +64,7 @@ describe('HabitsPage', () => {
     renderPage();
     const row = await screen.findByTestId(`habit-row-${WATER_ID}`);
     fireEvent.click(within(row).getByRole('button', { name: /add one water/i }));
-    await waitFor(() => expect(incrementSpy).toHaveBeenCalledWith(WATER_ID, '2026-11-09', expect.objectContaining({ delta: 1 })));
+    await waitFor(() => expect(incrementSpy).toHaveBeenCalledWith(WATER_ID, '2026-11-09', expect.objectContaining({ delta: 1 }), expect.any(String)));
   });
 
   it('creates a habit from the sheet', async () => {
