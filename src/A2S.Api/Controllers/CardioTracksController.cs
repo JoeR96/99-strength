@@ -1,3 +1,4 @@
+using A2S.Api.Infrastructure;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.CardioTracks;
@@ -69,6 +70,7 @@ public class CardioTracksController : ControllerBase
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateCardioTrackRequest request, CancellationToken cancellationToken) =>
         Respond(await _mediator.Send(new UpdateCardioTrackCommand(id, request.Name, request.Notes, request.Stages, request.Benchmark), cancellationToken));
 
+    [Idempotent]
     [HttpPost("{id:guid}/sessions")]
     [ProducesResponseType(typeof(TrackEvaluationDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> LogSession([FromRoute] Guid id, [FromBody] LogCardioTrackSessionRequest request, CancellationToken cancellationToken) =>

@@ -26,6 +26,8 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
 {
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
+    public const string AlreadyFinishedElsewhere = "This day was already finished on another device";
+
     private readonly ISender _sender;
     private readonly IWorkoutRepository _workouts;
     private readonly ITrainingPlanRepository _plans;
@@ -86,6 +88,13 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         if (workout is null || workout.UserId != userId)
         {
             return Result.Failure<FinishGymSessionResult>("Workout not found.", ErrorCode.NotFound);
+        }
+
+        // Two phones: the other one finished this week's day first (its own client session id), so this
+        // finish must not record the day or move the progression a second time.
+        if (workout.IsDayCompletedInCurrentWeek(request.Day))
+        {
+            return Result.Failure<FinishGymSessionResult>(AlreadyFinishedElsewhere, ErrorCode.Conflict);
         }
 
         var date = _clock.ToLocalDate(request.StartedAt);

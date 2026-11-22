@@ -1,3 +1,4 @@
+using A2S.Api.Infrastructure;
 using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
@@ -138,6 +139,7 @@ public class PlansController : ControllerBase
     }
 
     /// <summary>Records a session as done. Idempotent on the Hevy workout id, or on the slot for manual completions.</summary>
+    [Idempotent]
     [HttpPost("{id:guid}/completions")]
     [ProducesResponseType(typeof(SessionCompletionDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CompleteSession([FromRoute] Guid id, [FromBody] CompleteSessionRequest request, CancellationToken cancellationToken)

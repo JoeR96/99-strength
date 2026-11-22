@@ -106,6 +106,32 @@ public class GymSessionsControllerTests
     }
 
     [Fact]
+    public async Task Finish_FromASecondDevice_ForTheSameDay_Answers409_AndProgressesOnce()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        var workoutId = await CreateWorkoutAsync(client);
+        await CreatePlanAsync(client, workoutId);
+        var phone = await FinishBodyAsync(client, workoutId, Guid.NewGuid());
+        var tablet = phone with { ClientSessionId = Guid.NewGuid() };
+
+        var first = await client.PostAsJsonAsync("/api/v1/gym-sessions", phone, Json);
+        var second = await client.PostAsJsonAsync("/api/v1/gym-sessions", tablet, Json);
+        var replay = await client.PostAsJsonAsync("/api/v1/gym-sessions", phone, Json);
+
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+        second.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await second.Content.ReadAsStringAsync()).Should().Contain("This day was already finished on another device");
+        replay.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await replay.Content.ReadFromJsonAsync<FinishGymSessionResult>(Json))!.Replayed.Should().BeTrue();
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
+        var workout = await db.Workouts.AsNoTracking().SingleAsync(w => w.Id == new WorkoutId(workoutId));
+        workout.CompletedActivities.Should().ContainSingle();
+        (await db.HevyWorkoutPosts.AsNoTracking().CountAsync(p => p.ClientSessionId == tablet.ClientSessionId)).Should().Be(0);
+    }
+
+    [Fact]
     public async Task Finish_CompletesTheDayAndTheSlot_AndAReplayChangesNothing()
     {
         var userId = $"user_{Guid.NewGuid():N}";

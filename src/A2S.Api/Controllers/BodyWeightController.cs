@@ -1,3 +1,4 @@
+using A2S.Api.Infrastructure;
 using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
@@ -33,6 +34,7 @@ public class BodyWeightController : ControllerBase
     }
 
     /// <summary>Records or corrects the weigh-in for a date.</summary>
+    [Idempotent]
     [HttpPut("{date}")]
     [ProducesResponseType(typeof(BodyWeightEntryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

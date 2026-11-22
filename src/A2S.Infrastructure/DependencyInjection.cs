@@ -94,6 +94,7 @@ public static class DependencyInjection
         services.AddScoped<IHevyWorkoutSnapshotRepository, HevyWorkoutSnapshotRepository>();
         services.AddScoped<IHevyPullCursorRepository, HevyPullCursorRepository>();
         services.AddScoped<IHevyWorkoutPostRepository, HevyWorkoutPostRepository>();
+        services.AddScoped<A2S.Application.Idempotency.IIdempotencyStore, IdempotencyStore>();
         // The 15-minute poll: idle in Testing; pulls as each user through AmbientUser.
         services.AddHostedService<HevyPollHostedService>();
         services.AddHostedService<HevyPostRetryHostedService>();

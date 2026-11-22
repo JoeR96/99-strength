@@ -279,6 +279,26 @@ public class GymSessionTests
     }
 
     [Fact]
+    public async Task Finish_FromAnotherDevice_ForADayAlreadyFinished_IsAConflict_AndChangesNothing()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+        var tmAfterFirst = BenchTm;
+        var otherDevice = Finish() with { ClientSessionId = Guid.Parse("9a9a9a9a-0000-0000-0000-000000000002") };
+
+        var second = await _finish.Handle(otherDevice, CancellationToken.None);
+
+        second.IsFailure.Should().BeTrue();
+        second.ErrorCode.Should().Be(ErrorCode.Conflict);
+        second.Error.Should().Be("This day was already finished on another device");
+        BenchTm.Should().Be(tmAfterFirst);
+        _workout.CompletedActivities.Should().ContainSingle();
+        _plan.Completions.Should().ContainSingle();
+        _posts.All.Should().ContainSingle();
+        _posted.Should().ContainSingle();
+        await _sender.Received(1).Send(Arg.Any<CompleteDayCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task PostThenPull_GivesExactlyOneCompletionAndOneProgression()
     {
         await _finish.Handle(Finish(), CancellationToken.None);
