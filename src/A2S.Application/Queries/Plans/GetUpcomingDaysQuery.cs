@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Application.Hevy;
@@ -155,7 +156,10 @@ public sealed class GetUpcomingDaysQueryHandler : IRequestHandler<GetUpcomingDay
                     .Select(e => new UpcomingExerciseDto(e.Name, e.Category, e.PlannedSets.Select(s => new UpcomingSetDto(s.WeightKg, s.TargetReps, s.IsAmrap)).ToList(),
                         e.Metadata.IsTrainingMaxPending, e.Metadata.IntensityPercentage))
                     .ToList(),
-                finisher);
+                finisher)
+            {
+                Cardio = PlannedCardioBuilder.For(slot.Finisher, tracks, protocols, week.Value.Exercises.Count + 1)
+            };
         }
 
         return result;

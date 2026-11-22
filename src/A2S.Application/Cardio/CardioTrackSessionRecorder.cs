@@ -28,6 +28,13 @@ public sealed class CardioTrackSessionRecorder
         _habits = habits;
     }
 
+    /// <summary>The track's prescription title before a session is recorded (null when not the user's track).</summary>
+    public async Task<string?> PrescriptionAsync(UserId userId, CardioTrackId trackId, CancellationToken ct)
+    {
+        var track = await _tracks.GetByIdAsync(trackId, ct);
+        return track is null || track.UserId != userId ? null : track.Prescription.Title;
+    }
+
     /// <summary>Null when the track does not exist or is not the user's.</summary>
     public async Task<(CardioTrack Track, TrackEvaluationResult Result)?> RecordAsync(
         UserId userId,

@@ -44,6 +44,9 @@ public sealed record FinishGymSessionResult
     public Guid? CompletionId { get; init; }
     public Guid? FinisherCompletionId { get; init; }
 
+    /// <summary>What the finisher's track did (stepped up, held, …) and the next prescription; null with no finisher logged.</summary>
+    public A2S.Application.DTOs.FinisherOutcomeDto? FinisherOutcome { get; init; }
+
     /// <summary>Pending, Posted, Failed or Skipped (no Hevy key).</summary>
     public string HevyStatus { get; init; } = string.Empty;
     public string? HevyWorkoutId { get; init; }

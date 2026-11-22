@@ -2,6 +2,7 @@ using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.ProgressWeek;
 using A2S.Application.Commands.UpdateBlockSequence;
+using A2S.Application.Queries.GetCycle;
 using A2S.Application.Queries.GetWeekPlan;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -112,5 +113,28 @@ public class WeeksController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// The training cycle from the current session: current week/day first, then the rest of this week and
+    /// all of next week, each with its full planned session (Current workout page and its previews).
+    /// </summary>
+    [HttpGet("{id:guid}/cycle")]
+    [ProducesResponseType(typeof(CycleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCycle([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCycleQuery(id), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>The active workout's cycle.</summary>
+    [HttpGet("current/cycle")]
+    [ProducesResponseType(typeof(CycleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurrentCycle(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCycleQuery(null), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 }

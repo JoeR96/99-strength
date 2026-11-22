@@ -1,4 +1,7 @@
+using A2S.Application.Cardio;
 using A2S.Application.Common;
+using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -17,12 +20,21 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
     private readonly IWorkoutRepository _workoutRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IA2SProgramProvider _programProvider;
+    private readonly ITrainingPlanRepository? _plans;
+    private readonly ICardioTrackRepository? _tracks;
+    private readonly ICardioProtocolRepository? _protocols;
 
     public GetWeekPlanQueryHandler(
         IWorkoutRepository workoutRepository,
         ICurrentUserService currentUserService,
-        IA2SProgramProvider programProvider)
+        IA2SProgramProvider programProvider,
+        ITrainingPlanRepository? plans = null,
+        ICardioTrackRepository? tracks = null,
+        ICardioProtocolRepository? protocols = null)
     {
+        _plans = plans;
+        _tracks = tracks;
+        _protocols = protocols;
         _workoutRepository = workoutRepository ?? throw new ArgumentNullException(nameof(workoutRepository));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         _programProvider = programProvider ?? throw new ArgumentNullException(nameof(programProvider));
@@ -89,15 +101,54 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
                 BlockNumber = blockType,
                 IsDeloadWeek = weekParams.IsDeload,
                 IntensityPercentage = weekParams.IntensityPercentage,
-                Exercises = plannedExercises
+                Exercises = plannedExercises,
+                IsCurrent = workout.CurrentWeek == request.WeekNumber && workout.CurrentDay == request.DayNumber
             };
 
-            return Result.Success(dto);
+            return Result.Success(await WithSessionAsync(dto, workout, userId.Value, dayNumber, cancellationToken));
         }
         catch (Exception ex)
         {
             return Result.Failure<WeekPlanDto>($"Failed to get week plan: {ex.Message}");
         }
+    }
+
+    /// <summary>Adds the linked plan's slot for this A2S2 day: label, warm-up, paired routine and the cardio finisher item.</summary>
+    private async Task<WeekPlanDto> WithSessionAsync(WeekPlanDto dto, Workout workout, UserId userId, DayNumber day, CancellationToken ct)
+    {
+        if (_plans is null)
+        {
+            return dto;
+        }
+
+        var plan = await _plans.GetActiveForUserAsync(userId, ct);
+        if (plan is null || plan.LinkedWorkoutId != workout.Id)
+        {
+            return dto;
+        }
+
+        var slot = plan.Schedule.FirstOrDefault(s => s.Kind == SessionKind.Lift && s.LiftDay == day);
+        if (slot is null)
+        {
+            return dto;
+        }
+
+        var paired = plan.Schedule.FirstOrDefault(s => s.Kind == SessionKind.Mobility && s.Day == slot.Day && s.MobilityRoutineId is not null);
+        PlannedCardioDto? cardio = null;
+        if (slot.Finisher is { } finisher && dto.WeekNumber >= workout.CurrentWeek)
+        {
+            var tracks = finisher.CardioTrackId is not null && _tracks is not null ? await _tracks.ListForUserAsync(userId, ct) : [];
+            var protocols = finisher.CardioProtocolId is not null && _protocols is not null ? await _protocols.ListForUserAsync(userId, ct) : [];
+            cardio = PlannedCardioBuilder.For(finisher, tracks, protocols, dto.Exercises.Count + 1);
+        }
+
+        return dto with
+        {
+            SessionLabel = slot.Label,
+            WarmUpRoutineId = slot.WarmUpRoutineId?.Value,
+            PairedRoutineId = paired?.MobilityRoutineId?.Value,
+            Cardio = cardio
+        };
     }
 
     private static PlannedExerciseDto MapExerciseToPlannedDto(
