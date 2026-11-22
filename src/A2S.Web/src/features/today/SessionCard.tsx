@@ -145,8 +145,17 @@ export function SessionCard({
         </div>
       )}
 
+      {canAct && session.kind === SessionKind.Mobility && session.mobilityRoutineId && (
+        <Button asChild size="lg" variant="outline" className="mt-4 w-full" data-testid="play-routine">
+          <Link to={`/routines/${session.mobilityRoutineId}/play`} aria-label={`Play routine: ${session.label}`}>
+            <Play aria-hidden="true" />
+            Play routine
+          </Link>
+        </Button>
+      )}
+
       {canAct && (session.kind === SessionKind.Cardio || session.kind === SessionKind.Mobility) && (
-        <div className={cn('mt-4 grid gap-2', hasHevyButton ? TWO_UP : 'grid-cols-1')}>
+        <div className={cn(session.kind === SessionKind.Mobility && session.mobilityRoutineId ? 'mt-2' : 'mt-4', 'grid gap-2', hasHevyButton ? TWO_UP : 'grid-cols-1')}>
           <Button
             size="lg"
             className={cn('w-full', hasHevyButton && 'px-3 text-base')}

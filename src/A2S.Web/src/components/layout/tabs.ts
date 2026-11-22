@@ -15,7 +15,7 @@ export interface TabDefinition {
 
 export const TABS: TabDefinition[] = [
   { to: '/today', label: 'Today', icon: Sun, matches: ['/today', '/dashboard', '/hevy/inbox'], badge: 'pendingSync' },
-  { to: '/workout', label: 'Plan', icon: CalendarDays, matches: ['/workout', '/setup', '/programs'] },
+  { to: '/workout', label: 'Plan', icon: CalendarDays, matches: ['/workout', '/setup', '/programs', '/routines'] },
   { to: '/habits', label: 'Habits', icon: CheckCircle2, matches: ['/habits'], badge: 'pendingSync' },
   { to: '/progress', label: 'Progress', icon: TrendingUp, matches: ['/progress', '/history', '/hevy/data'] },
   {
