@@ -12,7 +12,7 @@ namespace A2S.Domain.Aggregates.Workout;
 /// Implements RTF (Reps To Failure) progression algorithm from A2S 2.0.
 /// </summary>
 /// <remarks>
-/// Reference: research/business-rules.md Section 3.1 "RTF Progression"
+/// Reference: docs/archive/research/business-rules.md Section 3.1 "RTF Progression"
 /// AMRAP delta table at lines 80-91 defines TM adjustment percentages.
 /// </remarks>
 public sealed class LinearProgressionStrategy : ExerciseProgression

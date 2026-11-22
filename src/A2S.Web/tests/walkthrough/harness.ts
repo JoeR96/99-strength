@@ -9,7 +9,7 @@ const repoRoot = resolve(webRoot, '../..');
 
 export const WEB_URL = process.env.WALKTHROUGH_WEB_URL ?? 'http://localhost:4173';
 export const API_URL = process.env.WALKTHROUGH_API_URL ?? 'http://localhost:8080';
-export const SCREENS_DIR = resolve(repoRoot, 'docs/v2/screens-live');
+export const SCREENS_DIR = resolve(repoRoot, 'artifacts/screens-live');
 /** One browser profile for the whole walkthrough, so the Clerk session, the service worker and IndexedDB carry over. */
 export const PROFILE_DIR = process.env.WALKTHROUGH_PROFILE ?? resolve(webRoot, 'node_modules/.cache/walkthrough-profile');
 /** Console errors, failed requests and API responses of 400 and above, one line each. */

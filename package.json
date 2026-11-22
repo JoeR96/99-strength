@@ -1,8 +1,8 @@
 {
-  "name": "a2s-workout-tracker",
-  "version": "0.9.0",
+  "name": "99-strength",
+  "version": "2.0.0",
   "private": true,
-  "description": "A2S Workout Tracker - Full Stack Application",
+  "description": "99 Strength: phone-first training planner (A2S2 + Hevy, cardio, mobility, habits)",
   "scripts": {
     "start": "npm run start:db && concurrently --kill-others -n api,web -c blue,green \"npm run start:api\" \"npm run start:web\"",
     "start:db": "docker-compose up -d",
@@ -30,12 +30,5 @@
     "concurrently": "^8.2.2",
     "wait-on": "^9.0.3"
   },
-  "keywords": [
-    "workout-tracker",
-    "fitness",
-    "a2s",
-    "strength-training"
-  ],
-  "author": "",
-  "license": "ISC"
+  "license": "UNLICENSED"
 }

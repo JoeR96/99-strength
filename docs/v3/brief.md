@@ -1,11 +1,11 @@
 # 99 Strength v3: "Coach in my pocket"
 
-You are working on **github.com/JoeR96/99-strength**. v2 (the "Whole Plan" refactor, `docs/v2/brief.md`) is
+You are working on **github.com/JoeR96/99-strength**. v2 (the "Whole Plan" refactor, `docs/archive/v2/brief.md`) is
 built: training plan, A2S2 via Hevy, cardio protocols, mobility routines, habits, push nudges, offline
 habit queue, meals. v3 adds the missing functionality and an accessibility audit. It turns the app from a tracker into something that **plans, progresses and reminds me
 of everything**, the way a PT would, across lifting, cardio and mobility.
 
-Read `AGENTS.md`, `src/A2S.Web/AGENTS.md` and `docs/v2/audit-after.md` (the live walkthrough and its
+Read `AGENTS.md`, `src/A2S.Web/AGENTS.md` and `docs/archive/v2/audit-after.md` (the live walkthrough and its
 open defects) before touching anything. Follow the existing rules: Clean Architecture with CQRS, thin handlers, a
 Domain project with no dependencies, `Result<T>`, factory methods, mutation only through aggregate roots, local dates in Europe/London.
 All existing .NET and Vitest tests must stay green.
@@ -32,13 +32,10 @@ The README has already been rewritten as user-facing, and dev content moved to `
 Keep both accurate as you build. Then:
 
 - `src/A2S.Web/README.md` is Vite template boilerplate. Replace it with a three-line pointer to `src/A2S.Web/AGENTS.md`.
-- Move `docs/superpowers/` (executed plans and old audits) and `docs/v2/` into `docs/archive/`. Fold the useful
-  parts of `docs/v2/clerk-ios.md` into `docs/development.md` first.
-- `research/`: keep `A2S2_Validation_Data.md` and `A2S 2024-2025.xlsx` (tests reference them), moving them
-  to `docs/reference/a2s2/` and updating paths. Archive the rest; it's pre-build planning.
-- `docs/` is about 19 MB of screenshots. Stop committing generated screenshots: gitignore them and upload
-  them as CI artefacts. Delete the existing PNGs from the tree (history keeps them).
-- `docs/v2/source/cooks-assistant-recipes.ts`: if seed code uses it, move it under `SeedData/`. Otherwise archive it.
+- Done: `docs/superpowers/` and `docs/v2/` are in `docs/archive/`; the Clerk iOS notes are in `docs/development.md`.
+- `research/`: done. Validation data and spreadsheet moved to `docs/reference/a2s2/`; the rest archived.
+- Done: screenshots removed from the tree; generators now write to the gitignored `artifacts/`.
+- Done: `cooks-assistant-recipes.ts` was not used by any code; it is archived with the rest of v2.
 - Root `package.json` says `a2s-workout-tracker`, 0.9.0, ISC, no author. Rename it and fix the description. Drop
   scripts nothing uses (check `setup:*` and `e2e*` against CI and the docs).
 - Remove stale theme vocabulary: "Golden Twilight", `gold`/`navy` classes and `rgba(255,212,10…)` in

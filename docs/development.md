@@ -99,3 +99,22 @@ Adding a route to the list means marking it `[AllowApiToken]` and updating the l
 3. First boot after a schema change: the API upserts the exercise library by name, encrypts any legacy
    plaintext Hevy keys and erases the plaintext. Both steps are idempotent and only log counts. Rolling
    back to v1 after that boot means re-entering the Hevy key, because v1 reads the plaintext column.
+
+## Clerk in the installed iPhone app
+
+Sign-in must stay inside the standalone window, or the session cookie lands in Safari instead of the app.
+
+- `LoginPage` and `SignUpPage` use `routing="path"` on our own origin (`/sign-in`, `/sign-up`) with
+  `fallbackRedirectUrl="/today"`; nothing redirects to Clerk's hosted pages.
+- The manifest `start_url` is `/today` (`display: standalone`, `scope: /`); `UserButton` signs out to `/sign-in`.
+- Clerk's allowed origins must include production and the Vercel preview domain.
+
+Device check, still to be recorded on a real iPhone: install from Safari, sign in (no Safari window opens),
+force-quit and reopen (still signed in), background for 10 minutes and reopen, sign out (lands on `/sign-in`
+inside the app). If the session is lost after force-quit, wire `ClerkProvider` to React Router
+(`routerPush`/`routerReplace`, `signInUrl="/sign-in"`, `signUpUrl="/sign-up"`) and retest.
+
+## Screenshots and walkthroughs
+
+`scripts/capture-audit-screens.mjs` and the live walkthrough (`src/A2S.Web/tests/walkthrough/`) write to
+`artifacts/`, which is gitignored. Attach screenshots to PRs or CI runs instead of committing them.
