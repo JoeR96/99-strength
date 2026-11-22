@@ -8,12 +8,15 @@ import apiClient from './apiClient';
 export type SessionKind = 'Rest' | 'Lift' | 'Cardio' | 'Mobility';
 
 export interface SuggestedPlanInput {
-  key: 'benchTm' | 'squatTm' | 'ohpTm' | 'deadliftTm' | 'startWeightKg';
+  /** e.g. 'benchTm', 'squatTm', 'pauseSquatTm', 'startWeightKg'. */
+  key: string;
   label: string;
   unit: string;
   default: number | null;
   minimum: number;
   maximum: number;
+  /** May be left empty: a training max left empty stays pending until its first session. */
+  optional?: boolean;
 }
 
 export interface SuggestedSessionPreview {

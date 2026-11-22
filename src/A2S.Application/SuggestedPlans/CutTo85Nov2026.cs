@@ -362,3 +362,23 @@ public static class CutTo85Nov2026
         return all.Where(c => c.Date > startDate).ToList();
     }
 }
+
+/// <summary>"Cut to 85" through the generic template path. Its four training maxes are required.</summary>
+public sealed class CutTo85Template : IPlanTemplate
+{
+    public string Key => CutTo85Nov2026.Key;
+    public string Name => CutTo85Nov2026.Name;
+    public string Description => CutTo85Nov2026.Description;
+    public decimal DefaultStartWeightKg => CutTo85Nov2026.DefaultStartWeightKg;
+    public IReadOnlyList<SuggestedPlanInputSpec> Inputs => CutTo85Nov2026.Inputs;
+
+    /// <summary>Cut to 85 starts the Monday on or after <see cref="PlanTemplateInputs.StartDate"/>.</summary>
+    public SuggestedPlanSpec Build(PlanTemplateInputs inputs)
+    {
+        ArgumentNullException.ThrowIfNull(inputs);
+        decimal Required(string key) => inputs.Get(key) ?? throw new ArgumentException($"{key} is required", nameof(inputs));
+
+        return CutTo85Nov2026.Build(new SuggestedPlanInputs(
+            Required("benchTm"), Required("squatTm"), Required("ohpTm"), Required("deadliftTm"), inputs.StartWeightKg, inputs.StartDate));
+    }
+}

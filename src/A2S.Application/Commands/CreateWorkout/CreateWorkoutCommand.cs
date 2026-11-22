@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using A2S.Application.Common;
 using A2S.Domain.Enums;
 
@@ -34,6 +35,20 @@ public sealed record CreateExerciseRequest
     /// Defaults to true for all Linear progression exercises.
     /// </summary>
     public bool? UseAmrap { get; init; }
+
+    /// <summary>A2S2 scheme: Primary (T1, default) or Auxiliary (T2).</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<ProgramTier>))]
+    public ProgramTier? Tier { get; init; }
+
+    /// <summary>Start without a training max: planned sets show reps and % until one is entered.</summary>
+    public bool TrainingMaxPending { get; init; }
+
+    /// <summary>Superset pairing on the day (same number = done back to back).</summary>
+    public int? SupersetGroup { get; init; }
+
+    /// <summary>A bonus set on one side (unilateral reps-per-set only); never part of progression.</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<ExtraSetSide>))]
+    public ExtraSetSide ExtraSetSide { get; init; }
 
     // For RepsPerSet progression
     public decimal? StartingWeight { get; init; }

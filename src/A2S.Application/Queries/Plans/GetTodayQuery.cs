@@ -89,6 +89,7 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
             WarmUpRoutineId = slot?.WarmUpRoutineId?.Value,
             FinisherCardioProtocolId = slot?.Finisher?.CardioProtocolId?.Value,
             FinisherCardioTrackId = slot?.Finisher?.CardioTrackId?.Value,
+            FinisherFixed = slot?.Finisher?.Fixed?.ToDto(),
             GymSessionId = post?.ClientSessionId,
             HevyPostStatus = post?.Status.ToString()
         };

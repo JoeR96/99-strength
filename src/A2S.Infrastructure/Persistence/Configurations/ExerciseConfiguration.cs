@@ -47,6 +47,14 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(e => e.SupersetGroup);
+
+        builder.Property(e => e.ExtraSetSide)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(10)
+            .HasDefaultValue(ExtraSetSide.None);
+
         builder.Property<WorkoutId>("WorkoutId")
             .HasConversion(
                 id => id.Value,

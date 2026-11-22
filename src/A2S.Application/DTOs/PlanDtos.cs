@@ -19,7 +19,11 @@ public sealed record ScheduledSessionDto(
     Guid? WarmUpRoutineId = null,
     Guid? FinisherCardioProtocolId = null,
     Guid? CardioTrackId = null,
-    Guid? FinisherCardioTrackId = null);
+    Guid? FinisherCardioTrackId = null,
+    FixedActivityDto? FinisherFixed = null);
+
+/// <summary>A fixed cool-down finisher: Kind "Walk" or "Treadmill", minutes, optional notes ("Easy incline").</summary>
+public sealed record FixedActivityDto(string Kind, int Minutes, string? Notes);
 
 public sealed record PlanPhaseDto(
     PhaseType Type,
@@ -107,7 +111,8 @@ public sealed record TodaySessionDto(
     string? HevyPostStatus = null,
     Guid? WarmUpRoutineId = null,
     Guid? FinisherCardioProtocolId = null,
-    Guid? FinisherCardioTrackId = null);
+    Guid? FinisherCardioTrackId = null,
+    FixedActivityDto? FinisherFixed = null);
 
 public sealed record WeeklyGoalsDto(
     DateOnly WeekStart,
@@ -175,7 +180,34 @@ public sealed record SuggestedPlanPreviewDto(
     IReadOnlyList<SuggestedDayPreviewDto> LiftingDays,
     IReadOnlyList<string> Habits,
     IReadOnlyList<CheckpointDto> Checkpoints,
-    bool AlreadyStarted);
+    bool AlreadyStarted)
+{
+    public IReadOnlyList<PlanPhaseDto> Phases { get; init; } = [];
+    public IReadOnlyList<TemplateSessionPreviewDto> Sessions { get; init; } = [];
+    public IReadOnlyList<TemplateSlotPreviewDto> Slots { get; init; } = [];
+    public IReadOnlyList<TemplateRoutinePreviewDto> Routines { get; init; } = [];
+    public IReadOnlyList<TemplateTrackPreviewDto> CardioTracks { get; init; } = [];
+
+    /// <summary>What is left to fill in after applying: pending training maxes, starting weights.</summary>
+    public IReadOnlyList<string> ToFillIn { get; init; } = [];
+    public IReadOnlyList<int> BlockSequence { get; init; } = [1, 2, 3];
+    public int ProgramWeeks { get; init; } = 21;
+}
+
+/// <summary>One gym session of a template: "2a Bent Over Row (Barbell) 3 × 8–10, reps per set".</summary>
+public sealed record TemplateSessionPreviewDto(
+    string Label, DayNumber LiftDay, string? WarmUp, string? Finisher, int EstimatedMinutes, IReadOnlyList<TemplateExercisePreviewDto> Exercises);
+
+public sealed record TemplateExercisePreviewDto(string Slot, string Name, string Prescription, string Progression, string? Note);
+
+public sealed record TemplateSlotPreviewDto(
+    DayOfWeek Day, SessionKind Kind, string Label, string? WarmUp, string? Finisher, string? Routine, string? Track);
+
+public sealed record TemplateRoutinePreviewDto(string Name, int TargetMinutes, IReadOnlyList<TemplateDrillPreviewDto> Drills);
+
+public sealed record TemplateDrillPreviewDto(string Name, string Dose, string? Cues);
+
+public sealed record TemplateTrackPreviewDto(string Key, string Name, string Description);
 
 /// <summary>A day from <c>GET /plans/upcoming</c>: the calendar day plus the planned sets of its lifts still to do.</summary>
 public sealed record UpcomingDayDto(DateOnly Date, PhaseType? Phase, IReadOnlyList<TodaySessionDto> Sessions, IReadOnlyList<UpcomingLiftDto> Lifts);
@@ -183,7 +215,11 @@ public sealed record UpcomingDayDto(DateOnly Date, PhaseType? Phase, IReadOnlyLi
 /// <summary>A lift session's plan from the linked workout's current week. <c>Reps</c> of an AMRAP set is its rep-out target.</summary>
 public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNumber, bool IsDeloadWeek, IReadOnlyList<UpcomingExerciseDto> Exercises, UpcomingFinisherDto? Finisher);
 
-public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets);
+/// <summary>
+/// <see cref="IsTrainingMaxPending"/>: an A2S2 lift with no training max yet; its sets weigh 0, so show reps and
+/// <see cref="IntensityPercentage"/> (0.70 = 70 %) and "Set your training max" instead of kg.
+/// </summary>
+public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets, bool IsTrainingMaxPending = false, decimal? IntensityPercentage = null);
 
 public sealed record UpcomingSetDto(decimal WeightKg, int Reps, bool IsAmrap);
 

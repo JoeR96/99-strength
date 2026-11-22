@@ -54,7 +54,21 @@ device**, changes nothing, and lets you throw away that device's copy.
 When you finish, the session counts in the app straight away and the workout is sent to Hevy for you.
 If Hevy can't be reached, Today shows **Not in Hevy yet** with a **Retry** button, and the app keeps
 trying in the background. It never adds the same workout to Hevy twice. Choose each lifting day's warm-up
-and finisher under **Settings → Gym sessions**.
+and finisher under **Settings → Gym sessions** (a stair track, a cardio protocol, or a simple
+"Treadmill, easy incline, 10 min" cool-down you just tick off).
+
+Supersets show as one block (2a/2b): do a set of A, then a set of B, then rest. One-side exercises list the
+left side first. If a main lift has no training max yet, it shows reps and % only and asks you to **Set
+your training max**: type it in, or enter a recent set (weight × reps) and the app works it out (about 90 %
+of your estimated one-rep max).
+
+## Plan templates
+
+**Plan templates** (in Settings next to Programmes, on the Programmes page, or on Today when you have no plan) lists the ready-made plans:
+"Cut to 85" and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
+session's exercises, warm-ups, home routines, cardio tracks and what's left to fill in. Pick a start date
+(it moves to a Monday), enter training maxes now or leave them for later, and apply. If you already have a
+plan, the app asks first; your old plan and its history are kept. Everything it creates is yours to edit.
 
 ## How it connects
 

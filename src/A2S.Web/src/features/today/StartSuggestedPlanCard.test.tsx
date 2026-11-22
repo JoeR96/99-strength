@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
+import { planTemplatesApi } from '@/api/planTemplates';
+import { planV3Preview } from '@/mocks/fixtures/planTemplates';
+import { cutTo85Preview } from '@/mocks/handlers/suggestedPlans';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 import { comingMonday, formatStartDay, suggestedPlansApi, type StartSuggestedPlanResult } from '@/api/suggestedPlans';
 
@@ -25,7 +29,11 @@ const started: StartSuggestedPlanResult = {
 
 function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  return render(
+    <MemoryRouter>
+      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+    </MemoryRouter>
+  );
 }
 
 function fillTrainingMaxes() {
@@ -120,5 +128,25 @@ describe('StartSuggestedPlanCard', () => {
 
     expect(screen.getByLabelText('Bench press TM')).toHaveValue('100');
     expect(screen.getByLabelText('Start weight')).toHaveValue('97');
+  });
+});
+
+describe('StartSuggestedPlanCard with Plan v3', () => {
+  it('lists Plan v3 alongside Cut to 85 and starts it with every training max left blank (pending)', async () => {
+    vi.mocked(suggestedPlansApi.list).mockResolvedValue([cutTo85Preview, planV3Preview]);
+    const apply = vi.spyOn(planTemplatesApi, 'apply').mockResolvedValue(started);
+    const onStarted = vi.fn();
+    renderWithQuery(<StartSuggestedPlanCard today={wednesday11Nov2026} onStarted={onStarted} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: planV3Preview.name }));
+    fireEvent.click(screen.getByRole('button', { name: `Start ${planV3Preview.name}` }));
+
+    await waitFor(() => expect(onStarted).toHaveBeenCalledWith(started));
+    expect(apply).toHaveBeenCalledWith('plan-v3', {
+      startDate: '2026-11-23',
+      trainingMaxes: { benchTm: null, pauseSquatTm: null, inclineSmithTm: null, frontSquatTm: null },
+      startWeightKg: 95,
+      confirmReplace: false,
+    });
   });
 });

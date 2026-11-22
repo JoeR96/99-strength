@@ -40,6 +40,12 @@ public sealed record PlannedExerciseDto
     public int RestSeconds { get; init; }
     public IReadOnlyList<PlannedSetDto> PlannedSets { get; init; } = Array.Empty<PlannedSetDto>();
     public PlannedExerciseMetadataDto Metadata { get; init; } = new();
+
+    /// <summary>Superset pairing on the day: same number = A (lower order) then B, one rest after B.</summary>
+    public int? SupersetGroup { get; init; }
+
+    /// <summary>None, Left or Right: one bonus set on that side, logged but never part of progression.</summary>
+    public string ExtraSetSide { get; init; } = "None";
 }
 
 /// <summary>
@@ -68,4 +74,13 @@ public sealed record PlannedExerciseMetadataDto
     public int? TargetTotalReps { get; init; }
     public string? Notes { get; init; }
     public bool IsWeightPending { get; init; }
+
+    /// <summary>A2S2 exercise without a training max yet: its planned sets carry no weight.</summary>
+    public bool IsTrainingMaxPending { get; init; }
+
+    /// <summary>A2S2 only: this week's intensity for the exercise's tier (0.70 = 70 %).</summary>
+    public decimal? IntensityPercentage { get; init; }
+
+    /// <summary>A2S2 only: Primary or Auxiliary.</summary>
+    public string? Tier { get; init; }
 }

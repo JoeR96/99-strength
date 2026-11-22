@@ -90,9 +90,14 @@ export function ProgramsPage() {
             Manage your workout programs. Only one can be active at a time.
           </p>
         </div>
-        <Button onClick={() => navigate('/setup')} variant="default">
-          Create New Program
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => navigate('/plans/templates')} variant="outline">
+            Plan templates
+          </Button>
+          <Button onClick={() => navigate('/setup')} variant="default">
+            Create New Program
+          </Button>
+        </div>
       </div>
 
       {/* Programs List */}

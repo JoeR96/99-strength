@@ -76,6 +76,20 @@ What the phone keeps, and how a write sent twice is still done once.
   are dropped. `UnsavedChangesGuard` adds `beforeunload` and a react-router `useBlocker` dialog, which is why
   `App.tsx` uses `createBrowserRouter`. Used by `RoutineEditorPage` and the cardio track info sheet.
 
+## Plan templates
+
+Templates live in `src/A2S.Application/SuggestedPlans/` as classes implementing `IPlanTemplate`
+(`CutTo85Template`, `PlanV3BaseBuildTransition`); `PlanTemplates.All` finds them by reflection, so a new
+template is one new class plus tests. `Build(PlanTemplateInputs)` is pure and returns a
+`SuggestedPlanSpec` (exercises with `SupersetGroup`/`Tier`/`TrainingMaxPending`, schedule slots with
+`WarmUp`, `FinisherSpec` (track key or `FixedActivity`) and `CardioTrack`, routines, track template keys,
+block sequence, phases). `PlanTemplateApplier` turns a spec into aggregates; `PlanTemplatePreview` previews it.
+API: `GET /api/v1/plans/templates[?startDate=]`, `GET /api/v1/plans/templates/{key}`,
+`POST /api/v1/plans/templates/{key}/apply` (409 until `confirmReplace` when another plan is active).
+Migration `AddSupersetsExtraSetsPendingTrainingMax` adds `Exercises.SupersetGroup`, `Exercises.ExtraSetSide`
+and `ExerciseProgressions.IsTrainingMaxPending` (additive; Down tested in
+`GymPlanFitPersistenceTests`). The fixed cool-down lives in the schedule's jsonb, so it needed no migration.
+
 ## Looking ahead (Up next and previews)
 
 `GET /api/v1/plans/upcoming` (`GetUpcomingDays`) returns `days` (1–31) `UpcomingDayDto`s from `from`. Each

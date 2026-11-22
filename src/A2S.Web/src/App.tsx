@@ -26,6 +26,7 @@ import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
 import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
 import { GymModePage } from './features/gym/GymModePage';
+import { PlanTemplatesPage } from './features/plans/PlanTemplatesPage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -90,6 +91,8 @@ function AppContent() {
         />
         <Route path="/setup" element={<ProtectedRoute><SetupWizard /></ProtectedRoute>} />
         <Route path="/programs" element={<ProtectedRoute><ProgramsPage /></ProtectedRoute>} />
+        <Route path="/plans/templates" element={<ProtectedRoute><PlanTemplatesPage /></ProtectedRoute>} />
+        <Route path="/plans/templates/:key" element={<ProtectedRoute><PlanTemplatesPage /></ProtectedRoute>} />
         <Route path="/exercises" element={<ProtectedRoute><ExerciseLibraryPage /></ProtectedRoute>} />
         <Route path="/hevy" element={<ProtectedRoute><HevyManagementPage /></ProtectedRoute>} />
         <Route path="/hevy/data" element={<ProtectedRoute><HevyDataPage /></ProtectedRoute>} />

@@ -41,8 +41,40 @@ public static class ConfiguredExerciseFactory
         return exercises;
     }
 
-    private static Exercise Linear(ExerciseTemplate template, CreateExerciseRequest request) =>
-        Exercise.CreateWithLinearProgression(
+    /// <summary>
+    /// Superset groups and extra-set sides go through the aggregate root once the workout exists.
+    /// <paramref name="exercises"/> is the list <see cref="Create"/> returned for the same requests.
+    /// </summary>
+    public static void ApplyPairings(Workout workout, IReadOnlyList<Exercise> exercises, IReadOnlyList<CreateExerciseRequest> requests)
+    {
+        ArgumentNullException.ThrowIfNull(workout);
+        for (var i = 0; i < requests.Count && i < exercises.Count; i++)
+        {
+            if (requests[i].SupersetGroup is { } group)
+            {
+                workout.SetExerciseSupersetGroup(exercises[i].Id, group);
+            }
+
+            if (requests[i].ExtraSetSide != ExtraSetSide.None)
+            {
+                workout.SetExerciseExtraSetSide(exercises[i].Id, requests[i].ExtraSetSide);
+            }
+        }
+    }
+
+    private static Exercise Linear(ExerciseTemplate template, CreateExerciseRequest request) => request.TrainingMaxPending
+        ? Exercise.CreateWithPendingTrainingMax(
+            name: template.Name,
+            category: request.Category,
+            equipment: template.Equipment,
+            assignedDay: request.AssignedDay,
+            orderInDay: request.OrderInDay,
+            externalTemplateId: request.ExternalTemplateId,
+            unit: request.TrainingMaxUnit ?? WeightUnit.Kilograms,
+            useAmrap: request.UseAmrap ?? true,
+            baseSetsPerExercise: template.DefaultSets ?? 4,
+            tier: request.Tier ?? ProgramTier.Primary)
+        : Exercise.CreateWithLinearProgression(
             name: template.Name,
             category: request.Category,
             equipment: template.Equipment,
@@ -52,7 +84,8 @@ public static class ConfiguredExerciseFactory
             trainingMax: TrainingMax.Create(request.TrainingMaxValue ?? 100m, request.TrainingMaxUnit ?? WeightUnit.Kilograms),
             // Linear progression uses AMRAP on the last set unless the request says otherwise.
             useAmrap: request.UseAmrap ?? true,
-            baseSetsPerExercise: template.DefaultSets ?? 4);
+            baseSetsPerExercise: template.DefaultSets ?? 4,
+            tier: request.Tier ?? ProgramTier.Primary);
 
     private static Exercise MinimalSets(ExerciseTemplate template, CreateExerciseRequest request) =>
         Exercise.CreateWithMinimalSetsProgression(

@@ -8,10 +8,10 @@ import { useState } from 'react';
 import { CheckCircle2, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { GymFinisher, GymSessionState } from './gymSession';
-import { progressOf } from './gymSession';
-import { GymLiftCard } from './GymLiftCard';
+import { liftBlocks, progressOf } from './gymSession';
+import { GymBlockCard } from './GymLiftCard';
 import { AmrapPrompt, FinishEarlyDialog } from './GymDialogs';
-import { FinisherCard, RestTimerBar, WarmUpSection } from './GymSections';
+import { FinisherCard, FixedFinisherCard, RestTimerBar, WarmUpSection } from './GymSections';
 
 export interface GymChecklistProps {
   state: GymSessionState;
@@ -25,6 +25,14 @@ export interface GymChecklistProps {
   onEditSet: (lift: number, set: number, change: { weight?: number; reps?: number }) => void;
   onFinisherChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
   onFinish: () => void;
+  /** Ticks the extra set ("+1 left"); with a change, edits its weight or reps. */
+  onToggleExtraSet?: (lift: number, change?: { weight?: number; reps?: number }) => void;
+  /** Ticks the fixed cool-down. */
+  onToggleFixedFinisher?: () => void;
+  /** Opens "Set your training max" for a lift without one. */
+  onSetTrainingMax?: (lift: number) => void;
+  /** Unilateral lifts: ticks a set's left side (done first). */
+  onToggleLeft?: (lift: number, set: number) => void;
   /** Stories and tests: open with the AMRAP prompt or the Finish early dialog showing. */
   initialPrompt?: { lift: number; set: number } | null;
   initialConfirmEarly?: boolean;
@@ -41,6 +49,10 @@ export function GymChecklist({
   onEditSet,
   onFinisherChange,
   onFinish,
+  onToggleExtraSet,
+  onToggleFixedFinisher,
+  onSetTrainingMax,
+  onToggleLeft,
   initialPrompt = null,
   initialConfirmEarly = false,
 }: GymChecklistProps) {
@@ -73,22 +85,29 @@ export function GymChecklist({
 
         {state.drills.length > 0 && <WarmUpSection drills={state.drills} onTick={onTickDrill} onAllDone={onAllDrillsDone} />}
 
-        {state.lifts.map((lift, i) => (
-          <GymLiftCard
-            key={lift.exerciseId}
-            lift={lift}
-            index={i}
+        {liftBlocks(state).map((block) => (
+          <GymBlockCard
+            key={state.lifts[block.lifts[0]].exerciseId}
+            block={block}
+            lifts={state.lifts}
             onToggleSet={(l, s) => onToggleSet(l, s)}
             onAmrap={(l, s) => setPrompt({ lift: l, set: s })}
             onEditSet={onEditSet}
+            onToggleExtraSet={onToggleExtraSet}
+            onSetTrainingMax={onSetTrainingMax}
+            onToggleLeft={onToggleLeft}
           />
         ))}
 
-        {state.finisher && <FinisherCard finisher={state.finisher} onChange={onFinisherChange} />}
+        {state.finisher?.fixed ? (
+          <FixedFinisherCard finisher={state.finisher} onToggle={() => onToggleFixedFinisher?.()} />
+        ) : (
+          state.finisher && <FinisherCard finisher={state.finisher} onChange={onFinisherChange} />
+        )}
 
         <div className="space-y-2 pb-8 pt-2">
           {progress.complete ? (
-            <Button type="button" size="lg" className="w-full" onClick={onFinish} disabled={finishing} data-testid="gym-finish">
+            <Button type="button" size="lg" className="w-full" onClick={onFinish} disabled={finishing || progress.needsTrainingMax.length > 0} data-testid="gym-finish">
               <CheckCircle2 aria-hidden="true" />
               {finishing ? 'Finishing…' : 'Finish'}
             </Button>
@@ -105,7 +124,13 @@ export function GymChecklist({
               {finishing ? 'Finishing…' : 'Finish early'}
             </Button>
           )}
-          {!progress.canFinish && <p className="text-center text-sm text-muted-foreground">Tick at least one set to finish.</p>}
+          {progress.needsTrainingMax.length > 0 ? (
+            <p className="text-center text-sm text-foreground" role="alert" data-testid="gym-needs-tm">
+              Set your training max for {progress.needsTrainingMax.join(' and ')} before finishing, or untick its sets to leave it out.
+            </p>
+          ) : (
+            !progress.canFinish && <p className="text-center text-sm text-muted-foreground">Tick at least one set to finish.</p>
+          )}
         </div>
       </main>
 
@@ -113,7 +138,7 @@ export function GymChecklist({
         <AmrapPrompt
           open
           exerciseName={promptLift.name}
-          weightLabel={`${promptSet.weight} ${promptLift.unit}`}
+          weightLabel={promptLift.trainingMaxPending && promptSet.weight === 0 ? 'a weight to be set' : `${promptSet.weight} ${promptLift.unit}`}
           targetReps={promptSet.plannedReps}
           onCancel={() => setPrompt(null)}
           onSubmit={(reps) => {

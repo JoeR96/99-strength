@@ -89,6 +89,44 @@ public class PlansController : ControllerBase
             : CreatedAtAction(nameof(GetActive), null, result.Value);
     }
 
+    /// <summary>Every plan template with a full preview from <paramref name="startDate"/> (snapped to a Monday).</summary>
+    [HttpGet("templates")]
+    [ProducesResponseType(typeof(IReadOnlyList<SuggestedPlanPreviewDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTemplates([FromQuery] DateOnly? startDate, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetPlanTemplatesQuery(startDate), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    [HttpGet("templates/{key}")]
+    [ProducesResponseType(typeof(SuggestedPlanPreviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTemplate([FromRoute] string key, [FromQuery] DateOnly? startDate, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetPlanTemplatesQuery(startDate, key), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value[0]);
+    }
+
+    /// <summary>
+    /// Applies a template to the signed-in account. 201 created; 200 when it is already the active plan;
+    /// 409 when another plan is active and <c>confirmReplace</c> is false (the old plan is kept, inactive, on confirm).
+    /// </summary>
+    [HttpPost("templates/{key}/apply")]
+    [ProducesResponseType(typeof(StartSuggestedPlanResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(StartSuggestedPlanResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ApplyTemplate([FromRoute] string key, [FromBody] ApplyPlanTemplateRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new ApplyPlanTemplateCommand(key, request.StartDate, request.TrainingMaxes, request.StartWeightKg, request.ConfirmReplace), cancellationToken);
+        if (result.IsFailure)
+        {
+            return result.ToProblemResult();
+        }
+
+        return result.Value.AlreadyStarted ? Ok(result.Value) : CreatedAtAction(nameof(GetActive), null, result.Value);
+    }
+
     /// <summary>Replaces the weekly schedule. Soft-rule warnings (4×4 the day before Lower A/B) come back alongside the plan.</summary>
     [HttpPut("{id:guid}/schedule")]
     [ProducesResponseType(typeof(UpdateScheduleResult), StatusCodes.Status200OK)]

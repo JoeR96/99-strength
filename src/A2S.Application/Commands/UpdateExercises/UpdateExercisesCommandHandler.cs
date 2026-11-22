@@ -123,7 +123,8 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
             if (update.TrainingMaxValue.HasValue)
             {
                 var existingTm = exercise.GetTrainingMax();
-                if (existingTm == null)
+                var pendingUnit = (exercise.Progression as LinearProgressionStrategy)?.TrainingMax.Unit;
+                if (existingTm == null && !exercise.IsTrainingMaxPending)
                 {
                     return new ExerciseUpdateResult
                     {
@@ -134,10 +135,10 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                     };
                 }
 
-                previousValue = $"{existingTm.Value} {existingTm.Unit}";
+                previousValue = existingTm is null ? "not set" : $"{existingTm.Value} {existingTm.Unit}";
                 var newTm = TrainingMax.Create(
                     update.TrainingMaxValue.Value,
-                    update.TrainingMaxUnit ?? existingTm.Unit);
+                    update.TrainingMaxUnit ?? existingTm?.Unit ?? pendingUnit ?? WeightUnit.Kilograms);
                 workout.AdjustTrainingMax(exerciseId, newTm, update.Reason);
                 newValue = $"{newTm.Value} {newTm.Unit}";
                 messages.Add("Training Max updated");
@@ -158,6 +159,21 @@ public sealed class UpdateExercisesCommandHandler : IRequestHandler<UpdateExerci
                 workout.AdjustWeight(exerciseId, newWeight);
                 newValue = $"{newWeight.Value} {newWeight.Unit}";
                 messages.Add("Weight updated");
+                updated = true;
+            }
+
+            if (update.ClearSupersetGroup || update.SupersetGroup.HasValue)
+            {
+                var group = update.ClearSupersetGroup ? null : update.SupersetGroup;
+                workout.SetExerciseSupersetGroup(exerciseId, group);
+                messages.Add(group is null ? "Superset removed" : $"Superset {group}");
+                updated = true;
+            }
+
+            if (update.ExtraSetSide is { } side)
+            {
+                workout.SetExerciseExtraSetSide(exerciseId, side);
+                messages.Add(side == ExtraSetSide.None ? "Extra set removed" : $"Extra set {side.ToString().ToLowerInvariant()}");
                 updated = true;
             }
 

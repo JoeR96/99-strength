@@ -13,6 +13,7 @@ import type { MobilityRoutineDto } from '@/types/mobility';
 import { DoseUnit } from '@/types/mobility';
 import { WeightUnit } from '@/types/workout';
 import type { CardioProtocolDto, Effort, FinishGymSessionRequest } from '@/types/gym';
+import type { FixedFinisherDto } from '@/types/plan';
 
 export interface GymSet {
   setNumber: number;
@@ -22,6 +23,16 @@ export interface GymSet {
   reps: number;
   isAmrap: boolean;
   done: boolean;
+  /** Unilateral lifts: the left side (always done first) is ticked; `done` is set by the right side. */
+  leftDone?: boolean;
+}
+
+/** The bonus set on one side ("+1 left"): sent as `extraSet`, never part of completedSets. */
+export interface GymExtraSet {
+  side: 'Left' | 'Right';
+  weight: number;
+  reps: number;
+  done: boolean;
 }
 
 export interface GymLift {
@@ -30,6 +41,15 @@ export interface GymLift {
   restSeconds: number;
   unit: 'kg' | 'lbs';
   sets: GymSet[];
+  /** Same number = one superset block; the lift with the lower order is A. */
+  supersetGroup?: number | null;
+  extraSet?: GymExtraSet | null;
+  /** An A2S2 lift without a training max: sets show reps and intensity, no kg, until it is set. */
+  trainingMaxPending?: boolean;
+  /** Linear only, e.g. 0.7. */
+  intensity?: number | null;
+  /** One side at a time: each set is listed Left then Right, left first. */
+  unilateral?: boolean;
 }
 
 export interface GymDrill {
@@ -40,6 +60,10 @@ export interface GymDrill {
 
 export interface GymFinisher {
   protocolId: string;
+  /** A fixed cool-down (treadmill, easy incline, 10 min): one tick, logged as prescribed. */
+  fixed?: FixedFinisherDto | null;
+  /** The fixed cool-down was ticked. */
+  done?: boolean;
   /** Set when the finisher is a cardio track: its prescription and "N more sessions to step up" are shown. */
   trackId?: string | null;
   stepUp?: string | null;
@@ -78,6 +102,42 @@ export interface CreateGymSessionInput {
   finisher: CardioProtocolDto | null;
   /** A track finisher (takes precedence over a protocol). */
   finisherTrack?: CardioTrackDto | null;
+  /** A fixed cool-down (takes precedence over both). */
+  finisherFixed?: FixedFinisherDto | null;
+}
+
+/** "Treadmill · easy incline · 10 min". */
+export function fixedFinisherText(fixed: FixedFinisherDto): string {
+  const notes = fixed.notes?.trim();
+  return [fixed.kind, notes ? notes.charAt(0).toLowerCase() + notes.slice(1) : null, `${fixed.minutes} min`].filter(Boolean).join(' · ');
+}
+
+function fixedFinisher(fixed: FixedFinisherDto): GymFinisher {
+  return { protocolId: '', fixed, done: false, name: fixed.kind, prescription: fixedFinisherText(fixed), minutes: fixed.minutes, level: null, floors: null, effort: 'Easy' };
+}
+
+type PlannedExercise = WeekPlanDto['exercises'][number];
+
+function liftFromPlan(e: PlannedExercise): GymLift {
+  const unit = e.plannedSets[0]?.originalUnit === 'Pounds' ? 'lbs' : 'kg';
+  const sets = e.plannedSets.map((s) => {
+    const weight = unit === 'lbs' ? s.weightLbs : s.weightKg;
+    return { setNumber: s.setNumber, plannedWeight: weight, plannedReps: s.targetReps, weight, reps: s.targetReps, isAmrap: s.isAmrap, done: false };
+  });
+  const last = sets[sets.length - 1];
+  const side = e.extraSetSide === 'Left' || e.extraSetSide === 'Right' ? e.extraSetSide : null;
+  return {
+    exerciseId: e.exerciseId,
+    name: e.name,
+    restSeconds: restSecondsFor(e.category, e.restSeconds),
+    unit,
+    sets,
+    supersetGroup: e.supersetGroup ?? null,
+    extraSet: side && last ? { side, weight: last.weight, reps: last.reps, done: false } : null,
+    trainingMaxPending: e.metadata?.isTrainingMaxPending ?? false,
+    intensity: e.metadata?.intensityPercentage ?? null,
+    unilateral: e.metadata?.isUnilateral ?? false,
+  };
 }
 
 /** Main lifts rest 180 s, everything else 90 s, when the server did not say. */
@@ -106,20 +166,10 @@ export function createGymSession(input: CreateGymSessionInput): GymSessionState 
     lifts: [...plan.exercises]
       .sort((a, b) => a.orderInDay - b.orderInDay)
       .filter((e) => e.plannedSets.length > 0)
-      .map((e) => {
-        const unit = e.plannedSets[0]?.originalUnit === 'Pounds' ? 'lbs' : 'kg';
-        return {
-          exerciseId: e.exerciseId,
-          name: e.name,
-          restSeconds: restSecondsFor(e.category, e.restSeconds),
-          unit,
-          sets: e.plannedSets.map((s) => {
-            const weight = unit === 'lbs' ? s.weightLbs : s.weightKg;
-            return { setNumber: s.setNumber, plannedWeight: weight, plannedReps: s.targetReps, weight, reps: s.targetReps, isAmrap: s.isAmrap, done: false };
-          }),
-        };
-      }),
-    finisher: input.finisherTrack
+      .map(liftFromPlan),
+    finisher: input.finisherFixed
+      ? fixedFinisher(input.finisherFixed)
+      : input.finisherTrack
       ? {
           protocolId: '',
           trackId: input.finisherTrack.id,
@@ -181,6 +231,122 @@ export function updateFinisher(state: GymSessionState, change: Partial<Omit<GymF
   return state.finisher ? { ...state, finisher: { ...state.finisher, ...change } } : state;
 }
 
+export type Side = 'Left' | 'Right';
+
+/** The rows of one set: "Left" then "Right" for a unilateral lift (left side first), one row otherwise. */
+export function sideRows(lift: GymLift): (Side | null)[] {
+  return lift.unilateral ? ['Left', 'Right'] : [null];
+}
+
+/** Ticks one side of a unilateral set: Left is its own tick, Right confirms the set (as `toggleSet`). */
+export function toggleSide(state: GymSessionState, lift: number, set: number, side: Side, reps?: number): GymSessionState {
+  if (side === 'Right') return toggleSet(state, lift, set, reps);
+  return updateSet(state, lift, set, (s) => ({ ...s, leftDone: !s.leftDone }));
+}
+
+/** Ticks (or unticks) the fixed cool-down. */
+export function toggleFixedFinisher(state: GymSessionState): GymSessionState {
+  return state.finisher?.fixed ? { ...state, finisher: { ...state.finisher, done: !state.finisher.done } } : state;
+}
+
+/** Ticks (or unticks) a lift's extra set; with a change, edits its weight or reps instead. */
+export function toggleExtraSet(state: GymSessionState, lift: number, change?: { weight?: number; reps?: number }): GymSessionState {
+  return {
+    ...state,
+    lifts: state.lifts.map((l, li) =>
+      li === lift && l.extraSet ? { ...l, extraSet: { ...l.extraSet, ...change, done: change ? l.extraSet.done : !l.extraSet.done } } : l
+    ),
+  };
+}
+
+/** One step of a block: which lift (index into `state.lifts`) and which of its sets. */
+export interface SetStep {
+  lift: number;
+  set: number;
+}
+
+/** A card in the checklist: one lift, or a superset (A then B) labelled 2a/2b. */
+export interface LiftBlock {
+  lifts: number[];
+  /** "2a"/"2b" for a superset, null for a lift on its own. */
+  labels: (string | null)[];
+  /** The order sets are done in: A1 → B1 → A2 → B2 …, then whatever is left of the longer one. */
+  order: SetStep[];
+}
+
+/** Groups the lifts into blocks: lifts sharing a superset number go together (in plan order). */
+export function liftBlocks(state: GymSessionState): LiftBlock[] {
+  const blocks: LiftBlock[] = [];
+  const byGroup = new Map<number, LiftBlock>();
+  state.lifts.forEach((lift, i) => {
+    const group = lift.supersetGroup ?? null;
+    const partners = group === null ? 0 : state.lifts.filter((l) => l.supersetGroup === group).length;
+    if (group !== null && partners > 1) {
+      const existing = byGroup.get(group);
+      if (existing) {
+        existing.lifts.push(i);
+        return;
+      }
+      const block: LiftBlock = { lifts: [i], labels: [], order: [] };
+      byGroup.set(group, block);
+      blocks.push(block);
+      return;
+    }
+    blocks.push({ lifts: [i], labels: [null], order: lift.sets.map((_, s) => ({ lift: i, set: s })) });
+  });
+  for (const [group, block] of byGroup) {
+    block.labels = block.lifts.map((_, k) => `${group}${String.fromCharCode(97 + k)}`);
+    const longest = Math.max(...block.lifts.map((l) => state.lifts[l].sets.length));
+    for (let s = 0; s < longest; s++) {
+      for (const l of block.lifts) if (s < state.lifts[l].sets.length) block.order.push({ lift: l, set: s });
+    }
+  }
+  return blocks;
+}
+
+/**
+ * Rest to start after confirming a set: none when the next set in its superset is the partner's and
+ * still to do (go straight from A to B), otherwise the lift's rest (after B, the superset rest).
+ */
+export function restAfterSet(state: GymSessionState, lift: number, set: number): number | null {
+  const rest = state.lifts[lift]?.restSeconds ?? 90;
+  const block = liftBlocks(state).find((b) => b.lifts.includes(lift));
+  if (!block || block.lifts.length < 2) return rest;
+  const at = block.order.findIndex((s) => s.lift === lift && s.set === set);
+  const next = block.order[at + 1];
+  if (next && next.lift !== lift && block.lifts.indexOf(next.lift) > block.lifts.indexOf(lift)) {
+    const nextSet = state.lifts[next.lift].sets[next.set];
+    if (nextSet && !nextSet.done) return null;
+  }
+  return rest;
+}
+
+/**
+ * After a training max is set the week plan comes back with weights: give a pending lift its planned
+ * weights (sets not yet done keep nothing of the 0 kg) and clear the flag. Other lifts are untouched.
+ */
+export function syncPendingLifts(state: GymSessionState, plan: WeekPlanDto): GymSessionState {
+  let changed = false;
+  const lifts = state.lifts.map((lift) => {
+    if (!lift.trainingMaxPending) return lift;
+    const planned = plan.exercises.find((e) => e.exerciseId === lift.exerciseId);
+    if (!planned || planned.metadata?.isTrainingMaxPending) return lift;
+    changed = true;
+    const fresh = liftFromPlan(planned);
+    return {
+      ...lift,
+      trainingMaxPending: false,
+      sets: lift.sets.map((s) => {
+        const p = fresh.sets.find((f) => f.setNumber === s.setNumber);
+        if (!p) return s;
+        return s.done ? { ...s, plannedWeight: p.plannedWeight } : { ...s, plannedWeight: p.plannedWeight, weight: p.weight };
+      }),
+      extraSet: lift.extraSet && !lift.extraSet.done ? { ...lift.extraSet, weight: fresh.extraSet?.weight ?? lift.extraSet.weight } : lift.extraSet,
+    };
+  });
+  return changed ? { ...state, lifts } : state;
+}
+
 export interface GymProgress {
   setsDone: number;
   setsTotal: number;
@@ -188,11 +354,14 @@ export interface GymProgress {
   finisherLogged: boolean;
   /** Every drill ticked, every set confirmed and the finisher (if any) logged. */
   complete: boolean;
-  /** At least one set confirmed; Finish needs this. */
+  /** At least one set confirmed and no logged lift waiting for its training max; Finish needs this. */
   canFinish: boolean;
+  /** Lifts with logged sets that still need a training max before the session can finish. */
+  needsTrainingMax: string[];
 }
 
 export function isFinisherLogged(finisher: GymFinisher | null): boolean {
+  if (finisher?.fixed) return finisher.done === true;
   return !!finisher && !!finisher.minutes && finisher.minutes > 0 && finisher.effort !== null;
 }
 
@@ -201,13 +370,15 @@ export function progressOf(state: GymSessionState): GymProgress {
   const setsDone = sets.filter((s) => s.done).length;
   const drillsDone = state.drills.filter((d) => d.done).length;
   const finisherLogged = isFinisherLogged(state.finisher);
+  const needsTrainingMax = state.lifts.filter((l) => l.trainingMaxPending && l.sets.some((s) => s.done)).map((l) => l.name);
   return {
     setsDone,
     setsTotal: sets.length,
     drillsDone,
     finisherLogged,
     complete: setsDone === sets.length && drillsDone === state.drills.length && (state.finisher === null || finisherLogged),
-    canFinish: setsDone > 0,
+    canFinish: setsDone > 0 && needsTrainingMax.length === 0,
+    needsTrainingMax,
   };
 }
 
@@ -223,14 +394,22 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
     endedAt: endedAt < state.startedAt ? state.startedAt : endedAt,
     warmUpTicks: state.drills.length > 0 ? state.drills.map((d) => d.done) : null,
     performances: state.lifts
-      .map((lift) => ({
-        exerciseId: lift.exerciseId,
-        completedSets: lift.sets
-          .filter((s) => s.done)
-          .map((s) => ({ setNumber: s.setNumber, weight: s.weight, weightUnit: unit(lift), actualReps: s.reps, wasAmrap: s.isAmrap })),
-      }))
+      .map((lift) => {
+        const extra = lift.extraSet?.done ? lift.extraSet : null;
+        return {
+          exerciseId: lift.exerciseId,
+          completedSets: lift.sets
+            .filter((s) => s.done)
+            .map((s) => ({ setNumber: s.setNumber, weight: s.weight, weightUnit: unit(lift), actualReps: s.reps, wasAmrap: s.isAmrap })),
+          ...(extra
+            ? { extraSet: { setNumber: lift.sets.length + 1, weight: extra.weight, weightUnit: unit(lift), actualReps: extra.reps, wasAmrap: false } }
+            : {}),
+        };
+      })
       .filter((p) => p.completedSets.length > 0),
-    finisher: finisher
+    finisher: finisher?.fixed
+      ? { durationSeconds: finisher.fixed.minutes * 60, effort: 'Easy', completedAsPrescribed: true }
+      : finisher
       ? {
           durationSeconds: Math.round(finisher.minutes! * 60),
           effort: finisher.effort!,

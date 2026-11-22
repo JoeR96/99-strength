@@ -27,6 +27,13 @@ export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 /** A2S2 lifting day 1–6. */
 export type PlanDayNumber = 1 | 2 | 3 | 4 | 5 | 6;
 
+/** A fixed cool-down done after the lifts: logged as cardio, no track or protocol. */
+export interface FixedFinisherDto {
+  kind: 'Walk' | 'Treadmill';
+  minutes: number;
+  notes: string | null;
+}
+
 export interface ScheduledSessionDto {
   day: DayOfWeek;
   kind: SessionKind;
@@ -42,6 +49,8 @@ export interface ScheduledSessionDto {
   finisherCardioProtocolId?: string | null;
   /** A lift finisher that is a cardio track (stair finisher). */
   finisherCardioTrackId?: string | null;
+  /** A fixed cool-down finisher (e.g. treadmill, easy incline, 10 min); excludes the other two. */
+  finisherFixed?: FixedFinisherDto | null;
 }
 
 export interface PlanPhaseDto {
@@ -166,6 +175,8 @@ export interface TodaySessionDto {
   finisherCardioProtocolId?: string | null;
   /** A lift finisher that is a cardio track (stair finisher). */
   finisherCardioTrackId?: string | null;
+  /** A fixed cool-down finisher (e.g. treadmill, easy incline, 10 min); excludes the other two. */
+  finisherFixed?: FixedFinisherDto | null;
 }
 
 /** A gym session's Hevy post: Skipped means no Hevy key is stored. */
@@ -207,7 +218,15 @@ export interface UpcomingLiftDto {
   label: string;
   weekNumber: number;
   isDeloadWeek: boolean;
-  exercises: { name: string; category: string; sets: { weightKg: number; reps: number; isAmrap: boolean }[] }[];
+  exercises: {
+    name: string;
+    category: string;
+    sets: { weightKg: number; reps: number; isAmrap: boolean }[];
+    /** A2S2 lift with no training max yet: sets weigh 0, show reps and intensity instead. */
+    isTrainingMaxPending?: boolean;
+    /** This week's A2S2 intensity (0.70 = 70 %), when the lift is A2S2. */
+    intensityPercentage?: number | null;
+  }[];
   finisher: { name: string; prescription: string } | null;
 }
 

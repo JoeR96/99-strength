@@ -143,6 +143,25 @@ describe('liftSummary', () => {
     expect(liftSummary(upperALift)).toBe('2 exercises · Bench Press (Barbell) 5×5 @ 75 kg');
   });
 
+  it('shows reps and intensity with a prompt, not 0 kg, when the training max is pending', () => {
+    const pending = {
+      ...upperALift,
+      exercises: [
+        {
+          name: 'Pause Squat (Barbell)',
+          category: 'MainLift',
+          isTrainingMaxPending: true,
+          intensityPercentage: 0.7,
+          sets: [
+            { weightKg: 0, reps: 5, isAmrap: false },
+            { weightKg: 0, reps: 10, isAmrap: true },
+          ],
+        },
+      ],
+    };
+    expect(liftSummary(pending)).toBe('1 exercise · Pause Squat (Barbell) 2×5 @ 70 % · Set your training max');
+  });
+
   it('says nothing for a plan with no sets', () => {
     expect(liftSummary({ ...upperALift, exercises: [] })).toBeNull();
   });

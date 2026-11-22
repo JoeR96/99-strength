@@ -58,6 +58,10 @@ public sealed class CreateWorkoutCommandHandler : IRequestHandler<CreateWorkoutC
                 request.Variant,
                 exercises,
                 request.BlockSequence);
+            if (request.Exercises is { Count: > 0 })
+            {
+                ConfiguredExerciseFactory.ApplyPairings(workout, exercises, request.Exercises);
+            }
 
             workout.Start();
 

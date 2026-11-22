@@ -94,6 +94,10 @@ public sealed record GymSessionPayload
     public Guid? FinisherProtocolId { get; init; }
     public Guid? FinisherTrackId { get; init; }
 
+    /// <summary>A fixed cool-down finisher ("Treadmill · 10 min · Easy incline"): posted as-is, nothing evaluated.</summary>
+    public string? FinisherFixedKind { get; init; }
+    public string? FinisherFixedNotes { get; init; }
+
     /// <summary>A walk, run or cardio protocol session finished outside gym mode (posted to Hevy on its own).</summary>
     public CardioSessionPost? Cardio { get; init; }
 

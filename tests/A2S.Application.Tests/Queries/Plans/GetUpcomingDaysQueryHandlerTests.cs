@@ -83,6 +83,41 @@ public class GetUpcomingDaysQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_FlagsALiftWhoseTrainingMaxIsPending_WithItsIntensity()
+    {
+        var plan = GivenPlan();
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).Build();
+        plan.LinkWorkout(workout.Id);
+        _workouts.GetByIdAsync(workout.Id, Arg.Any<CancellationToken>()).Returns(workout);
+        _sender.Send(Arg.Any<GetWeekPlanQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new WeekPlanDto
+            {
+                WeekNumber = workout.CurrentWeek,
+                Exercises =
+                [
+                    new PlannedExerciseDto
+                    {
+                        Name = "Pause Squat (Barbell)", Category = "MainLift", OrderInDay = 1,
+                        PlannedSets = [new PlannedSetDto { WeightKg = 0m, TargetReps = 5 }],
+                        Metadata = new PlannedExerciseMetadataDto { IsTrainingMaxPending = true, IntensityPercentage = 0.70m }
+                    },
+                    new PlannedExerciseDto
+                    {
+                        Name = "Romanian Deadlift (Dumbbell)", Category = "Accessory", OrderInDay = 2,
+                        PlannedSets = [new PlannedSetDto { WeightKg = 20m, TargetReps = 10 }]
+                    }
+                ]
+            }));
+
+        var result = await _handler.Handle(new GetUpcomingDaysQuery(null, 3), CancellationToken.None);
+
+        var exercises = result.Value[2].Lifts.Single().Exercises;
+        exercises[0].IsTrainingMaxPending.Should().BeTrue();
+        exercises[0].IntensityPercentage.Should().Be(0.70m);
+        exercises[1].IsTrainingMaxPending.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task Handle_WithoutFrom_ReturnsTheNextDaysFromTodayInOrder()
     {
         GivenPlan();

@@ -1,3 +1,4 @@
+using A2S.Application.Commands.SuggestedPlans;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Application.SuggestedPlans;
@@ -8,17 +9,18 @@ using MediatR;
 namespace A2S.Application.Queries.SuggestedPlans;
 
 /// <summary>
-/// The suggested plans a person can start with one tap, previewed for today: start date (the coming
-/// Monday), the week, the lifting days with their time estimates, the inputs needed, and whether the
-/// plan is already the active one.
+/// Every plan template (Cut to 85, Plan v3, …) a person can start, previewed for the coming Monday:
+/// the week, the lifting days with their time estimates, the inputs, and whether it is already active.
 /// </summary>
 public sealed record GetSuggestedPlansQuery : IQuery<Result<IReadOnlyList<SuggestedPlanPreviewDto>>>;
 
-public sealed class GetSuggestedPlansQueryHandler : IRequestHandler<GetSuggestedPlansQuery, Result<IReadOnlyList<SuggestedPlanPreviewDto>>>
-{
-    // Estimates and the schedule do not depend on the training maxes; any valid value previews the plan.
-    private const decimal PreviewTrainingMax = 100m;
+/// <summary>Plan templates previewed from <paramref name="StartDate"/> (snapped to a Monday; default the coming one).</summary>
+public sealed record GetPlanTemplatesQuery(DateOnly? StartDate = null, string? Key = null) : IQuery<Result<IReadOnlyList<SuggestedPlanPreviewDto>>>;
 
+public sealed class GetSuggestedPlansQueryHandler :
+    IRequestHandler<GetSuggestedPlansQuery, Result<IReadOnlyList<SuggestedPlanPreviewDto>>>,
+    IRequestHandler<GetPlanTemplatesQuery, Result<IReadOnlyList<SuggestedPlanPreviewDto>>>
+{
     private readonly ITrainingPlanRepository _plans;
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
@@ -30,7 +32,10 @@ public sealed class GetSuggestedPlansQueryHandler : IRequestHandler<GetSuggested
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
     }
 
-    public async Task<Result<IReadOnlyList<SuggestedPlanPreviewDto>>> Handle(GetSuggestedPlansQuery request, CancellationToken cancellationToken)
+    public Task<Result<IReadOnlyList<SuggestedPlanPreviewDto>>> Handle(GetSuggestedPlansQuery request, CancellationToken cancellationToken) =>
+        Handle(new GetPlanTemplatesQuery(), cancellationToken);
+
+    public async Task<Result<IReadOnlyList<SuggestedPlanPreviewDto>>> Handle(GetPlanTemplatesQuery request, CancellationToken cancellationToken)
     {
         var user = PlanAccess.RequireUser(_currentUser);
         if (user.IsFailure)
@@ -38,28 +43,19 @@ public sealed class GetSuggestedPlansQueryHandler : IRequestHandler<GetSuggested
             return PlanAccess.Fail<IReadOnlyList<SuggestedPlanPreviewDto>>(user);
         }
 
+        var templates = request.Key is null
+            ? PlanTemplates.All
+            : PlanTemplates.All.Where(t => string.Equals(t.Key, request.Key, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (request.Key is not null && templates.Count == 0)
+        {
+            return Result.Failure<IReadOnlyList<SuggestedPlanPreviewDto>>($"No plan template '{request.Key}'.", ErrorCode.NotFound);
+        }
+
         var active = await _plans.GetActiveForUserAsync(user.Value, cancellationToken);
-        var spec = CutTo85Nov2026.Build(new SuggestedPlanInputs(
-            PreviewTrainingMax, PreviewTrainingMax, PreviewTrainingMax, PreviewTrainingMax,
-            CutTo85Nov2026.DefaultStartWeightKg,
-            _clock.Today()));
+        var start = PlanTemplateInputBinder.StartDate(request.StartDate, _clock.Today());
 
-        var preview = new SuggestedPlanPreviewDto(
-            spec.Key,
-            spec.Name,
-            spec.Description,
-            spec.StartDate,
-            CutTo85Nov2026.Inputs,
-            spec.Schedule.Select(s => new SuggestedSessionPreviewDto(s.Day, s.Kind, s.Label)).ToList(),
-            spec.LiftingDays.Select(d => new SuggestedDayPreviewDto(
-                d.Label,
-                spec.Exercises.Where(e => e.AssignedDay == d.Day).OrderBy(e => e.OrderInDay).Select(e => e.TemplateName).ToList(),
-                d.Estimate.TotalMinutes,
-                d.Estimate.OverBudget)).ToList(),
-            spec.Habits.Select(h => h.Name).ToList(),
-            spec.Checkpoints,
-            AlreadyStarted: active is not null && string.Equals(active.Name, spec.Name, StringComparison.Ordinal));
-
-        return Result.Success<IReadOnlyList<SuggestedPlanPreviewDto>>([preview]);
+        return Result.Success<IReadOnlyList<SuggestedPlanPreviewDto>>(templates
+            .Select(t => PlanTemplatePreview.Build(t, start, active is not null && string.Equals(active.Name, t.Name, StringComparison.Ordinal)))
+            .ToList());
     }
 }

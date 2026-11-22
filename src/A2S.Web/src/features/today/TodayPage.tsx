@@ -52,6 +52,7 @@ import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
 import { PendingSyncBadge } from './PendingSyncBadge';
 import { usePendingSyncCount } from '@/offline/context';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
+import { PendingTrainingMaxCard } from './PendingTrainingMaxCard';
 import { HevySyncNotice } from './HevySyncNotice';
 import { openHevyRoutine } from './hevyDeepLink';
 import { useRetryHevyPost } from '@/hooks/useGymSession';
@@ -364,6 +365,8 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
             }}
           />
         )}
+
+        {today && isToday && <PendingTrainingMaxCard />}
 
         {today && (
           <section className="space-y-3" aria-label="Today's sessions">

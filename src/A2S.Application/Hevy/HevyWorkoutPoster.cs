@@ -258,10 +258,19 @@ public sealed class HevyWorkoutPoster
                 return HevyResult<HevyWorkoutDraft>.Failure(template.Error!);
             }
 
+            var logged = performance.CompletedSets.OrderBy(s => s.SetNumber).ToList();
+            if (performance.ExtraSet is { } extra)
+            {
+                // The bonus set goes last; it was never part of progression.
+                logged.Add(extra with { WasAmrap = false });
+            }
+
+            var sideNotes = RoutineBuilder.SideNotes(exercise).ToList();
             exercises.Add(new HevyWorkoutExerciseDraft
             {
                 ExerciseTemplateId = template.Value!,
-                Sets = performance.CompletedSets.OrderBy(s => s.SetNumber).Select(s => new HevyWorkoutSetDraft
+                Notes = sideNotes.Count == 0 ? null : string.Join(" · ", sideNotes),
+                Sets = logged.Select(s => new HevyWorkoutSetDraft
                 {
                     Type = s.WasAmrap ? HevySetTypes.Failure : HevySetTypes.Normal,
                     WeightKg = s.WeightUnit == WeightUnit.Kilograms ? s.Weight : Math.Round(Weight.Create(s.Weight, s.WeightUnit).ConvertTo(WeightUnit.Kilograms).Value, 2),
@@ -270,8 +279,18 @@ public sealed class HevyWorkoutPoster
             });
         }
 
-        // 3. The finisher.
-        if (payload.Finisher is { } finisher)
+        // 3. The finisher. A fixed cool-down goes on Treadmill (or Walking) with its duration.
+        if (payload.Finisher is { } cooldown && payload.FinisherFixedKind is { } fixedKind)
+        {
+            var treadmill = string.Equals(fixedKind, "Treadmill", StringComparison.OrdinalIgnoreCase);
+            exercises.Add(new HevyWorkoutExerciseDraft
+            {
+                ExerciseTemplateId = treadmill ? HevyTemplateCatalogue.Treadmill : HevyTemplateCatalogue.Walking,
+                Notes = payload.FinisherFixedNotes is { } fixedNotes ? $"Cool-down · {fixedNotes}" : "Cool-down",
+                Sets = [new HevyWorkoutSetDraft { DurationSeconds = cooldown.DurationSeconds, Rpe = cooldown.Effort.ToRpe() }]
+            });
+        }
+        else if (payload.Finisher is { } finisher)
         {
             var protocol = payload.FinisherProtocolId is { } protocolId ? await _protocols.GetByIdAsync(new CardioProtocolId(protocolId), ct) : null;
             var track = payload.FinisherTrackId is { } trackId && _tracks is not null ? await _tracks.GetByIdAsync(new CardioTrackId(trackId), ct) : null;

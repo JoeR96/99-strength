@@ -131,7 +131,11 @@ public sealed class GetUpcomingDaysQueryHandler : IRequestHandler<GetUpcomingDay
             }
 
             UpcomingFinisherDto? finisher = null;
-            if (slot.Finisher?.CardioTrackId is { } trackId && tracks.FirstOrDefault(t => t.Id == trackId) is { } track)
+            if (slot.Finisher?.Fixed is { } cooldown)
+            {
+                finisher = new UpcomingFinisherDto(cooldown.DisplayName(), cooldown.Describe());
+            }
+            else if (slot.Finisher?.CardioTrackId is { } trackId && tracks.FirstOrDefault(t => t.Id == trackId) is { } track)
             {
                 finisher = new UpcomingFinisherDto(track.Name, track.Prescription.Title);
             }
@@ -148,7 +152,8 @@ public sealed class GetUpcomingDaysQueryHandler : IRequestHandler<GetUpcomingDay
                 week.Value.Exercises
                     .Where(e => e.PlannedSets.Count > 0)
                     .OrderBy(e => e.OrderInDay)
-                    .Select(e => new UpcomingExerciseDto(e.Name, e.Category, e.PlannedSets.Select(s => new UpcomingSetDto(s.WeightKg, s.TargetReps, s.IsAmrap)).ToList()))
+                    .Select(e => new UpcomingExerciseDto(e.Name, e.Category, e.PlannedSets.Select(s => new UpcomingSetDto(s.WeightKg, s.TargetReps, s.IsAmrap)).ToList(),
+                        e.Metadata.IsTrainingMaxPending, e.Metadata.IntensityPercentage))
                     .ToList(),
                 finisher);
         }

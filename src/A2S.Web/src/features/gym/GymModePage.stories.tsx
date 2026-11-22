@@ -6,8 +6,19 @@ import type { CompleteDayResult, WorkoutDto } from '@/features/workout/workoutSe
 import { GymChecklist } from './GymChecklist';
 import { GymHevyStatus } from './GymSections';
 import { GymPreview } from './GymPreview';
-import { freshGymSession, midGymSession, trackFinisherGymSession } from './gymFixtures';
-import { allDrillsDone, editSet, tickDrill, toggleSet, updateFinisher, type GymSessionState } from './gymSession';
+import { freshGymSession, midGymSession, planV3GymSession, trackFinisherGymSession } from './gymFixtures';
+import {
+  allDrillsDone,
+  editSet,
+  tickDrill,
+  toggleExtraSet,
+  toggleFixedFinisher,
+  toggleSet,
+  toggleSide,
+  updateFinisher,
+  type GymSessionState,
+} from './gymSession';
+import { SetTrainingMaxDialog } from './SetTrainingMaxDialog';
 
 /** The checklist with working taps (state kept in the story), so each state can be poked at. */
 function Checklist({
@@ -37,6 +48,10 @@ function Checklist({
         onEditSet={(l, s, c) => setState((st) => editSet(st, l, s, c))}
         onFinisherChange={(c) => setState((s) => updateFinisher(s, c))}
         onFinish={() => {}}
+        onToggleExtraSet={(l, c) => setState((st) => toggleExtraSet(st, l, c))}
+        onToggleFixedFinisher={() => setState(toggleFixedFinisher)}
+        onToggleLeft={(l, s) => setState((st) => toggleSide(st, l, s, 'Left'))}
+        onSetTrainingMax={() => {}}
         initialPrompt={initialPrompt}
         initialConfirmEarly={initialConfirmEarly}
       />
@@ -148,6 +163,23 @@ export const PreviewToday: StoryObj = {
   render: () => (
     <div className="min-h-dvh bg-background">
       <GymPreview state={freshGymSession()} dayLabel="Today · Mon 23 Nov" startHref="/gym/1" />
+    </div>
+  ),
+};
+
+/** Plan v3 Upper A: bench without a training max (reps and % only), supersets 2a/2b and 3a/3b, unilateral sets left first, an extra set, the treadmill cool-down. */
+export const PlanV3Supersets: Story = { args: { initial: planV3GymSession() } };
+
+/** A set logged on the bench before its training max is set: Finish is blocked with a prompt. */
+export const PlanV3NeedsTrainingMax: Story = {
+  args: { initial: toggleFixedFinisher(toggleExtraSet(toggleSet(toggleSet(planV3GymSession(), 0, 0), 1, 0), 3)) },
+};
+
+/** "Set your training max": a recent set (weight × reps) or the TM itself. */
+export const SetTrainingMax: StoryObj = {
+  render: () => (
+    <div className="min-h-dvh bg-background">
+      <SetTrainingMaxDialog open workoutId="w-v3" exerciseId="v3-bench" exerciseName="Bench Press (Barbell)" onClose={() => {}} />
     </div>
   ),
 };

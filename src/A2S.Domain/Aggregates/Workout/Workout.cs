@@ -328,6 +328,31 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Pairs an exercise into a superset group on its day (null = on its own). A group holds at most
+    /// two exercises (A then B).
+    /// </summary>
+    public void SetExerciseSupersetGroup(ExerciseId exerciseId, int? group)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+        if (group is { } g)
+        {
+            var others = _exercises.Count(e => e.Id != exerciseId && e.AssignedDay == exercise!.AssignedDay && e.SupersetGroup == g);
+            CheckRule(others <= 1, "A superset pairs two exercises");
+        }
+
+        exercise!.SetSupersetGroup(group);
+    }
+
+    /// <summary>Sets the bonus "extra set" side of a unilateral reps-per-set exercise. Progression ignores it.</summary>
+    public void SetExerciseExtraSetSide(ExerciseId exerciseId, ExtraSetSide side)
+    {
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+        exercise!.SetExtraSetSide(side);
+    }
+
+    /// <summary>
     /// Manually adjusts the starting weight for an accessory exercise.
     /// Only applicable for exercises using reps-per-set progression.
     /// </summary>

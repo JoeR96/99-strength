@@ -157,6 +157,41 @@ export function FinisherCard({
   );
 }
 
+/** A fixed cool-down (treadmill, easy incline, 10 min): one tick, logged as done as prescribed. */
+export function FixedFinisherCard({ finisher, onToggle }: { finisher: GymFinisher; onToggle: () => void }) {
+  const done = finisher.done === true;
+  return (
+    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
+      <h2 id="finisher-heading" className="mb-3 text-lg font-semibold text-foreground">
+        Cool-down
+      </h2>
+      <button
+        type="button"
+        className={cn(
+          'flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          done ? 'border-success/60 bg-success/15' : 'border-border bg-muted/40'
+        )}
+        aria-pressed={done}
+        onClick={onToggle}
+        data-testid="fixed-finisher"
+      >
+        <span
+          className={cn(
+            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2',
+            done ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
+          )}
+          aria-hidden="true"
+        >
+          {done && <Check className="h-5 w-5" />}
+        </span>
+        <span className="min-w-0 flex-1 font-medium text-foreground" data-testid="finisher-prescription">
+          {finisher.prescription}
+        </span>
+      </button>
+    </section>
+  );
+}
+
 export function RestTimerBar({
   remaining,
   total,

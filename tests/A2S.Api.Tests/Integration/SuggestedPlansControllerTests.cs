@@ -34,7 +34,7 @@ public class SuggestedPlansControllerTests
 
         var previews = await client.GetFromJsonAsync<List<SuggestedPlanPreviewDto>>("/api/v1/plans/suggested");
 
-        var preview = previews.Should().ContainSingle().Subject;
+        var preview = previews!.Single(p => p.Key == "cut-to-85");
         preview.Key.Should().Be("cut-to-85");
         preview.StartDate.DayOfWeek.Should().Be(DayOfWeek.Monday);
         preview.StartDate.Should().BeOnOrAfter(DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-1)));

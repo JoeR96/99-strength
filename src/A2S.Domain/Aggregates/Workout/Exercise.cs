@@ -30,6 +30,15 @@ public sealed class Exercise : Entity<ExerciseId>
     /// </summary>
     public ExerciseProgression Progression { get; private set; }
 
+    /// <summary>
+    /// Superset pairing within the assigned day: exercises sharing a group are done back to back
+    /// (A = lower <see cref="OrderInDay"/>, then B) with one rest after B. Null = done on its own.
+    /// </summary>
+    public int? SupersetGroup { get; private set; }
+
+    /// <summary>One bonus set on this side (unilateral reps-per-set only). Never part of progression.</summary>
+    public ExtraSetSide ExtraSetSide { get; private set; }
+
     // EF Core constructor
     private Exercise()
     {
@@ -84,12 +93,14 @@ public sealed class Exercise : Entity<ExerciseId>
         string externalTemplateId,
         TrainingMax trainingMax,
         bool useAmrap = true,
-        int baseSetsPerExercise = 4)
+        int baseSetsPerExercise = 4,
+        ProgramTier tier = ProgramTier.Primary)
     {
         var progression = LinearProgressionStrategy.Create(
             trainingMax,
             useAmrap,
-            baseSetsPerExercise);
+            baseSetsPerExercise,
+            tier);
 
         return new Exercise(
             new ExerciseId(Guid.NewGuid()),
@@ -100,6 +111,33 @@ public sealed class Exercise : Entity<ExerciseId>
             orderInDay,
             externalTemplateId,
             progression);
+    }
+
+    /// <summary>
+    /// Creates an A2S2 exercise whose training max is not known yet ("start without weights"). Its
+    /// planned sets carry reps and intensity but no weight, and it cannot be completed until a TM is set.
+    /// </summary>
+    public static Exercise CreateWithPendingTrainingMax(
+        string name,
+        ExerciseCategory category,
+        EquipmentType equipment,
+        DayNumber assignedDay,
+        int orderInDay,
+        string externalTemplateId,
+        WeightUnit unit = WeightUnit.Kilograms,
+        bool useAmrap = true,
+        int baseSetsPerExercise = 4,
+        ProgramTier tier = ProgramTier.Primary)
+    {
+        return new Exercise(
+            new ExerciseId(Guid.NewGuid()),
+            name,
+            category,
+            equipment,
+            assignedDay,
+            orderInDay,
+            externalTemplateId,
+            LinearProgressionStrategy.CreatePending(unit, useAmrap, baseSetsPerExercise, tier));
     }
 
     /// <summary>
@@ -215,6 +253,7 @@ public sealed class Exercise : Entity<ExerciseId>
     {
         CheckRule(performance.ExerciseId == Id,
             "Performance data must be for this exercise");
+        CheckRule(!IsTrainingMaxPending, $"Set your training max for {Name} before finishing it.");
 
         var previousTm = Progression.GetTrainingMax();
 
@@ -305,6 +344,25 @@ public sealed class Exercise : Entity<ExerciseId>
 
         return originalName;
     }
+
+    /// <summary>Pairs this exercise into a superset group (null = on its own).</summary>
+    internal void SetSupersetGroup(int? group)
+    {
+        CheckRule(group is null or >= 1 and <= 20, "Superset group must be between 1 and 20");
+        SupersetGroup = group;
+    }
+
+    /// <summary>Sets the bonus set side. Only a unilateral reps-per-set exercise can have one.</summary>
+    internal void SetExtraSetSide(ExtraSetSide side)
+    {
+        CheckRule(Enum.IsDefined(side), "Unknown extra set side");
+        CheckRule(side == ExtraSetSide.None || Progression is RepsPerSetStrategy { IsUnilateral: true },
+            "An extra set on one side needs a unilateral reps-per-set exercise");
+        ExtraSetSide = side;
+    }
+
+    /// <summary>True for an A2S2 exercise still waiting for its training max.</summary>
+    public bool IsTrainingMaxPending => Progression is LinearProgressionStrategy { IsTrainingMaxPending: true };
 
     /// <summary>
     /// Gets a summary of the current progression state.

@@ -4,6 +4,7 @@ using A2S.Application.Commands.ConfirmStartingWeight;
 using A2S.Application.Commands.ConfirmWorkingWeight;
 using A2S.Application.Commands.RemoveExercise;
 using A2S.Application.Commands.RetrofixLinearTm;
+using A2S.Application.Commands.SetTrainingMax;
 using A2S.Application.Commands.SubstituteExercise;
 using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.Commands.UpdateWorkingWeight;
@@ -128,6 +129,28 @@ public class ExercisesController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// "Set your training max" for an A2S2 exercise: the TM itself, or a recent set (weight × reps) that
+    /// is estimated as Epley e1RM × 90 %. Clears a pending TM.
+    /// </summary>
+    [HttpPost("{id:guid}/exercises/{exerciseId:guid}/training-max")]
+    [ProducesResponseType(typeof(SetTrainingMaxResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetTrainingMax(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] SetTrainingMaxRequest request,
+        CancellationToken cancellationToken)
+    {
+        var unit = string.Equals(request.Unit, "Pounds", StringComparison.OrdinalIgnoreCase)
+            ? Domain.Enums.WeightUnit.Pounds
+            : Domain.Enums.WeightUnit.Kilograms;
+        var result = await _mediator.Send(
+            new SetTrainingMaxCommand(id, exerciseId, request.TrainingMax, request.RecentWeight, request.RecentReps, unit), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
     /// <summary>

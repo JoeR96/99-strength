@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fn } from 'storybook/test';
+import { MemoryRouter } from 'react-router-dom';
+import { planV3Preview } from '@/mocks/fixtures/planTemplates';
+import { cutTo85Preview } from '@/mocks/handlers/suggestedPlans';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 import { suggestedPlansApi, type StartSuggestedPlanResult } from '@/api/suggestedPlans';
 
@@ -25,13 +28,18 @@ const meta: Meta<typeof StartSuggestedPlanCard> = {
     today: wednesday11Nov2026,
     onStarted: fn(),
   },
+  beforeEach: () => {
+    suggestedPlansApi.list = async () => [cutTo85Preview];
+  },
   decorators: [
     (Story) => (
+      <MemoryRouter>
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}>
         <div className="mx-auto w-full max-w-[390px] px-4">
           <Story />
         </div>
       </QueryClientProvider>
+      </MemoryRouter>
     ),
   ],
 };
@@ -68,5 +76,14 @@ export const ServerError: Story = {
     suggestedPlansApi.startCutTo85 = async () => {
       throw { response: { data: { title: 'Business Rule Violation', detail: "Exercise template 'Seal Row (Barbell)' was not found in the exercise library." } } };
     };
+  },
+};
+
+/** Two suggested plans: Plan v3 chosen, its training maxes optional (blank = set before the first session). */
+export const PlanV3: Story = {
+  args: { initialPlanKey: 'plan-v3' },
+  beforeEach: () => {
+    suggestedPlansApi.list = async () => [cutTo85Preview, planV3Preview];
+    suggestedPlansApi.startCutTo85 = async () => started;
   },
 };

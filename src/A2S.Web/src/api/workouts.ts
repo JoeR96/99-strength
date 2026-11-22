@@ -102,6 +102,12 @@ export const workoutsApi = {
     return response.data;
   },
 
+  /** Sets a pending (or any) A2S2 lift's training max, directly or estimated from a recent set. */
+  setTrainingMax: async (workoutId: string, exerciseId: string, request: SetTrainingMaxRequest): Promise<SetTrainingMaxResult> => {
+    const response = await apiClient.post<SetTrainingMaxResult>(`/workouts/${workoutId}/exercises/${exerciseId}/training-max`, request);
+    return response.data;
+  },
+
   /**
    * Update exercises in a workout (training max, weight, etc.)
    */
@@ -248,6 +254,10 @@ export interface PlannedExerciseDto {
   progressionType: string;
   /** Rest between sets for gym mode's timer: main lifts 180 s, everything else 90 s. */
   restSeconds?: number;
+  /** Same number on the same day = a superset; label is the number + a/b. */
+  supersetGroup?: number | null;
+  /** One bonus set on that side (unilateral reps-per-set only). */
+  extraSetSide?: 'None' | 'Left' | 'Right';
   plannedSets: PlannedSetDto[];
   metadata: PlannedExerciseMetadataDto;
 }
@@ -271,4 +281,21 @@ export interface PlannedExerciseMetadataDto {
   targetTotalReps?: number;
   notes?: string;
   isWeightPending?: boolean;
+  /** A2S2 lift without a training max yet: its planned sets have weight 0. */
+  isTrainingMaxPending?: boolean;
+  /** Linear only: e.g. 0.70 for 70 %. */
+  intensityPercentage?: number | null;
+  tier?: 'Primary' | 'Auxiliary' | null;
+}
+
+/** Body for `POST /workouts/{id}/exercises/{exerciseId}/training-max`: a TM, or a recent set to estimate it from. */
+export type SetTrainingMaxRequest =
+  | { trainingMax: number; unit?: 'Kilograms' | 'Pounds' }
+  | { recentWeight: number; recentReps: number; unit?: 'Kilograms' | 'Pounds' };
+
+export interface SetTrainingMaxResult {
+  exerciseId: string;
+  trainingMax: number;
+  unit: string;
+  estimated: boolean;
 }

@@ -1,10 +1,14 @@
 import { useId, useState, type FormEvent } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { ApplyPlanForm } from '@/features/plans/ApplyPlanForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  CUT_TO_85_KEY,
   comingMonday,
   DEFAULT_START_WEIGHT_KG,
   formatStartDay,
@@ -32,6 +36,8 @@ export interface StartSuggestedPlanCardProps {
   today?: Date;
   /** Starting values for the fields (e.g. from a previous workout). */
   initialValues?: Partial<Record<TmKey | 'startWeightKg', number>>;
+  /** Which suggested plan is chosen at first (stories); Cut to 85 by default. */
+  initialPlanKey?: string;
 }
 
 interface FieldErrors {
@@ -78,7 +84,7 @@ function serverMessage(error: unknown): string {
  * start weight (prefilled 95 kg) are the only inputs; one tap creates the whole plan starting the
  * coming Monday. The card is self-contained (TanStack mutation inside); the page mounts it.
  */
-export function StartSuggestedPlanCard({ onStarted, today, initialValues }: StartSuggestedPlanCardProps) {
+export function StartSuggestedPlanCard({ onStarted, today, initialValues, initialPlanKey = CUT_TO_85_KEY }: StartSuggestedPlanCardProps) {
   const id = useId();
   const queryClient = useQueryClient();
   const startDay = formatStartDay(comingMonday(today ?? new Date()));
@@ -91,6 +97,11 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues }: Star
     startWeightKg: (initialValues?.startWeightKg ?? DEFAULT_START_WEIGHT_KG).toString(),
   });
   const [errors, setErrors] = useState<FieldErrors>({});
+  // Every suggested plan (Cut to 85, Plan v3); Cut to 85 keeps its own form, the others use the template form.
+  const suggested = useQuery({ queryKey: ['plans', 'suggested'], queryFn: suggestedPlansApi.list, retry: false });
+  const plans = suggested.data ?? [];
+  const [selectedKey, setSelectedKey] = useState(initialPlanKey);
+  const selected = plans.find((p) => p.key === selectedKey) ?? null;
 
   const start = useMutation({
     mutationFn: suggestedPlansApi.startCutTo85,
@@ -134,11 +145,41 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues }: Star
       <CardHeader>
         <CardTitle>Start this plan</CardTitle>
         <CardDescription>
-          Cut to 85, Nov 2026. A2S2 on the four main lifts, cardio twice a week, Mobility A as every
-          warm-up, five daily habits. Starts {startDay}.
+          {selectedKey !== CUT_TO_85_KEY && selected ? (
+            selected.name
+          ) : (
+            <>
+              Cut to 85, Nov 2026. A2S2 on the four main lifts, cardio twice a week, Mobility A as every
+              warm-up, five daily habits. Starts {startDay}.
+            </>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {plans.length > 1 && (
+          <div className="mb-4 grid gap-2" role="group" aria-label="Choose a plan">
+            {plans.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                aria-pressed={selectedKey === p.key}
+                onClick={() => setSelectedKey(p.key)}
+                className={cn(
+                  'min-h-12 rounded-md border px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  selectedKey === p.key ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                )}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
+        {selectedKey !== CUT_TO_85_KEY && selected ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">{selected.description}</p>
+            <ApplyPlanForm key={selected.key} template={selected} onApplied={onStarted} />
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
             Enter your current training maxes. A TM is roughly 90% of your one-rep max.
@@ -209,6 +250,10 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues }: Star
             {start.isPending ? 'Starting…' : `Start this plan — starts ${startDay}`}
           </Button>
         </form>
+        )}
+        <Link to="/plans/templates" className="mt-4 inline-flex min-h-11 items-center text-sm text-primary underline-offset-4 hover:underline">
+          See all plan templates
+        </Link>
       </CardContent>
     </Card>
   );

@@ -949,12 +949,22 @@ namespace A2S.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("HevyExerciseTemplateId");
 
+                    b.Property<string>("ExtraSetSide")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("None");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.Property<int>("OrderInDay")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SupersetGroup")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("WorkoutId")
@@ -1189,6 +1199,12 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("BaseSetsPerExercise")
                         .HasColumnType("integer")
                         .HasColumnName("BaseSetsPerExercise");
+
+                    b.Property<bool>("IsTrainingMaxPending")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsTrainingMaxPending");
 
                     b.Property<int>("Tier")
                         .HasColumnType("integer");
