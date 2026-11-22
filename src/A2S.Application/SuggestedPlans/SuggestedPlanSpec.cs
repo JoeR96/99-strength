@@ -18,7 +18,8 @@ public sealed record SuggestedPlanInputs(
     DateOnly Today);
 
 /// <summary>Describes one input the onboarding card asks for.</summary>
-public sealed record SuggestedPlanInputSpec(string Key, string Label, string Unit, decimal? Default, decimal Minimum, decimal Maximum);
+/// <see cref="Optional"/> inputs may be left empty: a training max left empty starts pending.
+public sealed record SuggestedPlanInputSpec(string Key, string Label, string Unit, decimal? Default, decimal Minimum, decimal Maximum, bool Optional = false);
 
 /// <summary>
 /// One slot of the weekly template before the cardio protocols and mobility routines exist.
@@ -31,7 +32,16 @@ public sealed record ScheduledSessionSpec(
     DayNumber? LiftDay,
     CardioProtocolKind? Cardio,
     string? MobilityRoutine,
-    string Label);
+    string Label,
+    string? WarmUp = null,
+    FinisherSpec? Finisher = null,
+    string? CardioTrack = null);
+
+/// <summary>
+/// A lift slot's finisher by name: a cardio track template key (<see cref="CardioTrackTemplates"/>) or a
+/// fixed cool-down. Exactly one.
+/// </summary>
+public sealed record FinisherSpec(string? TrackKey = null, FixedActivity? Fixed = null);
 
 public sealed record MobilityRoutineSpec(string Name, int TargetMinutes, IReadOnlyList<MobilityDrillDto> Drills);
 
@@ -79,4 +89,48 @@ public sealed record SuggestedPlanSpec(
     IReadOnlyList<PlanPhaseDto> Phases,
     IReadOnlyList<CheckpointDto> Checkpoints,
     VolumeCaps Caps,
-    WeeklyAllowances Allowances);
+    WeeklyAllowances Allowances,
+    IReadOnlyList<MobilityRoutineSpec>? ExtraRoutines = null,
+    IReadOnlyList<string>? CardioTracks = null,
+    IReadOnlyList<int>? BlockSequence = null)
+{
+    /// <summary>Every routine the plan creates: the two named ones, then the extras (home routines).</summary>
+    public IReadOnlyList<MobilityRoutineSpec> Routines => [MobilityA, MobilityB, .. ExtraRoutines ?? []];
+}
+
+/// <summary>Inputs for any template: values keyed by <see cref="SuggestedPlanInputSpec.Key"/> (null = left pending).</summary>
+public sealed record PlanTemplateInputs(IReadOnlyDictionary<string, decimal?> Values, decimal StartWeightKg, DateOnly StartDate)
+{
+    public decimal? Get(string key) => Values.TryGetValue(key, out var value) ? value : null;
+}
+
+/// <summary>
+/// A starter plan anyone can preview and apply. Adding a template is adding a class that implements
+/// this; <see cref="PlanTemplates"/> finds it. Everything it creates is the user's own editable data.
+/// </summary>
+public interface IPlanTemplate
+{
+    string Key { get; }
+    string Name { get; }
+    string Description { get; }
+    decimal DefaultStartWeightKg { get; }
+    IReadOnlyList<SuggestedPlanInputSpec> Inputs { get; }
+
+    /// <summary>Pure: the plan as data for these inputs and start date (already a Monday).</summary>
+    SuggestedPlanSpec Build(PlanTemplateInputs inputs);
+}
+
+/// <summary>Every <see cref="IPlanTemplate"/> in this assembly, in a stable order (oldest first).</summary>
+public static class PlanTemplates
+{
+    public static IReadOnlyList<IPlanTemplate> All { get; } =
+        typeof(IPlanTemplate).Assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IPlanTemplate).IsAssignableFrom(t) && t.GetConstructor(Type.EmptyTypes) is not null)
+            .Select(t => (IPlanTemplate)Activator.CreateInstance(t)!)
+            .OrderBy(t => t is CutTo85Template ? 0 : 1)
+            .ThenBy(t => t.Key, StringComparer.Ordinal)
+            .ToList();
+
+    public static IPlanTemplate? Find(string key) =>
+        All.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.OrdinalIgnoreCase));
+}

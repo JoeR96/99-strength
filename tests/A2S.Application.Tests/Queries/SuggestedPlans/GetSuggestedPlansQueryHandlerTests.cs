@@ -1,5 +1,6 @@
 using A2S.Application.Common;
 using A2S.Application.Queries.SuggestedPlans;
+using A2S.Application.SuggestedPlans;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -33,7 +34,7 @@ public class GetSuggestedPlansQueryHandlerTests
         var result = await _handler.Handle(new GetSuggestedPlansQuery(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        var preview = result.Value.Should().ContainSingle().Subject;
+        var preview = result.Value.Single(p => p.Key == CutTo85Nov2026.Key);
         preview.Key.Should().Be("cut-to-85");
         preview.Name.Should().Be("Cut to 85 — Nov 2026");
         preview.StartDate.Should().Be(new DateOnly(2026, 11, 16));
@@ -57,7 +58,7 @@ public class GetSuggestedPlansQueryHandlerTests
 
         var result = await _handler.Handle(new GetSuggestedPlansQuery(), CancellationToken.None);
 
-        result.Value.Single().AlreadyStarted.Should().BeTrue();
+        result.Value.Single(p => p.Key == CutTo85Nov2026.Key).AlreadyStarted.Should().BeTrue();
     }
 
     [Fact]
