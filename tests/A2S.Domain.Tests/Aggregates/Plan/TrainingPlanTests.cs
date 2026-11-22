@@ -314,6 +314,24 @@ public class TrainingPlanTests
     }
 
     [Fact]
+    public void CompleteSession_Mobility_KeepsMinutesDone()
+    {
+        var completion = CreatePlan().CompleteSession(new DateOnly(2026, 11, 18), SessionKind.Mobility, CompletionSource.Manual,
+            mobility: MobilityB, recordedAt: RecordedAt, durationMinutes: 32);
+
+        completion.DurationMinutes.Should().Be(32);
+    }
+
+    [Fact]
+    public void CompleteSession_MinutesOnALift_IsRejected()
+    {
+        var act = () => CreatePlan().CompleteSession(new DateOnly(2026, 11, 16), SessionKind.Lift, CompletionSource.Manual,
+            liftDay: DayNumber.Day1, recordedAt: RecordedAt, durationMinutes: 32);
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
     public void CompleteSession_Rest_Throws()
     {
         var plan = CreatePlan();
