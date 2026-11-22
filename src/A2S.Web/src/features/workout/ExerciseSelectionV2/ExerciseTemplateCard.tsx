@@ -32,7 +32,7 @@ export function ExerciseTemplateCard({ template, onAdd }: ExerciseTemplateCardPr
         <button
           type="button"
           onClick={() => onAdd(template)}
-          className="shrink-0 px-2 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="shrink-0 min-h-11 min-w-11 px-3 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           aria-label={`Add ${template.name}`}
         >
           Add

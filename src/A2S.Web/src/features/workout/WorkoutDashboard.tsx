@@ -134,7 +134,7 @@ export function WorkoutDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs px-2 py-1 h-auto"
+              className="text-xs px-3 py-1 min-h-11"
               onClick={() => setShowBlockEditor(true)}
             >
               Manage Blocks

@@ -75,7 +75,7 @@ export function ExerciseLibraryBrowser({
           <button
             type="button"
             onClick={() => setSelectedEquipment("all")}
-            className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+            className={`min-h-11 px-3 py-1.5 text-xs rounded-md border transition-colors ${
               selectedEquipment === "all"
                 ? "bg-primary/15 text-primary border-primary"
                 : "bg-muted hover:bg-muted/80 border-transparent"
@@ -90,7 +90,7 @@ export function ExerciseLibraryBrowser({
                 key={equipment}
                 type="button"
                 onClick={() => setSelectedEquipment(equipment)}
-                className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                className={`min-h-11 px-3 py-1.5 text-xs rounded-md border transition-colors ${
                   selectedEquipment === equipment
                     ? "bg-primary/15 text-primary border-primary"
                     : "bg-muted hover:bg-muted/80 border-transparent"

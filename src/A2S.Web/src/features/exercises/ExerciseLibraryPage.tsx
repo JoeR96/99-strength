@@ -160,7 +160,7 @@ export function ExerciseLibraryPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode('grouped')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 viewMode === 'grouped'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -170,7 +170,7 @@ export function ExerciseLibraryPage() {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 viewMode === 'grid'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -180,7 +180,7 @@ export function ExerciseLibraryPage() {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 viewMode === 'list'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
@@ -202,7 +202,7 @@ export function ExerciseLibraryPage() {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                  className="min-h-11 px-2 text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Clear all
                 </button>
@@ -250,7 +250,7 @@ export function ExerciseLibraryPage() {
                             <button
                               key={muscle}
                               onClick={() => toggleMuscleGroup(muscle)}
-                              className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                              className={`min-h-11 px-3 py-1 rounded text-xs font-medium transition-all ${
                                 isSelected
                                   ? 'bg-primary text-primary-foreground'
                                   : 'border hover:opacity-80'
@@ -289,7 +289,7 @@ export function ExerciseLibraryPage() {
                       <button
                         key={equipment}
                         onClick={() => toggleEquipment(equipment)}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                        className={`min-h-11 px-3 py-1 rounded text-xs font-medium transition-all ${
                           isSelected
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
@@ -389,7 +389,7 @@ export function ExerciseLibraryPage() {
                 <p className="text-muted-foreground">No exercises found matching your criteria</p>
                 <button
                   onClick={clearFilters}
-                  className="mt-2 text-primary hover:text-primary/80 text-sm"
+                  className="mt-2 min-h-11 px-2 text-primary hover:text-primary/80 text-sm"
                 >
                   Clear filters
                 </button>
