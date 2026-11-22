@@ -96,7 +96,7 @@ test.describe('installable PWA', () => {
       }));
       console.log('offline cold start paints:', JSON.stringify(painted));
       await shot(page, 'offline--cold-start-signed-out');
-      // Known gap, recorded in docs/v2/audit-after.md: nothing is painted until Clerk has loaded,
+      // Known gap, recorded in docs/archive/v2/audit-after.md: nothing is painted until Clerk has loaded,
       // and Clerk cannot load without the network. When that is fixed this expectation flips.
       test.fail(painted.text.length === 0, 'the offline shell is blank: Clerk never loads, so neither SignedIn nor SignedOut renders');
       expect(painted.text.length, 'something is painted offline').toBeGreaterThan(0);

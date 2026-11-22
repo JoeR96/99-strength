@@ -61,7 +61,7 @@ Recharts renders SVG and cannot consume Tailwind classes, so colours must be con
 
 ## Known debt (don't replicate; fix opportunistically)
 
-The Arcade Minimal audit (`docs/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and all but one P2 (`SetupWizard.tsx` over-500-line split, deferred — see below). Genuinely outstanding items a future styling change should know about:
+The Arcade Minimal audit (`docs/archive/superpowers/audits/2026-07-18-frontend-audit-findings.md`, closed 2026-07-19) resolved every P1 and all but one P2 (`SetupWizard.tsx` over-500-line split, deferred — see below). Genuinely outstanding items a future styling change should know about:
 
 - **`LoginPage.tsx` dead decorative classes** — `bg-gradient-navy`, `text-gradient-gold`, and a scanline `linear-gradient` grid persist (page is still routed). Off-contract retro leftovers; remove if you touch this file.
 - **`CardTitle` keeps `tracking-wide`** in `components/ui/card.tsx` — harmless (no ALL-CAPS pairing) but off the type scale; don't copy the letterspacing.

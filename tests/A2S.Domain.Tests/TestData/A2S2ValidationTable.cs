@@ -3,7 +3,7 @@ using System.Globalization;
 namespace A2S.Domain.Tests.TestData;
 
 /// <summary>
-/// One week of a lift's table in <c>research/A2S2_Validation_Data.md</c>.
+/// One week of a lift's table in <c>docs/reference/a2s2/A2S2_Validation_Data.md</c>.
 /// </summary>
 /// <param name="Week">Program week 1–21.</param>
 /// <param name="TmAtStart">The TM the spreadsheet shows for that week (the TM the week is lifted at).</param>
@@ -18,7 +18,7 @@ public sealed record A2S2ValidationRow(int Week, decimal TmAtStart, int? RepOutT
 }
 
 /// <summary>
-/// Reads the OHP and Smith Squat tables straight out of <c>research/A2S2_Validation_Data.md</c>
+/// Reads the OHP and Smith Squat tables straight out of <c>docs/reference/a2s2/A2S2_Validation_Data.md</c>
 /// (linked into the test output as <c>TestData/A2S2_Validation_Data.md</c>) so the cycle tests
 /// cannot drift from the research document.
 /// </summary>

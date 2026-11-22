@@ -10,7 +10,7 @@ namespace A2S.Domain.Aggregates.Workout;
 /// Manages exercises, progression, and weekly program flow.
 /// </summary>
 /// <remarks>
-/// Reference: research/business-rules.md Section 1 "Program Structure Rules"
+/// Reference: docs/archive/research/business-rules.md Section 1 "Program Structure Rules"
 /// - Standard program is 21 weeks, divided into 3 blocks of 7 weeks each
 /// - Week 7, 14, and 21 are deload weeks
 /// - Block intensity increases: Block 1 &lt; Block 2 &lt; Block 3

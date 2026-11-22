@@ -11,7 +11,7 @@ namespace A2S.Domain.Aggregates.Workout;
 /// Does not use Training Max - uses direct weight progression.
 /// </summary>
 /// <remarks>
-/// Reference: research/business-rules.md Section 3.3 "Reps Per Set Progression" (lines 172-227)
+/// Reference: docs/archive/research/business-rules.md Section 3.3 "Reps Per Set Progression" (lines 172-227)
 ///
 /// Progression Logic:
 /// - SUCCESS: All sets hit maximumReps → Add set (or increase weight if at target sets)

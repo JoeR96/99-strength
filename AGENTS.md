@@ -208,6 +208,15 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `CreateUser` | Auto-provisions user from Clerk auth | |
 | `StartSuggestedPlan` | One-tap onboarding: builds "Cut to 85 — Nov 2026" from `SuggestedPlans/CutTo85Nov2026` (workout + cardio protocols + Mobility A/B + habits + linked plan) in one unit of work; idempotent while that plan is active | `POST /api/v1/plans/suggested/cut-to-85` |
 | `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan | `PUT /api/v1/plans/{id}/schedule` |
+| Habits: `CreateHabit`, `UpdateHabit`, `ArchiveHabit`, `UpsertHabitLog`, `IncrementHabit`, `ImportHabits` | Habit definitions and per-local-date logs (last write wins per habit/day) | `/api/v1/habits` |
+| `RecordBodyWeight` | Morning weigh-in; mirrored to Hevy | `/api/v1/body-weight` |
+| Cardio: `CreateCardioProtocol`, `AdvanceCouchToFiveK`, `SetRepeatWeek` | Cardio protocols and C25K week moves | `/api/v1/cardio-protocols` |
+| Mobility: `CreateMobilityRoutine`, `ReplaceDrills` | Mobility routines and their ordered drills | `/api/v1/mobility-routines` |
+| Plans: `CreateTrainingPlan`, `AddPhase`/`RemovePhase`, `AddCheckpoint`/`RemoveCheckpoint`, `LinkWorkout`, `CompleteSession`/`UndoSessionCompletion`, `UseAllowance`/`RemoveAllowanceUse`, `SetHighIntensityTarget` | The training plan around the A2S2 workout | `/api/v1/plans` |
+| Hevy: `PushSessionRoutine`, `PushWeekRoutines`, `PullHevyEvents`, `AssignHevyWorkout`, `IgnoreHevyWorkout` | Server-side push of sessions as routines; pull, match and complete workouts; unmatched inbox | `/api/v1/plans/{id}/sessions/push*`, `/api/v1/hevy/*` |
+| Push: `SubscribePush`, `UnsubscribePush` | Web Push subscriptions for the nudge service | `/api/v1/push` |
+| Meals: `CreateMeal`, `UpdateMeal`, `DeleteMeal`, `SetWeekMeals`, `GenerateShoppingList`, `ToggleShoppingItem` | Meals and the weekly shopping list | `/api/v1/meals`, `/api/v1/shopping-list` |
+| API tokens: `CreateApiToken`, `RevokeApiToken` | Personal tokens for the desktop habit widget | `/api/v1/users/me/api-tokens` |
 
 ### Queries
 
@@ -220,6 +229,8 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetExerciseHistory` | Historical performance for an exercise |
 | `GetWorkoutHistory` | Completed day history for a workout |
 | `GetCurrentUser` / `GetUser` | User profile |
+| Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
+| Habits, body weight, Hevy inbox, meals, push and token queries | Read sides of the commands above |
 | `GetSuggestedPlans` | Previews the suggested plans for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
 
 ## Testing

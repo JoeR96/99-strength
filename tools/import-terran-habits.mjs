@@ -3,7 +3,7 @@
  * One-off migration of Terran CC habits into 99-Strength.
  *
  * Reads the Terran CC SQLite store read-only, maps the five habits to the v2 definitions decided
- * in docs/v2/plan.md, and posts them to POST /api/v1/habits/import, which is idempotent (habits
+ * in docs/archive/v2/plan.md, and posts them to POST /api/v1/habits/import, which is idempotent (habits
  * are matched by externalKey; a log is written only when its value differs). Re-running is safe.
  *
  * Usage:

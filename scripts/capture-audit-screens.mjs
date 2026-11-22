@@ -3,7 +3,7 @@
  * Captures the Phase 4 "after" screenshots from the built Storybook at a 390 px phone width.
  *
  *   cd src/A2S.Web && npm run build-storybook -- --quiet
- *   node ../../scripts/capture-audit-screens.mjs [--static src/A2S.Web/storybook-static] [--out docs/v2/screens-after]
+ *   node ../../scripts/capture-audit-screens.mjs [--static src/A2S.Web/storybook-static] [--out artifacts/screens-after]
  *
  * Serves the static build locally (Storybook's iframe needs http, not file://), opens each story's
  * iframe at 390×844 with a 2× device scale factor, waits for the network to settle and saves a
@@ -26,7 +26,7 @@ const option = (name, fallback) => {
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
 const staticDir = resolve(repoRoot, option('--static', join('src', 'A2S.Web', 'storybook-static')));
-const outDir = resolve(repoRoot, option('--out', join('docs', 'v2', 'screens-after')));
+const outDir = resolve(repoRoot, option('--out', join('artifacts', 'screens-after')));
 
 /** Story ids as Storybook derives them from `title` + export name. */
 export const STORIES = [

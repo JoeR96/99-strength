@@ -58,3 +58,6 @@ WORKBENCH.md
 audit-screenshots/
 tools/.auth-state.json
 tools/a11y/results*.json
+
+# Generated screenshots (upload as CI artefacts, never commit)
+artifacts/

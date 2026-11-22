@@ -12,7 +12,7 @@ namespace A2S.Domain.Tests.Aggregates;
 
 /// <summary>
 /// Brief § 6 "A2S2 cycle", at the aggregate level: a full 21-week run driven row by row from
-/// <c>research/A2S2_Validation_Data.md</c>, deload weeks, custom block sequences, restart after
+/// <c>docs/reference/a2s2/A2S2_Validation_Data.md</c>, deload weeks, custom block sequences, restart after
 /// week 21, undo across a week rollover and of the very first completion, double-tap complete,
 /// and substitution mid-block. The API-level counterparts live in
 /// <c>tests/A2S.Api.Tests/Integration/FullCycleIntegrationTests.cs</c> and friends.

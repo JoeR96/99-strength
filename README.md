@@ -1,116 +1,65 @@
-# 99-Strength
+# 99 Strength
 
-Phone-first training tracker built around Greg Nuckols' Average to Savage 2 programme, with Hevy sync.
-Architecture, domain model and conventions live in [`AGENTS.md`](AGENTS.md); the v2 "Whole Plan" brief,
-audit and phase plan live under [`docs/v2/`](docs/v2/).
+A phone-first training planner. It runs your whole week from one screen: lifting on Greg Nuckols'
+Average to Savage 2 (A2S2) programme, cardio, mobility, daily habits and body-weight checkpoints.
+You log your lifts in Hevy, and 99 Strength works out what comes next.
 
-## Run it locally
+Live at **https://99-strength.enjoeneer.dev**. Install it to your home screen (steps below).
 
-```bash
-npm start                 # Postgres (docker-compose) + API + Vite dev server
-# or individually
-npm run start:db
-npm run start:api         # http://localhost:5123 — refuses to start with pending migrations
-npm run start:web         # http://localhost:5173
-```
+## What it does
 
-Apply database migrations before starting the API:
+**Today** shows what's on today and nothing else: the session (lift, cardio, mobility or rest) with a
+big Start button, habit counters you tap once to log, this morning's weigh-in, weekly goal rings and your streak.
 
-```bash
-dotnet ef database update -p src/A2S.Infrastructure -s src/A2S.Api
-```
+**Plan** is the weekly schedule plus phases (cut, maintenance, pause, deload) and weight checkpoints.
+Pausing for a holiday freezes the programme, and missed sessions during a pause aren't counted as failures.
 
-The Docker image applies them with an EF migration bundle in `docker-entrypoint.sh`.
+**Lifting** follows A2S2: a 21-week cycle of three 7-week blocks, each ending in a deload. The last set of
+a main lift is done for as many reps as possible (AMRAP), and your result there moves the training max up or down.
+Accessories progress on their own rules: add a set, add weight, or drop back when you miss.
+
+**Cardio** has three protocols built in: Norwegian 4×4 intervals, Couch to 5K (with "repeat this week"),
+and steady easy work. Each session logs its duration, effort, and minutes in heart-rate zones 4–5. The zone minutes count toward a weekly target.
+
+**Mobility** routines are ordered lists of drills, each with sets, reps, seconds or breaths. A drill can
+add an extra set for one side and list a standing alternative for when you can't get on the floor.
+
+**Habits** come in three types: counters (water 3/6), numbers (weight) and checkboxes. Each habit has a minimum
+for bad days, and the streak uses a "never miss twice" rule: one missed day keeps it, two in a row breaks it.
+
+**Progress** shows your weight trend against the checkpoints, plus hard sets per muscle group this
+week against your caps.
+
+**Meals and shopping list** let you pick the week's meals and get a combined shopping list to share or copy.
+
+## How it connects
+
+| Integration | Direction | What flows |
+|---|---|---|
+| **Hevy** | both ways | Each scheduled session is pushed to Hevy as a routine, with warm-up drills first. Finished Hevy workouts are pulled back and matched to the planned session, and AMRAP results drive the A2S2 progression as if you'd entered them by hand. A workout that matches nothing goes to an inbox, where one tap assigns it. Weigh-ins are mirrored to Hevy. Needs a Hevy Pro API key, which the server stores encrypted. The browser never sees it. |
+| **Push notifications** | server → phone | "Time to train" at the session's start time, and an evening nudge when a habit is still under its minimum. Uses standard Web Push. On iPhone it only works from the installed home-screen app (iOS 16.4+). |
+| **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read today's session, and nothing else. The Terran CC habit widget uses one. |
+| **Sign-in** | — | Clerk. |
+| **Offline** | — | The app shell is cached. Habit taps made without signal are queued on the phone and synced later, each one dated to the day it was made. |
+
+Not connected, by design: MacroFactor (it has no usable API) and calorie or protein tracking.
 
 ## Install on your phone
 
-99-Strength is a progressive web app: open it once in the browser and add it to your home screen.
-It then launches full-screen, keeps you signed in and works for habits even when the signal drops.
+**iPhone (Safari, iOS 16.4+)**: open the site, tap **Share → Add to Home Screen → Add**, then launch it from
+the home screen. Notifications only work from there, and only after you turn them on in Settings.
 
-**iPhone / iPad (Safari, iOS 16.4+)**
-1. Open `https://99-strength.enjoeneer.dev` in Safari.
-2. Tap **Share** (the square with the arrow), then **Add to Home Screen**, then **Add**.
-3. Launch it from the Home Screen. Notifications only work from the installed app.
+**Android (Chrome)**: open the site, tap **⋮ → Install app**.
 
-**Android (Chrome)**
-1. Open `https://99-strength.enjoeneer.dev` in Chrome.
-2. Tap the **⋮** menu, then **Install app** (or **Add to Home screen**), then **Install**.
+## How it's built
 
-## Tests
+A .NET 10 API (Clean Architecture, CQRS, PostgreSQL) and a React 19 PWA. Its seams:
 
-```bash
-dotnet test A2S.sln                 # Domain, Application, Infrastructure (Testcontainers), API (Testcontainers)
-cd src/A2S.Web && npm test          # Vitest
-cd src/A2S.Web && npm run storybook # component states; Playwright screenshots use scripts/storybook-harness.mjs
-```
+- **Domain**: the A2S2 workout and its progression strategies, the training plan, cardio protocols, mobility
+  routines, habits, body weight and meals. No framework dependencies.
+- **Hevy anti-corruption layer**: every call to Hevy goes through the server, with retries and rate-limit handling.
+- **Push sender**: a background job that sends each nudge at most once per person per local day.
+- **Local time**: all dates are Europe/London local dates, so streaks and week rollover stay correct across clock changes.
 
-Infrastructure and API tests need Docker running (they start `postgres:16-alpine` containers).
-
-## Secrets
-
-Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,
-test fixture, commit message or PR.
-
-- **Users' Hevy keys** are encrypted at rest with ASP.NET Core Data Protection. The key ring is stored in
-  the `DataProtectionKeys` table, so a redeploy keeps working. The API only ever returns
-  `{ hasKey, lastFour }`; all calls to Hevy are made by the server.
-- **Live Hevy smoke test** (`HevyLiveSmokeTests`) runs only when a key is present locally. Load it with
-  user-secrets; nothing is written to the repo:
-
-  ```bash
-  dotnet user-secrets set "Hevy:LiveTestApiKey" "<your key>" --project src/A2S.Api
-  ```
-
-  The test project shares the API's `UserSecretsId`, so one command serves both. Alternatively set the
-  `HEVY_LIVE_TEST_API_KEY` environment variable for the test run only. Remove it afterwards with
-  `dotnet user-secrets remove "Hevy:LiveTestApiKey" --project src/A2S.Api`.
-- **Web push (VAPID) keys** are read only from configuration: `Push:VapidPublicKey`, `Push:VapidPrivateKey`
-  and `Push:Subject` (a `mailto:` address). Without all three the nudge service stays idle and Settings
-  reports push as unavailable. Generate a pair once (for example `npx web-push generate-vapid-keys`) and
-  keep it out of the repo:
-
-  ```bash
-  dotnet user-secrets set "Push:VapidPublicKey" "<public key>" --project src/A2S.Api
-  dotnet user-secrets set "Push:VapidPrivateKey" "<private key>" --project src/A2S.Api
-  dotnet user-secrets set "Push:Subject" "mailto:you@example.com" --project src/A2S.Api
-  ```
-
-  In production set the same three values as Dokploy environment variables (`Push__VapidPublicKey`,
-  `Push__VapidPrivateKey`, `Push__Subject`). Rotating the pair invalidates every stored subscription;
-  browsers re-subscribe the next time Settings is opened.
-- **Frontend** configuration goes in an untracked `src/A2S.Web/.env.local` (see `.env.example`).
-
-### Desktop widget tokens
-
-A program that cannot sign in through Clerk, such as the Terran CC habit widget or a habit import
-script, uses a personal API token instead. Create one in the app under
-**Settings → Desktop widget tokens**, give it a name, and copy it straight away: it is shown once.
-The server keeps only a SHA-256 hash, so a lost token cannot be recovered, only replaced.
-
-Send it as `Authorization: Bearer nns_pat_…`. You can have ten active tokens.
-
-A token can:
-
-- call everything under `/api/v1/habits` (today, history, log, increment, create, edit, archive, import);
-- record a weigh-in and read the trend under `/api/v1/body-weight`;
-- read `GET /api/v1/plans/today`;
-- call `GET /api/v1/users/me/api-tokens/whoami` to check that it works.
-
-A token cannot do anything else. It cannot read or change the Hevy key, workouts, plans, meals or
-push settings, and it cannot create, list or revoke tokens. Those calls answer `403`; an unknown or
-revoked token answers `401`.
-
-To revoke a token, press **Revoke** beside it in Settings. It stops working at once. Treat a token
-like a password: keep it out of the repo, logs, commit messages and chat.
-
-Adding a route to the list means marking it `[AllowApiToken]` and updating the list in
-`tests/A2S.Api.Tests/Unit/ApiTokenAllowListTests.cs`, which fails until the two agree.
-
-## Deploying a release
-
-1. Back up production Postgres (`pg_dump --format=custom`) and rehearse the pending migrations against a
-   restored copy.
-2. Run the migration bundle (the Docker entrypoint does this), then deploy the API, then the frontend.
-3. First boot after a schema change: the API upserts the exercise library by name, encrypts any legacy
-   plaintext Hevy keys and erases the plaintext. Both steps are idempotent and only log counts. Rolling
-   back to v1 after that boot means re-entering the Hevy key, because v1 reads the plaintext column.
+Developer and agent documentation: [`AGENTS.md`](AGENTS.md) for architecture and conventions, and
+[`docs/development.md`](docs/development.md) for running, testing, secrets and deploying.
