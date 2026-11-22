@@ -10,6 +10,9 @@ Live at **https://99-strength.enjoeneer.dev**. Install it to your home screen (s
 
 **Today** shows what's on today and nothing else: the session (lift, cardio, mobility or rest) with a
 big Start button, habit counters you tap once to log, this morning's weigh-in, weekly goal rings and your streak.
+On a rest day, or once today is done, **Up next** shows the next day you train and what's in it. The arrows
+beside the date let you look at any other day; tap **Preview** to see a coming lift set by set (weights can
+still change if you finish sessions before then).
 
 **Plan** is the weekly schedule plus phases (cut, maintenance, pause, deload) and weight checkpoints.
 Pausing for a holiday freezes the programme, and missed sessions during a pause aren't counted as failures.
@@ -59,7 +62,7 @@ and finisher under **Settings → Gym sessions**.
 |---|---|---|
 | **Hevy** | both ways | Each scheduled session is pushed to Hevy as a routine, with warm-up drills first. Sessions you finish in gym mode are sent to Hevy as finished workouts. Finished Hevy workouts are pulled back and matched to the planned session, and AMRAP results drive the A2S2 progression as if you'd entered them by hand. A workout that matches nothing goes to an inbox, where one tap assigns it. Weigh-ins are mirrored to Hevy. Needs a Hevy Pro API key, which the server stores encrypted. The browser never sees it. |
 | **Push notifications** | server → phone | "Time to train" at the session's start time, and an evening nudge when a habit is still under its minimum. Uses standard Web Push. On iPhone it only works from the installed home-screen app (iOS 16.4+). |
-| **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read today's session, and nothing else. The Terran CC habit widget uses one. |
+| **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read the plan for any day (today's sessions, and the coming days with each lift's planned sets), and nothing else. The Terran CC habit widget uses one. |
 | **Sign-in** | — | Clerk. |
 | **Offline** | — | The app shell is cached. Habit taps, weigh-ins, finished sessions and cardio track logs made without signal are queued on the phone and synced later, each one dated to the day it was made and counted once even if it is sent twice. A track waiting to sync says so. If you leave a routine or a track's settings half edited, the app keeps your changes on the phone and offers **Restore unsaved changes?** next time, and asks before you navigate away. |
 

@@ -287,6 +287,9 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetWorkoutHistory` | Completed day history for a workout |
 | `GetCurrentUser` / `GetUser` | User profile |
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
+| `GetUpcomingDays` (`GET /plans/upcoming?from=&days=`, 1–31, default 14) | The next days' sessions, each lift with its planned sets from the current A2S2 week and its finisher; Today's "Up next" |
+
+Personal API tokens (`[AllowApiToken]`) may read `GET /plans/today?date=` and `GET /plans/upcoming`; no other plans or workouts route and no write. The list is pinned by `ApiTokenAllowListTests`.
 | Habits, body weight, Hevy inbox, meals, push and token queries | Read sides of the commands above |
 | `GetToday` | A plan day's sessions, phase and week goals. Lift sessions carry the slot's warm-up and finisher and, when finished in gym mode, `gymSessionId` + `hevyPostStatus` (Pending/Posted/Failed/Skipped) — `GET /api/v1/plans/today` |
 | `ListCardioTracks` / `GetCardioTrack` | Tracks with prescriptions; one track with sessions, audit, benchmarks and chart points |
