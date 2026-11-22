@@ -9,6 +9,7 @@ import type {
   SetHighIntensityTargetRequest,
   SessionCompletionDto,
   TodayDto,
+  ScheduledSessionDto,
   TrainingPlanDto,
   UseAllowanceRequest,
   WeeklyGoalsDto,
@@ -25,6 +26,12 @@ export function isNotFound(error: unknown): boolean {
 
 /** `/api/v1/plans`: the Whole Plan beside the A2S2 workout. */
 export const plansApi = {
+  /** Replaces the weekly schedule (used to set a lift slot's warm-up and finisher). */
+  updateSchedule: async (planId: string, schedule: ScheduledSessionDto[]): Promise<{ plan: TrainingPlanDto }> => {
+    const response = await apiClient.put<{ plan: TrainingPlanDto }>(`/plans/${planId}/schedule`, { schedule });
+    return response.data;
+  },
+
   /** The active plan, or `null` when the user has not started one. */
   getActive: async (): Promise<TrainingPlanDto | null> => {
     try {

@@ -34,6 +34,10 @@ export interface ScheduledSessionDto {
   cardioProtocolId: string | null;
   mobilityRoutineId: string | null;
   label: string;
+  /** Lift slots only: the warm-up routine; null falls back to the routine named "Mobility A". */
+  warmUpRoutineId?: string | null;
+  /** Lift slots only: the cardio protocol done as a finisher straight after the lifts. */
+  finisherCardioProtocolId?: string | null;
 }
 
 export interface PlanPhaseDto {
@@ -121,7 +125,18 @@ export interface TodaySessionDto {
   completionId: string | null;
   /** The Hevy routine a push left for this session, or null when it was never pushed. */
   hevyRoutineId: string | null;
+  /** Gym mode: the phone's client session id when this lift was finished in gym mode. */
+  gymSessionId?: string | null;
+  /** Gym mode: where the finished session stands in Hevy; null when not finished in gym mode. */
+  hevyPostStatus?: HevyPostStatus | null;
+  /** Lift slots only: the warm-up routine (null = "Mobility A"). */
+  warmUpRoutineId?: string | null;
+  /** Lift slots only: the attached finisher's cardio protocol. */
+  finisherCardioProtocolId?: string | null;
 }
+
+/** A gym session's Hevy post: Skipped means no Hevy key is stored. */
+export type HevyPostStatus = 'Pending' | 'Posted' | 'Failed' | 'Skipped';
 
 export interface WeeklyGoalsDto {
   weekStart: LocalDate;

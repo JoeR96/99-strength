@@ -39,6 +39,17 @@ export const Done: Story = {
   ],
 };
 
+/** Upper A finished in gym mode; Hevy was unreachable, so the card says "Not in Hevy yet" with Retry. */
+export const NotInHevyYet: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.doneNotInHevy());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+  ],
+};
+
 export const RestDay: Story = {
   decorators: [
     withApiMocks(() => {

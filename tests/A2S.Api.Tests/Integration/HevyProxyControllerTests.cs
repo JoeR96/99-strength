@@ -91,6 +91,19 @@ public class HevyProxyControllerTests
     }
 
     [Fact]
+    public async Task ProxyPost_Workouts_IsRefused_BecauseTheServerPostsGymSessions()
+    {
+        var client = CreateClient();
+        await StoreTestKeyAsync(client);
+
+        var response = await client.PostAsJsonAsync("/api/v1/hevy/workouts", new { workout = new { title = "x" } });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Contain("gym mode");
+    }
+
+    [Fact]
     public async Task ProxyGet_SsrfAttempt_ReturnsBadRequest()
     {
         var client = CreateClient();

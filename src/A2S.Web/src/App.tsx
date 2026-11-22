@@ -24,6 +24,7 @@ import { RoutinesPage } from './features/routines/RoutinesPage';
 import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
 import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
+import { GymModePage } from './features/gym/GymModePage';
 
 function AppContent() {
   // Initialize API client with Clerk auth
@@ -66,6 +67,16 @@ function AppContent() {
         <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
         <Route path="/habits" element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
         <Route path="/workout" element={<ProtectedRoute><WorkoutDashboard /></ProtectedRoute>} />
+        <Route
+          path="/gym/:day"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundary>
+                <GymModePage />
+              </ErrorBoundary>
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/workout/session/:day"
           element={

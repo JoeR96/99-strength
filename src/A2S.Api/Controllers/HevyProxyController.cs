@@ -140,6 +140,18 @@ public class HevyProxyController : ControllerBase
             return ForbiddenResource(resource);
         }
 
+        // Workouts are written to Hevy by the server (gym mode, POST /api/v1/gym-sessions), never from the browser.
+        if (string.Equals(resource, "workouts", StringComparison.Ordinal))
+        {
+            return new ObjectResult(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid Resource",
+                Detail = "Workouts are sent to Hevy by the server when you finish a session in gym mode."
+            })
+            { StatusCode = StatusCodes.Status400BadRequest };
+        }
+
         var url = $"{HevyApiBaseUrl}/{resource}";
 
         _logger.LogInformation("Proxying POST to Hevy: {Resource}", resource);

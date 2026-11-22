@@ -6,6 +6,7 @@ import { HevySettings } from '@/components/hevy/HevySettings';
 import { PushSettings } from './PushSettings';
 import { HevySyncSettings } from './HevySyncSettings';
 import { ApiTokensSettings } from './ApiTokensSettings';
+import { GymSessionSettings } from './GymSessionSettings';
 import toast from 'react-hot-toast';
 import type { WorkoutDto, ExerciseDto } from '@/types/workout';
 
@@ -97,6 +98,8 @@ export function SettingsPage() {
           <HevySettings />
 
           <HevySyncSettings />
+
+          <GymSessionSettings />
 
           <ApiTokensSettings />
 

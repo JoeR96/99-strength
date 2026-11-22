@@ -51,8 +51,6 @@ export function WorkoutSession() {
         dayNumber={session.dayNumber}
         dayName={session.dayName}
         exerciseEntries={session.exerciseEntries}
-        workoutStartTime={session.workoutStartTime.current}
-        workoutEndTime={session.workoutEndTime.current}
         onContinue={() => session.navigate("/workout")}
       />
     );

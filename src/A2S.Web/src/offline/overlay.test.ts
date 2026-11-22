@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { habitsTodayFixture, WALKS_ID, WATER_ID } from '@/mocks/fixtures/habits';
-import { todayCardio } from '@/mocks/fixtures/plan';
+import { todayCardio, todayUpperA } from '@/mocks/fixtures/plan';
 import { SessionKind, SessionStatus } from '@/types/plan';
 import { overlayHabitOps, overlayPlanOps, overlayTrendOps } from './overlay';
 import type { OfflineOp } from './types';
@@ -58,6 +58,24 @@ describe('overlayPlanOps', () => {
 
     expect(result.sessions.find((s) => s.kind === SessionKind.Cardio)!.status).toBe(SessionStatus.Done);
     expect(result.sessions.find((s) => s.kind === SessionKind.Mobility)!.status).toBe(cardio.status);
+  });
+
+  it('marks the lift Done and not in Hevy yet while a gym-mode finish is queued', () => {
+    const today = todayUpperA(date);
+    const result = overlayPlanOps(today, [
+      {
+        ...base,
+        kind: 'gym.finish',
+        localDate: date,
+        target: { clientSessionId: 'cs-1' },
+        payload: { clientSessionId: 'cs-1', workoutId: 'w-1', day: 1, startedAt: '', endedAt: '', performances: [] },
+      },
+    ])!;
+
+    const lift = result.sessions.find((s) => s.kind === SessionKind.Lift)!;
+    expect(lift.status).toBe(SessionStatus.Done);
+    expect(lift.hevyPostStatus).toBe('Pending');
+    expect(lift.gymSessionId).toBe('cs-1');
   });
 
   it('passes null through', () => {

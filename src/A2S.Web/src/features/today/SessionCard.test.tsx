@@ -22,7 +22,7 @@ describe('SessionCard', () => {
   it('without a Hevy key shows Start on its own', () => {
     renderCard({ session: upperA });
 
-    expect(screen.getByTestId('start-session')).toHaveAttribute('href', '/workout/session/1');
+    expect(screen.getByTestId('start-session')).toHaveAttribute('href', '/gym/1');
     expect(screen.queryByTestId('open-in-hevy')).not.toBeInTheDocument();
     expect(screen.queryByTestId('push-to-hevy')).not.toBeInTheDocument();
   });
@@ -103,5 +103,22 @@ describe('SessionCard', () => {
       expect(element.className).toContain('h-14');
       expect(element.className).not.toContain('h-10');
     }
+  });
+
+  it('a lift finished in gym mode but not in Hevy yet shows the notice and retries', () => {
+    const onRetryHevy = vi.fn();
+    const done = { ...todayDone(DATE).sessions[0], gymSessionId: 'cs-1', hevyPostStatus: 'Pending' as const };
+    renderCard({ session: done, onRetryHevy });
+
+    expect(screen.getByTestId('not-in-hevy')).toHaveTextContent('Not in Hevy yet');
+    fireEvent.click(screen.getByTestId('retry-hevy'));
+    expect(onRetryHevy).toHaveBeenCalledWith(done);
+  });
+
+  it('says nothing about Hevy once the gym session is posted', () => {
+    const done = { ...todayDone(DATE).sessions[0], gymSessionId: 'cs-1', hevyPostStatus: 'Posted' as const };
+    renderCard({ session: done, onRetryHevy: vi.fn() });
+
+    expect(screen.queryByTestId('not-in-hevy')).not.toBeInTheDocument();
   });
 });

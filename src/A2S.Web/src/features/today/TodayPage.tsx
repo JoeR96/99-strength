@@ -39,6 +39,7 @@ import { usePendingSyncCount } from '@/offline/context';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 import { HevySyncNotice } from './HevySyncNotice';
 import { openHevyRoutine } from './hevyDeepLink';
+import { useRetryHevyPost } from '@/hooks/useGymSession';
 
 export interface TodayPageProps {
   /** Overrides the offline queue length shown in the header (stories); otherwise read from the queue. */
@@ -73,6 +74,7 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
   const pull = useAutoPullHevy(hevyConfigured && online);
   const inboxQuery = useHevyInbox(hevyConfigured);
   const pushSession = usePushSession();
+  const retryHevy = useRetryHevyPost();
 
   const [cardioSession, setCardioSession] = useState<TodaySessionDto | null>(null);
   const [mobilitySession, setMobilitySession] = useState<TodaySessionDto | null>(null);
@@ -282,6 +284,8 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
                 onOpenInHevy={openInHevy}
                 onPushToHevy={pushToHevy}
                 pushing={isPushing(session)}
+                onRetryHevy={(s) => s.gymSessionId && retryHevy.mutate(s.gymSessionId)}
+                retrying={retryHevy.isPending && retryHevy.variables === session.gymSessionId}
                 busy={completeSession.isPending || undoCompletion.isPending}
               />
             ))}
