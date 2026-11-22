@@ -432,7 +432,8 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
                 ))}
               </div>
             )}
-            {!habitsQuery.isLoading && !habitsQuery.isError && (
+            {/* The weigh-in follows its habit: archive the habit and Today stops asking. */}
+            {!habitsQuery.isLoading && !habitsQuery.isError && weighInHabit && (
               <WeighInField
                 valueKg={weighInKg}
                 onSave={saveWeight}

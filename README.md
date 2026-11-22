@@ -9,7 +9,7 @@ Live at **https://99-strength.enjoeneer.dev**. Install it to your home screen (s
 ## What it does
 
 **Today** shows what's on today and nothing else: the session (lift, cardio, mobility or rest) with a
-big Start button, habit counters you tap once to log, this morning's weigh-in, weekly goal rings and your streak.
+big Start button, habit counters you tap once to log, this morning's weigh-in (only while you have a weigh-in habit; archive it and Today stops asking), weekly goal rings and your streak.
 On a rest day, or once today is done, **Up next** shows the next day you train and what's in it. The arrows
 beside the date let you look at any other day; tap **Preview** to see a coming lift set by set (weights can
 still change if you finish sessions before then).
