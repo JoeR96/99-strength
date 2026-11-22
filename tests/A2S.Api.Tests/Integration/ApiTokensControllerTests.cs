@@ -109,6 +109,21 @@ public class ApiTokensControllerTests
     }
 
     [Fact]
+    public async Task AToken_ReadsReadiness_ButCannotSetIt()
+    {
+        var clerk = ClerkSession();
+        (await clerk.Client.PutAsJsonAsync($"/api/v1/readiness/{Day:yyyy-MM-dd}", new { colour = "Red" })).StatusCode.Should().Be(HttpStatusCode.OK);
+        var token = TokenClient((await CreateToken(clerk.Client)).Token);
+
+        var read = await token.GetAsync($"/api/v1/readiness?date={Day:yyyy-MM-dd}");
+        var write = await token.PutAsJsonAsync($"/api/v1/readiness/{Day:yyyy-MM-dd}", new { colour = "Green" });
+
+        read.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await read.Content.ReadAsStringAsync()).Should().Contain("\"colour\":\"Red\"").And.Contain("\"finisherSkipped\":true");
+        write.StatusCode.Should().Be(HttpStatusCode.Forbidden, "only the read is on the token allow list");
+    }
+
+    [Fact]
     public async Task AToken_ReadsAndWritesItsOwnersHabits()
     {
         var clerk = ClerkSession();

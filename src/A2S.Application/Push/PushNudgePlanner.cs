@@ -86,5 +86,23 @@ public static class PushNudgePlanner
             TodayUrl);
     }
 
+    /// <summary>The phase heads-up goes out from 08:00 to 21:00 local on any day of the heads-up window (once per phase).</summary>
+    public static readonly TimeOnly PhaseChangeFrom = new(8, 0);
+    public static readonly TimeOnly PhaseChangeUntil = new(21, 0);
+
+    /// <summary>"Build starts Monday 4 Jan" with the first changes, when <paramref name="phase"/> is in its heads-up window; null otherwise.</summary>
+    public static PushNudge? PhaseChangeNudge(TimeOnly nowLocal, DateOnly today, PlanPhase? phase)
+    {
+        if (phase is null || !phase.HasChanges || !phase.InHeadsUpWindow(today) || nowLocal < PhaseChangeFrom || nowLocal >= PhaseChangeUntil)
+        {
+            return null;
+        }
+
+        var name = phase.Label ?? phase.Type.ToString();
+        var when = phase.From == today ? "starts today" : $"starts {phase.From.ToString("dddd d MMM", CultureInfo.InvariantCulture)}";
+        var lines = phase.Changes.Concat(phase.Swaps.Select(s => $"{s.ToExercise} replaces {s.FromExercise}")).Take(3);
+        return new PushNudge(PushNudgeKind.PhaseChange, $"{name} {when}", string.Join("; ", lines), TodayUrl);
+    }
+
     private static string Format(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 }

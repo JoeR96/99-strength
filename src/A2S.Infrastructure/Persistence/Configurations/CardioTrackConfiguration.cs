@@ -56,11 +56,13 @@ public class CardioTrackConfiguration : IEntityTypeConfiguration<CardioTrack>
         MapList<CardioTrackSession>(builder, "_sessions", "Sessions");
         MapList<CardioTrackAuditEntry>(builder, "_audit", "Audit");
         MapList<BenchmarkResult>(builder, "_benchmarks", "Benchmarks");
+        MapList<GateCondition>(builder, "_startGate", "StartGate");
 
         builder.Ignore(t => t.Stages);
         builder.Ignore(t => t.Sessions);
         builder.Ignore(t => t.Audit);
         builder.Ignore(t => t.Benchmarks);
+        builder.Ignore(t => t.StartGate);
         builder.Ignore(t => t.CurrentStage);
         builder.Ignore(t => t.Strategy);
         builder.Ignore(t => t.Prescription);

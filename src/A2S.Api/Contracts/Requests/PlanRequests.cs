@@ -13,6 +13,12 @@ public sealed record UpdateScheduleRequest(IReadOnlyList<ScheduledSessionDto> Sc
 /// <summary>Body for <c>POST /api/v1/plans/{id}/phases</c>.</summary>
 public sealed record AddPhaseRequest(PhaseType Type, DateOnly From, DateOnly To, string? Note);
 
+/// <summary>Body for <c>PUT /api/v1/plans/{id}/phases/{from}/changes</c>.</summary>
+public sealed record SetPhaseChangesRequest(string? Label, IReadOnlyList<string>? Changes, IReadOnlyList<A2S.Application.DTOs.PhaseSwapDto>? Swaps);
+
+/// <summary>Response of <c>GET /api/v1/plans/phase-heads-up</c>.</summary>
+public sealed record PhaseHeadsUpResponse(A2S.Application.Commands.Plans.PhaseHeadsUpDto? HeadsUp);
+
 /// <summary>Body for <c>POST /api/v1/plans/{id}/checkpoints</c>.</summary>
 public sealed record AddCheckpointRequest(DateOnly Date, decimal TargetKg, string? Note);
 

@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.DTOs;
 
 namespace A2S.Api.Contracts.Requests;
@@ -16,3 +17,6 @@ public sealed record RecordBenchmarkRequest(decimal Value, DateOnly? Date = null
 
 /// <summary>Body for <c>PUT /api/v1/cardio-tracks/heart-rate-zones</c>.</summary>
 public sealed record SetHeartRateZonesRequest(int? MaxHeartRate, IReadOnlyList<int>? LowerPercents);
+
+/// <summary>Body for <c>PUT /api/v1/cardio-tracks/{id}/gate</c>.</summary>
+public sealed record SetCardioTrackGateRequest(IReadOnlyList<GateConditionDto>? Conditions, bool UseDefault = false);

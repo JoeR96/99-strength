@@ -106,6 +106,24 @@ public class PlansController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
+    /// <summary>Sets a phase's label, changes (shown the week before it starts) and exercise swaps offered at its start.</summary>
+    [HttpPut("{id:guid}/phases/{from}/changes")]
+    [ProducesResponseType(typeof(TrainingPlanDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetPhaseChanges([FromRoute] Guid id, [FromRoute] DateOnly from, [FromBody] SetPhaseChangesRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new SetPhaseChangesCommand(id, from, request.Label, request.Changes ?? [], request.Swaps), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>The heads-up for a phase starting within a week (or today): <c>{ headsUp: null }</c> outside every window.</summary>
+    [HttpGet("phase-heads-up")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPhaseHeadsUp([FromQuery] DateOnly? date, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetPhaseHeadsUpQuery(date), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(new PhaseHeadsUpResponse(result.Value));
+    }
+
     [HttpDelete("{id:guid}/phases/{from}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemovePhase([FromRoute] Guid id, [FromRoute] DateOnly from, CancellationToken cancellationToken)

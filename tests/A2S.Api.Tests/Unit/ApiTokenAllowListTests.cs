@@ -34,6 +34,7 @@ public class ApiTokenAllowListTests
         "POST api/v1/habits/{id:guid}/unarchive",
         "GET api/v1/plans/today",
         "GET api/v1/plans/upcoming",
+        "GET api/v1/readiness",
         "GET api/v1/users/me/api-tokens/whoami"
     ];
 
@@ -73,7 +74,7 @@ public class ApiTokenAllowListTests
     }
 
     [Fact]
-    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayUpcomingAndWhoAmIBesides()
+    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayUpcomingReadinessAndWhoAmIBesides()
     {
         var reachable = ControllerEndpoints(isProduction: true)
             .Where(endpoint => endpoint.Metadata.GetMetadata<AllowApiTokenAttribute>() is not null)
@@ -95,6 +96,7 @@ public class ApiTokenAllowListTests
             .Should().BeEquivalentTo(
                 $"{nameof(PlansController)}.{nameof(PlansController.GetToday)}",
                 $"{nameof(PlansController)}.{nameof(PlansController.GetUpcoming)}",
+                $"{nameof(ReadinessController)}.{nameof(ReadinessController.Get)}",
                 $"{nameof(ApiTokensController)}.{nameof(ApiTokensController.WhoAmI)}");
     }
 
@@ -114,6 +116,10 @@ public class ApiTokenAllowListTests
             "PUT api/v1/users/me/hevy-api-key",
             "GET api/v1/users/me/hevy-api-key",
             "GET api/v1/plans/active",
+            "PUT api/v1/readiness/{date}",
+            "PUT api/v1/readiness/{date}/finisher",
+            "GET api/v1/plans/phase-heads-up",
+            "PUT api/v1/cardio-tracks/{id:guid}/gate",
             "POST api/v1/plans",
             "POST api/v1/plans/{id:guid}/completions",
             "GET api/v1/workouts/{id:guid}/weeks/{week:int}/days/{day:int}/plan"

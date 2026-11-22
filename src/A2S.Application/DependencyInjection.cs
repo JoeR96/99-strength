@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<Hevy.HevyPostRetryRunner>();
         services.AddScoped<AmbientUser>();
         services.AddScoped<Cardio.CardioTrackSessionRecorder>();
+        services.AddScoped<Cardio.CardioGateEvaluator>();
         services.AddScoped<Hevy.HevyCardioTrackLogger>();
         services.AddScoped<Hevy.SessionHevyPoster>();
 

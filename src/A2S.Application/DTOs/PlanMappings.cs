@@ -20,7 +20,8 @@ public static class PlanMappings
         new WeeklyAllowancesDto(plan.Allowances.FlexibleMeals, plan.Allowances.AlcoholOccasions),
         new HighIntensityTargetDto(plan.HighIntensityTarget.MinMinutes, plan.HighIntensityTarget.MaxMinutes),
         plan.Schedule.Select(ToDto).ToList(),
-        plan.Phases.Select(p => new PlanPhaseDto(p.Type, p.From, p.To, p.Note)).ToList(),
+        plan.Phases.Select(p => new PlanPhaseDto(p.Type, p.From, p.To, p.Note, p.Label, p.Changes,
+            p.Swaps.Select(s => new PhaseSwapDto(s.FromExercise, s.ToExercise)).ToList())).ToList(),
         plan.Checkpoints.Select(c => new CheckpointDto(c.Date, c.TargetKg, c.Note)).ToList(),
         plan.Completions.Select(ToDto).ToList(),
         plan.AllowanceUses.Select(u => new AllowanceUseDto(u.Date, u.Kind)).ToList());

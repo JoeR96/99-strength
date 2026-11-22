@@ -283,7 +283,7 @@ public class CardioTrackCommandTests
             recordedAt: Now);
         _plans.GetActiveForUserAsync(Owner, Arg.Any<CancellationToken>()).Returns(plan);
 
-        var result = await new GetTodayCardioQueryHandler(_tracks, _plans, _currentUser, _clock)
+        var result = await new GetTodayCardioQueryHandler(_tracks, _plans, _currentUser, _clock, new CardioGateEvaluator(Substitute.For<IBodyWeightRepository>(), _plans, new A2S.Domain.Services.TrendService()))
             .Handle(new GetTodayCardioQuery(), CancellationToken.None);
 
         result.Value.Tracks.Should().ContainSingle().Which.Name.Should().Be("Stair finisher");

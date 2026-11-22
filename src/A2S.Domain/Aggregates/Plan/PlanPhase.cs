@@ -58,6 +58,13 @@ public sealed record PlanPhase
         Swaps = cleanSwaps.Select(s => new PhaseSwap(s.FromExercise.Trim(), s.ToExercise.Trim())).ToList();
     }
 
+    /// <summary>Value equality, comparing the change and swap lists by content.</summary>
+    public bool Equals(PlanPhase? other) =>
+        other is not null && Type == other.Type && From == other.From && To == other.To && Note == other.Note && Label == other.Label
+        && Changes.SequenceEqual(other.Changes) && Swaps.SequenceEqual(other.Swaps);
+
+    public override int GetHashCode() => HashCode.Combine(Type, From, To, Note, Label, Changes.Count, Swaps.Count);
+
     public bool Contains(DateOnly date) => date >= From && date <= To;
 
     public bool Overlaps(PlanPhase other) => From <= other.To && other.From <= To;
