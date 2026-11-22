@@ -45,6 +45,13 @@ describe('ProgressPage', () => {
     installWorkoutsHandlers(workoutsHandlers.default());
   });
 
+  it('shows the plan name in the header with a rename button', async () => {
+    renderPage();
+
+    expect(await screen.findByText('Lumbridge Lard Shed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rename plan' })).toBeInTheDocument();
+  });
+
   it('shows the pace label, volume bars with the warning, checkpoints and the history link', async () => {
     renderPage();
     const pace = await screen.findByTestId('pace-label');

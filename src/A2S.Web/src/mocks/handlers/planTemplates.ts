@@ -23,7 +23,7 @@ export const replaceConflict = () =>
         data: {
           status: 409,
           title: 'Conflict',
-          detail: 'You already have an active plan (Cut to 85 — Nov 2026). Confirm to replace it: resend with confirmReplace.',
+          detail: 'You already have an active plan (Lumbridge Lard Shed). Confirm to replace it: resend with confirmReplace.',
         },
       },
     })

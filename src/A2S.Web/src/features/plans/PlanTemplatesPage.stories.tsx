@@ -22,7 +22,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every template: Plan v3 and Cut to 85. */
+/** Every template: Plan v3 and Lumbridge Lard Shed. */
 export const List: Story = {
   decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.default())), withAppProviders('/plans/templates')],
 };
@@ -40,6 +40,6 @@ export const ApplyDialog: Story = {
 
 /** Another plan is active: replace it explicitly (its history is kept). */
 export const ApplyReplaceConfirm: Story = {
-  args: { initialApplyOpen: true, initialReplaceName: 'Cut to 85 — Nov 2026' },
+  args: { initialApplyOpen: true, initialReplaceName: 'Lumbridge Lard Shed' },
   decorators: [withApiMocks(() => installPlanTemplatesHandlers(planTemplatesHandlers.needsReplace())), withAppProviders('/plans/templates/plan-v3')],
 };

@@ -79,13 +79,20 @@ What the phone keeps, and how a write sent twice is still done once.
 ## Plan templates
 
 Templates live in `src/A2S.Application/SuggestedPlans/` as classes implementing `IPlanTemplate`
-(`CutTo85Template`, `PlanV3BaseBuildTransition`); `PlanTemplates.All` finds them by reflection, so a new
+(`CutTo85Template`, shown as "Lumbridge Lard Shed" but still keyed `cut-to-85`; `PlanV3BaseBuildTransition`); `PlanTemplates.All` finds them by reflection, so a new
 template is one new class plus tests. `Build(PlanTemplateInputs)` is pure and returns a
 `SuggestedPlanSpec` (exercises with `SupersetGroup`/`Tier`/`TrainingMaxPending`, schedule slots with
 `WarmUp`, `FinisherSpec` (track key or `FixedActivity`) and `CardioTrack`, routines, track template keys,
 block sequence, phases). `PlanTemplateApplier` turns a spec into aggregates; `PlanTemplatePreview` previews it.
 API: `GET /api/v1/plans/templates[?startDate=]`, `GET /api/v1/plans/templates/{key}`,
 `POST /api/v1/plans/templates/{key}/apply` (409 until `confirmReplace` when another plan is active).
+"Already started" matches the active plan by name: the template's `Name` or one of its `PreviousNames`
+(`PlanTemplates.IsSamePlan`), so a plan created as "Cut to 85 — Nov 2026" is still recognised after the rename.
+A renamed plan (below) is no longer recognised, so applying the template again asks to replace it.
+
+Plans can be renamed: `TrainingPlan.Rename` (non-blank, trimmed, ≤ 200) via `RenamePlanCommand` →
+`PUT /api/v1/plans/{id}/name` `{ "name": "…" }` (owner only, another user's plan is 404). The pencil next to
+the plan name on Progress opens `RenamePlanDialog` (`features/plans/`).
 Migration `AddSupersetsExtraSetsPendingTrainingMax` adds `Exercises.SupersetGroup`, `Exercises.ExtraSetSide`
 and `ExerciseProgressions.IsTrainingMaxPending` (additive; Down tested in
 `GymPlanFitPersistenceTests`). The fixed cool-down lives in the schedule's jsonb, so it needed no migration.

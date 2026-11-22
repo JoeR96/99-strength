@@ -13,6 +13,7 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
 {
     public const decimal MinimumStartWeightKg = 30m;
     public const decimal MaximumStartWeightKg = 300m;
+    public const int MaximumNameLength = 200;
 
     private readonly List<ScheduledSession> _schedule = new();
     private readonly List<PlanPhase> _phases = new();
@@ -98,6 +99,15 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
 
         plan.AddDomainEvent(new TrainingPlanStarted(plan.Id, userId, plan.StartDate));
         return plan;
+    }
+
+    /// <summary>Renames the plan: required, trimmed, at most <see cref="MaximumNameLength"/> characters.</summary>
+    public void Rename(string name)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(name), "Plan name is required");
+        var trimmed = name.Trim();
+        CheckRule(trimmed.Length <= MaximumNameLength, $"Plan name must be {MaximumNameLength} characters or fewer");
+        Name = trimmed;
     }
 
     /// <summary>True when any slot in the weekly schedule plays the given mobility routine.</summary>

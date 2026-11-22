@@ -140,3 +140,15 @@ export function useAllowance() {
     onSuccess: () => invalidatePlanViews(queryClient),
   });
 }
+
+/** Renames a plan; refreshes every plan query (the name shows on Progress, gym mode, Hevy titles). */
+export function useRenamePlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ planId, name }: { planId: string; name: string }) => plansApi.rename(planId, name),
+    onSuccess: async (plan) => {
+      queryClient.setQueryData(planKeys.active(), plan);
+      await queryClient.invalidateQueries({ queryKey: planKeys.all });
+    },
+  });
+}

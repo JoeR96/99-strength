@@ -88,7 +88,7 @@ export function replaceConfirmation(error: unknown): { activePlanName: string } 
   if (response?.status !== 409) return null;
   const data = response.data ?? {};
   if (data.code && data.code !== 'PlanReplaceNeedsConfirmation') return null;
-  // The server's detail: "You already have an active plan (Cut to 85 — Nov 2026). Confirm to replace it: …"
+  // The server's detail: "You already have an active plan (Lumbridge Lard Shed). Confirm to replace it: …"
   const fromDetail = /active plan \((.+?)\)\./.exec(data.detail ?? '')?.[1];
   return { activePlanName: data.activePlanName ?? fromDetail ?? 'your current plan' };
 }

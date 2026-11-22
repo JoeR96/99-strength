@@ -9,7 +9,7 @@ using MediatR;
 namespace A2S.Application.Queries.SuggestedPlans;
 
 /// <summary>
-/// Every plan template (Cut to 85, Plan v3, …) a person can start, previewed for the coming Monday:
+/// Every plan template (Lumbridge Lard Shed, Plan v3, …) a person can start, previewed for the coming Monday:
 /// the week, the lifting days with their time estimates, the inputs, and whether it is already active.
 /// </summary>
 public sealed record GetSuggestedPlansQuery : IQuery<Result<IReadOnlyList<SuggestedPlanPreviewDto>>>;
@@ -55,7 +55,7 @@ public sealed class GetSuggestedPlansQueryHandler :
         var start = PlanTemplateInputBinder.StartDate(request.StartDate, _clock.Today());
 
         return Result.Success<IReadOnlyList<SuggestedPlanPreviewDto>>(templates
-            .Select(t => PlanTemplatePreview.Build(t, start, active is not null && string.Equals(active.Name, t.Name, StringComparison.Ordinal)))
+            .Select(t => PlanTemplatePreview.Build(t, start, active is not null && PlanTemplates.IsSamePlan(active.Name, t.Name)))
             .ToList());
     }
 }

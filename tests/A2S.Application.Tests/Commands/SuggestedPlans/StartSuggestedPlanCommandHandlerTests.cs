@@ -141,7 +141,7 @@ public class StartSuggestedPlanCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue(result.Error);
         var plan = _addedPlans.Single();
-        plan.Name.Should().Be("Cut to 85 — Nov 2026");
+        plan.Name.Should().Be("Lumbridge Lard Shed");
         plan.StartDate.Should().Be(Mon16Nov2026);
         plan.StartWeightKg.Should().Be(96.5m);
         plan.IsActive.Should().BeTrue();
@@ -219,6 +219,22 @@ public class StartSuggestedPlanCommandHandlerTests
         _addedProtocols.Should().HaveCount(3);
         _addedHabits.Should().HaveCount(5);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhileAPlanStartedUnderTheOldName_IsActive_ReturnsItWithoutCreatingAnother()
+    {
+        var legacy = TrainingPlan.Create(TestUserId, "Cut to 85 — Nov 2026", new DateOnly(2026, 11, 16),
+            [ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "A")], 95m);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(legacy);
+
+        var result = await _handler.Handle(Command(), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        result.Value.AlreadyStarted.Should().BeTrue();
+        result.Value.PlanId.Should().Be(legacy.Id.Value);
+        legacy.IsActive.Should().BeTrue();
+        _addedPlans.Should().BeEmpty();
     }
 
     [Fact]

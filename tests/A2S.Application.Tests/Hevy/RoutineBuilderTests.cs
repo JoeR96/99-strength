@@ -56,7 +56,7 @@ public class RoutineBuilderTests
             RoutineBuilder.LiftTitle(CutTo85Nov2026.Name, workout.CurrentWeek, "Upper A"), 42, workout, DayNumber.Day1,
             Program.GetWeekParameters(1), MobilityA(), DrillTemplates(), templates, CutTo85Nov2026.Supersets(), CutTo85Nov2026.ExerciseNotes());
 
-        draft.Title.Should().Be("Cut to 85 — Nov 2026 · W1 Upper A");
+        draft.Title.Should().Be("Lumbridge Lard Shed · W1 Upper A");
         draft.FolderId.Should().Be(42);
         draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("T-breathing", "T-open-books", "79D0BB3A", "D0C4A899", "BE640BA0", "T-wall-slide");
 

@@ -7,7 +7,7 @@ using FluentValidation;
 namespace A2S.Application.Commands.SuggestedPlans;
 
 /// <summary>
-/// One tap on first run: builds the "Cut to 85 — Nov 2026" plan from four training maxes and a start
+/// One tap on first run: builds the "Lumbridge Lard Shed" plan from four training maxes and a start
 /// weight. Creates the A2S2 workout, cardio protocols, mobility routines and habits, then the plan that
 /// links them, in one unit of work. Idempotent per user: while that plan is the active one, starting
 /// again returns it instead of creating a second plan and workout.

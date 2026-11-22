@@ -141,7 +141,7 @@ public class PlanTemplatesControllerTests
 
         var refused = await client.PostAsJsonAsync("/api/v1/plans/templates/plan-v3/apply", PlanV3());
         refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        (await refused.Content.ReadAsStringAsync()).Should().Contain("Cut to 85");
+        (await refused.Content.ReadAsStringAsync()).Should().Contain("Lumbridge Lard Shed");
         (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Id.Should().Be(old.PlanId);
 
         var confirmed = await client.PostAsJsonAsync("/api/v1/plans/templates/plan-v3/apply", PlanV3(confirm: true));

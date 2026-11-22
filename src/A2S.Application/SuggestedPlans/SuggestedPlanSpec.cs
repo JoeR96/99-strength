@@ -117,6 +117,9 @@ public interface IPlanTemplate
 {
     string Key { get; }
     string Name { get; }
+
+    /// <summary>Names the template used to give its plan; an active plan under one of them is this template.</summary>
+    IReadOnlyList<string> PreviousNames => [];
     string Description { get; }
     decimal DefaultStartWeightKg { get; }
     IReadOnlyList<SuggestedPlanInputSpec> Inputs { get; }
@@ -135,6 +138,14 @@ public static class PlanTemplates
             .OrderBy(t => t is CutTo85Template ? 0 : 1)
             .ThenBy(t => t.Key, StringComparer.Ordinal)
             .ToList();
+
+    /// <summary>
+    /// True when an active plan called <paramref name="planName"/> is the template that now produces
+    /// <paramref name="templateName"/>: the same name, or one of that template's previous names.
+    /// </summary>
+    public static bool IsSamePlan(string planName, string templateName) =>
+        string.Equals(planName, templateName, StringComparison.Ordinal)
+        || All.Any(t => string.Equals(t.Name, templateName, StringComparison.Ordinal) && t.PreviousNames.Contains(planName, StringComparer.Ordinal));
 
     public static IPlanTemplate? Find(string key) =>
         All.FirstOrDefault(t => string.Equals(t.Key, key, StringComparison.OrdinalIgnoreCase));

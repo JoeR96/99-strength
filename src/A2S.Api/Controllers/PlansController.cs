@@ -62,7 +62,7 @@ public class PlansController : ControllerBase
     }
 
     /// <summary>
-    /// Starts "Cut to 85 — Nov 2026" from four training maxes and a start weight (default 95 kg): workout,
+    /// Starts "Lumbridge Lard Shed" (template key cut-to-85) from four training maxes and a start weight (default 95 kg): workout,
     /// cardio protocols, mobility routines, habits and the plan, starting the coming Monday.
     /// 201 on creation; 200 with the existing plan when it is already the active one.
     /// </summary>
@@ -256,6 +256,17 @@ public class PlansController : ControllerBase
     public async Task<IActionResult> UseAllowance([FromRoute] Guid id, [FromBody] UseAllowanceRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new UseAllowanceCommand(id, request.Date, request.Kind), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>Renames one of the signed-in user's plans. 404 for another user's plan; 400 for a blank or over-long name.</summary>
+    [HttpPut("{id:guid}/name")]
+    [ProducesResponseType(typeof(TrainingPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Rename([FromRoute] Guid id, [FromBody] RenamePlanRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new RenamePlanCommand(id, request.Name), cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 

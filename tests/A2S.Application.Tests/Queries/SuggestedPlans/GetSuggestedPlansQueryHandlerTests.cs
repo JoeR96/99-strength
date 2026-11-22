@@ -36,7 +36,7 @@ public class GetSuggestedPlansQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         var preview = result.Value.Single(p => p.Key == CutTo85Nov2026.Key);
         preview.Key.Should().Be("cut-to-85");
-        preview.Name.Should().Be("Cut to 85 — Nov 2026");
+        preview.Name.Should().Be("Lumbridge Lard Shed");
         preview.StartDate.Should().Be(new DateOnly(2026, 11, 16));
         preview.AlreadyStarted.Should().BeFalse();
         preview.Inputs.Select(i => i.Key).Should().Equal("benchTm", "squatTm", "ohpTm", "deadliftTm", "startWeightKg");
@@ -49,10 +49,12 @@ public class GetSuggestedPlansQueryHandlerTests
         preview.Checkpoints.Should().HaveCount(4);
     }
 
-    [Fact]
-    public async Task Handle_WhenThePlanIsAlreadyActive_SaysSo()
+    [Theory]
+    [InlineData("Lumbridge Lard Shed")]
+    [InlineData("Cut to 85 — Nov 2026")]
+    public async Task Handle_WhenThePlanIsAlreadyActive_UnderItsCurrentOrOldName_SaysSo(string activeName)
     {
-        var active = TrainingPlan.Create(TestUserId, "Cut to 85 — Nov 2026", new DateOnly(2026, 11, 9),
+        var active = TrainingPlan.Create(TestUserId, activeName, new DateOnly(2026, 11, 9),
             [ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A")], 95m);
         _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(active);
 

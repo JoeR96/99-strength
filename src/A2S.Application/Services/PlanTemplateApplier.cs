@@ -53,7 +53,7 @@ public sealed class PlanTemplateApplier
     }
 
     /// <summary>
-    /// Applies <paramref name="spec"/>. While a plan with the same name is active, returns it unchanged
+    /// Applies <paramref name="spec"/>. While a plan with the same name (or a previous name of that template) is active, returns it unchanged
     /// (idempotent). Another active plan is only replaced when <paramref name="confirmReplace"/> is true:
     /// it is made inactive (kept, with its history) and its workout paused.
     /// </summary>
@@ -61,7 +61,7 @@ public sealed class PlanTemplateApplier
     {
         ArgumentNullException.ThrowIfNull(spec);
         var currentPlan = await _plans.GetActiveForUserAsync(userId, ct);
-        if (currentPlan is not null && string.Equals(currentPlan.Name, spec.Name, StringComparison.Ordinal))
+        if (currentPlan is not null && PlanTemplates.IsSamePlan(currentPlan.Name, spec.Name))
         {
             return Result.Success(new StartSuggestedPlanResult(
                 currentPlan.Id.Value, currentPlan.LinkedWorkoutId?.Value, currentPlan.StartDate, AlreadyStarted: true, Warnings: []));

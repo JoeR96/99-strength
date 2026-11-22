@@ -59,7 +59,7 @@ public class SuggestedPlansControllerTests
 
         var plan = (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!;
         plan.Id.Should().Be(result.PlanId);
-        plan.Name.Should().Be("Cut to 85 — Nov 2026");
+        plan.Name.Should().Be("Lumbridge Lard Shed");
         plan.LinkedWorkoutId.Should().Be(result.WorkoutId);
         plan.Schedule.Should().HaveCount(8);
         plan.Phases.Should().HaveCountGreaterThanOrEqualTo(1);
@@ -67,7 +67,7 @@ public class SuggestedPlansControllerTests
 
         var workout = (await client.GetFromJsonAsync<WorkoutDto>("/api/v1/workouts/current"))!;
         workout.Id.Should().Be(result.WorkoutId!.Value);
-        workout.Name.Should().Be("Cut to 85 — Nov 2026");
+        workout.Name.Should().Be("Lumbridge Lard Shed");
         workout.Exercises.Should().HaveCount(20);
 
         var protocols = await client.GetFromJsonAsync<List<CardioProtocolDto>>("/api/v1/cardio-protocols");

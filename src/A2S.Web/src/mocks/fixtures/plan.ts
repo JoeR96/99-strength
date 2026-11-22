@@ -1,5 +1,5 @@
 /**
- * Plan fixtures matching the brief's seed ("Cut to 85 — Nov 2026"):
+ * Plan fixtures matching the brief's seed ("Lumbridge Lard Shed"):
  * Mon Upper A · Tue Lower A · Wed 4×4 + Mobility B · Thu Upper B · Fri Lower B · Sat C25K/LISS · Sun Rest.
  */
 
@@ -24,7 +24,7 @@ export const MOBILITY_VIDEO_ID = 'mob0000d-0000-4000-8000-000000000004';
 
 export const planFixture: TrainingPlanDto = {
   id: PLAN_ID,
-  name: 'Cut to 85 — Nov 2026',
+  name: 'Lumbridge Lard Shed',
   startDate: '2026-11-09',
   isActive: true,
   linkedWorkoutId: 'w-1',
