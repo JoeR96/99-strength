@@ -1,7 +1,6 @@
 /**
  * Marks a mobility routine done in one tap, with optional per-drill ticks when the
- * drill names are known (the routines API arrives with Phase 6; until then the
- * list is empty and the sheet is a single confirm).
+ * routine's drills are loaded (from `/mobility-routines`); otherwise a single confirm.
  */
 
 import { useState } from 'react';

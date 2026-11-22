@@ -20,6 +20,9 @@ import { ProgressPage } from './features/progress/ProgressPage';
 import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
 import { MealsPage } from './features/meals/MealsPage';
+import { RoutinesPage } from './features/routines/RoutinesPage';
+import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
+import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
 
 function AppContent() {
@@ -83,6 +86,10 @@ function AppContent() {
         <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><SimulationPage /></ProtectedRoute>} />
         <Route path="/meals" element={<ProtectedRoute><MealsPage /></ProtectedRoute>} />
+        <Route path="/routines" element={<ProtectedRoute><RoutinesPage /></ProtectedRoute>} />
+        <Route path="/routines/new" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />
+        <Route path="/routines/:id/edit" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />
+        <Route path="/routines/:id/play" element={<ProtectedRoute><RoutinePlayerPage /></ProtectedRoute>} />
         <Route path="/shopping-list" element={<ProtectedRoute><ShoppingListPage /></ProtectedRoute>} />
 
         {/* Default route */}

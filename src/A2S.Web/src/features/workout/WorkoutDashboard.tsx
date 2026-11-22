@@ -7,7 +7,7 @@ import { NextWeekPreview } from "./NextWeekPreview";
 import { BlockSequenceEditor } from "./BlockSequenceEditor";
 import { ExerciseProgressionModal } from "./ExerciseProgressionModal";
 import type { ExerciseConfigUpdate } from "./EditExerciseConfigModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
 import { getBlockType } from "@/utils/weekParameters";
@@ -102,6 +102,7 @@ export function WorkoutDashboard() {
             <div className="flex gap-4 justify-center">
               <Button onClick={() => navigate("/setup")}>Create Workout Program</Button>
               <Button variant="outline" onClick={() => navigate("/programs")}>View All Programs</Button>
+              <Button variant="outline" onClick={() => navigate("/routines")}>Mobility &amp; yoga routines</Button>
             </div>
           </Card>
         </div>
@@ -118,6 +119,14 @@ export function WorkoutDashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-6xl mx-auto p-6">
+        <Link
+          to="/routines"
+          className="mb-6 flex min-h-11 items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:border-primary/50"
+          data-testid="routines-link"
+        >
+          <span>Mobility, stretching &amp; yoga routines</span>
+          <span aria-hidden="true" className="text-muted-foreground">›</span>
+        </Link>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">{workout.name}</h1>

@@ -33,6 +33,7 @@ import { PhaseBanner } from './PhaseBanner';
 import { currentPhase } from './phase';
 import { CardioLogSheet } from './CardioLogSheet';
 import { MobilityChecklist } from './MobilityChecklist';
+import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
 import { PendingSyncBadge } from './PendingSyncBadge';
 import { usePendingSyncCount } from '@/offline/context';
 import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
@@ -64,6 +65,7 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
   const setValue = useSetHabitValue();
   const recordWeight = useRecordWeight();
   const completeSession = useCompleteSession();
+  const routines = useMobilityRoutines();
   const undoCompletion = useUndoSessionCompletion();
 
   const { isConfigured: hevyConfigured } = useHevyStatus();
@@ -74,6 +76,7 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
 
   const [cardioSession, setCardioSession] = useState<TodaySessionDto | null>(null);
   const [mobilitySession, setMobilitySession] = useState<TodaySessionDto | null>(null);
+  const mobilityDrills = routines.data?.find((r) => r.id === mobilitySession?.mobilityRoutineId)?.drills.map((d) => d.name) ?? [];
 
   const today = todayQuery.data;
   const plan = planQuery.data;
@@ -334,7 +337,9 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
         saving={completeSession.isPending}
       />
       <MobilityChecklist
+        key={`${mobilitySession?.mobilityRoutineId ?? 'none'}-${mobilityDrills.length}`}
         session={mobilitySession}
+        drills={mobilityDrills}
         onClose={() => setMobilitySession(null)}
         onSubmit={(session, drillTicks) => complete(session, { drillTicks })}
         saving={completeSession.isPending}
