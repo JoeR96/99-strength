@@ -6,6 +6,7 @@ import type { CompleteDayResult, WorkoutDto } from '@/features/workout/workoutSe
 import { GymChecklist } from './GymChecklist';
 import { GymHevyStatus } from './GymSections';
 import { GymPreview } from './GymPreview';
+import { stairCardioItem } from '@/mocks/fixtures/cycle';
 import { freshGymSession, midGymSession, planV3GymSession, trackFinisherGymSession } from './gymFixtures';
 import {
   allDrillsDone,
@@ -154,6 +155,15 @@ export const Preview: StoryObj = {
   render: () => (
     <div className="min-h-dvh bg-background">
       <GymPreview state={trackFinisherGymSession()} dayLabel="Tomorrow · Tue 24 Nov" startHref={null} />
+    </div>
+  ),
+};
+
+/** Preview of a cycle position (`/gym/1?preview=1&week=4`): week 4 Upper A with the stair finisher as a planned item. */
+export const PreviewByWeek: StoryObj = {
+  render: () => (
+    <div className="min-h-dvh bg-background">
+      <GymPreview state={freshGymSession(false)} dayLabel="Week 4 · Session 1 of 4" startHref={null} cardio={stairCardioItem} />
     </div>
   ),
 };

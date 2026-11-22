@@ -72,10 +72,13 @@ export function GymModePage() {
   const [searchParams] = useSearchParams();
   const preview = searchParams.get('preview') === '1';
   const date = (preview && parseDateParam(searchParams.get('date'))) || localToday;
+  // `?preview=1&week=N`: a cycle position (Current workout page); `?date=` stays for back-compat.
+  const weekParam = Number(searchParams.get('week'));
+  const previewWeek = preview && Number.isInteger(weekParam) && weekParam >= 1 ? weekParam : null;
 
   const workoutQuery = useCurrentWorkout();
   const workout = workoutQuery.data ?? null;
-  const weekPlan = useWeekPlan(workout?.id, workout?.currentWeek, day, Boolean(workout));
+  const weekPlan = useWeekPlan(workout?.id, previewWeek ?? workout?.currentWeek, day, Boolean(workout));
   const { data: plan } = useActivePlan();
   const todayQuery = useToday(date);
   const routines = useMobilityRoutines();
@@ -121,7 +124,7 @@ export function GymModePage() {
             <h1 className="mb-2 text-xl font-semibold">Nothing to lift here</h1>
             <p className="mb-4 text-muted-foreground">There is no active workout with this day, or it could not be loaded.</p>
             <Button asChild className="h-12">
-              <Link to="/today">Back to Today</Link>
+              <Link to="/today">Back to workout</Link>
             </Button>
           </Card>
         </main>
@@ -133,7 +136,7 @@ export function GymModePage() {
   const warmUp = (warmUpId && routineList.find((r) => r.id === warmUpId)) || routineList.find((r) => r.name.toLowerCase() === MOBILITY_A) || null;
   const finisher = (!skipFinisher && finisherId && protocols.data?.find((p) => p.id === finisherId)) || null;
   const finisherTrack = (!skipFinisher && finisherTrackId && tracks.data?.find((t) => t.id === finisherTrackId)) || null;
-  const label = slot?.label ?? scheduled?.label ?? `Day ${day}`;
+  const label = slot?.label ?? scheduled?.label ?? weekPlan.data.sessionLabel ?? `Day ${day}`;
   const title = `${plan?.name ?? workout.name} · W${weekPlan.data.weekNumber} ${label}`;
 
   if (preview) {
@@ -141,7 +144,16 @@ export function GymModePage() {
     return (
       <div className="min-h-dvh bg-background">
         <Navbar />
-        <GymPreview state={state} dayLabel={dayHeading(date, localToday)} startHref={date === localToday ? `/gym/${day}` : null} />
+        <GymPreview
+          state={state}
+          dayLabel={previewWeek ? `Week ${previewWeek} · Session ${day} of ${weekPlanDays(workout)}` : dayHeading(date, localToday)}
+          startHref={
+            previewWeek
+              ? weekPlan.data.isCurrent ? `/gym/${day}` : null
+              : date === localToday ? `/gym/${day}` : null
+          }
+          cardio={weekPlan.data.cardio ?? null}
+        />
       </div>
     );
   }
@@ -250,7 +262,7 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
             <h1 className="mb-4 text-2xl font-semibold text-foreground">Session saved</h1>
             <GymHevyStatus status={outcome.queued ? null : outcome.data.hevyStatus} queued={outcome.queued} />
             <Button className="h-12 w-full" onClick={() => navigate('/today')}>
-              Back to Today
+              Back to workout
             </Button>
           </main>
         </div>
@@ -265,6 +277,7 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         dayName={DAY_NAMES[day - 1] ?? `Day ${day}`}
         exerciseEntries={[]}
         onContinue={() => navigate('/today')}
+        finisherOutcome={result.finisherOutcome ?? null}
         hevyNotice={
           <GymHevyStatus
             status={result.hevyStatus}
@@ -310,6 +323,10 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
       )}
     </div>
   );
+}
+
+function weekPlanDays(workout: WorkoutDto): number {
+  return Number(workout.variant) || 4;
 }
 
 const FINISHED_ELSEWHERE = 'This day was already finished on another device';

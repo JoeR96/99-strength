@@ -168,8 +168,22 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
             // A track finisher is evaluated once, keyed on its completion (a replay never gets here).
             if (finisher is { CardioTrackId: { } trackId } && _trackRecorder is not null && request.Finisher is { } logged)
             {
-                await _trackRecorder.RecordAsync(userId, trackId, finisher.TrackSessionKey, date, finisher.Cardio,
+                var prescribed = await _trackRecorder.PrescriptionAsync(userId, trackId, cancellationToken);
+                var recorded = await _trackRecorder.RecordAsync(userId, trackId, finisher.TrackSessionKey, date, finisher.Cardio,
                     logged.CompletedAsPrescribed && logged.Pain != PainFlag.Stop, _clock.NowUtc(), cancellationToken, plan);
+                if (recorded is { } r && prescribed is not null)
+                {
+                    result = result with { FinisherOutcome = PlannedCardioBuilder.ForEvaluation(r.Track, prescribed, r.Result) };
+                }
+            }
+            else if (finisher is not null && session?.Finisher is { } other)
+            {
+                result = result with
+                {
+                    FinisherOutcome = PlannedCardioBuilder.Logged(
+                        other.Fixed is not null ? PlannedCardioBuilder.FixedKind : PlannedCardioBuilder.ProtocolKind,
+                        other.Fixed?.DisplayName() ?? "Finisher")
+                };
             }
 
             post.RecordResult(JsonSerializer.Serialize(result, Json));

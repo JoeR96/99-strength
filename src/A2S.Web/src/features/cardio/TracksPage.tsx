@@ -1,5 +1,6 @@
 /**
- * Cardio tracks: each one progresses on its own, the way A2S2 does for lifts. Start one from a
+ * Cardio (`/cardio`, also `/cardio-tracks`): this week's prescriptions, the running gate and the zone 4–5
+ * guardrails at the top (moved off Today), then every track. Each one progresses on its own, the way A2S2 does for lifts. Start one from a
  * template (walk builder, walk → run, stair finisher), log sessions with one effort tap, accept or
  * decline what it suggests, pause it, undo its last change, or edit its numbers in the info sheet.
  */
@@ -24,6 +25,7 @@ import {
 } from '@/hooks/useCardioTracks';
 import type { CardioTrackDto, LogTrackSessionRequest, UpdateCardioTrackRequest } from '@/types/cardioTracks';
 import { TrackCard } from './TrackCard';
+import { CardioThisWeek } from './CardioThisWeek';
 import { TrackLogSheet } from './TrackLogSheet';
 import { TrackInfoSheet } from './TrackInfoSheet';
 import { clearTrackInfoDraft } from './trackInfoDraft';
@@ -79,9 +81,14 @@ export function TracksPage() {
       <Navbar />
       <main className="container-page space-y-4 py-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground">Cardio tracks</h1>
-          <p className="text-sm text-muted-foreground">Each track steps up on its own when you log good sessions.</p>
+          <h1 className="text-2xl font-bold text-foreground">Cardio</h1>
+          <p className="text-sm text-muted-foreground">
+            Walks, runs and finishers. Each track steps up on its own when you log good sessions. A finisher attached to a lift is
+            also on the Current workout page.
+          </p>
         </header>
+
+        <CardioThisWeek />
 
         {tracksQuery.isLoading && <div className="h-40 animate-pulse rounded-lg bg-muted" aria-hidden="true" />}
 

@@ -15,6 +15,24 @@ public sealed record WeekPlanDto
     public bool IsDeloadWeek { get; init; }
     public decimal IntensityPercentage { get; init; }
     public IReadOnlyList<PlannedExerciseDto> Exercises { get; init; } = Array.Empty<PlannedExerciseDto>();
+
+    /// <summary>
+    /// The session's cardio finisher as a planned item after the exercises (null when the plan attaches none).
+    /// A track's prescription is its current state, so it is only given for the current week and later.
+    /// </summary>
+    public A2S.Application.DTOs.PlannedCardioDto? Cardio { get; init; }
+
+    /// <summary>The plan slot's label for this A2S2 day ("Upper A"), when a plan is linked.</summary>
+    public string? SessionLabel { get; init; }
+
+    /// <summary>The slot's warm-up routine, when one is set.</summary>
+    public Guid? WarmUpRoutineId { get; init; }
+
+    /// <summary>The home routine the plan pairs with this session (a mobility slot on the same weekday), e.g. "Hips &amp; lower back".</summary>
+    public Guid? PairedRoutineId { get; init; }
+
+    /// <summary>True when this is the workout's current week and day (the next session to do in the cycle).</summary>
+    public bool IsCurrent { get; init; }
 }
 
 /// <summary>

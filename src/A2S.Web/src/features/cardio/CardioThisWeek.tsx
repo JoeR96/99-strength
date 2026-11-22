@@ -1,18 +1,16 @@
 /**
- * Today's cardio tracks: each active track's prescription and "N more sessions to step up", with
- * a one-tap log, plus the week's zone 4–5 guardrail. Renders nothing while loading, on error, or
- * when there are no tracks, so Today never waits on it.
+ * The top of the Cardio page ("This week"): the week's zone 4–5 guardrails and any gated track waiting to start. Renders nothing while loading, on error, or
+ * when there are no tracks, so the page never waits on it.
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useLogTrackSession, useStartGatedTrack, useTodayCardio } from '@/hooks/useCardioTracks';
 import type { CardioTrackDto, LogTrackSessionRequest } from '@/types/cardioTracks';
 import { TrackCard } from './TrackCard';
 import { TrackLogSheet } from './TrackLogSheet';
 
-export function TodayCardioTracks() {
+export function CardioThisWeek() {
   const todayQuery = useTodayCardio();
   const log = useLogTrackSession();
   const start = useStartGatedTrack();
@@ -20,7 +18,8 @@ export function TodayCardioTracks() {
   const data = todayQuery.data;
 
   const gated = data?.gated ?? [];
-  if (!data || (data.tracks.length === 0 && gated.length === 0)) {
+  // Active tracks are listed in full below on the Cardio page; this section is the week's guardrails and the gates.
+  if (!data || (data.warnings.length === 0 && gated.length === 0)) {
     return null;
   }
 
@@ -44,19 +43,13 @@ export function TodayCardioTracks() {
     <section aria-labelledby="cardio-tracks-heading" className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <h2 id="cardio-tracks-heading" className="text-sm font-medium text-muted-foreground">
-          Cardio tracks
+          This week
         </h2>
-        <Link to="/cardio-tracks" className="flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline">
-          All tracks
-        </Link>
       </div>
       {data.warnings.map((warning) => (
         <p key={warning.code} role="status" className="rounded-lg border border-warning/50 bg-card p-3 text-sm text-foreground">
           {warning.message}
         </p>
-      ))}
-      {data.tracks.map((track) => (
-        <TrackCard key={track.id} track={track} compact onLog={setLogging} busy={log.isPending} />
       ))}
       {gated.map((track) => (
         <TrackCard

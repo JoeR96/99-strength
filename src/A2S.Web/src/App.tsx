@@ -15,12 +15,13 @@ import { HevyDataPage } from './features/hevy/HevyDataPage';
 import { HevyInboxPage } from './features/hevy/HevyInboxPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { HabitsPage } from './features/habits/HabitsPage';
-import { TodayPage } from './features/today/TodayPage';
+import { CurrentWorkoutPage } from './features/current/CurrentWorkoutPage';
 import { ProgressPage } from './features/progress/ProgressPage';
 import { WorkoutHistoryPage } from './features/history/WorkoutHistoryPage';
 import { SimulationPage } from './features/workout/SimulationPage';
 import { MealsPage } from './features/meals/MealsPage';
 import { RoutinesPage } from './features/routines/RoutinesPage';
+import { RoutinePreviewPage } from './features/routines/RoutinePreviewPage';
 import { TracksPage } from './features/cardio/TracksPage';
 import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
 import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
@@ -64,7 +65,9 @@ function AppContent() {
         />
 
         {/* Protected routes */}
-        <Route path="/today" element={<ProtectedRoute><TodayPage /></ProtectedRoute>} />
+        {/* Current workout. /today stays the path (deep links, push notifications, Terran CC); /current is an alias. */}
+        <Route path="/today" element={<ProtectedRoute><CurrentWorkoutPage /></ProtectedRoute>} />
+        <Route path="/current" element={<ProtectedRoute><CurrentWorkoutPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<Navigate to="/today" replace />} />
         <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
         <Route path="/habits" element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
@@ -101,8 +104,10 @@ function AppContent() {
         <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><SimulationPage /></ProtectedRoute>} />
         <Route path="/meals" element={<ProtectedRoute><MealsPage /></ProtectedRoute>} />
+        <Route path="/cardio" element={<ProtectedRoute><TracksPage /></ProtectedRoute>} />
         <Route path="/cardio-tracks" element={<ProtectedRoute><TracksPage /></ProtectedRoute>} />
         <Route path="/routines" element={<ProtectedRoute><RoutinesPage /></ProtectedRoute>} />
+        <Route path="/routines/:id" element={<ProtectedRoute><RoutinePreviewPage /></ProtectedRoute>} />
         <Route path="/routines/new" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />
         <Route path="/routines/:id/edit" element={<ProtectedRoute><RoutineEditorPage /></ProtectedRoute>} />
         <Route path="/routines/:id/play" element={<ProtectedRoute><RoutinePlayerPage /></ProtectedRoute>} />

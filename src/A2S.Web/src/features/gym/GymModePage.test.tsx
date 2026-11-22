@@ -14,6 +14,7 @@ import { createSyncManager, type SyncManager } from '@/offline/syncManager';
 import type { WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import type { FinishGymSessionResult } from '@/types/gym';
 import { mobilityA, stairFinisher, upperAPlan } from './gymFixtures';
+import { stairCardioItem } from '@/mocks/fixtures/cycle';
 import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
 
 vi.mock('@/components/layout/Navbar', () => ({ Navbar: () => null }));
@@ -184,6 +185,46 @@ describe('GymModePage', () => {
     expect(localStorage.length).toBe(0);
     expect(await queue.all()).toHaveLength(0);
     expect(finish).not.toHaveBeenCalled();
+  });
+
+  it('previews a cycle position by week: the planned sets for that week and the cardio item, Start only for the current session', async () => {
+    const getWeekPlan = vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue({ ...upperAPlan, weekNumber: 4, cardio: stairCardioItem, isCurrent: false });
+    renderPage(<GymModePage />, '/gym/1?preview=1&week=4');
+
+    expect(await screen.findByTestId('preview-banner')).toBeInTheDocument();
+    expect(getWeekPlan).toHaveBeenCalledWith('w-1', 4, 1);
+    expect(screen.getByText(/Week 4 · Session 1 of 4/)).toBeInTheDocument();
+    expect(screen.getByTestId('planned-cardio')).toHaveTextContent('5 min continuous @ level 6');
+    expect(screen.getByTestId('planned-cardio')).toHaveTextContent('Cardio track: double progression · 2 more sessions to step up');
+    expect(screen.queryByTestId('preview-start')).not.toBeInTheDocument();
+    expect(localStorage.length).toBe(0);
+  });
+
+  it('shows the finisher outcome on the summary after Finish', async () => {
+    vi.spyOn(gymSessionsApi, 'finish').mockResolvedValue({
+      ...finished,
+      hevyStatus: 'Posted',
+      finisherOutcome: {
+        kind: 'Track',
+        name: 'Stair finisher',
+        outcome: 'SteppedUp',
+        reason: '2 qualifying sessions',
+        qualified: true,
+        progressed: true,
+        before: '5 min continuous @ level 6',
+        next: '6 min continuous @ level 6',
+        sessionsToStepUp: 2,
+        summary: 'Stair finisher: 5 min continuous @ level 6 → 6 min continuous @ level 6',
+        nextTime: 'Next time: 6 min continuous @ level 6',
+      },
+    });
+    renderPage();
+
+    await tickOneSetAndFinishEarly();
+
+    const outcome = await screen.findByTestId('finisher-outcome');
+    expect(outcome).toHaveTextContent('Stair finisher: 5 min continuous @ level 6 → 6 min continuous @ level 6');
+    expect(outcome).toHaveTextContent('Next time: 6 min continuous @ level 6');
   });
 
   it('preview of today offers Start into gym mode', async () => {

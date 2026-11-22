@@ -3,7 +3,8 @@ import { render, screen, fireEvent, waitFor, within, renderHook, act } from '@te
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { TodayPage } from './TodayPage';
+import { CurrentWorkoutPage } from './CurrentWorkoutPage';
+import { installWorkoutsHandlers, workoutsHandlers } from '@/mocks/handlers/workouts';
 import { habitsApi } from '@/api/habits';
 import { installPlansHandlers, plansHandlers } from '@/mocks/handlers/plans';
 import { installHabitsHandlers, habitsHandlers, statefulHabitsHandlers } from '@/mocks/handlers/habits';
@@ -31,7 +32,7 @@ vi.mock('@/lib/localDate', async (importOriginal) => {
   return { ...actual, todayLocal: vi.fn(() => '2026-11-09') };
 });
 
-describe('TodayPage offline', () => {
+describe('CurrentWorkoutPage offline', () => {
   let online = true;
   let queue: OfflineQueue;
   let manager: SyncManager;
@@ -54,6 +55,7 @@ describe('TodayPage offline', () => {
     queue = createQueue(`today-offline-${Math.random().toString(36).slice(2)}`);
     manager = createSyncManager({ queue, isOnline: () => online });
     installPlansHandlers(plansHandlers.default());
+    installWorkoutsHandlers(workoutsHandlers.cycle());
     installHabitsHandlers(habitsHandlers.default());
     installBodyWeightHandlers(bodyWeightHandlers.empty());
   });
@@ -66,7 +68,7 @@ describe('TodayPage offline', () => {
 
   it('a tap with no signal keeps its optimistic value, counts on the badge, and never reaches the API', async () => {
     const incrementSpy = vi.spyOn(habitsApi, 'increment');
-    render(<TodayPage />, { wrapper });
+    render(<CurrentWorkoutPage />, { wrapper });
     const water = await screen.findByTestId(`habit-counter-${WATER_ID}`);
     expect(within(water).getByText('2')).toBeInTheDocument();
     expect(screen.queryByTestId('pending-sync')).not.toBeInTheDocument();
@@ -98,7 +100,7 @@ describe('TodayPage offline', () => {
     vi.spyOn(habitsApi, 'increment').mockRejectedValueOnce(
       Object.assign(new Error('Network Error'), { isAxiosError: true, code: 'ERR_NETWORK' })
     );
-    render(<TodayPage />, { wrapper });
+    render(<CurrentWorkoutPage />, { wrapper });
     const water = await screen.findByTestId(`habit-counter-${WATER_ID}`);
 
     // The replay would run straight away while online; hold it so the queued state is visible.

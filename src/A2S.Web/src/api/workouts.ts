@@ -182,6 +182,12 @@ export const workoutsApi = {
   /**
    * The planned sets for one week/day, computed server-side (block, deload, progression).
    */
+  /** The active workout's cycle: the current session, then the rest of this week and next week. */
+  getCurrentCycle: async (): Promise<CycleDto> => {
+    const response = await apiClient.get<CycleDto>('/workouts/current/cycle');
+    return response.data;
+  },
+
   getWeekPlan: async (workoutId: string, week: number, day: number): Promise<WeekPlanDto> => {
     const response = await apiClient.get<WeekPlanDto>(`/workouts/${workoutId}/weeks/${week}/days/${day}/plan`);
     return response.data;
@@ -242,6 +248,60 @@ export interface WeekPlanDto {
   isDeloadWeek: boolean;
   intensityPercentage: number;
   exercises: PlannedExerciseDto[];
+  /** The session's cardio finisher as a planned item after the exercises (null/absent: none). */
+  cardio?: PlannedCardioDto | null;
+  /** The plan slot label ("Upper A"), when a plan is linked. */
+  sessionLabel?: string | null;
+  warmUpRoutineId?: string | null;
+  /** The home routine the plan pairs with this session ("Hips & lower back"). */
+  pairedRoutineId?: string | null;
+  /** The workout's current week and day: the next session to do. */
+  isCurrent?: boolean;
+}
+
+/** A lift session's cardio finisher as a planned item (prescription, progression, sessions to step up). */
+export interface PlannedCardioDto {
+  kind: 'Track' | 'Protocol' | 'Fixed';
+  name: string;
+  prescription: string;
+  /** "Cardio track: double progression", "Cardio track: week program" or "Fixed". */
+  progressionType: string;
+  orderInDay: number;
+  minutes: number;
+  intensityUnit?: string | null;
+  intensity?: number | null;
+  modality?: string | null;
+  stageName?: string | null;
+  sessionsToStepUp?: number | null;
+  /** "2 more sessions to step up". */
+  stepUpNote?: string | null;
+  note?: string | null;
+  cardioTrackId?: string | null;
+  cardioProtocolId?: string | null;
+}
+
+/** One session of the training cycle (`GET /workouts/current/cycle`). */
+export interface CycleSessionDto {
+  week: number;
+  day: number;
+  /** 1-based within the week: "Session 2 of 4". */
+  position: number;
+  isCurrent: boolean;
+  isDeloadWeek: boolean;
+  label: string;
+  plan: WeekPlanDto;
+}
+
+export interface CycleDto {
+  workoutId: string;
+  workoutName: string;
+  currentWeek: number;
+  currentDay: number;
+  totalWeeks: number;
+  daysPerWeek: number;
+  isCompleted: boolean;
+  /** The current session first, then the rest of this week and all of next week. */
+  sessions: CycleSessionDto[];
 }
 
 export interface PlannedExerciseDto {

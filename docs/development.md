@@ -112,13 +112,32 @@ Migration `AddSupersetsExtraSetsPendingTrainingMax` adds `Exercises.SupersetGrou
 and `ExerciseProgressions.IsTrainingMaxPending` (additive; Down tested in
 `GymPlanFitPersistenceTests`). The fixed cool-down lives in the schedule's jsonb, so it needed no migration.
 
+## Current workout (the cycle) and previews
+
+The main page (`features/current/CurrentWorkoutPage.tsx`, routes `/today` and `/current`; `/today` stays
+the path so deep links, push notifications and the PWA `start_url` keep working) reads
+`GET /api/v1/workouts/current/cycle` (`GetCycleQuery`): the workout's current week and day first (the next
+session to do, whatever the date), then the rest of this A2S2 week and all of next week, each with its full
+`WeekPlanDto` from `GetWeekPlan`. Nothing on the page depends on the weekday; only the habits section is
+per day. `WeekPlanDto` now also carries `cardio` (`PlannedCardioDto`: the slot's finisher as a planned
+item after the exercises, with prescription, progression type and "N more sessions to step up"; a track's
+prescription is its current state, so it is given for the current week and later only), `sessionLabel`,
+`warmUpRoutineId`, `pairedRoutineId` (a mobility slot on the same weekday as the lift slot) and
+`isCurrent`. Previews route by cycle position: `/gym/:day?preview=1&week=N` (Start only when it is the
+current session). `?date=` still works for back-compat. Story/test data: `src/mocks/fixtures/cycle.ts`,
+`workoutsHandlers.cycle({ week, day, deload, pendingTm })`.
+
+The finisher's progression after Finish is `FinishGymSessionResult.finisherOutcome` (`FinisherOutcomeDto`:
+outcome, before/next prescription, `summary`, `nextTime`), built by `PlannedCardioBuilder` from the track's
+own evaluation; `CompletionSummary` shows it next to the lift changes.
+
 ## Looking ahead (Up next and previews)
 
 `GET /api/v1/plans/upcoming` (`GetUpcomingDays`) returns `days` (1–31) `UpcomingDayDto`s from `from`. Each
 lift still to do carries a `lifts[]` block built by dispatching `GetWeekPlan` for the linked workout's
 **current** week: A2S2 weeks advance on completion, not by date, so a preview of next Thursday shows this
-week's numbers. Today reads it from tomorrow for "Up next"; `?date=` steps Today to any day (read-only unless
-it is today). `/gym/:day?preview=1&date=` renders `GymPreview` and never mounts the session runner, so no
+week's numbers. Each lift also carries `cardio` (the same `PlannedCardioDto`, additive; `finisher` stays for
+Terran CC). The main page no longer reads it (it follows the cycle). `/gym/:day?preview=1&date=` renders `GymPreview` and never mounts the session runner, so no
 localStorage draft, wake lock, rest timer or offline op is created.
 
 ## Cardio tracks
@@ -130,7 +149,7 @@ the Hevy pull and `CompleteSession` can run repeatedly. Finished cardio and mobi
 through `SessionHevyPoster` on the gym-mode `HevyWorkoutPost` queue; the pull uses
 `CompleteSession(PostToHevy: false)` so nothing loops back. Built-in Hevy cardio template ids live in
 `HevyTemplateCatalogue` (checked against `scripts/hevy-exercises.json`). Story mocks are in
-`src/mocks/{fixtures,handlers}/cardioTracks.ts`; any story that renders `TodayCardioTracks` or
+`src/mocks/{fixtures,handlers}/cardioTracks.ts`; any story that renders `CardioThisWeek` (the Cardio page) or
 `CardioTrackProgress` must install `cardioTracksHandlers`.
 
 ## Coach signals

@@ -3,6 +3,7 @@
 import { workoutsApi } from '@/api/workouts';
 import type { WorkoutDto } from '@/types/workout';
 import { installHandlers, never, rejectWith } from './install';
+import { cycleFixture, type CycleOptions } from '../fixtures/cycle';
 
 type WorkoutsHandlers = Partial<typeof workoutsApi>;
 
@@ -28,7 +29,18 @@ export const activeWorkoutFixture: WorkoutDto = {
 
 export const workoutsHandlers = {
   default: (): WorkoutsHandlers => ({ getCurrentWorkout: async () => activeWorkoutFixture }),
-  none: (): WorkoutsHandlers => ({ getCurrentWorkout: async () => null }),
+  none: (): WorkoutsHandlers => ({ getCurrentWorkout: async () => null, getCurrentCycle: rejectWith(404) }),
+  /** The Current workout page's cycle (week 1 session 1 unless told otherwise); week plans answer from the same data. */
+  cycle: (options: CycleOptions = {}): WorkoutsHandlers => {
+    const cycle = cycleFixture(options);
+    return {
+      getCurrentWorkout: async () => ({ ...activeWorkoutFixture, currentWeek: cycle.currentWeek, currentDay: cycle.currentDay }),
+      getCurrentCycle: async () => cycle,
+      getWeekPlan: async (_id: string, week: number, day: number) =>
+        (cycle.sessions.find((s) => s.week === week && s.day === day) ?? cycle.sessions[0]).plan,
+    };
+  },
+  cycleLoading: (): WorkoutsHandlers => ({ getCurrentCycle: never }),
   loading: (): WorkoutsHandlers => ({ getCurrentWorkout: never }),
   error: (): WorkoutsHandlers => ({ getCurrentWorkout: rejectWith(500) }),
 };

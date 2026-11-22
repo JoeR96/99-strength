@@ -209,7 +209,7 @@ None of these change A2S2, RPS, minimal-sets or cardio-strategy maths.
 
 - **Readiness** (`Aggregates/Readiness/ReadinessEntry.cs`, table `ReadinessEntries`, one per user + local date): Green / Yellow / Red. `ReadinessAdvice.For`: red skips the lift slot's finisher by default (`KeepFinisher` is the one-tap undo) and suggests skipping hard cardio; yellow is a note. API `GET /api/v1/readiness?date=` (**token-readable**), `PUT /readiness/{date}`, `PUT /readiness/{date}/finisher`. Gym mode hides the finisher while `finisherSkipped`.
 - **Start gates** (`Aggregates/Cardio/StartGate.cs`): `GateCondition` (`TrendWeightAtOrBelow`, `TrackAtOrAbove(template, minutes, intensity, effort, weeks)`, `NoPainInAreas(areas, weeks)`), one spec class each over `GateInputs`. A gated track has status `Gated` (sessions recorded, not evaluated) until the person accepts Start (`StartFromGate`). `StartGate.RunningGate()` is Walk → run's default (trend ≤ 90 kg; walk builder ≥ 45 min at ≥ 8 %, Easy, 2 weeks; no knee/shin/Achilles pain 4 weeks), applied by `withGate` on create or `PUT /cardio-tracks/{id}/gate {useDefault:true}`. `CardioGateEvaluator` (Application) gathers the trend EWMA, tracks and pain flags (track sessions + plan completions) for the list/today queries; `POST /cardio-tracks/{id}/start`.
-- **Phase changes**: `PlanPhase` has `Label`, `Changes` (≤ 10 lines) and `Swaps` (`PhaseSwap(From, To)`), stored in the Phases jsonb. `PlanPhase.HeadsUpOn` = the 7 days before a phase through its first day. `GET /plans/phase-heads-up` resolves each swap to the linked workout's exercise; Today's Swap runs the existing permanent `SubstituteExercise` after the person confirms. `PUT /plans/{id}/phases/{from}/changes` edits them. Push kind `PhaseChange` goes out once per phase (08:00–21:00 inside the window), logged in `PushNudgeLogs` against the phase start date.
+- **Phase changes**: `PlanPhase` has `Label`, `Changes` (≤ 10 lines) and `Swaps` (`PhaseSwap(From, To)`), stored in the Phases jsonb. `PlanPhase.HeadsUpOn` = the 7 days before a phase through its first day. `GET /plans/phase-heads-up` resolves each swap to the linked workout's exercise; The Workout page's Swap runs the existing permanent `SubstituteExercise` after the person confirms. `PUT /plans/{id}/phases/{from}/changes` edits them. Push kind `PhaseChange` goes out once per phase (08:00–21:00 inside the window), logged in `PushNudgeLogs` against the phase start date.
 
 ## A2S2 Program Table
 
@@ -293,13 +293,14 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 |-------|---------|
 | `GetAllWorkouts` | List user's workouts (summary) |
 | `GetWorkout` | Full workout with exercises + progressions |
-| `GetWeekPlan` | Planned sets for current week |
+| `GetWeekPlan` | Planned sets for a week/day, plus the plan slot's label, warm-up, paired routine and the finisher as a `PlannedCardioDto` (`cardio`) |
+| `GetCycle` (`GET /workouts/current/cycle`, `/workouts/{id}/cycle`) | The training cycle from the current session: current week/day, rest of this week, all of next week, each with its `WeekPlanDto` (Current workout page) |
 | `GetExerciseLibrary` | Paginated exercise definitions (search, filter) |
 | `GetExerciseHistory` | Historical performance for an exercise |
 | `GetWorkoutHistory` | Completed day history for a workout |
 | `GetCurrentUser` / `GetUser` | User profile |
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
-| `GetUpcomingDays` (`GET /plans/upcoming?from=&days=`, 1–31, default 14) | The next days' sessions, each lift with its planned sets from the current A2S2 week and its finisher; Today's "Up next" |
+| `GetUpcomingDays` (`GET /plans/upcoming?from=&days=`, 1–31, default 14) | The next days' sessions, each lift with its planned sets from the current A2S2 week, its finisher and (additive) `cardio` planned item; Terran CC |
 
 Personal API tokens (`[AllowApiToken]`) may read `GET /plans/today?date=` and `GET /plans/upcoming`; no other plans or workouts route and no write. The list is pinned by `ApiTokenAllowListTests`.
 | Habits, body weight, Hevy inbox, meals, push and token queries | Read sides of the commands above |
@@ -313,7 +314,7 @@ Personal API tokens (`[AllowApiToken]`) may read `GET /plans/today?date=` and `G
 
 ## Gym mode
 
-Brief § 3a. At the gym the person opens `/gym/:day` (Today's Start): one checklist of warm-up drills
+Brief § 3a. At the gym the person opens `/gym/:day` (Start workout on the Current workout page): one checklist of warm-up drills
 (the slot's `WarmUpRoutineId`, else the routine named "Mobility A"), each lift's planned sets
 pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the attached finisher
 (minutes, level, floors, Easy/Solid/Brutal → RPE 4/7/9), then Finish or Finish early.

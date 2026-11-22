@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { TracksPage } from './TracksPage';
 import { TrackLogSheet } from './TrackLogSheet';
 import { CardioTrackChart } from './CardioTrackProgress';
-import { TodayCardioTracks } from './TodayCardioTracks';
+import { CardioThisWeek } from './CardioThisWeek';
 import { stepUpText } from './trackText';
 import { cardioTracksApi } from '@/api/cardioTracks';
 import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
@@ -219,18 +219,17 @@ describe('offline and drafts', () => {
   });
 });
 
-describe('TodayCardioTracks', () => {
-  it('shows prescriptions and the zone 4–5 warning', async () => {
-    renderWithProviders(<TodayCardioTracks />);
+describe('CardioThisWeek', () => {
+  it('shows the zone 4–5 warning and leaves the active tracks to the list below', async () => {
+    renderWithProviders(<CardioThisWeek />);
 
     expect(await screen.findByText(/above your 30 min max/)).toBeInTheDocument();
-    expect(screen.getByRole('article', { name: 'Stair finisher' })).toHaveTextContent('2 more sessions to step up');
-    expect(screen.queryByRole('button', { name: /^Pause/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'Stair finisher' })).not.toBeInTheDocument();
   });
 
   it('renders nothing without tracks', async () => {
     installCardioTracksHandlers(cardioTracksHandlers.empty());
-    const { container } = renderWithProviders(<TodayCardioTracks />);
+    const { container } = renderWithProviders(<CardioThisWeek />);
 
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });

@@ -238,7 +238,11 @@ public sealed record TemplateTrackPreviewDto(string Key, string Name, string Des
 public sealed record UpcomingDayDto(DateOnly Date, PhaseType? Phase, IReadOnlyList<TodaySessionDto> Sessions, IReadOnlyList<UpcomingLiftDto> Lifts);
 
 /// <summary>A lift session's plan from the linked workout's current week. <c>Reps</c> of an AMRAP set is its rep-out target.</summary>
-public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNumber, bool IsDeloadWeek, IReadOnlyList<UpcomingExerciseDto> Exercises, UpcomingFinisherDto? Finisher);
+public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNumber, bool IsDeloadWeek, IReadOnlyList<UpcomingExerciseDto> Exercises, UpcomingFinisherDto? Finisher)
+{
+    /// <summary>The finisher as a planned item (prescription, progression type, sessions to step up). Additive; <see cref="Finisher"/> stays.</summary>
+    public PlannedCardioDto? Cardio { get; init; }
+}
 
 /// <summary>
 /// <see cref="IsTrainingMaxPending"/>: an A2S2 lift with no training max yet; its sets weigh 0, so show reps and

@@ -1,4 +1,4 @@
-import { Sun, CalendarDays, CheckCircle2, TrendingUp, Settings } from 'lucide-react';
+import { Dumbbell, StretchHorizontal, CheckCircle2, TrendingUp, Settings } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface TabDefinition {
@@ -14,10 +14,17 @@ export interface TabDefinition {
 }
 
 export const TABS: TabDefinition[] = [
-  { to: '/today', label: 'Today', icon: Sun, matches: ['/today', '/dashboard', '/hevy/inbox'], badge: 'pendingSync' },
-  { to: '/workout', label: 'Plan', icon: CalendarDays, matches: ['/workout', '/setup', '/programs', '/routines'] },
+  // Workout = the current session in the cycle plus the plan's week view (the old Plan tab).
+  {
+    to: '/today',
+    label: 'Workout',
+    icon: Dumbbell,
+    matches: ['/today', '/current', '/dashboard', '/hevy/inbox', '/gym', '/workout', '/setup', '/programs', '/plans'],
+    badge: 'pendingSync',
+  },
+  { to: '/routines', label: 'Mobility', icon: StretchHorizontal, matches: ['/routines'] },
   { to: '/habits', label: 'Habits', icon: CheckCircle2, matches: ['/habits'], badge: 'pendingSync' },
-  { to: '/progress', label: 'Progress', icon: TrendingUp, matches: ['/progress', '/history', '/hevy/data'] },
+  { to: '/progress', label: 'Progress', icon: TrendingUp, matches: ['/progress', '/history', '/hevy/data', '/cardio', '/cardio-tracks'] },
   {
     to: '/settings',
     label: 'Settings',

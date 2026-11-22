@@ -449,6 +449,48 @@ public class GymSessionTests
     }
 
     [Fact]
+    public async Task TrackFinisher_Qualifying_ReportsHoldWithSessionsLeft_AndTheNextPrescription()
+    {
+        var thursday = new DateTimeOffset(2026, 11, 19, 18, 0, 0, TimeSpan.Zero);
+        var command = new FinishGymSessionCommand(ClientSession, _workout.Id.Value, DayNumber.Day1, thursday, thursday.AddHours(1), AsPlanned(amrapReps: 12),
+            Finisher: new FinisherLogRequest(300, Effort.Solid, Level: 6, Floors: 30));
+
+        var result = await _finish.Handle(command, CancellationToken.None);
+
+        var outcome = result.Value.FinisherOutcome!;
+        outcome.Kind.Should().Be("Track");
+        outcome.Outcome.Should().Be("Qualified");
+        outcome.Progressed.Should().BeFalse();
+        outcome.SessionsToStepUp.Should().Be(1);
+        outcome.Summary.Should().Be("Hold: 1 more qualifying session to step up");
+        outcome.NextTime.Should().Be("Next time: 5 min continuous @ level 6");
+    }
+
+    [Fact]
+    public async Task TrackFinisher_Niggle_ReportsHoldWithTheReason()
+    {
+        var thursday = new DateTimeOffset(2026, 11, 19, 18, 0, 0, TimeSpan.Zero);
+        var command = new FinishGymSessionCommand(ClientSession, _workout.Id.Value, DayNumber.Day1, thursday, thursday.AddHours(1), AsPlanned(amrapReps: 12),
+            Finisher: new FinisherLogRequest(300, Effort.Solid, Level: 6, Pain: PainFlag.Niggle, PainArea: "knee"));
+
+        var outcome = (await _finish.Handle(command, CancellationToken.None)).Value.FinisherOutcome!;
+
+        outcome.Outcome.Should().Be("Held");
+        outcome.Summary.Should().StartWith("Hold: ");
+        outcome.Next.Should().Be("5 min continuous @ level 6");
+    }
+
+    [Fact]
+    public async Task ProtocolFinisher_ReportsLogged_WithNoNextPrescription()
+    {
+        var outcome = (await _finish.Handle(Finish(finisher: new FinisherLogRequest(600, Effort.Solid)), CancellationToken.None)).Value.FinisherOutcome!;
+
+        outcome.Kind.Should().Be("Protocol");
+        outcome.Outcome.Should().Be("Logged");
+        outcome.NextTime.Should().BeNull();
+    }
+
+    [Fact]
     public async Task FinishEarly_PostsOnlyWhatWasDone_AndLeavesTheSkippedExerciseUntouched()
     {
         var sealRowBefore = ((RepsPerSetStrategy)SealRow.Progression).CurrentSetCount;

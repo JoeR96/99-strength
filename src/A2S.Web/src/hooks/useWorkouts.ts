@@ -11,6 +11,7 @@ export const workoutKeys = {
   list: () => [...workoutKeys.all, "list"] as const,
   exerciseLibrary: () => ["exerciseLibrary"] as const,
   history: (workoutId?: string) => [...workoutKeys.all, "history", workoutId] as const,
+  cycle: () => [...workoutKeys.all, "cycle"] as const,
   weekPlan: (workoutId: string, week: number, day: number) => [...workoutKeys.all, "week-plan", workoutId, week, day] as const,
 };
 
@@ -177,6 +178,22 @@ export function useWeekPlan(workoutId: string | undefined, week: number | undefi
     queryFn: () => workoutsApi.getWeekPlan(workoutId!, week!, day),
     enabled: enabled && Boolean(workoutId) && Boolean(week) && day >= 1 && day <= 6,
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** The training cycle from the current session (Current workout page). Null when there is no active workout. */
+export function useCurrentCycle() {
+  return useQuery({
+    queryKey: workoutKeys.cycle(),
+    queryFn: async () => {
+      try {
+        return await workoutsApi.getCurrentCycle();
+      } catch (error) {
+        if ((error as { response?: { status?: number } })?.response?.status === 404) return null;
+        throw error;
+      }
+    },
+    staleTime: 1000 * 60,
   });
 }
 

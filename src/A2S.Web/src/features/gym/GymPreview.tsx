@@ -8,6 +8,8 @@
 import { Link } from 'react-router-dom';
 import { Eye, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { PlannedCardioDto } from '@/api/workouts';
+import { PlannedCardioItem } from './PlannedCardioItem';
 import { liftBlocks, type GymLift, type GymSessionState, type GymSet } from './gymSession';
 
 export interface GymPreviewProps {
@@ -16,6 +18,8 @@ export interface GymPreviewProps {
   dayLabel: string;
   /** Where Start goes, or null when the day is not today. */
   startHref: string | null;
+  /** The finisher as the week plan's planned item (prescription, progression, step-up). Preferred over `state.finisher`. */
+  cardio?: PlannedCardioDto | null;
 }
 
 function weight(set: GymSet, unit: string, lift?: GymLift): string {
@@ -23,7 +27,7 @@ function weight(set: GymSet, unit: string, lift?: GymLift): string {
   return `${Number.isInteger(set.plannedWeight) ? set.plannedWeight : set.plannedWeight.toFixed(1)} ${unit}`;
 }
 
-export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
+export function GymPreview({ state, dayLabel, startHref, cardio }: GymPreviewProps) {
   const supersetLabels: (string | null)[] = state.lifts.map(() => null);
   for (const block of liftBlocks(state)) block.lifts.forEach((l, k) => (supersetLabels[l] = block.labels[k]));
   return (
@@ -100,7 +104,7 @@ export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
             <p className="mt-2 text-sm text-muted-foreground">Extra set: +1 {lift.extraSet.side.toLowerCase()}.</p>
           )}
           {lift.trainingMaxPending && (
-            <p className="mt-2 text-sm text-foreground">Training max not set yet: set it on Today or in gym mode.</p>
+            <p className="mt-2 text-sm text-foreground">Training max not set yet: set it on the Workout page or in gym mode.</p>
           )}
           {lift.sets.some((s) => s.isAmrap) && (
             <p className="mt-2 text-sm text-muted-foreground">
@@ -110,7 +114,9 @@ export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
         </section>
       ))}
 
-      {state.finisher && (
+      {cardio && <PlannedCardioItem cardio={cardio} />}
+
+      {!cardio && state.finisher && (
         <section
           className="rounded-lg border border-border bg-card p-4"
           aria-labelledby="preview-finisher"
@@ -136,7 +142,7 @@ export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
           </Button>
         )}
         <Button asChild variant="outline" size="lg" className="w-full">
-          <Link to="/today">Back to Today</Link>
+          <Link to="/today">Back to workout</Link>
         </Button>
       </div>
     </main>

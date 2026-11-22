@@ -14,5 +14,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = { decorators: [withApiMocks(() => installMobilityRoutinesHandlers(mobilityRoutinesHandlers.default()))] };
+
+/** Every kind: stretches, the home yoga flow and a follow-along video, grouped. */
+export const AllKinds: Story = { decorators: [withApiMocks(() => installMobilityRoutinesHandlers(mobilityRoutinesHandlers.home()))] };
 export const Empty: Story = { decorators: [withApiMocks(() => installMobilityRoutinesHandlers(mobilityRoutinesHandlers.empty()))] };
 export const Error: Story = { decorators: [withApiMocks(() => installMobilityRoutinesHandlers(mobilityRoutinesHandlers.error()))] };
