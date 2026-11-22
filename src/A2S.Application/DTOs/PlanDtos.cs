@@ -18,7 +18,8 @@ public sealed record ScheduledSessionDto(
     string Label,
     Guid? WarmUpRoutineId = null,
     Guid? FinisherCardioProtocolId = null,
-    Guid? CardioTrackId = null);
+    Guid? CardioTrackId = null,
+    Guid? FinisherCardioTrackId = null);
 
 public sealed record PlanPhaseDto(PhaseType Type, DateOnly From, DateOnly To, string? Note);
 
@@ -95,7 +96,8 @@ public sealed record TodaySessionDto(
     Guid? GymSessionId = null,
     string? HevyPostStatus = null,
     Guid? WarmUpRoutineId = null,
-    Guid? FinisherCardioProtocolId = null);
+    Guid? FinisherCardioProtocolId = null,
+    Guid? FinisherCardioTrackId = null);
 
 public sealed record WeeklyGoalsDto(
     DateOnly WeekStart,

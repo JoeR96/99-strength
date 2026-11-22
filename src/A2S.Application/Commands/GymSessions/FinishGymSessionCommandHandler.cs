@@ -122,7 +122,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 WarmUpRoutineId = warmUpRoutineId?.Value,
                 WarmUpTicks = request.WarmUpTicks,
                 Performances = request.Performances,
-                FinisherProtocolId = session?.Finisher?.CardioProtocolId.Value,
+                FinisherProtocolId = session?.Finisher?.CardioProtocolId?.Value,
                 Finisher = request.Finisher
             };
 

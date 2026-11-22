@@ -33,8 +33,9 @@ public static class PlanMappings
         session.MobilityRoutineId?.Value,
         session.Label,
         session.WarmUpRoutineId?.Value,
-        session.Finisher?.CardioProtocolId.Value,
-        session.CardioTrackId?.Value);
+        session.Finisher?.CardioProtocolId?.Value,
+        session.CardioTrackId?.Value,
+        session.Finisher?.CardioTrackId?.Value);
 
     public static ScheduledSession ToDomain(this ScheduledSessionDto dto) => new(
         dto.Day,
@@ -44,7 +45,8 @@ public static class PlanMappings
         dto.MobilityRoutineId is { } mobility ? new MobilityRoutineId(mobility) : null,
         dto.Label,
         dto.WarmUpRoutineId is { } warmUp ? new MobilityRoutineId(warmUp) : null,
-        dto.FinisherCardioProtocolId is { } finisher ? new SessionFinisher(new CardioProtocolId(finisher)) : null,
+        dto.FinisherCardioProtocolId is { } finisher ? new SessionFinisher(new CardioProtocolId(finisher))
+            : dto.FinisherCardioTrackId is { } finisherTrack ? SessionFinisher.ForTrack(new CardioTrackId(finisherTrack)) : null,
         dto.CardioTrackId is { } track ? new CardioTrackId(track) : null);
 
     public static SessionCompletionDto ToDto(this SessionCompletion completion) => new(
