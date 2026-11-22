@@ -40,6 +40,7 @@ import { StartSuggestedPlanCard } from './StartSuggestedPlanCard';
 import { HevySyncNotice } from './HevySyncNotice';
 import { openHevyRoutine } from './hevyDeepLink';
 import { useRetryHevyPost } from '@/hooks/useGymSession';
+import { TodayCardioTracks } from '@/features/cardio/TodayCardioTracks';
 
 export interface TodayPageProps {
   /** Overrides the offline queue length shown in the header (stories); otherwise read from the queue. */
@@ -291,6 +292,8 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
             ))}
           </section>
         )}
+
+        <TodayCardioTracks />
 
         <section aria-labelledby="habits-heading" className="space-y-2">
           <h2 id="habits-heading" className="text-sm font-medium text-muted-foreground">

@@ -7,6 +7,7 @@ import { installBodyWeightHandlers, bodyWeightHandlers } from '@/mocks/handlers/
 import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/handlers/suggestedPlans';
 import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
 import { hevySyncHandlers, installHevySyncHandlers, installPushFlowHandlers } from '@/mocks/handlers/hevySync';
+import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
 
 const meta = {
   title: 'Features/Today/TodayPage',
@@ -214,6 +215,18 @@ export const Error: Story = {
       installPlansHandlers(plansHandlers.error());
       installHabitsHandlers(habitsHandlers.error());
       installBodyWeightHandlers(bodyWeightHandlers.error());
+    }),
+  ],
+};
+
+/** Cardio tracks under the sessions: each prescription, sessions to the next step, and the zone 4–5 guardrail. */
+export const WithCardioTracks: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.default());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+      installCardioTracksHandlers(cardioTracksHandlers.default());
     }),
   ],
 };
