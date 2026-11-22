@@ -148,10 +148,22 @@ public static class RoutineBuilder
         }
         else
         {
-            sets = [new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = Math.Max(1, p.Minutes) * 60 }];
+            var workSeconds = p.HasSegments ? (int)Math.Ceiling(p.WorkMinutes) * 60 : p.Minutes * 60;
+            sets = [new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = Math.Max(60, workSeconds) }];
         }
 
-        var notes = new List<string> { $"{track.Name}: {p.Title}" };
+        // A fixed warm-up and cool-down are their own sets either side of the work.
+        if (p.WarmUp is { } warmUp)
+        {
+            sets.Insert(0, new HevySetDraft { Type = HevySetTypes.Warmup, DurationSeconds = warmUp.Minutes * 60 });
+        }
+
+        if (p.CoolDown is { } coolDown)
+        {
+            sets.Add(new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = coolDown.Minutes * 60 });
+        }
+
+        var notes = new List<string> { $"{track.Name}: {p.Text}" };
         if (!string.IsNullOrWhiteSpace(p.Note))
         {
             notes.Add(p.Note!);

@@ -26,6 +26,18 @@ public sealed record PlannedCardioDto
     public string? Note { get; init; }
     public Guid? CardioTrackId { get; init; }
     public Guid? CardioProtocolId { get; init; }
+
+    /// <summary>A track's fixed easy warm-up before the work block (null: none). <see cref="Minutes"/> includes it.</summary>
+    public TrackSegmentDto? WarmUp { get; init; }
+
+    /// <summary>A track's fixed easy cool-down after the work block (null: none). <see cref="Minutes"/> includes it.</summary>
+    public TrackSegmentDto? CoolDown { get; init; }
+
+    /// <summary>Minutes of the work block alone (tracks only); <see cref="Minutes"/> is the whole session.</summary>
+    public decimal? WorkMinutes { get; init; }
+
+    /// <summary>The whole session as one line: "3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)".</summary>
+    public string? Text { get; init; }
 }
 
 /// <summary>

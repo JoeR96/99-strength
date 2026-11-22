@@ -24,7 +24,8 @@ public sealed record CardioTrackSession(
     int? Floors,
     decimal? DistanceMeters,
     decimal? IntensityValue,
-    CardioLogSource Source);
+    CardioLogSource Source,
+    decimal? WorkMinutes = null);
 
 /// <summary>One line of the track's audit trail: what changed, why, and the prescription before and after.</summary>
 public sealed record CardioTrackAuditEntry(
@@ -209,10 +210,10 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         }
 
         State = evaluation.State;
-        _sessions.Add(new CardioTrackSession(key, date, before.Title, stageIndex,
+        _sessions.Add(new CardioTrackSession(key, date, before.Text, stageIndex,
             check.Completed, qualified && evaluation.Outcome is not (TrackOutcome.Paused or TrackOutcome.AwaitingDecision),
             evaluation.Outcome, log.DurationSeconds, check.Effort, log.EffectiveRpe, log.Pain, log.PainArea, log.AvgHeartRate,
-            log.HighIntensityMinutes, log.Zone5Minutes, log.Floors, log.DistanceMeters, log.IntensityValue, log.Source));
+            log.HighIntensityMinutes, log.Zone5Minutes, log.Floors, log.DistanceMeters, log.IntensityValue, log.Source, log.WorkMinutes));
         AddAudit(at, date, evaluation.Outcome.ToString(), evaluation.Reason, before.Title, key);
 
         return new TrackEvaluationResult(evaluation.Outcome, evaluation.Reason, qualified, false, Prescription);

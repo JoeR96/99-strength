@@ -57,7 +57,8 @@ public sealed record CardioLogDto(
     int? Zone5Minutes = null,
     PainFlag Pain = PainFlag.None,
     string? PainArea = null,
-    CardioLogSource Source = CardioLogSource.Manual);
+    CardioLogSource Source = CardioLogSource.Manual,
+    decimal? WorkMinutes = null);
 
 /// <summary>Weekly zone 4–5 minutes band.</summary>
 public sealed record HighIntensityTargetDto(int MinMinutes, int MaxMinutes);

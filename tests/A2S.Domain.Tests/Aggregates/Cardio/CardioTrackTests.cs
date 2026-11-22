@@ -51,6 +51,67 @@ public class CardioTrackTests
     }
 
     [Fact]
+    public void StairFinisher_HasEasyWarmUpAndCoolDown_AroundTheWorkBlock()
+    {
+        var stair = Stair();
+
+        foreach (var stage in stair.Stages)
+        {
+            stage.WarmUp.Should().Be(new TrackSegment(3, 3, "Z2"));
+            stage.CoolDown.Should().Be(new TrackSegment(3, 3, "Z1–2"));
+        }
+
+        var p = stair.Prescription;
+        p.WorkMinutes.Should().Be(5);
+        p.Minutes.Should().Be(11);
+        p.Title.Should().Be("5 min continuous @ level 6");
+        p.Text.Should().Be("3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)");
+    }
+
+    [Fact]
+    public void StairFinisher_Ranges_ContinuousFiveToFifteenResetTen_IntervalsSixToTenResetEight()
+    {
+        var stair = Stair();
+        var continuous = stair.Stages[0].DoubleProgression!;
+        var intervals = stair.Stages[1].DoubleProgression!;
+
+        (continuous.VolumeMin, continuous.VolumeMax, continuous.VolumeStep, continuous.VolumeResetTo, continuous.SessionsToAdvance)
+            .Should().Be((5m, 15m, 1m, (decimal?)10m, 2));
+        (intervals.VolumeMin, intervals.VolumeMax, intervals.VolumeStep, intervals.VolumeResetTo, intervals.SessionsToAdvance)
+            .Should().Be((6m, 10m, 1m, (decimal?)8m, 2));
+        stair.Stages[0].Exit.Should().Be(StageExit.AtTop);
+    }
+
+    [Fact]
+    public void StairFinisher_ZoneShare_IsJudgedOnWorkMinutes_NotTheTotal()
+    {
+        var track = Stair();
+
+        // 11 min total, 5 min work: 3 zone minutes is ≥ 50 % of the work (would be < 50 % of the total).
+        var result = track.LogSession("s1", Start, Hard(11, 3), true, null, At);
+
+        result.Qualified.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TrackWithoutSegments_PrescriptionIsUnchanged()
+    {
+        var walk = Walk();
+
+        walk.Prescription.WarmUp.Should().BeNull();
+        walk.Prescription.Minutes.Should().Be(20);
+        walk.Prescription.Text.Should().Be("20 min continuous");
+    }
+
+    [Fact]
+    public void Segment_ZeroMinutesIsOff_OutOfRangeThrows()
+    {
+        TrackSegment.OrNone(0, 3, "Z2").Should().BeNull();
+        var act = () => new TrackSegment(31, 3, null);
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
     public void Create_WithUnknownTemplate_Throws()
     {
         var act = () => CardioTrackTemplates.Create("nope", Owner, Start);
@@ -119,23 +180,23 @@ public class CardioTrackTests
     {
         var track = Stair();
         var day = Start;
-        // Level 6→9, 5→10 min: walk it to the top of stage one with two qualifying sessions per step.
-        for (var i = 0; i < 80 && track.State.Suggestion == TrackSuggestion.None; i++)
+        // Level 6→9, 5→15 min (back to 10 after each level): two qualifying sessions per step to the top of stage one.
+        for (var i = 0; i < 120 && track.State.Suggestion == TrackSuggestion.None; i++)
         {
             day = day.AddDays(1);
             var minutes = (int)track.State.Volume;
-            track.LogSession($"s{i}", day, Hard(minutes, minutes), true, null, At);
+            track.LogSession($"s{i}", day, Hard(minutes + 6, minutes), true, null, At);
         }
 
         track.State.Suggestion.Should().Be(TrackSuggestion.NextStage);
         track.State.StageIndex.Should().Be(0);
-        track.Prescription.Title.Should().Be("10 min continuous @ level 9");
+        track.Prescription.Title.Should().Be("15 min continuous @ level 9");
         var beforeAccept = track.State;
 
         track.AcceptSuggestion(At);
 
         track.State.StageIndex.Should().Be(1);
-        track.Prescription.Title.Should().Be("4 × 1 min hard / 1 min easy @ level 10");
+        track.Prescription.Title.Should().Be("6 × 1 min hard / 1 min easy @ level 10");
         track.Audit[^1].Action.Should().Be("StageAccepted");
 
         track.UndoLastEvaluation();

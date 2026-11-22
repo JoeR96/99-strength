@@ -24,8 +24,14 @@ public static class CardioTrackTemplates
         new(WalkToRun, "Walk → run", CardioModality.Run,
             "Couch to 5K over 9 weeks (2 runs a week, move on after 3 good sessions), then a 5 K builder: continuous running +10 % a step up to 35 min."),
         new(StairFinisher, "Stair finisher", CardioModality.StairClimber,
-            "After lifting, zone 4–5: continuous 5 → 10 min then level +1 and back to 5; then 1 min hard / 1 min easy intervals, 4 → 8 rounds, then hard level +1.")
+            "After lifting: 3 min easy, then zone 4–5 work, then 3 min easy. Work: continuous 5 → 15 min, then level +1 and back to 10; then 1 min hard / 1 min easy intervals, 6 → 10 rounds, then hard level +1 and back to 8.")
     ];
+
+    /// <summary>The stair finisher's easy minutes before the work block (level 3, zone 2).</summary>
+    public static TrackSegment StairWarmUp { get; } = new(3, 3, "Z2");
+
+    /// <summary>The stair finisher's easy minutes after the work block (level 3, zone 1–2).</summary>
+    public static TrackSegment StairCoolDown { get; } = new(3, 3, "Z1–2");
 
     /// <summary>The start gate a template suggests (only Walk → run has one). Applied when the person asks for it.</summary>
     public static IReadOnlyList<GateCondition> DefaultGate(string key) => key == WalkToRun ? StartGate.RunningGate() : [];
@@ -87,11 +93,15 @@ public static class CardioTrackTemplates
         StairFinisher => CardioTrack.Create(userId, "Stair finisher", CardioModality.StairClimber,
             [
                 TrackStage.Double("Continuous", TrackEffortTarget.Hard,
-                    new DoubleProgressionSettings(VolumeUnit.Minutes, 5, 10, 1, null, IntensityUnit.Level, 6, 1, 9, 2),
-                    zoneTargetFraction: 0.5m, note: "After lifting. Steady and hard: zone 4–5."),
+                    new DoubleProgressionSettings(VolumeUnit.Minutes, 5, 15, 1, null, IntensityUnit.Level, 6, 1, 9, 2,
+                        volumeResetTo: 10),
+                    zoneTargetFraction: 0.5m, note: "After lifting. Steady and hard: zone 4–5.",
+                    warmUp: StairWarmUp, coolDown: StairCoolDown),
                 TrackStage.Double("Intervals", TrackEffortTarget.Hard,
-                    new DoubleProgressionSettings(VolumeUnit.Rounds, 4, 8, 1, null, IntensityUnit.Level, 10, 1, null, 2, 60, 60),
-                    zoneTargetFraction: 0.5m, note: "1 min hard / 1 min easy. Level is the hard minute.")
+                    new DoubleProgressionSettings(VolumeUnit.Rounds, 6, 10, 1, null, IntensityUnit.Level, 10, 1, null, 2, 60, 60,
+                        volumeResetTo: 8),
+                    zoneTargetFraction: 0.5m, note: "1 min hard / 1 min easy. Level is the hard minute.",
+                    warmUp: StairWarmUp, coolDown: StairCoolDown)
             ],
             startedOn,
             new TrackBenchmark("Floors in 5 min, all out", "floors", HigherIsBetter: true),

@@ -42,8 +42,10 @@ public class CardioTrackRoutineBuilderTests
         var exercise = RoutineBuilder.TrackExercise(stairs);
 
         exercise.ExerciseTemplateId.Should().Be("4377A52B");
-        exercise.Sets.Should().ContainSingle().Which.DurationSeconds.Should().Be(300);
-        exercise.Notes.Should().Contain("5 min continuous @ level 6").And.Contain("2 more good session(s) to step up");
+        exercise.Sets.Select(s => (s.Type, s.DurationSeconds)).Should().Equal(
+            (HevySetTypes.Warmup, 180), (HevySetTypes.Normal, 300), (HevySetTypes.Normal, 180));
+        exercise.Notes.Should().Contain("3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)")
+            .And.Contain("2 more good session(s) to step up");
     }
 
     [Fact]
@@ -51,7 +53,7 @@ public class CardioTrackRoutineBuilderTests
     {
         var stairs = CardioTrackTemplates.Create(CardioTrackTemplates.StairFinisher, Joe, Start);
         var day = Start;
-        for (var i = 0; i < 80 && stairs.State.Suggestion == TrackSuggestion.None; i++)
+        for (var i = 0; i < 120 && stairs.State.Suggestion == TrackSuggestion.None; i++)
         {
             day = day.AddDays(1);
             var minutes = (int)stairs.State.Volume;
@@ -61,9 +63,10 @@ public class CardioTrackRoutineBuilderTests
         stairs.AcceptSuggestion(At);
 
         var exercise = RoutineBuilder.TrackExercise(stairs);
-        exercise.Sets.Should().HaveCount(8);
-        exercise.Sets.Should().AllSatisfy(s => s.DurationSeconds.Should().Be(60));
-        exercise.Notes.Should().Contain("4 × 1 min hard / 1 min easy @ level 10");
+        exercise.Sets.Should().HaveCount(14, "a warm-up set, 6 rounds of hard then easy, and a cool-down set");
+        exercise.Sets[0].Type.Should().Be(HevySetTypes.Warmup);
+        exercise.Sets.Skip(1).Take(12).Should().AllSatisfy(s => s.DurationSeconds.Should().Be(60));
+        exercise.Notes.Should().Contain("6 × 1 min hard / 1 min easy @ level 10");
     }
 
     [Fact]

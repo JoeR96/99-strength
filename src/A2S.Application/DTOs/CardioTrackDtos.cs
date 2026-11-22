@@ -20,7 +20,11 @@ public sealed record DoubleProgressionSettingsDto(
     decimal? IntensityMax,
     int SessionsToAdvance,
     int? WorkSeconds,
-    int? RestSeconds);
+    int? RestSeconds,
+    decimal? VolumeResetTo = null);
+
+/// <summary>A fixed easy warm-up or cool-down around a stage's work block. Minutes 0 (or the segment null) turns it off.</summary>
+public sealed record TrackSegmentDto(int Minutes, decimal? Level, string? Zone);
 
 public sealed record TrackStageDto(
     string Name,
@@ -31,7 +35,9 @@ public sealed record TrackStageDto(
     int? HrCeilingZone,
     decimal? ZoneTargetFraction,
     string? Note,
-    StageExit Exit = StageExit.AtTop);
+    StageExit Exit = StageExit.AtTop,
+    TrackSegmentDto? WarmUp = null,
+    TrackSegmentDto? CoolDown = null);
 
 public sealed record TrackBenchmarkDto(string Name, string Unit, bool HigherIsBetter, int EveryWeeks);
 
@@ -47,7 +53,10 @@ public sealed record CardioPrescriptionDto(
     int? WorkSeconds,
     int? RestSeconds,
     int? Week,
-    string? Note);
+    string? Note,
+    TrackSegmentDto? WarmUp = null,
+    TrackSegmentDto? CoolDown = null,
+    string? Text = null);
 
 public sealed record CardioTrackStateDto(
     int StageIndex,
@@ -103,7 +112,8 @@ public sealed record CardioTrackSessionDto(
     int? Floors,
     decimal? DistanceMeters,
     decimal? IntensityValue,
-    CardioLogSource Source);
+    CardioLogSource Source,
+    decimal? WorkMinutes = null);
 
 public sealed record CardioTrackAuditEntryDto(DateTimeOffset AtUtc, DateOnly? Date, string Action, string Reason, string Before, string After);
 
@@ -166,7 +176,13 @@ public static class CardioTrackMappings
     }
 
     public static CardioPrescriptionDto ToDto(this CardioPrescription p) => new(p.Title, p.StageName, p.Minutes, p.WorkMinutes,
-        p.VolumeUnit, p.Volume, p.IntensityUnit, p.Intensity, p.WorkSeconds, p.RestSeconds, p.Week, p.Note);
+        p.VolumeUnit, p.Volume, p.IntensityUnit, p.Intensity, p.WorkSeconds, p.RestSeconds, p.Week, p.Note,
+        p.WarmUp?.ToDto(), p.CoolDown?.ToDto(), p.Text);
+
+    public static TrackSegmentDto ToDto(this TrackSegment s) => new(s.Minutes, s.Level, s.Zone);
+
+    /// <summary>The editor's segment: null or 0 minutes is off.</summary>
+    public static TrackSegment? ToDomain(this TrackSegmentDto? s) => s is null ? null : TrackSegment.OrNone(s.Minutes, s.Level, s.Zone);
 
     public static CardioTrackDetailDto ToDetailDto(this CardioTrack track, DateOnly today)
     {
@@ -179,7 +195,7 @@ public static class CardioTrackMappings
                 step += session.Outcome == TrackOutcome.SteppedUp ? 1 : -1;
             }
 
-            chart.Add(new CardioTrackChartPointDto(session.Date, step, session.DurationSeconds / 60m, session.IntensityValue,
+            chart.Add(new CardioTrackChartPointDto(session.Date, step, session.WorkMinutes ?? session.DurationSeconds / 60m, session.IntensityValue,
                 session.AvgHeartRate, session.HighIntensityMinutes, session.Prescription));
         }
 
@@ -187,7 +203,7 @@ public static class CardioTrackMappings
             track.ToDto(today),
             track.Sessions.Select(s => new CardioTrackSessionDto(s.Key, s.Date, s.Prescription, s.StageIndex, s.Completed, s.Qualified,
                 s.Outcome, s.DurationSeconds, s.Effort, s.Rpe, s.Pain, s.PainArea, s.AvgHeartRate, s.HighIntensityMinutes,
-                s.Zone5Minutes, s.Floors, s.DistanceMeters, s.IntensityValue, s.Source)).ToList(),
+                s.Zone5Minutes, s.Floors, s.DistanceMeters, s.IntensityValue, s.Source, s.WorkMinutes)).ToList(),
             track.Audit.Select(a => new CardioTrackAuditEntryDto(a.AtUtc, a.Date, a.Action, a.Reason, a.Before, a.After)).ToList(),
             track.Benchmarks.Select(b => new BenchmarkResultDto(b.Date, b.Value, b.Notes, b.IsPersonalBest)).ToList(),
             chart);
@@ -203,12 +219,14 @@ public static class CardioTrackMappings
             : null,
         s.DoubleProgression is { } d
             ? new DoubleProgressionSettingsDto(d.VolumeUnit, d.VolumeMin, d.VolumeMax, d.VolumeStep, d.VolumeStepPercent, d.IntensityUnit,
-                d.IntensityStart, d.IntensityStep, d.IntensityMax, d.SessionsToAdvance, d.WorkSeconds, d.RestSeconds)
+                d.IntensityStart, d.IntensityStep, d.IntensityMax, d.SessionsToAdvance, d.WorkSeconds, d.RestSeconds, d.VolumeResetTo)
             : null,
         s.HrCeilingZone,
         s.ZoneTargetFraction,
         s.Note,
-        s.Exit);
+        s.Exit,
+        s.WarmUp?.ToDto(),
+        s.CoolDown?.ToDto());
 
     public static TrackStage ToDomain(this TrackStageDto s) => new(
         s.Name,
@@ -220,12 +238,14 @@ public static class CardioTrackMappings
             : null,
         s.DoubleProgression is { } d
             ? new DoubleProgressionSettings(d.VolumeUnit, d.VolumeMin, d.VolumeMax, d.VolumeStep, d.VolumeStepPercent, d.IntensityUnit,
-                d.IntensityStart, d.IntensityStep, d.IntensityMax, d.SessionsToAdvance, d.WorkSeconds, d.RestSeconds)
+                d.IntensityStart, d.IntensityStep, d.IntensityMax, d.SessionsToAdvance, d.WorkSeconds, d.RestSeconds, d.VolumeResetTo)
             : null,
         s.HrCeilingZone,
         s.ZoneTargetFraction,
         s.Note,
-        s.Exit);
+        s.Exit,
+        s.WarmUp.ToDomain(),
+        s.CoolDown.ToDomain());
 
     public static HeartRateZonesDto ToZonesDto(int? maxHeartRate, IReadOnlyList<int>? lowerPercents)
     {

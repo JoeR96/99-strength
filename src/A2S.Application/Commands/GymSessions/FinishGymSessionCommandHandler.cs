@@ -142,6 +142,9 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 FinisherTrackId = session?.Finisher?.CardioTrackId?.Value,
                 FinisherFixedKind = session?.Finisher?.Fixed?.Kind.ToString(),
                 FinisherFixedNotes = session?.Finisher?.Fixed?.Notes,
+                FinisherPrescription = session?.Finisher?.CardioTrackId is { } finisherTrack && _trackRecorder is not null
+                    ? await _trackRecorder.PrescriptionTextAsync(userId, finisherTrack, cancellationToken)
+                    : null,
                 Finisher = request.Finisher
             };
 
@@ -220,7 +223,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         intensityValue: log.Level,
         floors: log.Floors,
         pain: log.Pain,
-        painArea: log.PainArea);
+        painArea: log.PainArea) { WorkMinutes = log.WorkMinutes is > 0 ? log.WorkMinutes : null };
 
     private async Task TryPostAsync(HevyWorkoutPost post, CancellationToken ct)
     {

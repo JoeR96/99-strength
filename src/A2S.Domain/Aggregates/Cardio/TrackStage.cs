@@ -64,6 +64,15 @@ public sealed record DoubleProgressionSettings
     public int? WorkSeconds { get; init; }
     public int? RestSeconds { get; init; }
 
+    /// <summary>
+    /// Where volume goes back to when the intensity steps up at the top of the range. Null: the range minimum
+    /// (the original rule), so tracks saved before this existed behave exactly as before.
+    /// </summary>
+    public decimal? VolumeResetTo { get; init; }
+
+    /// <summary>The volume after an intensity step: <see cref="VolumeResetTo"/>, else the bottom of the range.</summary>
+    public decimal ResetVolume() => VolumeResetTo ?? VolumeMin;
+
     public DoubleProgressionSettings(
         VolumeUnit volumeUnit,
         decimal volumeMin,
@@ -76,7 +85,8 @@ public sealed record DoubleProgressionSettings
         decimal? intensityMax,
         int sessionsToAdvance = 2,
         int? workSeconds = null,
-        int? restSeconds = null)
+        int? restSeconds = null,
+        decimal? volumeResetTo = null)
     {
         if (volumeMin <= 0 || volumeMax < volumeMin)
         {
@@ -116,7 +126,13 @@ public sealed record DoubleProgressionSettings
             throw new BusinessRuleViolationException("Interval rounds need work and rest seconds");
         }
 
+        if (volumeResetTo is { } reset && (reset < volumeMin || reset > volumeMax))
+        {
+            throw new BusinessRuleViolationException("Volume reset must sit inside the volume range");
+        }
+
         VolumeUnit = volumeUnit;
+        VolumeResetTo = volumeResetTo;
         VolumeMin = volumeMin;
         VolumeMax = volumeMax;
         VolumeStep = volumeStep;
@@ -129,6 +145,45 @@ public sealed record DoubleProgressionSettings
         WorkSeconds = volumeUnit == VolumeUnit.Rounds ? workSeconds : null;
         RestSeconds = volumeUnit == VolumeUnit.Rounds ? restSeconds : null;
     }
+}
+
+/// <summary>
+/// A fixed easy segment either side of a stage's work block (a warm-up or cool-down). It never progresses and
+/// is not judged: qualification and the zone 4–5 share look at the work block only. <see cref="Level"/> is the
+/// machine level (null: not set); <see cref="Zone"/> is a note such as "Z2" or "Z1–2".
+/// </summary>
+public sealed record TrackSegment
+{
+    public const int MaxMinutes = 30;
+
+    public int Minutes { get; init; }
+    public decimal? Level { get; init; }
+    public string? Zone { get; init; }
+
+    public TrackSegment(int minutes, decimal? level = null, string? zone = null)
+    {
+        if (minutes < 1 || minutes > MaxMinutes)
+        {
+            throw new BusinessRuleViolationException($"A warm-up or cool-down is 1–{MaxMinutes} minutes (0 turns it off)");
+        }
+
+        if (level is < 0)
+        {
+            throw new BusinessRuleViolationException("Warm-up and cool-down level cannot be negative");
+        }
+
+        Minutes = minutes;
+        Level = level;
+        Zone = string.IsNullOrWhiteSpace(zone) ? null : zone.Trim();
+    }
+
+    /// <summary>A segment, or null when <paramref name="minutes"/> is 0 or less (the editor's "off").</summary>
+    public static TrackSegment? OrNone(int minutes, decimal? level, string? zone) =>
+        minutes <= 0 ? null : new TrackSegment(minutes, level, zone);
+
+    /// <summary>"3 min easy (L3)".</summary>
+    public string Describe() =>
+        Level is { } level ? $"{Minutes} min easy (L{DoubleProgressionStrategy.Number(level)})" : $"{Minutes} min easy";
 }
 
 /// <summary>
@@ -155,6 +210,12 @@ public sealed record TrackStage
     /// <summary>The stage's exit condition. <see cref="StageExit.AtTop"/> suggests the next stage once the top is reached.</summary>
     public StageExit Exit { get; init; }
 
+    /// <summary>Optional fixed easy minutes before the work block. Null: none.</summary>
+    public TrackSegment? WarmUp { get; init; }
+
+    /// <summary>Optional fixed easy minutes after the work block. Null: none.</summary>
+    public TrackSegment? CoolDown { get; init; }
+
     public TrackStage(
         string name,
         TrackStageKind kind,
@@ -164,7 +225,9 @@ public sealed record TrackStage
         int? hrCeilingZone = null,
         decimal? zoneTargetFraction = null,
         string? note = null,
-        StageExit exit = StageExit.AtTop)
+        StageExit exit = StageExit.AtTop,
+        TrackSegment? warmUp = null,
+        TrackSegment? coolDown = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -200,6 +263,8 @@ public sealed record TrackStage
         ZoneTargetFraction = zoneTargetFraction;
         Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
         Exit = exit;
+        WarmUp = warmUp;
+        CoolDown = coolDown;
     }
 
     public static TrackStage Weeks(string name, WeekProgramSettings settings, string? note = null) =>
@@ -211,8 +276,11 @@ public sealed record TrackStage
         DoubleProgressionSettings settings,
         int? hrCeilingZone = null,
         decimal? zoneTargetFraction = null,
-        string? note = null) =>
-        new(name, TrackStageKind.DoubleProgression, target, null, settings, hrCeilingZone, zoneTargetFraction, note);
+        string? note = null,
+        TrackSegment? warmUp = null,
+        TrackSegment? coolDown = null) =>
+        new(name, TrackStageKind.DoubleProgression, target, null, settings, hrCeilingZone, zoneTargetFraction, note,
+            warmUp: warmUp, coolDown: coolDown);
 
     internal ICardioStageStrategy Strategy => Kind == TrackStageKind.WeekProgram
         ? WeekProgramStrategy.Instance

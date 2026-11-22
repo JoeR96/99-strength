@@ -1380,6 +1380,9 @@ namespace A2S.Infrastructure.Migrations
                             b1.Property<int?>("Steps")
                                 .HasColumnType("integer");
 
+                            b1.Property<decimal?>("WorkMinutes")
+                                .HasColumnType("numeric");
+
                             b1.Property<int?>("Zone5Minutes")
                                 .HasColumnType("integer");
 

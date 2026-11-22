@@ -83,7 +83,7 @@ public static class PlanMappings
     public static CardioLog ToDomain(this CardioLogDto dto) =>
         new(dto.DurationSeconds, dto.AvgHeartRate, dto.Rpe, dto.DistanceMeters, dto.Notes, dto.HighIntensityMinutes,
             dto.Effort, dto.IntensityUnit, dto.IntensityValue, dto.Floors, dto.Steps, dto.MaxHeartRate, dto.Zone5Minutes,
-            dto.Pain, dto.PainArea, dto.Source);
+            dto.Pain, dto.PainArea, dto.Source) { WorkMinutes = dto.WorkMinutes is > 0 ? dto.WorkMinutes : null };
 
     public static TodaySessionDto ToDto(this PlanDaySession session) => session.ToDto(hevyRoutineId: null);
 

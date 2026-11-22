@@ -34,6 +34,46 @@ public class DoubleProgressionStrategyTests
         state.Qualifying.Should().Be(0);
     }
 
+    private static readonly SessionCheck HardGood = new(true, EffortRating.Brutal, PainFlag.None, true, null);
+
+    [Fact]
+    public void AtTheTop_WithoutResetTo_VolumeGoesBackToTheRangeMinimum()
+    {
+        var stage = HardLevel();
+        var top = Strategy.Start(stage, 0) with { Volume = 6, Qualifying = 1 };
+
+        var next = Strategy.Evaluate(stage, top, HardGood);
+
+        next.Outcome.Should().Be(TrackOutcome.SteppedUp);
+        next.State.Intensity.Should().Be(9);
+        next.State.Volume.Should().Be(5);
+    }
+
+    [Fact]
+    public void AtTheTop_WithResetTo_VolumeGoesBackToTheResetValue()
+    {
+        var stage = TrackStage.Double("Continuous", TrackEffortTarget.Hard,
+            new DoubleProgressionSettings(VolumeUnit.Minutes, 5, 15, 1, null, IntensityUnit.Level, 6, 1, 9, 2, volumeResetTo: 10),
+            zoneTargetFraction: 0.5m);
+        var top = Strategy.Start(stage, 0) with { Volume = 15, Qualifying = 1 };
+
+        var next = Strategy.Evaluate(stage, top, HardGood);
+
+        next.State.Intensity.Should().Be(7);
+        next.State.Volume.Should().Be(10);
+        Strategy.Start(stage, 0).Volume.Should().Be(5, "a fresh stage still starts at the bottom");
+    }
+
+    [Theory]
+    [InlineData(4)]
+    [InlineData(16)]
+    public void ResetTo_OutsideTheRange_Throws(int reset)
+    {
+        var act = () => new DoubleProgressionSettings(VolumeUnit.Minutes, 5, 15, 1, null, IntensityUnit.Level, 6, 1, 9, 2, volumeResetTo: reset);
+
+        act.Should().Throw<A2S.Domain.Common.BusinessRuleViolationException>();
+    }
+
     [Fact]
     public void TwoQualifyingSessions_StepVolumeUp()
     {

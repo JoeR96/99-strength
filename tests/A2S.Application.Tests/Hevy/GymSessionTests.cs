@@ -445,7 +445,7 @@ public class GymSessionTests
         var stair = _posted.Should().ContainSingle().Subject.Exercises[^1];
         stair.ExerciseTemplateId.Should().Be(HevyTemplateCatalogue.StairMachineFloors);
         stair.Sets.Single().CustomMetric.Should().Be(31m);
-        stair.Notes.Should().Be("Stair finisher · Level 6 · Brutal");
+        stair.Notes.Should().Be("Stair finisher · 3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3) · Level 6 · Brutal");
     }
 
     [Fact]
