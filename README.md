@@ -64,7 +64,7 @@ of your estimated one-rep max).
 
 ## Plan templates
 
-**Settings → Programmes → Plan templates** (or Today when you have no plan) lists the ready-made plans:
+**Plan templates** (in Settings next to Programmes, on the Programmes page, or on Today when you have no plan) lists the ready-made plans:
 "Cut to 85" and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
 session's exercises, warm-ups, home routines, cardio tracks and what's left to fill in. Pick a start date
 (it moves to a Monday), enter training maxes now or leave them for later, and apply. If you already have a
