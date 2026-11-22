@@ -80,7 +80,7 @@ describe('usePlan hooks', () => {
         request: { date: '2026-11-09', kind: SessionKind.Cardio, cardioProtocolId: 'p', cardio: { durationSeconds: 1800, avgHeartRate: null, rpe: null, distanceMeters: null, notes: null } },
       });
     });
-    expect(plansApi.completeSession).toHaveBeenCalledWith(PLAN_ID, expect.objectContaining({ kind: SessionKind.Cardio }));
+    expect(plansApi.completeSession).toHaveBeenCalledWith(PLAN_ID, expect.objectContaining({ kind: SessionKind.Cardio }), expect.any(String));
     await waitFor(() => expect(plansApi.getToday).toHaveBeenCalledTimes(2));
   });
 

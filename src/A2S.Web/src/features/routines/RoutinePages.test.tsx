@@ -116,6 +116,41 @@ describe('RoutineEditorPage', () => {
   });
 });
 
+describe('RoutineEditorPage draft', () => {
+  let store: Map<string, string>;
+  beforeEach(() => {
+    store = new Map<string, string>();
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
+    vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
+    vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+  });
+
+  it('keeps typing on the phone and offers "Restore unsaved changes?" when the page opens again', async () => {
+    const first = renderAt('/routines/new');
+    fireEvent.change(await screen.findByLabelText('Name'), { target: { value: 'Evening reset' } });
+    await waitFor(() => expect(store.has('a2s-draft:routine:new')).toBe(true));
+    first.unmount();
+
+    renderAt('/routines/new');
+
+    expect(await screen.findByRole('heading', { name: 'Restore unsaved changes?' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('');
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+    expect(screen.getByLabelText('Name')).toHaveValue('Evening reset');
+    expect(screen.queryByRole('heading', { name: 'Restore unsaved changes?' })).not.toBeInTheDocument();
+  });
+
+  it('Discard throws the draft away', async () => {
+    store.set('a2s-draft:routine:new', JSON.stringify({ version: 1, savedAt: '2026-11-22T19:30:00.000Z', value: { name: 'Old', targetMinutes: '10', drills: [] } }));
+    renderAt('/routines/new');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Discard' }));
+
+    expect(store.has('a2s-draft:routine:new')).toBe(false);
+    expect(screen.getByLabelText('Name')).toHaveValue('');
+  });
+});
+
 describe('RoutineEditorPage when editing', () => {
   it('renames the routine and changes its minutes, then saves the drills', async () => {
     const update = vi.spyOn(mobilityRoutinesApi, 'update');

@@ -4,6 +4,7 @@ import { RoutineEditorPage } from './RoutineEditorPage';
 import { withAppProviders, withApiMocks, phoneParameters } from '@/mocks/storyProviders';
 import { installMobilityRoutinesHandlers, mobilityRoutinesHandlers } from '@/mocks/handlers/mobilityRoutines';
 import { MOBILITY_A_ID } from '@/mocks/fixtures/plan';
+import { emptyRoutine } from './routineForm';
 
 const meta = {
   title: 'Features/Routines/RoutineEditorPage',
@@ -28,5 +29,23 @@ export const New: Story = {
 
 export const Editing: Story = {
   decorators: [withApiMocks(() => installMobilityRoutinesHandlers(mobilityRoutinesHandlers.default())), withAppProviders(`/routines/${MOBILITY_A_ID}/edit`)],
+  render: routes,
+};
+
+/** Reopened after leaving with unsaved changes: "Restore unsaved changes?" above the form. */
+export const WithUnsavedDraft: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installMobilityRoutinesHandlers(mobilityRoutinesHandlers.default());
+      const base = emptyRoutine();
+      const value = { ...base, name: 'Evening reset', targetMinutes: '12', drills: base.drills.map((d) => ({ ...d, key: '', name: 'Cat-cow' })) };
+      try {
+        localStorage.setItem('a2s-draft:routine:new', JSON.stringify({ version: 1, savedAt: '2026-11-22T19:30:00.000Z', value }));
+      } catch {
+        /* storage unavailable in this preview */
+      }
+    }),
+    withAppProviders('/routines/new'),
+  ],
   render: routes,
 };

@@ -24,6 +24,7 @@ import type { CardioTrackDto, LogTrackSessionRequest, UpdateCardioTrackRequest }
 import { TrackCard } from './TrackCard';
 import { TrackLogSheet } from './TrackLogSheet';
 import { TrackInfoSheet } from './TrackInfoSheet';
+import { clearTrackInfoDraft } from './trackInfoDraft';
 
 export function TracksPage() {
   const tracksQuery = useCardioTracks();
@@ -58,7 +59,16 @@ export function TracksPage() {
     );
 
   const save = (track: CardioTrackDto, request: UpdateCardioTrackRequest) =>
-    update.mutate({ id: track.id, request }, { onSuccess: () => setInfo(null), onError: fail });
+    update.mutate(
+      { id: track.id, request },
+      {
+        onSuccess: () => {
+          clearTrackInfoDraft(track.id);
+          setInfo(null);
+        },
+        onError: fail,
+      }
+    );
 
   return (
     <div className="min-h-screen bg-background">
