@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Cardio;
@@ -23,7 +24,9 @@ public sealed record CompleteSessionCommand(
     Guid? MobilityRoutineId = null,
     CardioLogDto? Cardio = null,
     IReadOnlyList<bool>? DrillTicks = null,
-    string? HevyWorkoutId = null) : ICommand<Result<SessionCompletionDto>>;
+    string? HevyWorkoutId = null,
+    Guid? CardioTrackId = null,
+    bool CompletedAsPrescribed = true) : ICommand<Result<SessionCompletionDto>>;
 
 public sealed class CompleteSessionCommandValidator : AbstractValidator<CompleteSessionCommand>
 {
@@ -51,14 +54,17 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
     private readonly ICardioProtocolRepository _protocols;
+    private readonly CardioTrackSessionRecorder? _trackRecorder;
 
     public CompleteSessionCommandHandler(
         ITrainingPlanRepository plans,
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUser,
         ILocalClock clock,
-        ICardioProtocolRepository protocols)
+        ICardioProtocolRepository protocols,
+        CardioTrackSessionRecorder? trackRecorder = null)
     {
+        _trackRecorder = trackRecorder;
         _protocols = protocols ?? throw new ArgumentNullException(nameof(protocols));
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -89,6 +95,8 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
             log = await WithProtocolDefaultsAsync(log, new CardioProtocolId(protocolId), cancellationToken);
         }
 
+        var trackId = request.Kind == SessionKind.Cardio ? ResolveTrack(load.Value, request) : null;
+
         try
         {
             var completion = load.Value.CompleteSession(
@@ -101,7 +109,15 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
                 hevyWorkoutId: request.HevyWorkoutId,
                 log: log,
                 drillTicks: request.DrillTicks,
-                recordedAt: _clock.NowUtc());
+                recordedAt: _clock.NowUtc(),
+                cardioTrack: trackId);
+
+            // A cardio slot pointing at a track evaluates it, idempotently per completion.
+            if (completion.CardioTrackId is { } track && _trackRecorder is not null)
+            {
+                await _trackRecorder.RecordAsync(user.Value, track, completion.TrackSessionKey, completion.Date, completion.Cardio,
+                    request.CompletedAsPrescribed, _clock.NowUtc(), cancellationToken);
+            }
 
             _plans.Update(load.Value);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -111,6 +127,22 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
         {
             return PlanAccess.FromDomain<SessionCompletionDto>(ex);
         }
+    }
+
+    /// <summary>The track the request names, or the one the matching scheduled cardio slot points at.</summary>
+    private static CardioTrackId? ResolveTrack(TrainingPlan plan, CompleteSessionCommand request)
+    {
+        if (request.CardioTrackId is { } explicitTrack)
+        {
+            return new CardioTrackId(explicitTrack);
+        }
+
+        var protocol = request.CardioProtocolId is { } p ? new CardioProtocolId(p) : (CardioProtocolId?)null;
+        return plan.Schedule
+            .Where(s => s.Kind == SessionKind.Cardio && s.Day == request.Date.DayOfWeek && s.CardioTrackId is not null
+                && s.CardioProtocolId == protocol)
+            .Select(s => s.CardioTrackId)
+            .FirstOrDefault();
     }
 
     /// <summary>

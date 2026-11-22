@@ -17,7 +17,8 @@ public sealed record ScheduledSessionDto(
     Guid? MobilityRoutineId,
     string Label,
     Guid? WarmUpRoutineId = null,
-    Guid? FinisherCardioProtocolId = null);
+    Guid? FinisherCardioProtocolId = null,
+    Guid? CardioTrackId = null);
 
 public sealed record PlanPhaseDto(PhaseType Type, DateOnly From, DateOnly To, string? Note);
 
@@ -25,7 +26,23 @@ public sealed record CheckpointDto(DateOnly Date, decimal TargetKg, string? Note
 
 public sealed record WeeklyAllowancesDto(int FlexibleMeals, int AlcoholOccasions);
 
-public sealed record CardioLogDto(int DurationSeconds, int? AvgHeartRate, int? Rpe, decimal? DistanceMeters, string? Notes, int? HighIntensityMinutes = null);
+public sealed record CardioLogDto(
+    int DurationSeconds,
+    int? AvgHeartRate,
+    int? Rpe,
+    decimal? DistanceMeters,
+    string? Notes,
+    int? HighIntensityMinutes = null,
+    EffortRating? Effort = null,
+    IntensityUnit? IntensityUnit = null,
+    decimal? IntensityValue = null,
+    int? Floors = null,
+    int? Steps = null,
+    int? MaxHeartRate = null,
+    int? Zone5Minutes = null,
+    PainFlag Pain = PainFlag.None,
+    string? PainArea = null,
+    CardioLogSource Source = CardioLogSource.Manual);
 
 /// <summary>Weekly zone 4–5 minutes band.</summary>
 public sealed record HighIntensityTargetDto(int MinMinutes, int MaxMinutes);
@@ -41,7 +58,8 @@ public sealed record SessionCompletionDto(
     string? HevyWorkoutId,
     DateTimeOffset RecordedAtUtc,
     CardioLogDto? Cardio,
-    IReadOnlyList<bool>? DrillTicks);
+    IReadOnlyList<bool>? DrillTicks,
+    Guid? CardioTrackId = null);
 
 public sealed record AllowanceUseDto(DateOnly Date, AllowanceKind Kind);
 

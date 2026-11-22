@@ -69,7 +69,7 @@ public class CardioGuardrailTests
     [Fact]
     public void ScheduledSession_OnlyCardioCarriesATrack()
     {
-        var act = () => new ScheduledSession(DayOfWeek.Monday, SessionKind.Rest, null, null, null, "Rest", Walk);
+        var act = () => new ScheduledSession(DayOfWeek.Monday, SessionKind.Rest, null, null, null, "Rest", cardioTrackId: Walk);
 
         act.Should().Throw<BusinessRuleViolationException>();
     }

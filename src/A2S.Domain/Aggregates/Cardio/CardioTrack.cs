@@ -273,6 +273,8 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         Name = name.Trim();
     }
 
+    public void SetNotes(string? notes) => Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
     public void SetBenchmark(TrackBenchmark? benchmark)
     {
         CheckBenchmark(benchmark);
