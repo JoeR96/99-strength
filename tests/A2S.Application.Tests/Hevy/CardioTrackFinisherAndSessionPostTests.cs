@@ -214,7 +214,7 @@ public class CardioTrackFinisherAndSessionPostTests
                 A2S.Domain.Aggregates.Mobility.SideBias.None, null, null, false),
             new A2S.Domain.Aggregates.Mobility.MobilityDrill("Pigeon", 1, A2S.Domain.Aggregates.Mobility.DrillDose.Seconds(60),
                 A2S.Domain.Aggregates.Mobility.SideBias.None, null, null, true)
-        ]);
+        ], A2S.Domain.Aggregates.Mobility.MobilityRoutineKind.YogaFlow);
         _routines.GetByIdAsync(yoga.Id, Arg.Any<CancellationToken>()).Returns(yoga);
 
         await _completeSession.Handle(new CompleteSessionCommand(_plan.Id.Value, Mon16Nov.AddDays(1), SessionKind.Mobility,
@@ -224,5 +224,38 @@ public class CardioTrackFinisherAndSessionPostTests
         exercise.ExerciseTemplateId.Should().Be(HevyTemplateCatalogue.Yoga);
         exercise.Notes.Should().Be("Evening yoga: Child's pose");
         exercise.Sets.Single().DurationSeconds.Should().Be(15 * 60);
+    }
+
+    [Fact]
+    public async Task StretchRoutine_IsPostedAsStretching_EvenWithYogaInTheName()
+    {
+        var stretch = A2S.Domain.Aggregates.Mobility.MobilityRoutine.Create(Joe, "Yoga-ish stretch", 15,
+        [
+            new A2S.Domain.Aggregates.Mobility.MobilityDrill("Pigeon", 1, A2S.Domain.Aggregates.Mobility.DrillDose.Seconds(60),
+                A2S.Domain.Aggregates.Mobility.SideBias.None, null, null, true)
+        ], A2S.Domain.Aggregates.Mobility.MobilityRoutineKind.Stretch);
+        _routines.GetByIdAsync(stretch.Id, Arg.Any<CancellationToken>()).Returns(stretch);
+
+        await _completeSession.Handle(new CompleteSessionCommand(_plan.Id.Value, Mon16Nov.AddDays(1), SessionKind.Mobility,
+            MobilityRoutineId: stretch.Id.Value), CancellationToken.None);
+
+        _posted.Should().ContainSingle().Subject.Exercises.Single().ExerciseTemplateId.Should().Be(HevyTemplateCatalogue.Stretching);
+    }
+
+    [Fact]
+    public async Task FollowAlong_IsPostedAsYoga_ForTheMinutesActuallyDone()
+    {
+        var video = A2S.Domain.Aggregates.Mobility.MobilityRoutine.Create(Joe, "Hip flow video", 25, [],
+            A2S.Domain.Aggregates.Mobility.MobilityRoutineKind.FollowAlong, "https://example.com/flow");
+        _routines.GetByIdAsync(video.Id, Arg.Any<CancellationToken>()).Returns(video);
+
+        var result = await _completeSession.Handle(new CompleteSessionCommand(_plan.Id.Value, Mon16Nov.AddDays(1), SessionKind.Mobility,
+            MobilityRoutineId: video.Id.Value, DurationMinutes: 32), CancellationToken.None);
+
+        result.Value.DurationMinutes.Should().Be(32);
+        var exercise = _posted.Should().ContainSingle().Subject.Exercises.Single();
+        exercise.ExerciseTemplateId.Should().Be(HevyTemplateCatalogue.Yoga);
+        exercise.Notes.Should().Be("Hip flow video");
+        exercise.Sets.Single().DurationSeconds.Should().Be(32 * 60);
     }
 }

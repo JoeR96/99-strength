@@ -403,7 +403,7 @@ public sealed class HevyWorkoutPoster
         });
     }
 
-    /// <summary>A home routine as one Stretching (or Yoga, when the routine says so) block, the drills done in the notes.</summary>
+    /// <summary>A home routine as one Stretching (or Yoga, for a yoga flow or follow-along) block, the drills done in the notes.</summary>
     private async Task<HevyWorkoutExerciseDraft> RoutineExerciseAsync(RoutineSessionPost routineSession, CancellationToken ct)
     {
         var routine = await _routines.GetByIdAsync(new MobilityRoutineId(routineSession.MobilityRoutineId), ct);
@@ -411,7 +411,7 @@ public sealed class HevyWorkoutPoster
             .Where((_, i) => routineSession.DrillTicks is null || (i < routineSession.DrillTicks.Count && routineSession.DrillTicks[i]))
             .Select(d => d.Name)
             .ToList() ?? [];
-        var yoga = routineSession.Name.Contains("yoga", StringComparison.OrdinalIgnoreCase);
+        var yoga = routine?.PostsToHevyAsYoga ?? routineSession.Name.Contains("yoga", StringComparison.OrdinalIgnoreCase);
         return new HevyWorkoutExerciseDraft
         {
             ExerciseTemplateId = yoga ? HevyTemplateCatalogue.Yoga : HevyTemplateCatalogue.Stretching,

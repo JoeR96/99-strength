@@ -340,3 +340,14 @@ public class DrillProgressionTests
         ((Action)(() => new DoseRange(15, 30, 0))).Should().Throw<BusinessRuleViolationException>();
     }
 }
+
+public class MobilityRoutineKindDefaultTests
+{
+    [Theory]
+    [InlineData("Mobility A", MobilityRoutineKind.WarmUp)]
+    [InlineData("Gym warm-up", MobilityRoutineKind.WarmUp)]
+    [InlineData("Evening yoga", MobilityRoutineKind.YogaFlow)]
+    [InlineData("Hamstring stretch", MobilityRoutineKind.Stretch)]
+    public void DefaultKindFor_MirrorsTheMigrationBackfill(string name, MobilityRoutineKind expected) =>
+        MobilityRoutine.DefaultKindFor(name).Should().Be(expected);
+}

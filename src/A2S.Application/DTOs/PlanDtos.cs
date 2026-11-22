@@ -74,7 +74,8 @@ public sealed record SessionCompletionDto(
     DateTimeOffset RecordedAtUtc,
     CardioLogDto? Cardio,
     IReadOnlyList<bool>? DrillTicks,
-    Guid? CardioTrackId = null);
+    Guid? CardioTrackId = null,
+    int? DurationMinutes = null);
 
 public sealed record AllowanceUseDto(DateOnly Date, AllowanceKind Kind);
 
@@ -155,9 +156,33 @@ public sealed record MobilityDrillDto(
     SideBias ExtraSetSide,
     string? Cues,
     string? StandingAlternative,
-    bool PerSide);
+    bool PerSide,
+    IReadOnlyList<DrillLevelDto>? Levels = null,
+    int CurrentLevel = 0,
+    int CleanStreak = 0,
+    int? SuggestedLevel = null);
 
-public sealed record MobilityRoutineDto(Guid Id, string Name, int TargetMinutes, IReadOnlyList<MobilityDrillDto> Drills);
+/// <summary>A dose range a level progresses through (hold 15 → 30 s, step 5 s).</summary>
+public sealed record DoseRangeDto(int Min, int Max, int Step);
+
+/// <summary>One rung of a drill's progression chain.</summary>
+public sealed record DrillLevelDto(string Name, string? Description, int Sets, DrillDoseDto Dose, DoseRangeDto? Range, string? Cues);
+
+/// <summary>One audited progression change.</summary>
+public sealed record DrillProgressionEntryDto(Guid ChangeId, DateTimeOffset At, string DrillName, DrillChangeKind Kind, string Reason, bool Undone);
+
+public sealed record MobilityRoutineDto(
+    Guid Id,
+    string Name,
+    int TargetMinutes,
+    IReadOnlyList<MobilityDrillDto> Drills,
+    MobilityRoutineKind Kind = MobilityRoutineKind.Stretch,
+    string? FollowAlongUrl = null,
+    IReadOnlyList<DrillProgressionEntryDto>? RecentChanges = null,
+    bool CanUndo = false);
+
+/// <summary>What recording a session's drill feedback returns: the routine now, and the changes it made.</summary>
+public sealed record DrillFeedbackResultDto(MobilityRoutineDto Routine, IReadOnlyList<DrillProgressionEntryDto> Changes);
 
 /// <summary>A soft schedule rule the plan breaks (e.g. Norwegian 4×4 the day before a lower-body lift).</summary>
 public sealed record ScheduleWarningDto(string Code, string Message);

@@ -625,6 +625,17 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("FollowAlongUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Stretch");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -643,6 +654,13 @@ namespace A2S.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
                         .HasColumnName("Drills")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_progressionLog")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("ProgressionLog")
                         .HasDefaultValueSql("'[]'::jsonb");
 
                     b.Property<uint>("xmin")
@@ -671,6 +689,9 @@ namespace A2S.Infrastructure.Migrations
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("integer");
 
                     b.Property<string>("HevyWorkoutId")
                         .HasMaxLength(100)

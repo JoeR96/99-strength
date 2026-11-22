@@ -1,4 +1,6 @@
+using A2S.Application.Commands.Mobility;
 using A2S.Application.DTOs;
+using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Enums;
 
@@ -36,7 +38,8 @@ public sealed record CompleteSessionRequest(
     IReadOnlyList<bool>? DrillTicks = null,
     string? HevyWorkoutId = null,
     Guid? CardioTrackId = null,
-    bool CompletedAsPrescribed = true);
+    bool CompletedAsPrescribed = true,
+    int? DurationMinutes = null);
 
 /// <summary>Body for <c>POST /api/v1/plans/{id}/sessions/push</c>: the scheduled session of that kind on that date.</summary>
 public sealed record PushSessionRequest(DateOnly Date, SessionKind Kind, DayNumber? LiftDay = null);
@@ -53,4 +56,13 @@ public sealed record SetRepeatWeekRequest(bool Repeat);
 /// <summary>Body for <c>PUT /api/v1/mobility-routines/{id}/drills</c>.</summary>
 public sealed record ReplaceDrillsRequest(IReadOnlyList<MobilityDrillDto> Drills);
 
-public sealed record UpdateMobilityRoutineRequest(string Name, int TargetMinutes);
+public sealed record UpdateMobilityRoutineRequest(string Name, int TargetMinutes, MobilityRoutineKind? Kind = null, string? FollowAlongUrl = null);
+
+/// <summary>Body for <c>POST /api/v1/mobility-routines/{id}/feedback</c>: how each drill felt in a finished session.</summary>
+public sealed record DrillFeedbackRequest(string SessionKey, IReadOnlyList<DrillFeedbackDto> Feedback);
+
+/// <summary>Body for <c>POST /api/v1/mobility-routines/{id}/suggestion</c>.</summary>
+public sealed record DrillSuggestionRequest(string DrillName, bool Accept);
+
+/// <summary>Body for <c>POST /api/v1/mobility-routines/{id}/hold-increase</c>.</summary>
+public sealed record HoldIncreaseRequest(int Seconds);

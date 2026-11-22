@@ -70,7 +70,7 @@ public sealed class SessionHevyPoster
                 return null;
             }
 
-            duration = routine.TargetMinutes * 60;
+            duration = (completion.DurationMinutes ?? routine.TargetMinutes) * 60;
             label ??= routine.Name;
             payload = new GymSessionPayload
             {

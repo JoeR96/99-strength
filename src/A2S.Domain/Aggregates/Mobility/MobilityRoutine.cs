@@ -62,11 +62,14 @@ public sealed class MobilityRoutine : AggregateRoot<MobilityRoutineId>
         return new MobilityRoutine(new MobilityRoutineId(Guid.NewGuid()), userId, name.Trim(), targetMinutes, list, kind, url);
     }
 
-    /// <summary>A sensible kind for a routine made before kinds existed: warm-ups by name, else a stretch.</summary>
+    /// <summary>
+    /// A sensible kind for a routine made before kinds existed (mirrors the AddMobilityLevels backfill): warm-ups by
+    /// name, "yoga" a yoga flow (it already posted to Hevy as Yoga), else a stretch.
+    /// </summary>
     public static MobilityRoutineKind DefaultKindFor(string name) =>
         name.Contains("mobility a", StringComparison.OrdinalIgnoreCase) || name.Contains("warm", StringComparison.OrdinalIgnoreCase)
             ? MobilityRoutineKind.WarmUp
-            : MobilityRoutineKind.Stretch;
+            : name.Contains("yoga", StringComparison.OrdinalIgnoreCase) ? MobilityRoutineKind.YogaFlow : MobilityRoutineKind.Stretch;
 
     /// <summary>Renames the routine and changes its target duration; drills are untouched.</summary>
     public void UpdateDetails(string name, int targetMinutes)

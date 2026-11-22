@@ -211,7 +211,8 @@ public class PlansController : ControllerBase
             request.DrillTicks,
             request.HevyWorkoutId,
             request.CardioTrackId,
-            request.CompletedAsPrescribed);
+            request.CompletedAsPrescribed,
+            DurationMinutes: request.DurationMinutes);
         var result = await _mediator.Send(command, cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
