@@ -54,7 +54,7 @@ public class PlanTemplatesControllerTests
         preview.Sessions.Should().HaveCount(4);
         preview.Slots.Should().HaveCount(13);
         preview.Routines.Should().HaveCount(5);
-        preview.CardioTracks.Should().HaveCount(2);
+        preview.CardioTracks.Should().HaveCount(3);
         preview.ToFillIn.Should().Contain(i => i.Contains("Pause Squat (Barbell)"));
         preview.Inputs.Where(i => i.Key.EndsWith("Tm")).Should().OnlyContain(i => i.Optional);
         (await client.GetAsync("/api/v1/plans/templates/nope")).StatusCode.Should().Be(HttpStatusCode.NotFound);

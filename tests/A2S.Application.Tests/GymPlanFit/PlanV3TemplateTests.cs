@@ -80,7 +80,7 @@ public class PlanV3TemplateTests
         preview.Sessions.Single(s => s.Label == "Lower B").Finisher.Should().Be("Treadmill, 10 min · Easy incline");
         preview.Sessions.Single(s => s.Label == "Upper B").Exercises[0].Progression.Should().Be("A2S2 auxiliary scheme");
         preview.Routines.Select(r => r.Name).Should().Equal("Warm-up (upper)", "Warm-up (lower)", "Hips & lower back", "Upper back & chest", "Full-body flow");
-        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.WalkBuilder, CardioTrackTemplates.StairFinisher);
+        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.WalkBuilder, CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
         preview.ToFillIn.Should().HaveCount(5).And.Contain(i => i.StartsWith("Starting weights for 17 accessories"));
         preview.ProgramWeeks.Should().Be(26);
         preview.Slots.Should().HaveCount(13);
@@ -150,7 +150,24 @@ public class PlanTemplateApplierTests
         workout.Exercises.Where(e => e.SupersetGroup == 2 && e.AssignedDay == DayNumber.Day1).OrderBy(e => e.OrderInDay).Select(e => e.Name)
             .Should().Equal("Bent Over Row (Barbell)", "Single Arm Lateral Raise (Cable)");
         workout.BlockSequence.Should().Equal(1, 2, 3);
-        await _tracks.Received(2).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
+        await _tracks.Received(3).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Walk_to_run_waits_for_its_running_gate_and_phases_carry_their_changes_and_the_squat_swap()
+    {
+        var added = new List<CardioTrack>();
+        _tracks.AddAsync(Arg.Do<CardioTrack>(added.Add), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var result = await _handler.Handle(Apply(), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        added.Single(t => t.TemplateKey == CardioTrackTemplates.WalkToRun).StartGate.Should().HaveCount(3);
+        added.Where(t => t.TemplateKey != CardioTrackTemplates.WalkToRun).Should().OnlyContain(t => t.StartGate.Count == 0);
+        var phases = _added.Single().Phases;
+        phases.Select(p => p.Label).Should().Equal("Base", "Build", "Transition");
+        phases[1].Changes.Should().Contain(c => c.Contains("intervals"));
+        phases[2].Swaps.Should().ContainSingle().Which.Should().Be(new PhaseSwap("Pause Squat (Barbell)", "Squat (Barbell)"));
     }
 
     [Fact]
