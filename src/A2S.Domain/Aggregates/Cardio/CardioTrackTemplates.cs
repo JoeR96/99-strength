@@ -27,6 +27,22 @@ public static class CardioTrackTemplates
             "After lifting, zone 4–5: continuous 5 → 10 min then level +1 and back to 5; then 1 min hard / 1 min easy intervals, 4 → 8 rounds, then hard level +1.")
     ];
 
+    /// <summary>The start gate a template suggests (only Walk → run has one). Applied when the person asks for it.</summary>
+    public static IReadOnlyList<GateCondition> DefaultGate(string key) => key == WalkToRun ? StartGate.RunningGate() : [];
+
+    /// <summary>A fresh track from the template; <paramref name="withGate"/> applies <see cref="DefaultGate"/> so it waits until the gate is met.</summary>
+    public static CardioTrack Create(string key, UserId userId, DateOnly startedOn, bool withGate)
+    {
+        var track = Create(key, userId, startedOn);
+        var gate = DefaultGate(key);
+        if (withGate && gate.Count > 0)
+        {
+            track.InitialiseGate(gate);
+        }
+
+        return track;
+    }
+
     public static CardioTrack Create(string key, UserId userId, DateOnly startedOn) => key switch
     {
         WalkBuilder => CardioTrack.Create(userId, "Walk builder", CardioModality.Walk,

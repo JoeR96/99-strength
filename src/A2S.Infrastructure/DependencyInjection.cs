@@ -73,6 +73,7 @@ public static class DependencyInjection
         // Habits and body weight; the pace reading takes its checkpoints from the active TrainingPlan.
         services.AddScoped<IHabitRepository, HabitRepository>();
         services.AddScoped<IBodyWeightRepository, BodyWeightRepository>();
+        services.AddScoped<IReadinessRepository, ReadinessRepository>();
         services.AddSingleton<HabitStreakService>();
         services.AddSingleton<TrendService>();
         services.AddScoped<IPlanCheckpointSource, TrainingPlanCheckpointSource>();

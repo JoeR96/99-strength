@@ -89,7 +89,8 @@ public sealed class StartSuggestedPlanCommandHandler : IRequestHandler<StartSugg
             var plan = TrainingPlan.Create(userId, spec.Name, spec.StartDate, schedule, spec.StartWeightKg, spec.Allowances);
             foreach (var phase in spec.Phases)
             {
-                plan.AddPhase(new PlanPhase(phase.Type, phase.From, phase.To, phase.Note));
+                plan.AddPhase(new PlanPhase(phase.Type, phase.From, phase.To, phase.Note, phase.Label, phase.Changes,
+                    phase.Swaps?.Select(s => new PhaseSwap(s.FromExercise, s.ToExercise)).ToList()));
             }
 
             foreach (var checkpoint in spec.Checkpoints)

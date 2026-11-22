@@ -219,6 +219,13 @@ namespace A2S.Infrastructure.Migrations
                         .HasColumnName("Stages")
                         .HasDefaultValueSql("'[]'::jsonb");
 
+                    b.Property<string>("_startGate")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("StartGate")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -844,6 +851,38 @@ namespace A2S.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PushSubscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("A2S.Domain.Aggregates.Readiness.ReadinessEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Colour")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("KeepFinisher")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("ReadinessEntries", (string)null);
                 });
 
             modelBuilder.Entity("A2S.Domain.Aggregates.User.User", b =>

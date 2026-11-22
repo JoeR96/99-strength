@@ -58,7 +58,7 @@ internal static class TrackAccess
 }
 
 /// <summary>Starts a new track from a shipped template (an editable copy).</summary>
-public sealed record CreateCardioTrackCommand(string TemplateKey, string? Name = null) : ICommand<Result<CardioTrackDto>>;
+public sealed record CreateCardioTrackCommand(string TemplateKey, string? Name = null, bool WithGate = false) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class CreateCardioTrackCommandValidator : AbstractValidator<CreateCardioTrackCommand>
 {
@@ -95,7 +95,7 @@ public sealed class CreateCardioTrackCommandHandler : IRequestHandler<CreateCard
         try
         {
             var today = _clock.Today();
-            var track = CardioTrackTemplates.Create(request.TemplateKey, user.Value, today);
+            var track = CardioTrackTemplates.Create(request.TemplateKey, user.Value, today, request.WithGate);
             if (!string.IsNullOrWhiteSpace(request.Name))
             {
                 track.Rename(request.Name);

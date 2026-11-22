@@ -47,7 +47,8 @@ public sealed record CardioTrackSnapshot(
     CardioTrackStatus Status,
     IReadOnlyList<TrackStage> Stages,
     int SessionCount,
-    int AuditCount);
+    int AuditCount,
+    IReadOnlyList<GateCondition>? StartGate = null);
 
 /// <summary>The result of logging a session against a track.</summary>
 public sealed record TrackEvaluationResult(TrackOutcome Outcome, string Reason, bool Qualified, bool AlreadyRecorded, CardioPrescription Next);
@@ -63,6 +64,7 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     private List<CardioTrackSession> _sessions = new();
     private List<CardioTrackAuditEntry> _audit = new();
     private List<BenchmarkResult> _benchmarks = new();
+    private List<GateCondition> _startGate = new();
 
     private CardioTrack(
         CardioTrackId id,
@@ -111,6 +113,9 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     public IReadOnlyList<CardioTrackAuditEntry> Audit => _audit.AsReadOnly();
     public IReadOnlyList<BenchmarkResult> Benchmarks => _benchmarks.AsReadOnly();
 
+    /// <summary>Conditions to meet before the track starts. Empty: no gate.</summary>
+    public IReadOnlyList<GateCondition> StartGate => _startGate.AsReadOnly();
+
     /// <summary>The stage strategy over this track's stages (ordered stages, exits, next-stage suggestion).</summary>
     public StageStrategy Strategy => new(_stages);
 
@@ -133,15 +138,22 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         DateOnly startedOn,
         TrackBenchmark? benchmark = null,
         string? templateKey = null,
-        string? notes = null)
+        string? notes = null,
+        IReadOnlyList<GateCondition>? startGate = null)
     {
         CheckRule(!string.IsNullOrWhiteSpace(userId.Value), "A track needs an owner");
         CheckRule(!string.IsNullOrWhiteSpace(name), "Track name is required");
         CheckRule(stages is { Count: > 0 }, "A track needs at least one stage");
         CheckBenchmark(benchmark);
 
-        return new CardioTrack(new CardioTrackId(Guid.NewGuid()), userId, name.Trim(), modality, stages, benchmark,
+        var track = new CardioTrack(new CardioTrackId(Guid.NewGuid()), userId, name.Trim(), modality, stages, benchmark,
             startedOn, templateKey, string.IsNullOrWhiteSpace(notes) ? null : notes.Trim());
+        if (startGate is { Count: > 0 })
+        {
+            track.InitialiseGate(startGate);
+        }
+
+        return track;
     }
 
     /// <summary>
@@ -177,7 +189,9 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         StageEvaluation evaluation;
         if (Status != CardioTrackStatus.Active)
         {
-            evaluation = new StageEvaluation(State, TrackOutcome.Paused, "Track paused: recorded, not evaluated");
+            evaluation = new StageEvaluation(State, TrackOutcome.Paused, Status == CardioTrackStatus.Gated
+                ? "Not started (gate): recorded, not evaluated"
+                : "Track paused: recorded, not evaluated");
         }
         else if (State.Suggestion != TrackSuggestion.None)
         {
@@ -285,6 +299,52 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         Benchmark = benchmark;
     }
 
+    /// <summary>
+    /// Sets (or, with an empty list, clears) the start gate. A gate on an active track holds it at
+    /// "Not started — gate"; clearing the gate of a gated track starts it.
+    /// </summary>
+    public void SetStartGate(IReadOnlyList<GateCondition> conditions, DateTimeOffset at)
+    {
+        ArgumentNullException.ThrowIfNull(conditions);
+        CheckRule(Status != CardioTrackStatus.Completed, "A completed track has no start gate");
+        var validated = conditions.Select(GateCondition.Validate).ToList();
+
+        TakeSnapshot();
+        var before = Prescription.Title;
+        _startGate = validated;
+        if (validated.Count > 0 && Status == CardioTrackStatus.Active)
+        {
+            Status = CardioTrackStatus.Gated;
+        }
+        else if (validated.Count == 0 && Status == CardioTrackStatus.Gated)
+        {
+            Status = CardioTrackStatus.Active;
+        }
+
+        AddAudit(at, null, "GateSet", validated.Count == 0 ? "Start gate removed" : $"Start gate set ({validated.Count} conditions)", before, null);
+    }
+
+    /// <summary>
+    /// Starts a gated track. The query offers this once every condition is met; the person accepts it
+    /// (it is never automatic), so the check whether the gate is met lives with the caller.
+    /// </summary>
+    public void StartFromGate(DateOnly today, DateTimeOffset at)
+    {
+        CheckRule(Status == CardioTrackStatus.Gated, "Only a track waiting on its gate can be started");
+        TakeSnapshot();
+        var before = Prescription.Title;
+        Status = CardioTrackStatus.Active;
+        State = State with { WeekStartedOn = today };
+        AddAudit(at, today, "GateOpened", "Start gate met: track started", before, null);
+    }
+
+    /// <summary>A gate set at creation: no snapshot or audit line, so there is nothing to undo.</summary>
+    internal void InitialiseGate(IReadOnlyList<GateCondition> conditions)
+    {
+        _startGate = conditions.Select(GateCondition.Validate).ToList();
+        Status = CardioTrackStatus.Gated;
+    }
+
     public void Pause()
     {
         CheckRule(Status == CardioTrackStatus.Active, "Only an active track can be paused");
@@ -307,6 +367,11 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
         _stages = snapshot.Stages.ToList();
         _sessions = _sessions.Take(snapshot.SessionCount).ToList();
         _audit = _audit.Take(snapshot.AuditCount).ToList();
+        if (snapshot.StartGate is not null)
+        {
+            _startGate = snapshot.StartGate.ToList();
+        }
+
         LastSnapshot = null;
     }
 
@@ -338,7 +403,7 @@ public sealed class CardioTrack : AggregateRoot<CardioTrackId>
     }
 
     private void TakeSnapshot() =>
-        LastSnapshot = new CardioTrackSnapshot(State, Status, _stages.ToList(), _sessions.Count, _audit.Count);
+        LastSnapshot = new CardioTrackSnapshot(State, Status, _stages.ToList(), _sessions.Count, _audit.Count, _startGate.ToList());
 
     private void AddAudit(DateTimeOffset at, DateOnly? date, string action, string reason, string before, string? key) =>
         _audit.Add(new CardioTrackAuditEntry(at.ToUniversalTime(), date, action, reason,

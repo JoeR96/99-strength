@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CardioTrackStatus, modalityLabel, type CardioTrackDto } from '@/types/cardioTracks';
 import { stepUpText } from './trackText';
+import { GateProgress } from './GateProgress';
 
 export interface TrackCardProps {
   track: CardioTrackDto;
@@ -13,13 +14,18 @@ export interface TrackCardProps {
   onUndo?: (track: CardioTrackDto) => void;
   onPause?: (track: CardioTrackDto, paused: boolean) => void;
   onInfo?: (track: CardioTrackDto) => void;
+  /** Accepts the Start suggestion of a gated track. */
+  onStartGate?: (track: CardioTrackDto) => void;
+  /** Applies the template's start gate (shown for a Walk → run track without one). */
+  onAddGate?: (track: CardioTrackDto) => void;
   busy?: boolean;
   /** Today shows the prescription and Log only. */
   compact?: boolean;
 }
 
-export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, busy = false, compact = false }: TrackCardProps) {
+export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, onStartGate, onAddGate, busy = false, compact = false }: TrackCardProps) {
   const paused = track.status === CardioTrackStatus.Paused;
+  const gated = track.status === CardioTrackStatus.Gated;
   const headingId = `track-${track.id}-name`;
 
   return (
@@ -36,6 +42,7 @@ export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, bus
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
           {track.isHard && <Badge variant="warning">Zone 4–5</Badge>}
           {paused && <Badge variant="neutral">Paused</Badge>}
+          {gated && <Badge variant="neutral">Not started — gate</Badge>}
           {track.benchmarkDue && <Badge variant="primary">Benchmark due</Badge>}
           {(track.pendingSessions ?? 0) > 0 && <Badge variant="neutral">Waiting to sync</Badge>}
         </div>
@@ -63,9 +70,21 @@ export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, bus
         </div>
       )}
 
+      {gated && track.gate && (
+        <GateProgress trackName={track.name} gate={track.gate} onStart={onStartGate ? () => onStartGate(track) : undefined} busy={busy} />
+      )}
+
+      {!gated && (
       <Button className="w-full" onClick={() => onLog(track)} disabled={busy} aria-label={`Log session: ${track.name}`}>
         Log session
       </Button>
+      )}
+
+      {!compact && onAddGate && track.templateKey === 'walk-to-run' && !gated && (track.startGate?.length ?? 0) === 0 && (
+        <Button variant="outline" className="w-full" onClick={() => onAddGate(track)} disabled={busy}>
+          Wait for the running gate
+        </Button>
+      )}
 
       {!compact && (
         <div className="grid grid-cols-3 gap-2">
@@ -73,7 +92,7 @@ export function TrackCard({ track, onLog, onDecide, onUndo, onPause, onInfo, bus
             <Info aria-hidden="true" />
             Info
           </Button>
-          <Button variant="outline" onClick={() => onPause?.(track, !paused)} disabled={busy} className="px-2" aria-label={`${paused ? "Resume" : "Pause"} ${track.name}`}>
+          <Button variant="outline" onClick={() => onPause?.(track, !paused)} disabled={busy || gated} className="px-2" aria-label={`${paused ? "Resume" : "Pause"} ${track.name}`}>
             {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
             {paused ? 'Resume' : 'Pause'}
           </Button>

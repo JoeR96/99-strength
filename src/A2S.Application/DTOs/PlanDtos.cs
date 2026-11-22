@@ -21,7 +21,17 @@ public sealed record ScheduledSessionDto(
     Guid? CardioTrackId = null,
     Guid? FinisherCardioTrackId = null);
 
-public sealed record PlanPhaseDto(PhaseType Type, DateOnly From, DateOnly To, string? Note);
+public sealed record PlanPhaseDto(
+    PhaseType Type,
+    DateOnly From,
+    DateOnly To,
+    string? Note,
+    string? Label = null,
+    IReadOnlyList<string>? Changes = null,
+    IReadOnlyList<PhaseSwapDto>? Swaps = null);
+
+/// <summary>An exercise swap a phase suggests at its start (the person confirms it).</summary>
+public sealed record PhaseSwapDto(string FromExercise, string ToExercise);
 
 public sealed record CheckpointDto(DateOnly Date, decimal TargetKg, string? Note);
 

@@ -10,6 +10,7 @@
  */
 
 import { useCardioTracks } from '@/hooks/useCardioTracks';
+import { useReadiness } from '@/hooks/useReadiness';
 import type { CardioTrackDto } from '@/types/cardioTracks';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -83,11 +84,15 @@ export function GymModePage() {
   const tracks = useCardioTracks(Boolean(finisherTrackId));
   const warmUpId = slot?.warmUpRoutineId ?? scheduled?.warmUpRoutineId ?? null;
   const protocols = useCardioProtocols(Boolean(finisherId));
+  // Red readiness skips the finisher (suggestion; Today has the one-tap undo).
+  const readiness = useReadiness(date, Boolean(finisherId || finisherTrackId));
+  const skipFinisher = readiness.data?.finisherSkipped === true;
 
   const ready =
     weekPlan.data !== undefined &&
     !routines.isLoading &&
     !todayQuery.isLoading &&
+    !(readiness.isLoading && readiness.fetchStatus !== 'idle') &&
     (!finisherId || protocols.isSuccess || protocols.isError) &&
     (!finisherTrackId || tracks.isSuccess || tracks.isError);
 
@@ -119,8 +124,8 @@ export function GymModePage() {
 
   const routineList = routines.data ?? [];
   const warmUp = (warmUpId && routineList.find((r) => r.id === warmUpId)) || routineList.find((r) => r.name.toLowerCase() === MOBILITY_A) || null;
-  const finisher = (finisherId && protocols.data?.find((p) => p.id === finisherId)) || null;
-  const finisherTrack = (finisherTrackId && tracks.data?.find((t) => t.id === finisherTrackId)) || null;
+  const finisher = (!skipFinisher && finisherId && protocols.data?.find((p) => p.id === finisherId)) || null;
+  const finisherTrack = (!skipFinisher && finisherTrackId && tracks.data?.find((t) => t.id === finisherTrackId)) || null;
   const label = slot?.label ?? scheduled?.label ?? `Day ${day}`;
   const title = `${plan?.name ?? workout.name} · W${weekPlan.data.weekNumber} ${label}`;
 

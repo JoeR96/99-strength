@@ -11,6 +11,9 @@ import { addDays, todayLocal } from '@/lib/localDate';
 import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
 import { hevySyncHandlers, installHevySyncHandlers, installPushFlowHandlers } from '@/mocks/handlers/hevySync';
 import { cardioTracksHandlers, installCardioTracksHandlers } from '@/mocks/handlers/cardioTracks';
+import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
+import { buildHeadsUp } from '@/mocks/fixtures/phaseHeadsUp';
+import { plansApi } from '@/api/plans';
 
 const meta = {
   title: 'Features/Today/TodayPage',
@@ -27,6 +30,19 @@ export const Default: Story = {
   decorators: [
     withApiMocks(() => {
       installPlansHandlers(plansHandlers.default());
+      installHabitsHandlers(habitsHandlers.default());
+      installBodyWeightHandlers(bodyWeightHandlers.empty());
+    }),
+  ],
+};
+
+/** Red readiness (finisher skipped, one-tap undo) and the Build phase heads-up with its swap. */
+export const RedDayWithPhaseHeadsUp: Story = {
+  decorators: [
+    withApiMocks(() => {
+      installPlansHandlers(plansHandlers.default());
+      plansApi.getPhaseHeadsUp = async () => buildHeadsUp(3);
+      installReadinessHandlers(readinessHandlers.red());
       installHabitsHandlers(habitsHandlers.default());
       installBodyWeightHandlers(bodyWeightHandlers.empty());
     }),

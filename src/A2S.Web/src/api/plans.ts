@@ -4,6 +4,7 @@ import type { LocalDate } from '@/lib/localDate';
 import type {
   AllowanceKind,
   AllowanceUseDto,
+  PhaseHeadsUpDto,
   CompleteSessionRequest,
   HighIntensityTargetDto,
   PlanDayDto,
@@ -57,6 +58,10 @@ export const plansApi = {
   },
 
   /** The next `days` days from `from` (today by default); `null` when there is no active plan. */
+  /** The heads-up for a phase starting within a week (or today); null outside every window. */
+  getPhaseHeadsUp: async (date?: LocalDate): Promise<PhaseHeadsUpDto | null> =>
+    (await apiClient.get<{ headsUp: PhaseHeadsUpDto | null }>('/plans/phase-heads-up', { params: date ? { date } : {} })).data.headsUp,
+
   getUpcoming: async (from?: LocalDate, days = 14): Promise<UpcomingDayDto[] | null> => {
     try {
       const response = await apiClient.get<UpcomingDayDto[]>('/plans/upcoming', { params: from ? { from, days } : { days } });

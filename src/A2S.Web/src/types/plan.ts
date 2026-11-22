@@ -49,6 +49,33 @@ export interface PlanPhaseDto {
   from: LocalDate;
   to: LocalDate;
   note: string | null;
+  /** "Base", "Build", "Transition". */
+  label?: string | null;
+  /** What changes when this phase starts (shown the week before and on its first day). */
+  changes?: string[] | null;
+  swaps?: PhaseSwapDto[] | null;
+}
+
+export interface PhaseSwapDto {
+  fromExercise: string;
+  toExercise: string;
+}
+
+/** A swap Today offers at the phase start; `exerciseId` is the workout exercise to replace (null when it isn't there). */
+export interface PhaseSwapActionDto extends PhaseSwapDto {
+  workoutId: string | null;
+  exerciseId: string | null;
+  done: boolean;
+}
+
+export interface PhaseHeadsUpDto {
+  type: PhaseType;
+  label: string | null;
+  from: LocalDate;
+  to: LocalDate;
+  daysUntil: number;
+  changes: string[];
+  swaps: PhaseSwapActionDto[];
 }
 
 export interface CheckpointDto {

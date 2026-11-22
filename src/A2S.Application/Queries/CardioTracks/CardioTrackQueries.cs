@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Commands.CardioTracks;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
@@ -18,12 +19,14 @@ public sealed class ListCardioTracksQueryHandler : IRequestHandler<ListCardioTra
     private readonly ICardioTrackRepository _tracks;
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
+    private readonly CardioGateEvaluator _gates;
 
-    public ListCardioTracksQueryHandler(ICardioTrackRepository tracks, ICurrentUserService currentUser, ILocalClock clock)
+    public ListCardioTracksQueryHandler(ICardioTrackRepository tracks, ICurrentUserService currentUser, ILocalClock clock, CardioGateEvaluator gates)
     {
         _tracks = tracks;
         _currentUser = currentUser;
         _clock = clock;
+        _gates = gates;
     }
 
     public async Task<Result<IReadOnlyList<CardioTrackDto>>> Handle(ListCardioTracksQuery request, CancellationToken cancellationToken)
@@ -36,7 +39,10 @@ public sealed class ListCardioTracksQueryHandler : IRequestHandler<ListCardioTra
 
         var today = _clock.Today();
         var tracks = await _tracks.ListForUserAsync(user.Value, cancellationToken);
-        return Result.Success<IReadOnlyList<CardioTrackDto>>(tracks.Select(t => t.ToDto(today)).ToList());
+        var gates = await _gates.EvaluateAsync(user.Value, tracks, today, cancellationToken);
+        return Result.Success<IReadOnlyList<CardioTrackDto>>(tracks
+            .Select(t => t.ToDto(today) with { Gate = gates.GetValueOrDefault(t.Id) })
+            .ToList());
     }
 }
 
@@ -114,13 +120,15 @@ public sealed class GetTodayCardioQueryHandler : IRequestHandler<GetTodayCardioQ
     private readonly ITrainingPlanRepository _plans;
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
+    private readonly CardioGateEvaluator _gates;
 
-    public GetTodayCardioQueryHandler(ICardioTrackRepository tracks, ITrainingPlanRepository plans, ICurrentUserService currentUser, ILocalClock clock)
+    public GetTodayCardioQueryHandler(ICardioTrackRepository tracks, ITrainingPlanRepository plans, ICurrentUserService currentUser, ILocalClock clock, CardioGateEvaluator gates)
     {
         _tracks = tracks;
         _plans = plans;
         _currentUser = currentUser;
         _clock = clock;
+        _gates = gates;
     }
 
     public async Task<Result<TodayCardioDto>> Handle(GetTodayCardioQuery request, CancellationToken cancellationToken)
@@ -146,7 +154,11 @@ public sealed class GetTodayCardioQueryHandler : IRequestHandler<GetTodayCardioQ
         var active = tracks.Where(t => t.Status == CardioTrackStatus.Active)
             .Select(t => t.ToDto(today, CardioWeekContext.For(plan, t.Id, today, t.State.WeekStartedOn)))
             .ToList();
-        return Result.Success(new TodayCardioDto(active, minutes, warnings));
+        var gates = await _gates.EvaluateAsync(user.Value, tracks, today, cancellationToken);
+        var gated = tracks.Where(t => gates.ContainsKey(t.Id))
+            .Select(t => t.ToDto(today) with { Gate = gates[t.Id] })
+            .ToList();
+        return Result.Success(new TodayCardioDto(active, minutes, warnings, gated));
     }
 }
 

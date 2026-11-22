@@ -82,6 +82,18 @@ public class CardioTracksController : ControllerBase
     public async Task<IActionResult> Decide([FromRoute] Guid id, [FromBody] DecideSuggestionRequest request, CancellationToken cancellationToken) =>
         Respond(await _mediator.Send(new DecideCardioTrackSuggestionCommand(id, request.Accept), cancellationToken));
 
+    /// <summary>Sets the track's start gate (<c>useDefault</c> applies the template's gate; an empty list removes it).</summary>
+    [HttpPut("{id:guid}/gate")]
+    [ProducesResponseType(typeof(CardioTrackDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetGate([FromRoute] Guid id, [FromBody] SetCardioTrackGateRequest request, CancellationToken cancellationToken) =>
+        Respond(await _mediator.Send(new SetCardioTrackGateCommand(id, request.Conditions, request.UseDefault), cancellationToken));
+
+    /// <summary>Accepts the "Start" suggestion of a gated track.</summary>
+    [HttpPost("{id:guid}/start")]
+    [ProducesResponseType(typeof(CardioTrackDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Start([FromRoute] Guid id, CancellationToken cancellationToken) =>
+        Respond(await _mediator.Send(new StartGatedCardioTrackCommand(id), cancellationToken));
+
     [HttpPost("{id:guid}/undo")]
     [ProducesResponseType(typeof(CardioTrackDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Undo([FromRoute] Guid id, CancellationToken cancellationToken) =>

@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.User;
 
@@ -79,7 +80,9 @@ public sealed record CardioTrackDto(
     bool CanUndo,
     TrackBenchmarkDto? Benchmark,
     bool BenchmarkDue,
-    string SafetyNote);
+    string SafetyNote,
+    IReadOnlyList<GateConditionDto>? StartGate = null,
+    GateProgressDto? Gate = null);
 
 public sealed record CardioTrackSessionDto(
     string Key,
@@ -130,7 +133,8 @@ public sealed record CardioGuardrailDto(string Code, string Message);
 public sealed record TodayCardioDto(
     IReadOnlyList<CardioTrackDto> Tracks,
     int HighIntensityMinutesThisWeek,
-    IReadOnlyList<CardioGuardrailDto> Warnings);
+    IReadOnlyList<CardioGuardrailDto> Warnings,
+    IReadOnlyList<CardioTrackDto>? Gated = null);
 
 public static class CardioTrackMappings
 {
@@ -157,7 +161,8 @@ public static class CardioTrackMappings
             track.CanUndo,
             track.Benchmark is { } b ? new TrackBenchmarkDto(b.Name, b.Unit, b.HigherIsBetter, b.EveryWeeks) : null,
             track.IsBenchmarkDue(today),
-            CardioTrackTemplates.SafetyLine);
+            CardioTrackTemplates.SafetyLine,
+            track.StartGate.Select(GateConditionDto.From).ToList());
     }
 
     public static CardioPrescriptionDto ToDto(this CardioPrescription p) => new(p.Title, p.StageName, p.Minutes, p.WorkMinutes,

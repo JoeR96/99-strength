@@ -1,4 +1,5 @@
 using A2S.Application.Common;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Push;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -74,18 +75,24 @@ public sealed class PushNudgeService
                 continue;
             }
 
-            var nudges = new List<PushNudge>(2);
+            var nudges = new List<(PushNudge Nudge, DateOnly LogDate)>(3);
 
             var session = await SessionNudgeAsync(userId, subscriptions, today, nowLocal, ct);
             if (session is not null)
             {
-                nudges.Add(session);
+                nudges.Add((session, today));
             }
 
             var habits = await HabitsNudgeAsync(userId, today, nowLocal, ct);
             if (habits is not null)
             {
-                nudges.Add(habits);
+                nudges.Add((habits, today));
+            }
+
+            var phase = await PhaseChangeNudgeAsync(userId, today, nowLocal, ct);
+            if (phase is not null)
+            {
+                nudges.Add(phase.Value);
             }
 
             if (nudges.Count == 0)
@@ -93,10 +100,10 @@ public sealed class PushNudgeService
                 continue;
             }
 
-            foreach (var nudge in nudges)
+            foreach (var (nudge, logDate) in nudges)
             {
                 await SendAsync(userId, subscriptions, nudge, ct);
-                await _pushes.AddNudgeAsync(PushNudgeLog.Create(userId, today, nudge.Kind, nowUtc), ct);
+                await _pushes.AddNudgeAsync(PushNudgeLog.Create(userId, logDate, nudge.Kind, nowUtc), ct);
                 sent++;
             }
 
@@ -160,6 +167,28 @@ public sealed class PushNudgeService
             .Select(d => new HabitStanding(d.Name, logs.FirstOrDefault(l => l.HabitId == d.Id)?.Value ?? 0, d.Minimum))
             .ToList();
         return PushNudgePlanner.HabitsNudge(nowLocal, standings);
+    }
+
+    /// <summary>
+    /// The phase heads-up, once per phase: logged against the phase's start date (the PushNudgeLog key), so it is sent on the
+    /// first tick inside the window and never again for that phase.
+    /// </summary>
+    private async Task<(PushNudge, DateOnly)?> PhaseChangeNudgeAsync(UserId userId, DateOnly today, TimeOnly nowLocal, CancellationToken ct)
+    {
+        if (nowLocal < PushNudgePlanner.PhaseChangeFrom || nowLocal >= PushNudgePlanner.PhaseChangeUntil)
+        {
+            return null;
+        }
+
+        var plan = await _plans.GetActiveForUserAsync(userId, ct);
+        var phase = plan is null ? null : PlanPhase.HeadsUpOn(plan.Phases, today);
+        if (phase is null || await _pushes.HasNudgeAsync(userId, phase.From, PushNudgeKind.PhaseChange, ct))
+        {
+            return null;
+        }
+
+        var nudge = PushNudgePlanner.PhaseChangeNudge(nowLocal, today, phase);
+        return nudge is null ? null : (nudge, phase.From);
     }
 
     private async Task SendAsync(
