@@ -95,9 +95,11 @@ public static class WorkoutMatcher
                 : new MatchResult.Unmatched("mobility-only workout with no mobility session that day", date);
         }
 
-        if (templateIds.Count > 0 && templateIds.All(id => HasPrefix(templateLinks, id, CardioPrefix)))
+        if (templateIds.Count > 0 && templateIds.All(id => HasPrefix(templateLinks, id, CardioPrefix) || HevyTemplateCatalogue.IsBuiltInCardio(id)))
         {
-            var cardio = active.FirstOrDefault(s => s.Kind == SessionKind.Cardio);
+            // Prefer a slot that points at a track (Stair Machine, Walking, Running…), then any cardio slot.
+            var cardio = active.FirstOrDefault(s => s.Kind == SessionKind.Cardio && s.CardioTrackId is not null)
+                ?? active.FirstOrDefault(s => s.Kind == SessionKind.Cardio);
             return cardio is not null
                 ? new MatchResult.Matched(cardio, date, "cardio template")
                 : new MatchResult.Unmatched("cardio workout with no cardio session that day", date);

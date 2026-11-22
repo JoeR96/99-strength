@@ -122,6 +122,69 @@ public static class RoutineBuilder
         };
     }
 
+    /// <summary>
+    /// A cardio track as one routine exercise on its built-in Hevy template: one duration set per
+    /// interval round (work then easy), or one set for continuous work; the prescription and machine
+    /// setting go in the notes because a Hevy set cannot carry them.
+    /// </summary>
+    public static HevyRoutineExerciseDraft TrackExercise(CardioTrack track)
+    {
+        ArgumentNullException.ThrowIfNull(track);
+        var p = track.Prescription;
+        List<HevySetDraft> sets;
+        if (p.WorkSeconds is { } work && p.RestSeconds is { } rest && p.Volume is { } rounds)
+        {
+            sets = Enumerable.Range(0, (int)rounds)
+                .SelectMany(_ => new[]
+                {
+                    new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = work },
+                    new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = rest }
+                })
+                .Where(set => set.DurationSeconds > 0)
+                .ToList();
+        }
+        else
+        {
+            sets = [new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = Math.Max(1, p.Minutes) * 60 }];
+        }
+
+        var notes = new List<string> { $"{track.Name}: {p.Title}" };
+        if (!string.IsNullOrWhiteSpace(p.Note))
+        {
+            notes.Add(p.Note!);
+        }
+
+        if (track.SessionsToStepUp > 0)
+        {
+            notes.Add($"{track.SessionsToStepUp} more good session(s) to step up");
+        }
+
+        return new HevyRoutineExerciseDraft
+        {
+            ExerciseTemplateId = HevyTemplateCatalogue.BuiltInTemplateFor(track),
+            RestSeconds = 0,
+            Notes = string.Join(" | ", notes),
+            Sets = sets
+        };
+    }
+
+    /// <summary>A cardio slot that points at a track: one exercise, the track's prescription.</summary>
+    public static HevyRoutineDraft Track(string title, int? folderId, CardioTrack track) => new()
+    {
+        Title = title,
+        FolderId = folderId,
+        Notes = track.Prescription.Title,
+        Exercises = [TrackExercise(track)]
+    };
+
+    /// <summary>Appends finishers as the last exercises of a lift routine.</summary>
+    public static HevyRoutineDraft WithFinishers(HevyRoutineDraft draft, IEnumerable<CardioTrack> finishers)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        var extra = finishers.Select(TrackExercise).ToList();
+        return extra.Count == 0 ? draft : draft with { Exercises = draft.Exercises.Concat(extra).ToList() };
+    }
+
     public static HevyRoutineDraft Mobility(string title, int? folderId, MobilityRoutine routine, IReadOnlyDictionary<string, string> drillTemplates)
     {
         ArgumentNullException.ThrowIfNull(routine);

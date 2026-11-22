@@ -300,4 +300,32 @@ public class HevyRoutinePusherTests
         result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
         _posted.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task LiftPush_WithAStairTrackSlotTheSameDay_AppendsStairMachineFloorsLast_AndATrackSlotPushesTheTrack()
+    {
+        var stairs = CardioTrackTemplates.Create(CardioTrackTemplates.StairFinisher, Joe, Mon16Nov);
+        var tracks = Substitute.For<ICardioTrackRepository>();
+        tracks.GetByIdAsync(stairs.Id, Arg.Any<CancellationToken>()).Returns(stairs);
+        var clock = new LocalClock(new FakeTimeProvider(Now));
+        var catalogue = new HevyTemplateCatalogue(_hevy, _links, Substitute.For<IExerciseLibraryProvider>(), _unitOfWork, clock);
+        var pusher = new HevyRoutinePusher(_hevy, _links, catalogue, _workouts, _protocols, _routines, new A2SProgramProvider(), _unitOfWork, clock,
+            NullLogger<HevyRoutinePusher>.Instance, tracks);
+        var plan = TrainingPlan.Create(Joe, CutTo85Nov2026.Name, Mon16Nov,
+        [
+            ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A"),
+            ScheduledSession.Cardio(DayOfWeek.Monday, null, "Stair finisher", stairs.Id)
+        ], 95m);
+        plan.LinkWorkout(_workout.Id);
+
+        var lift = await pusher.PushAsync(Key, plan, plan.SessionsOn(Mon16Nov).First(s => s.Kind == SessionKind.Lift), Mon16Nov);
+        var slot = await pusher.PushAsync(Key, plan, plan.SessionsOn(Mon16Nov).First(s => s.Kind == SessionKind.Cardio), Mon16Nov);
+
+        lift.IsSuccess.Should().BeTrue(lift.Error);
+        slot.IsSuccess.Should().BeTrue(slot.Error);
+        var liftDraft = _posted[0];
+        liftDraft.Exercises[^1].ExerciseTemplateId.Should().Be("4377A52B");
+        liftDraft.Exercises[^1].Notes.Should().Contain("5 min continuous @ level 6");
+        _posted[1].Exercises.Should().ContainSingle().Which.ExerciseTemplateId.Should().Be("4377A52B");
+    }
 }

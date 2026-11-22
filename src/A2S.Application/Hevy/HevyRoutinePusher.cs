@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Application.Common;
 using A2S.Application.Interfaces.Hevy;
 using A2S.Application.SuggestedPlans;
@@ -40,6 +41,7 @@ public sealed class HevyRoutinePusher
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILocalClock _clock;
     private readonly ILogger<HevyRoutinePusher> _logger;
+    private readonly ICardioTrackRepository? _tracks;
 
     public HevyRoutinePusher(
         IHevyClient hevy,
@@ -51,8 +53,10 @@ public sealed class HevyRoutinePusher
         IA2SProgramProvider program,
         IUnitOfWork unitOfWork,
         ILocalClock clock,
-        ILogger<HevyRoutinePusher> logger)
+        ILogger<HevyRoutinePusher> logger,
+        ICardioTrackRepository? tracks = null)
     {
+        _tracks = tracks;
         _hevy = hevy ?? throw new ArgumentNullException(nameof(hevy));
         _links = links ?? throw new ArgumentNullException(nameof(links));
         _catalogue = catalogue ?? throw new ArgumentNullException(nameof(catalogue));
@@ -285,11 +289,45 @@ public sealed class HevyRoutinePusher
             fromBrief ? CutTo85Nov2026.Supersets() : Array.Empty<SupersetSpec>(),
             fromBrief ? CutTo85Nov2026.ExerciseNotes() : new Dictionary<string, string>());
 
-        return Result.Success(draft);
+        // Brief 4e: a stair finisher scheduled the same day goes last in the lift routine.
+        return Result.Success(RoutineBuilder.WithFinishers(draft, await FinishersForAsync(plan, session, ct)));
+    }
+
+    /// <summary>Active stair-climber tracks that a cardio slot on the lift's weekday points at.</summary>
+    private async Task<IReadOnlyList<CardioTrack>> FinishersForAsync(TrainingPlan plan, ScheduledSession lift, CancellationToken ct)
+    {
+        if (_tracks is null)
+        {
+            return [];
+        }
+
+        var finishers = new List<CardioTrack>();
+        foreach (var slot in plan.Schedule.Where(s => s.Kind == SessionKind.Cardio && s.Day == lift.Day && s.CardioTrackId is not null))
+        {
+            var track = await _tracks.GetByIdAsync(slot.CardioTrackId!.Value, ct);
+            if (track is not null && track.UserId == plan.UserId && track.Status == CardioTrackStatus.Active
+                && track.Modality == CardioModality.StairClimber)
+            {
+                finishers.Add(track);
+            }
+        }
+
+        return finishers;
     }
 
     private async Task<Result<HevyRoutineDraft>> BuildCardioAsync(string apiKey, TrainingPlan plan, ScheduledSession session, int? folderId, CancellationToken ct)
     {
+        if (session.CardioTrackId is { } trackId && _tracks is not null)
+        {
+            var track = await _tracks.GetByIdAsync(trackId, ct);
+            if (track is null || track.UserId != plan.UserId)
+            {
+                return Result.Failure<HevyRoutineDraft>("Cardio track not found.", ErrorCode.NotFound);
+            }
+
+            return Result.Success(RoutineBuilder.Track(RoutineBuilder.SlotTitle(plan.Name, session.Label), folderId, track));
+        }
+
         if (session.CardioProtocolId is not { } protocolId)
         {
             return Result.Failure<HevyRoutineDraft>("This cardio slot has no protocol; choose one before pushing it to Hevy.", ErrorCode.ValidationFailed);
