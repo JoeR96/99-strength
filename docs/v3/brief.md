@@ -323,7 +323,7 @@ Extend the existing Web Push nudge service (it has `SessionStart` and `HabitsUnd
 - Keep `README.md` (user-facing), `docs/development.md` and `AGENTS.md` up to date in the same PR as the change.
 
 **Order:** Phase 1 audit and cleanup (1a–1c) → my approval → platform fixes (§ 2) → golden progression tests → **gym mode (§ 3a)** →
-progression tests → a11y fixes and the CI gate → cardio engine and templates → Hevy cardio push/pull → mobility builder,
+a11y fixes and the CI gate → cardio engine and templates → Hevy cardio push/pull → mobility builder,
 library and player → scheduling (slots, rules, missed-session moves, ICS) → notifications → weekly review → WHOOP (optional) → final live walkthrough with
 screenshots compared against the Phase 1 audit.
 
