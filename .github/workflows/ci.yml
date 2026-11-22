@@ -73,7 +73,7 @@ jobs:
 
   storybook:
     name: Storybook build + mobile a11y
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwright has no Chromium build for ubuntu-latest (26.04) yet
     defaults:
       run:
         working-directory: src/A2S.Web
@@ -103,7 +103,7 @@ jobs:
 
   lighthouse:
     name: Lighthouse installability (PWA)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwright has no Chromium build for ubuntu-latest (26.04) yet
     # /sign-in renders only Clerk's <SignIn/>, which paints nothing until clerk-js has loaded from
     # the Clerk frontend API, and Lighthouse aborts with NO_FCP on a blank page. So this job needs a
     # real publishable key: set the repository *variable* VITE_CLERK_PUBLISHABLE_KEY to the dev
