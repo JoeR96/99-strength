@@ -47,10 +47,38 @@ public class PlanV3TemplateTests
 
         mains.Select(e => (e.TemplateName, e.Tier, e.TrainingMaxPending)).Should().Equal(
             ("Bench Press (Barbell)", (ProgramTier?)ProgramTier.Primary, false),
-            ("Pause Squat (Barbell)", (ProgramTier?)ProgramTier.Primary, true),
             ("Incline Bench Press (Smith Machine)", (ProgramTier?)ProgramTier.Auxiliary, true),
             ("Front Squat", (ProgramTier?)ProgramTier.Auxiliary, true));
         Spec().BlockSequence.Should().Equal(1, 2, 3);
+        Template.Inputs.Select(i => i.Key).Should().NotContain("pauseSquatTm");
+    }
+
+    [Fact]
+    public void Pause_squat_is_reps_per_set_4_x_5_to_8_first_on_lower_a_with_weight_pending()
+    {
+        var pause = Spec().Exercises.Single(e => e.TemplateName == "Pause Squat (Barbell)");
+
+        pause.ProgressionType.Should().Be("RepsPerSet");
+        pause.Category.Should().Be(ExerciseCategory.MainLift);
+        (pause.AssignedDay, pause.OrderInDay).Should().Be((DayNumber.Day2, 1));
+        (pause.StartingSets, pause.RepRangeMinimum, pause.RepRangeMaximum).Should().Be((4, 5, 8));
+        pause.StartingWeight.Should().BeNull();
+        pause.TrainingMaxValue.Should().BeNull();
+    }
+
+    [Fact]
+    public void No_supersets_and_no_walk_builder_anywhere()
+    {
+        var spec = Spec();
+
+        spec.Exercises.Should().OnlyContain(e => e.SupersetGroup == null);
+        spec.Supersets.Should().BeEmpty();
+        spec.CardioTracks.Should().Equal(CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
+        spec.Schedule.Should().NotContain(s => s.Kind == SessionKind.Cardio);
+        spec.Schedule.Where(s => s.Day is DayOfWeek.Wednesday or DayOfWeek.Saturday).Select(s => (s.Kind, s.MobilityRoutine, s.Label)).Should().Equal(
+            (SessionKind.Mobility, PlanV3BaseBuildTransition.FullBodyFlow, "Full-body flow (20 min)"),
+            (SessionKind.Mobility, PlanV3BaseBuildTransition.FullBodyFlow, "Full-body flow (20 min), or a follow-along video"));
+        spec.TrackGates![CardioTrackTemplates.WalkToRun].Should().BeEquivalentTo(StartGate.WeightAndPainRunningGate(), o => o.WithStrictOrdering());
     }
 
     [Fact]
@@ -70,20 +98,24 @@ public class PlanV3TemplateTests
         var upperA = preview.Sessions.Single(s => s.Label == "Upper A");
         upperA.Exercises.Select(e => $"{e.Slot} {e.Name} {e.Prescription}").Should().Equal(
             "1 Bench Press (Barbell) 5 sets, last set AMRAP",
-            "2a Bent Over Row (Barbell) 3 × 8–10",
-            "2b Single Arm Lateral Raise (Cable) 2 × 12–15 each side, left first",
-            "3a Single Arm Cable Row 2 × 10–12 each side, left first",
-            "3b Skullcrusher (Dumbbell) 2 × 10–12",
-            "4 Cable Core Palloff Press 2 × 10 each side, left first");
+            "2 Bent Over Row (Barbell) 3 × 8–10",
+            "3 Single Arm Lateral Raise (Cable) 2 × 12–15 each side, left first",
+            "4 Single Arm Cable Row 2 × 10–12 each side, left first",
+            "5 Skullcrusher (Dumbbell) 2 × 10–12",
+            "6 Cable Core Palloff Press 2 × 10 each side, left first");
+        preview.Sessions.Single(s => s.Label == "Lower A").Exercises[0].Should().BeEquivalentTo(new
+        {
+            Slot = "1", Name = "Pause Squat (Barbell)", Prescription = "4 × 5–8", Progression = "Reps per set"
+        });
         upperA.WarmUp.Should().Be(PlanV3BaseBuildTransition.WarmUpUpper);
         upperA.Finisher.Should().Be("Stair finisher");
         preview.Sessions.Single(s => s.Label == "Lower B").Finisher.Should().Be("Treadmill, 10 min · Easy incline");
         preview.Sessions.Single(s => s.Label == "Upper B").Exercises[0].Progression.Should().Be("A2S2 auxiliary scheme");
         preview.Routines.Select(r => r.Name).Should().Equal("Warm-up (upper)", "Warm-up (lower)", "Hips & lower back", "Upper back & chest", "Full-body flow");
-        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.WalkBuilder, CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
-        preview.ToFillIn.Should().HaveCount(5).And.Contain(i => i.StartsWith("Starting weights for 17 accessories"));
+        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
+        preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 18 accessories"));
         preview.ProgramWeeks.Should().Be(26);
-        preview.Slots.Should().HaveCount(13);
+        preview.Slots.Should().HaveCount(11);
     }
 
     [Theory]
@@ -134,7 +166,7 @@ public class PlanTemplateApplierTests
         new(PlanV3BaseBuildTransition.TemplateKey, new DateOnly(2026, 11, 25), new Dictionary<string, decimal?>(), null, confirm);
 
     [Fact]
-    public async Task Applies_plan_v3_with_pending_tms_supersets_cool_downs_and_tracks()
+    public async Task Applies_plan_v3_with_pending_tms_cool_downs_and_tracks_without_supersets()
     {
         var result = await _handler.Handle(Apply(), CancellationToken.None);
 
@@ -144,13 +176,15 @@ public class PlanTemplateApplierTests
         plan.Schedule.Single(s => s.Label == "Lower A").Finisher!.Fixed!.Minutes.Should().Be(10);
         plan.Schedule.Single(s => s.Label == "Upper A").Finisher!.CardioTrackId.Should().NotBeNull();
         plan.Schedule.Single(s => s.Label == "Upper A").WarmUpRoutineId.Should().NotBeNull();
-        plan.Schedule.Where(s => s.Kind == SessionKind.Cardio).Should().OnlyContain(s => s.CardioTrackId != null);
+        plan.Schedule.Should().NotContain(s => s.Kind == SessionKind.Cardio);
         var workout = _addedWorkouts.Single();
-        workout.Exercises.Where(e => e.Category == ExerciseCategory.MainLift).Should().OnlyContain(e => e.IsTrainingMaxPending);
-        workout.Exercises.Where(e => e.SupersetGroup == 2 && e.AssignedDay == DayNumber.Day1).OrderBy(e => e.OrderInDay).Select(e => e.Name)
-            .Should().Equal("Bent Over Row (Barbell)", "Single Arm Lateral Raise (Cable)");
+        workout.Exercises.Where(e => e.Progression is LinearProgressionStrategy).Should().HaveCount(3).And.OnlyContain(e => e.IsTrainingMaxPending);
+        var pause = workout.Exercises.Single(e => e.Name == "Pause Squat (Barbell)");
+        pause.Progression.Should().BeOfType<RepsPerSetStrategy>();
+        pause.Category.Should().Be(ExerciseCategory.MainLift);
+        workout.Exercises.Should().OnlyContain(e => e.SupersetGroup == null);
         workout.BlockSequence.Should().Equal(1, 2, 3);
-        await _tracks.Received(3).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
+        await _tracks.Received(2).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -162,7 +196,10 @@ public class PlanTemplateApplierTests
         var result = await _handler.Handle(Apply(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
-        added.Single(t => t.TemplateKey == CardioTrackTemplates.WalkToRun).StartGate.Should().HaveCount(3);
+        var run = added.Single(t => t.TemplateKey == CardioTrackTemplates.WalkToRun);
+        run.Status.Should().Be(CardioTrackStatus.Gated);
+        run.StartGate.Select(c => c.Type).Should().Equal(GateConditionType.TrendWeightAtOrBelow, GateConditionType.NoPainInAreas);
+        added.Should().NotContain(t => t.TemplateKey == CardioTrackTemplates.WalkBuilder);
         added.Where(t => t.TemplateKey != CardioTrackTemplates.WalkToRun).Should().OnlyContain(t => t.StartGate.Count == 0);
         var phases = _added.Single().Phases;
         phases.Select(p => p.Label).Should().Equal("Base", "Build", "Transition");
@@ -198,5 +235,40 @@ public class PlanTemplateApplierTests
 
         result.Value.AlreadyStarted.Should().BeTrue();
         _added.Should().BeEmpty();
+        active.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Applying_the_active_template_again_with_confirm_replace_starts_a_fresh_copy_and_keeps_the_old_one()
+    {
+        var active = TrainingPlan.Create(Joe, PlanV3BaseBuildTransition.TemplateName, new DateOnly(2026, 11, 30), [ScheduledSession.Mobility(DayOfWeek.Sunday, null, "Stretch")], 95m, new WeeklyAllowances(1, 1));
+        (await _handler.Handle(Apply(), CancellationToken.None)).IsSuccess.Should().BeTrue();
+        var oldWorkout = _addedWorkouts.Single();
+        _added.Clear();
+        _plans.GetActiveForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns(active);
+        _workouts.GetActiveWorkoutAsync(Joe, Arg.Any<CancellationToken>()).Returns(oldWorkout);
+
+        var result = await _handler.Handle(Apply(confirm: true), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        result.Value.AlreadyStarted.Should().BeFalse();
+        _added.Should().ContainSingle().Which.Id.Should().NotBe(active.Id);
+        active.IsActive.Should().BeFalse();
+        _plans.Received(1).Update(active);
+        oldWorkout.Status.Should().Be(WorkoutStatus.Paused);
+    }
+
+    [Fact]
+    public async Task A_fresh_copy_moves_an_existing_gated_walk_to_run_onto_the_plans_gate()
+    {
+        var oldRun = CardioTrackTemplates.Create(CardioTrackTemplates.WalkToRun, Joe, new DateOnly(2026, 11, 2), withGate: true);
+        _tracks.ListForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns(new List<CardioTrack> { oldRun });
+
+        var result = await _handler.Handle(Apply(confirm: true), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        oldRun.StartGate.Should().BeEquivalentTo(StartGate.WeightAndPainRunningGate(), o => o.WithStrictOrdering());
+        oldRun.Status.Should().Be(CardioTrackStatus.Gated);
+        _tracks.Received(1).Update(oldRun);
     }
 }

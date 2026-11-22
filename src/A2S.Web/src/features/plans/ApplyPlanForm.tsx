@@ -1,7 +1,9 @@
 /**
  * Applying a plan template: a start date (snapped to the Monday on or after it, shown), the template's
  * inputs (blank optional training maxes stay pending) and the start weight. When another plan is
- * active the server answers 409 and the form asks explicitly before resending with confirmReplace.
+ * active the server answers 409 and the form asks explicitly before resending with confirmReplace. When this
+ * template is already the active plan the server returns it unchanged; the form then offers a fresh copy (resent
+ * with confirmReplace: the current copy is kept, inactive, with its history) or keeping the current one.
  * Used by the apply dialog on the Plan templates page and by Today's first-run card.
  */
 
@@ -39,11 +41,17 @@ export function ApplyPlanForm({ template, onApplied, onCancel, onStartDateChange
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [replaceName, setReplaceName] = useState<string | null>(initialReplaceName);
+  const [running, setRunning] = useState<ApplyPlanTemplateResult | null>(null);
 
   const apply = useMutation({
     mutationFn: (request: ApplyPlanTemplateRequest) => planTemplatesApi.apply(template.key, request),
-    onSuccess: async (result) => {
+    onSuccess: async (result, request) => {
       setReplaceName(null);
+      if (result.alreadyStarted && !request.confirmReplace) {
+        setRunning(result);
+        return;
+      }
+      setRunning(null);
       await queryClient.invalidateQueries({ queryKey: ['plans'] });
       await queryClient.invalidateQueries({ queryKey: ['workouts'] });
       await queryClient.invalidateQueries({ queryKey: ['habits'] });
@@ -138,13 +146,38 @@ export function ApplyPlanForm({ template, onApplied, onCancel, onStartDateChange
         </div>
       )}
 
+      {running && (
+        <div className="rounded-md border border-border bg-muted/40 p-4" role="alertdialog" aria-labelledby={`${id}-running`} data-testid="fresh-copy-confirm">
+          <p id={`${id}-running`} className="font-medium text-foreground">
+            {template.name} is already your plan. Start a fresh copy? Your current copy and its history are kept.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12"
+              onClick={() => {
+                const result = running;
+                setRunning(null);
+                onApplied?.(result);
+              }}
+            >
+              Keep current
+            </Button>
+            <Button type="button" className="h-12" disabled={apply.isPending} onClick={() => send(true)} data-testid="fresh-copy-button">
+              Start fresh copy
+            </Button>
+          </div>
+        </div>
+      )}
+
       {showServerError && (
         <p role="alert" className="text-sm text-destructive">
           {serverMessage(apply.error)}
         </p>
       )}
 
-      {!replaceName && (
+      {!replaceName && !running && (
         <div className="flex flex-col gap-2">
           <Button type="submit" size="lg" className="w-full" disabled={apply.isPending}>
             {apply.isPending ? 'Starting…' : `Start ${template.name}`}

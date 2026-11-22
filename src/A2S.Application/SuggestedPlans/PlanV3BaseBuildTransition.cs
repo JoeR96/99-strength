@@ -10,10 +10,12 @@ namespace A2S.Application.SuggestedPlans;
 
 /// <summary>
 /// "Plan v3 — Base/Build/Transition": 26 weeks of cut, cardio and mobility (Base weeks 1–8 and Build
-/// 9–16 cutting, Transition 17–26 at maintenance). Four ~60-minute gym sessions (warm-up → A2S2 main
-/// lift → two supersets → core → stair finisher or a 10-minute treadmill cool-down), walking on the
-/// Walk builder track and three home routines in evening slots. A2S2 runs the standard 21-week block
-/// sequence inside the 26 weeks. Starts with weights pending: training maxes are optional and
+/// 9–16 cutting, Transition 17–26 at maintenance). Four ~60-minute gym sessions (warm-up → main lift →
+/// straight-set accessories at normal rest, no supersets → core → stair finisher or a 10-minute treadmill
+/// cool-down) and three home routines in evening slots. Walking is a habit, not a track; Walk → run waits
+/// behind its own gate (trend ≤ 90 kg, no knee/shin/Achilles pain for 4 weeks). A2S2 runs the standard
+/// 21-week block sequence inside the 26 weeks on bench, incline Smith and front squat; the pause squat is
+/// reps per set (4 × 5–8). Starts with weights pending: training maxes are optional and
 /// accessory starting weights are confirmed after the first session. Unilateral work is left side first.
 /// Pure: returns data, touches no repository.
 /// </summary>
@@ -34,14 +36,13 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     public string Name => TemplateName;
     public string Description =>
         "26 weeks: Base (1–8) and Build (9–16) cutting, Transition (17–26) at maintenance. Four gym sessions " +
-        "(bench, pause squat, incline Smith, front squat on A2S2) with supersets, stair finishers and treadmill " +
-        "cool-downs, the Walk builder track and three home mobility routines. Weights are filled in later.";
+        "(bench, incline Smith and front squat on A2S2; pause squat 4 × 5–8) in straight sets, stair finishers and " +
+        "treadmill cool-downs, walk → run once the running gate is passed, and three home mobility routines. Weights are filled in later.";
     public decimal DefaultStartWeightKg => 95m;
 
     public IReadOnlyList<SuggestedPlanInputSpec> Inputs =>
     [
         new("benchTm", "Bench press training max", "kg", null, CutTo85Nov2026.MinimumTrainingMaxKg, CutTo85Nov2026.MaximumTrainingMaxKg, Optional: true),
-        new("pauseSquatTm", "Pause squat training max", "kg", null, CutTo85Nov2026.MinimumTrainingMaxKg, CutTo85Nov2026.MaximumTrainingMaxKg, Optional: true),
         new("inclineSmithTm", "Incline Smith press training max", "kg", null, CutTo85Nov2026.MinimumTrainingMaxKg, CutTo85Nov2026.MaximumTrainingMaxKg, Optional: true),
         new("frontSquatTm", "Front squat training max", "kg", null, CutTo85Nov2026.MinimumTrainingMaxKg, CutTo85Nov2026.MaximumTrainingMaxKg, Optional: true),
         new("startWeightKg", "Start weight", "kg", 95m, TrainingPlan.MinimumStartWeightKg, TrainingPlan.MaximumStartWeightKg)
@@ -74,8 +75,13 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
             VolumeCaps.Default,
             new WeeklyAllowances(flexibleMeals: 1, alcoholOccasions: 1),
             ExtraRoutines: [HipsRoutine(), UpperBackRoutine(), FlowRoutine()],
-            CardioTracks: [CardioTrackTemplates.WalkBuilder, CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun],
-            BlockSequence: [1, 2, 3]);
+            CardioTracks: [CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun],
+            BlockSequence: [1, 2, 3],
+            // No Walk builder in this plan, so walk → run's gate cannot wait on it.
+            TrackGates: new Dictionary<string, IReadOnlyList<GateCondition>>(StringComparer.OrdinalIgnoreCase)
+            {
+                [CardioTrackTemplates.WalkToRun] = StartGate.WeightAndPainRunningGate()
+            });
     }
 
     // ---- Week ------------------------------------------------------------------------------------
@@ -89,13 +95,11 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         new(DayOfWeek.Monday, SessionKind.Mobility, null, null, HipsAndLowerBack, "Hips & lower back (15 min)"),
         new(DayOfWeek.Tuesday, SessionKind.Lift, DayNumber.Day2, null, null, "Lower A", WarmUpLower, CoolDown),
         new(DayOfWeek.Tuesday, SessionKind.Mobility, null, null, UpperBackAndChest, "Upper back & chest (15 min)"),
-        new(DayOfWeek.Wednesday, SessionKind.Cardio, null, null, null, "Walk builder, 30–45 min", CardioTrack: CardioTrackTemplates.WalkBuilder),
         new(DayOfWeek.Wednesday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min)"),
         new(DayOfWeek.Thursday, SessionKind.Lift, DayNumber.Day3, null, null, "Upper B", WarmUpUpper, Stairs),
         new(DayOfWeek.Thursday, SessionKind.Mobility, null, null, HipsAndLowerBack, "Hips & lower back (15 min)"),
         new(DayOfWeek.Friday, SessionKind.Lift, DayNumber.Day4, null, null, "Lower B", WarmUpLower, CoolDown),
         new(DayOfWeek.Friday, SessionKind.Mobility, null, null, UpperBackAndChest, "Upper back & chest (15 min)"),
-        new(DayOfWeek.Saturday, SessionKind.Cardio, null, null, null, "Long walk outdoors, 45–75 min", CardioTrack: CardioTrackTemplates.WalkBuilder),
         new(DayOfWeek.Saturday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min), or a follow-along video"),
         new(DayOfWeek.Sunday, SessionKind.Rest, null, null, null, "Rest — daily steps")
     ];
@@ -103,15 +107,14 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     private static IReadOnlyList<PlanPhaseDto> Phases(DateOnly start) =>
     [
         new(PhaseType.Cut, start, start.AddDays(8 * 7 - 1),
-            "Base: learn the sessions, pause squat for pattern confidence, walking and continuous stair finishers, level 1 home routines.",
+            "Base: learn the sessions, pause squat for pattern confidence, continuous stair finishers, level 1 home routines.",
             Label: "Base"),
         new(PhaseType.Cut, start.AddDays(8 * 7), start.AddDays(16 * 7 - 1),
-            "Build: cut to about 85 kg, incline walking, stair intervals, level 2 home routines.",
+            "Build: cut to about 85 kg, stair intervals, level 2 home routines.",
             Label: "Build",
             Changes:
             [
                 "Stair finisher: move on to 1 min hard / 1 min easy intervals when the track suggests it",
-                "Walk builder: incline walking",
                 "Home routines: move to the harder versions where the cues held, and add 15 s to holds"
             ]),
         new(PhaseType.Maintenance, start.AddDays(16 * 7), start.AddDays(ProgrammeWeeks * 7 - 1),
@@ -133,31 +136,31 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     [
         // Upper A: bench
         MainLift("Bench Press (Barbell)", "79D0BB3A", DayNumber.Day1, ProgramTier.Primary, inputs.Get("benchTm")),
-        Accessory("Bent Over Row (Barbell)", "55E6546F", DayNumber.Day1, 2, 3, 8, 10, group: 2),
-        Accessory("Single Arm Lateral Raise (Cable)", "DE68C825", DayNumber.Day1, 3, 2, 12, 15, group: 2, perSide: true),
-        Accessory("Single Arm Cable Row", "D0C4A899", DayNumber.Day1, 4, 2, 10, 12, group: 3, perSide: true),
-        Accessory("Skullcrusher (Dumbbell)", "68F8A292", DayNumber.Day1, 5, 2, 10, 12, group: 3),
+        Accessory("Bent Over Row (Barbell)", "55E6546F", DayNumber.Day1, 2, 3, 8, 10),
+        Accessory("Single Arm Lateral Raise (Cable)", "DE68C825", DayNumber.Day1, 3, 2, 12, 15, perSide: true),
+        Accessory("Single Arm Cable Row", "D0C4A899", DayNumber.Day1, 4, 2, 10, 12, perSide: true),
+        Accessory("Skullcrusher (Dumbbell)", "68F8A292", DayNumber.Day1, 5, 2, 10, 12),
         Accessory("Cable Core Palloff Press", "CC55119B", DayNumber.Day1, 6, 2, 10, 10, perSide: true),
 
-        // Lower A: squat pattern
-        MainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, ProgramTier.Primary, inputs.Get("pauseSquatTm")),
+        // Lower A: squat pattern. The pause squat is reps per set (4 × 5–8, weight confirmed after the first session), not A2S2.
+        RepsPerSetMainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, sets: 4, repMin: 5, repMax: 8),
         Accessory("Romanian Deadlift (Dumbbell)", "72CFFAD5", DayNumber.Day2, 2, 3, 8, 10),
-        Accessory("Split Squat (Dumbbell)", "20C1A3CB", DayNumber.Day2, 3, 2, 8, 10, group: 3, perSide: true),
-        Accessory("Hip Abduction (Machine)", "F4B4C6EE", DayNumber.Day2, 4, 2, 12, 15, group: 3),
+        Accessory("Split Squat (Dumbbell)", "20C1A3CB", DayNumber.Day2, 3, 2, 8, 10, perSide: true),
+        Accessory("Hip Abduction (Machine)", "F4B4C6EE", DayNumber.Day2, 4, 2, 12, 15),
 
         // Upper B: incline (A2S2 auxiliary scheme as the main lift)
         MainLift("Incline Bench Press (Smith Machine)", "3A6FA3D1", DayNumber.Day3, ProgramTier.Auxiliary, inputs.Get("inclineSmithTm")),
-        Accessory("Lat Pulldown Neutral Grip", "cd39c85d-7449-43b7-8722-417f5fc97e8b", DayNumber.Day3, 2, 3, 8, 12, group: 2),
-        Accessory("Face Pull", "BE640BA0", DayNumber.Day3, 3, 2, 12, 15, group: 2),
-        Accessory("Rope Cable Curl", "234897AB", DayNumber.Day3, 4, 2, 10, 15, group: 3),
-        Accessory("Triceps Pushdown", "93A552C6", DayNumber.Day3, 5, 2, 12, 15, group: 3),
+        Accessory("Lat Pulldown Neutral Grip", "cd39c85d-7449-43b7-8722-417f5fc97e8b", DayNumber.Day3, 2, 3, 8, 12),
+        Accessory("Face Pull", "BE640BA0", DayNumber.Day3, 3, 2, 12, 15),
+        Accessory("Rope Cable Curl", "234897AB", DayNumber.Day3, 4, 2, 10, 15),
+        Accessory("Triceps Pushdown", "93A552C6", DayNumber.Day3, 5, 2, 12, 15),
         Accessory("Cable Twist (Down to up)", "92D858EA", DayNumber.Day3, 6, 2, 10, 10, perSide: true),
 
         // Lower B: front squat (A2S2 auxiliary scheme)
         MainLift("Front Squat", "5046D0A9", DayNumber.Day4, ProgramTier.Auxiliary, inputs.Get("frontSquatTm")),
         Accessory("Leg Press (Machine)", "C7973E0E", DayNumber.Day4, 2, 3, 10, 12),
-        Accessory("Hip Thrust (Machine)", "68CE0B9B", DayNumber.Day4, 3, 2, 10, 12, group: 3),
-        Accessory("Hip Adduction (Machine)", "8BEBFED6", DayNumber.Day4, 4, 2, 12, 15, group: 3),
+        Accessory("Hip Thrust (Machine)", "68CE0B9B", DayNumber.Day4, 3, 2, 10, 12),
+        Accessory("Hip Adduction (Machine)", "8BEBFED6", DayNumber.Day4, 4, 2, 12, 15),
         Accessory("Seated Leg Curl (Machine)", "11A123F3", DayNumber.Day4, 5, 2, 10, 12)
     ];
 
@@ -178,11 +181,29 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     };
 
     /// <summary>
+    /// A main lift on reps per set rather than A2S2: no training max, a fixed set count (success adds weight), the
+    /// starting weight confirmed after the first session, and main-lift rest (it stays a MainLift).
+    /// </summary>
+    private static CreateExerciseRequest RepsPerSetMainLift(string name, string templateId, DayNumber day, int sets, int repMin, int repMax) => new()
+    {
+        TemplateName = name,
+        ExternalTemplateId = templateId,
+        Category = ExerciseCategory.MainLift,
+        ProgressionType = "RepsPerSet",
+        AssignedDay = day,
+        OrderInDay = 1,
+        RepRangeMinimum = repMin,
+        RepRangeMaximum = repMax,
+        StartingSets = sets,
+        TargetSets = sets
+    };
+
+    /// <summary>
     /// Reps-per-set accessory with no starting weight (confirmed after the first session). Per-side work
     /// is unilateral, capped at the strategy's 3 sets a side.
     /// </summary>
     private static CreateExerciseRequest Accessory(
-        string name, string templateId, DayNumber day, int order, int sets, int repMin, int repMax, int? group = null, bool perSide = false) => new()
+        string name, string templateId, DayNumber day, int order, int sets, int repMin, int repMax, bool perSide = false) => new()
     {
         TemplateName = name,
         ExternalTemplateId = templateId,
@@ -194,8 +215,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         RepRangeMaximum = repMax,
         StartingSets = sets,
         TargetSets = perSide ? 3 : sets + 2,
-        IsUnilateral = perSide,
-        SupersetGroup = group
+        IsUnilateral = perSide
     };
 
     // ---- Warm-ups (8 min, one set of each) -------------------------------------------------------

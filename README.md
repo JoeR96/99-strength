@@ -45,7 +45,7 @@ same Accept / Not yet appears on the finish screen when a session earns a new le
 A **follow-along** routine is just a title, a link and the minutes it usually takes. Start opens the video in a
 new tab; when you come back, "I'm back — log it" records the minutes you actually did.
 
-**Habits** come in three types: counters (water 3/6), numbers (weight) and checkboxes. Each habit has a minimum
+**Habits** come in three types: counters (water 3/6), numbers (weight) and checkboxes. A counter can have a step, so one tap adds 25 g of protein instead of 1. Each habit has a minimum
 for bad days, and the streak uses a "never miss twice" rule: one missed day keeps it, two in a row breaks it.
 
 **Progress** shows your weight trend against the checkpoints, plus hard sets per muscle group this
@@ -84,7 +84,13 @@ of your estimated one-rep max).
 "Lumbridge Lard Shed" (a cut to 85 kg by March 2027) and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
 session's exercises, warm-ups, home routines, cardio tracks and what's left to fill in. Pick a start date
 (it moves to a Monday), enter training maxes now or leave them for later, and apply. If you already have a
-plan, the app asks first; your old plan and its history are kept. Everything it creates is yours to edit.
+plan, the app asks first; your old plan and its history are kept. Applying the plan you already have offers a
+**fresh copy** (the current copy is kept, inactive, with its history) or keeping the current one. Everything it creates is yours to edit.
+
+Plan v3 runs A2S2 on bench, incline Smith press and front squat; the pause squat is reps per set (4 × 5–8, weight
+set after the first session). Exercises are straight sets at normal rest (no supersets). There is no Walk builder
+track (walks stay a habit); Walk → run waits behind its own gate: trend weight at or under 90 kg and no knee, shin
+or Achilles pain for four weeks.
 
 To rename your plan, tap the pencil next to its name at the top of Progress, type the new name and tap Save.
 
@@ -152,7 +158,7 @@ once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors 
 These only ever suggest. They never change your lifting or cardio numbers.
 
 - **Recovery colour.** Tap Green, Yellow or Red on Today (your WHOOP recovery). On a red day Today marks the stair finisher **Skipped for recovery** and suggests skipping hard cardio; walks and home routines stay. One tap on **Undo** keeps the finisher. Gym mode leaves out a skipped finisher. Yellow just reminds you to go by feel.
-- **Running gate.** Walk → run can wait behind a gate: trend weight at or under 90 kg, the walk builder at 45 minutes and 8 % incline rated Easy for two weeks, and no knee, shin or Achilles pain for four weeks. Today and the Tracks page show each condition's progress and offer **Start** once they're all met. You decide when to start. On the Tracks page, **Wait for the running gate** adds it to an existing Walk → run track.
+- **Running gate.** Walk → run can wait behind a gate: trend weight at or under 90 kg, the walk builder at 45 minutes and 8 % incline rated Easy for two weeks, and no knee, shin or Achilles pain for four weeks. (Plan v3 uses the gate without the walk-builder condition.) Today and the Tracks page show each condition's progress and offer **Start** once they're all met. You decide when to start. On the Tracks page, **Wait for the running gate** adds it to an existing Walk → run track.
 - **Phase heads-up.** A plan phase (for example Base, Build, Transition) can list what changes when it starts. Today shows them the week before and on the first day, and a push notification goes out once. If the phase swaps an exercise (Pause Squat → Squat (Barbell)), tap **Swap** and confirm to make the swap in your workout.
 
 ## Install on your phone

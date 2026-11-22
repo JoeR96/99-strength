@@ -8,7 +8,7 @@ import apiClient from './apiClient';
 export type SessionKind = 'Rest' | 'Lift' | 'Cardio' | 'Mobility';
 
 export interface SuggestedPlanInput {
-  /** e.g. 'benchTm', 'squatTm', 'pauseSquatTm', 'startWeightKg'. */
+  /** e.g. 'benchTm', 'squatTm', 'frontSquatTm', 'startWeightKg'. */
   key: string;
   label: string;
   unit: string;

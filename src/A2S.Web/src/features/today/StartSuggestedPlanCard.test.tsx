@@ -144,7 +144,7 @@ describe('StartSuggestedPlanCard with Plan v3', () => {
     await waitFor(() => expect(onStarted).toHaveBeenCalledWith(started));
     expect(apply).toHaveBeenCalledWith('plan-v3', {
       startDate: '2026-11-23',
-      trainingMaxes: { benchTm: null, pauseSquatTm: null, inclineSmithTm: null, frontSquatTm: null },
+      trainingMaxes: { benchTm: null, inclineSmithTm: null, frontSquatTm: null },
       startWeightKg: 95,
       confirmReplace: false,
     });

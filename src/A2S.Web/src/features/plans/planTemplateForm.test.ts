@@ -20,7 +20,7 @@ describe('buildApplyRequest', () => {
     expect(errors).toEqual({});
     expect(request).toEqual({
       startDate: '2026-11-23',
-      trainingMaxes: { benchTm: 80, pauseSquatTm: null, inclineSmithTm: null, frontSquatTm: null },
+      trainingMaxes: { benchTm: 80, inclineSmithTm: null, frontSquatTm: null },
       startWeightKg: 95,
       confirmReplace: false,
     });

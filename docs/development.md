@@ -93,6 +93,21 @@ A renamed plan (below) is no longer recognised, so applying the template again a
 Plans can be renamed: `TrainingPlan.Rename` (non-blank, trimmed, ≤ 200) via `RenamePlanCommand` →
 `PUT /api/v1/plans/{id}/name` `{ "name": "…" }` (owner only, another user's plan is 404). The pencil next to
 the plan name on Progress opens `RenamePlanDialog` (`features/plans/`).
+`POST /api/v1/plans/templates/{key}/apply` (409 until `confirmReplace` when another plan is active; when the same
+template is already active it is returned unchanged unless `confirmReplace` is true, which replaces it with a fresh
+copy: old plan kept inactive, its workout paused; `PlanTemplateApplier.ApplyAsync(refreshSameName:)`, never used by
+the legacy Cut to 85 endpoint). `SuggestedPlanSpec.TrackGates` overrides a track's default gate per plan: Plan v3 has
+no Walk builder, so its Walk → run uses `StartGate.WeightAndPainRunningGate()` (trend ≤ 90 kg, no knee/shin/Achilles
+pain for 4 weeks). `CardioTrackTemplates.DefaultGate` / `StartGate.RunningGate` keep the walk-builder condition,
+because the Tracks page's "Wait for the running gate" (`SetCardioTrackGate` with `UseDefault`) still relies on it. A
+reused track that is still gated moves onto the plan's gate when it differs. Plan v3 has no supersets; its pause squat
+is a `MainLift` on reps per set (4 × 5–8, weight pending, main-lift rest, no TM).
+
+Habit counters have a `Step` (`HabitDefinition.Step`: default 1, always 1 for a checkbox, 0 < step ≤ 10000). An
+increment tap of +1/−1 moves the value by ±step, floored at 0. `step` is in `HabitDto`/`HabitTodayDto` (Terran CC
+decodes it) and optional on create/update (omitted: 1 on create, unchanged on update). Migration `AddHabitStep` adds
+`Habits.Step` (numeric(9,2), existing rows backfilled to 1; Down drops it, tested in `HabitStepPersistenceTests`). The
+icon key `meat` (lucide `Beef`) is the one Terran CC maps to 🥩.
 Migration `AddSupersetsExtraSetsPendingTrainingMax` adds `Exercises.SupersetGroup`, `Exercises.ExtraSetSide`
 and `ExerciseProgressions.IsTrainingMaxPending` (additive; Down tested in
 `GymPlanFitPersistenceTests`). The fixed cool-down lives in the schedule's jsonb, so it needed no migration.

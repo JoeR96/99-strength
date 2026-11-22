@@ -11,7 +11,8 @@ namespace A2S.Application.Commands.SuggestedPlans;
 /// Applies a plan template to the signed-in user's account. The start date snaps to the Monday on or
 /// after it (Europe/London; default the coming Monday; never in the past). Training maxes are keyed by
 /// the template's input keys; an optional one left empty starts pending. Replacing another active plan
-/// needs <see cref="ConfirmReplace"/>; applying the active template again returns it (idempotent).
+/// needs <see cref="ConfirmReplace"/>; applying the active template again returns it (idempotent) unless
+/// <see cref="ConfirmReplace"/> is true, which replaces it with a fresh copy (the old plan is kept, inactive, and its workout paused).
 /// </summary>
 public sealed record ApplyPlanTemplateCommand(
     string Key,
@@ -63,7 +64,8 @@ public sealed class ApplyPlanTemplateCommandHandler : IRequestHandler<ApplyPlanT
             return Result.Failure<StartSuggestedPlanResult>(inputs.Error, ErrorCode.ValidationFailed);
         }
 
-        return await _applier.ApplyAsync(user.Value, template.Build(inputs.Value), request.ConfirmReplace, cancellationToken);
+        return await _applier.ApplyAsync(user.Value, template.Build(inputs.Value), request.ConfirmReplace, cancellationToken,
+            refreshSameName: request.ConfirmReplace, at: _clock.NowUtc());
     }
 }
 
