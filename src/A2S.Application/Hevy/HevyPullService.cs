@@ -40,6 +40,8 @@ public sealed class HevyPullService
     private readonly IHevyPullCursorRepository _cursors;
     private readonly HevyTemplateCatalogue _catalogue;
     private readonly HevySessionCompleter _completer;
+    private readonly IHevyWorkoutPostRepository _posts;
+    private readonly HevyWorkoutPoster _poster;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILocalClock _clock;
     private readonly ILogger<HevyPullService> _logger;
@@ -54,6 +56,8 @@ public sealed class HevyPullService
         IHevyPullCursorRepository cursors,
         HevyTemplateCatalogue catalogue,
         HevySessionCompleter completer,
+        IHevyWorkoutPostRepository posts,
+        HevyWorkoutPoster poster,
         IUnitOfWork unitOfWork,
         ILocalClock clock,
         ILogger<HevyPullService> logger)
@@ -67,6 +71,8 @@ public sealed class HevyPullService
         _cursors = cursors ?? throw new ArgumentNullException(nameof(cursors));
         _catalogue = catalogue ?? throw new ArgumentNullException(nameof(catalogue));
         _completer = completer ?? throw new ArgumentNullException(nameof(completer));
+        _posts = posts ?? throw new ArgumentNullException(nameof(posts));
+        _poster = poster ?? throw new ArgumentNullException(nameof(poster));
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -229,6 +235,7 @@ public sealed class HevyPullService
         var routineLinks = await _links.ListAsync(userId, HevyLinkKind.Routine, ct);
         var templateLinks = await _catalogue.TemplateIdsAsync(userId, ct);
         var program = plan.LinkedWorkoutId is { } workoutId ? await _workouts.GetByIdAsync(workoutId, ct) : null;
+        var gymPosts = await _posts.ListForUserAsync(userId, plan.StartDate.AddDays(-1), _clock.Today().AddDays(1), ct);
 
         var matched = 0;
         var unmatched = 0;
@@ -261,6 +268,27 @@ public sealed class HevyPullService
                 snapshot.MarkUnmatched("stored workout could not be read", now);
                 _snapshots.Update(snapshot);
                 unmatched++;
+                continue;
+            }
+
+            // Gym mode logged this session in the app and posted it (or is still posting it): the pull must
+            // not complete it again, even if it sees the workout before the post recorded Hevy's id.
+            var gymPost = gymPosts.FirstOrDefault(p => string.Equals(p.HevyWorkoutId, snapshot.Id.Value, StringComparison.Ordinal))
+                ?? gymPosts.FirstOrDefault(p => p.HevyWorkoutId is null && p.Describes(workout.Title, workout.StartTime));
+            if (gymPost is not null)
+            {
+                await _poster.AdoptAsync(gymPost, snapshot.Id.Value, ct);
+                if (gymPost.CompletionId is { } gymCompletion)
+                {
+                    snapshot.MarkMatched(gymCompletion, now);
+                }
+                else
+                {
+                    snapshot.MarkUnmatched("logged in 99 Strength gym mode", now);
+                }
+
+                _snapshots.Update(snapshot);
+                alreadyDone++;
                 continue;
             }
 

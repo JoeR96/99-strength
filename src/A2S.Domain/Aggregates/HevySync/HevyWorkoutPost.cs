@@ -6,7 +6,10 @@ public enum HevyPostStatus
 {
     Pending,
     Posted,
-    Failed
+    Failed,
+
+    /// <summary>Not sent: the person has no Hevy key. A retry after connecting Hevy sends it.</summary>
+    Skipped
 }
 
 /// <summary>
@@ -177,6 +180,25 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
         var factor = 1L << Math.Min(Attempts - 1, 20);
         var backoff = TimeSpan.FromTicks(Math.Min(FirstBackoff.Ticks * factor, MaxBackoff.Ticks));
         NextAttemptAtUtc = now.ToUniversalTime() + backoff;
+    }
+
+    /// <summary>Stores the finish result once it is known (the in-app completion is saved first).</summary>
+    public void RecordResult(string resultJson)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(resultJson), "A finish result is required");
+        ResultJson = resultJson;
+    }
+
+    /// <summary>Nothing will be sent (no Hevy key). Kept so a replayed finish is still recognised.</summary>
+    public void MarkSkipped(string reason)
+    {
+        if (Status == HevyPostStatus.Posted)
+        {
+            return;
+        }
+
+        Status = HevyPostStatus.Skipped;
+        LastError = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
     }
 
     /// <summary>A person asked to try again: back to pending and due now.</summary>

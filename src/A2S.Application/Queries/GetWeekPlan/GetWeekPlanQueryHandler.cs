@@ -129,6 +129,7 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             OrderInDay = exercise.OrderInDay,
             ExternalTemplateId = exercise.ExternalTemplateId,
             ProgressionType = exercise.Progression.ProgressionType,
+            RestSeconds = exercise.Category == ExerciseCategory.MainLift ? RestDefaults.MainLiftSeconds : RestDefaults.AccessorySeconds,
             PlannedSets = setDtos,
             Metadata = metadata
         };

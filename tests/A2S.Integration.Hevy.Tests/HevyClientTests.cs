@@ -383,6 +383,68 @@ public class HevyClientTests
         _handler.Requests.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task CreateWorkout_PostsWrappedBodyWithTypedSets_AndReadsTheCreatedWorkout()
+    {
+        _handler.Enqueue(HttpStatusCode.Created, """{ "workout": [{ "id": "w-123", "title": "Upper A", "start_time": "2026-11-16T18:00:00Z", "end_time": "2026-11-16T19:05:00Z", "exercises": [] }] }""");
+        var draft = new HevyWorkoutDraft
+        {
+            Title = "Upper A",
+            StartTime = new DateTimeOffset(2026, 11, 16, 18, 0, 0, TimeSpan.Zero),
+            EndTime = new DateTimeOffset(2026, 11, 16, 19, 5, 0, TimeSpan.Zero),
+            Exercises =
+            [
+                new HevyWorkoutExerciseDraft { ExerciseTemplateId = "DRILL1", Sets = [new HevyWorkoutSetDraft { Type = HevySetTypes.Warmup, DurationSeconds = 60 }] },
+                new HevyWorkoutExerciseDraft { ExerciseTemplateId = "79D0BB3A", Sets = [new HevyWorkoutSetDraft { Type = HevySetTypes.Failure, WeightKg = 80m, Reps = 9 }] },
+                new HevyWorkoutExerciseDraft { ExerciseTemplateId = "4377A52B", Sets = [new HevyWorkoutSetDraft { DurationSeconds = 600, CustomMetric = 42m, Rpe = 7m }] }
+            ]
+        };
+
+        var result = await _client.CreateWorkoutAsync(FakeHevyHandler.TestApiKey, draft);
+
+        result.Ok.Should().BeTrue();
+        result.Value!.Id.Should().Be("w-123");
+
+        var request = _handler.Requests.Should().ContainSingle().Subject;
+        request.Method.Should().Be(HttpMethod.Post);
+        request.Uri.AbsolutePath.Should().EndWith("/workouts");
+        using var body = JsonDocument.Parse(request.Body!);
+        var workout = body.RootElement.GetProperty("workout");
+        workout.GetProperty("title").GetString().Should().Be("Upper A");
+        workout.GetProperty("start_time").GetDateTimeOffset().Should().Be(new DateTimeOffset(2026, 11, 16, 18, 0, 0, TimeSpan.Zero));
+        workout.GetProperty("is_private").GetBoolean().Should().BeFalse();
+        var exercises = workout.GetProperty("exercises");
+        exercises[0].GetProperty("sets")[0].GetProperty("type").GetString().Should().Be("warmup");
+        exercises[1].GetProperty("sets")[0].GetProperty("type").GetString().Should().Be("failure");
+        exercises[2].GetProperty("sets")[0].GetProperty("custom_metric").GetDecimal().Should().Be(42m);
+        exercises[2].GetProperty("sets")[0].GetProperty("duration_seconds").GetInt32().Should().Be(600);
+    }
+
+    [Fact]
+    public async Task CreateWorkout_IsNotRetried()
+    {
+        _handler.Enqueue(HttpStatusCode.ServiceUnavailable);
+        var draft = new HevyWorkoutDraft { Title = "x", StartTime = Since, EndTime = Since.AddHours(1) };
+
+        var result = await _client.CreateWorkoutAsync(FakeHevyHandler.TestApiKey, draft);
+
+        result.Ok.Should().BeFalse();
+        result.Error!.Kind.Should().Be(HevyErrorKind.Unavailable);
+        _handler.Requests.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task GetWorkouts_ReadsThePage()
+    {
+        _handler.Enqueue(HttpStatusCode.OK, """{ "page": 1, "page_count": 3, "workouts": [{ "id": "w-1", "title": "Upper A", "start_time": "2026-11-16T18:00:00Z", "end_time": "2026-11-16T19:00:00Z" }] }""");
+
+        var result = await _client.GetWorkoutsAsync(FakeHevyHandler.TestApiKey, 1);
+
+        result.Value!.Items.Should().ContainSingle().Which.Id.Should().Be("w-1");
+        result.Value.HasMore.Should().BeTrue();
+        _handler.Requests.Single().Uri.Query.Should().Contain("page=1").And.Contain("pageSize=10");
+    }
+
     private sealed class SingleClientFactory(HttpMessageHandler handler) : IHttpClientFactory
     {
         public HttpClient CreateClient(string name) =>

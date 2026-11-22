@@ -94,7 +94,9 @@ public class PullHevyEventsHandlerTests
         var library = Substitute.For<IExerciseLibraryProvider>();
         var catalogue = new HevyTemplateCatalogue(_hevy, _links, library, _unitOfWork, _clock);
         var completer = new HevySessionCompleter(_sender, _routines);
-        _service = new HevyPullService(_hevy, _keys, _plans, _workouts, _links, _snapshots, _cursors, catalogue, completer, _unitOfWork, _clock, NullLogger<HevyPullService>.Instance);
+        var posts = new InMemoryGymPosts();
+        var poster = new HevyWorkoutPoster(_hevy, _keys, posts, _plans, _workouts, _routines, _protocols, _links, catalogue, _unitOfWork, _clock, NullLogger<HevyWorkoutPoster>.Instance);
+        _service = new HevyPullService(_hevy, _keys, _plans, _workouts, _links, _snapshots, _cursors, catalogue, completer, posts, poster, _unitOfWork, _clock, NullLogger<HevyPullService>.Instance);
     }
 
     private static Workout UpperA()

@@ -104,6 +104,21 @@ public class HevyWorkoutPostTests
     }
 
     [Fact]
+    public void MarkSkipped_IsNotDue_UntilRequeued_AndRecordResultStoresTheAnswer()
+    {
+        var post = Create();
+
+        post.MarkSkipped("no Hevy key");
+        var dueWhileSkipped = post.IsDue(End);
+        post.RecordResult("{\"done\":true}");
+        post.RequeueNow(End);
+
+        dueWhileSkipped.Should().BeFalse();
+        post.Status.Should().Be(HevyPostStatus.Pending);
+        post.ResultJson.Should().Be("{\"done\":true}");
+    }
+
+    [Fact]
     public void Describes_MatchesTitleAndStartWithinAMinute()
     {
         var post = Create();

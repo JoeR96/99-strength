@@ -28,13 +28,14 @@ public class GetTodayQueryHandlerTests
     private readonly IWorkoutRepository _workouts = Substitute.For<IWorkoutRepository>();
     private readonly IHevyLinkRepository _hevyLinks = Substitute.For<IHevyLinkRepository>();
     private readonly ICurrentUserService _currentUser = Substitute.For<ICurrentUserService>();
+    private readonly A2S.Application.Tests.Hevy.InMemoryGymPosts _posts = new();
     private readonly GetTodayQueryHandler _handler;
 
     public GetTodayQueryHandlerTests()
     {
         var clock = new LocalClock(new FakeTimeProvider(new DateTimeOffset(2026, 11, 19, 9, 0, 0, TimeSpan.Zero)));
         _hevyLinks.ListAsync(Arg.Any<UserId>(), Arg.Any<HevyLinkKind>(), Arg.Any<CancellationToken>()).Returns(Array.Empty<HevyLink>());
-        _handler = new GetTodayQueryHandler(_plans, _workouts, _hevyLinks, _currentUser, new PlanCalendarService(clock), clock);
+        _handler = new GetTodayQueryHandler(_plans, _workouts, _hevyLinks, _posts, _currentUser, new PlanCalendarService(clock), clock);
     }
 
     private static TrainingPlan PlanFor(UserId owner) =>
@@ -67,6 +68,46 @@ public class GetTodayQueryHandlerTests
         result.Value.Week.WeekStart.Should().Be(Mon16Nov);
         result.Value.Week.LiftsPlanned.Should().Be(1);
         result.Value.Week.CardioPlanned.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Handle_LiftFinishedInGymMode_IsDone_WithItsHevyPostStatus()
+    {
+        _currentUser.UserId.Returns(TestUserId.Value);
+        var plan = PlanFor(TestUserId);
+        var completion = plan.CompleteSession(Thu19Nov, SessionKind.Lift, CompletionSource.Manual, liftDay: DayNumber.Day3,
+            recordedAt: new DateTimeOffset(2026, 11, 19, 8, 0, 0, TimeSpan.Zero));
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(plan);
+        var clientSession = Guid.Parse("9a9a9a9a-0000-0000-0000-000000000009");
+        var post = HevyWorkoutPost.Create(TestUserId, clientSession, plan.Id, completion.Id, Thu19Nov, "Upper B",
+            new DateTimeOffset(2026, 11, 19, 7, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 11, 19, 8, 0, 0, TimeSpan.Zero), "{}", "{}",
+            new DateTimeOffset(2026, 11, 19, 8, 0, 0, TimeSpan.Zero));
+        post.RecordFailure("Hevy unavailable", permanent: false, new DateTimeOffset(2026, 11, 19, 8, 0, 0, TimeSpan.Zero));
+        await _posts.AddAsync(post);
+
+        var result = await _handler.Handle(new GetTodayQuery(Thu19Nov), CancellationToken.None);
+
+        var session = result.Value.Sessions.Single();
+        session.Status.Should().Be(SessionStatus.Done);
+        session.GymSessionId.Should().Be(clientSession);
+        session.HevyPostStatus.Should().Be("Pending");
+    }
+
+    [Fact]
+    public async Task Handle_LiftSlot_CarriesItsWarmUpAndFinisher()
+    {
+        _currentUser.UserId.Returns(TestUserId.Value);
+        var plan = TrainingPlan.Create(TestUserId, "Plan", Mon16Nov,
+            [ScheduledSession.Lift(DayOfWeek.Thursday, DayNumber.Day3, "Upper B", MobilityB, new SessionFinisher(FourByFour))], 95m);
+        _plans.GetActiveForUserAsync(TestUserId, Arg.Any<CancellationToken>()).Returns(plan);
+
+        var result = await _handler.Handle(new GetTodayQuery(Thu19Nov), CancellationToken.None);
+
+        var session = result.Value.Sessions.Single();
+        session.WarmUpRoutineId.Should().Be(MobilityB.Value);
+        session.FinisherCardioProtocolId.Should().Be(FourByFour.Value);
+        session.GymSessionId.Should().BeNull();
+        session.HevyPostStatus.Should().BeNull();
     }
 
     [Fact]
