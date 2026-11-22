@@ -5,6 +5,7 @@ import { CompletionSummary } from '@/features/workout/CompletionSummary';
 import type { CompleteDayResult, WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import { GymChecklist } from './GymChecklist';
 import { GymHevyStatus } from './GymSections';
+import { GymPreview } from './GymPreview';
 import { freshGymSession, midGymSession, trackFinisherGymSession } from './gymFixtures';
 import { allDrillsDone, editSet, tickDrill, toggleSet, updateFinisher, type GymSessionState } from './gymSession';
 
@@ -129,6 +130,24 @@ export const FinishedOffline: StoryObj = {
         <h1 className="mb-4 text-2xl font-semibold text-foreground">Session saved</h1>
         <GymHevyStatus status={null} queued />
       </main>
+    </div>
+  ),
+};
+
+/** Preview of an upcoming lift (`/gym/1?preview=1&date=…`): every planned set, the AMRAP target, the finisher; nothing to tick. */
+export const Preview: StoryObj = {
+  render: () => (
+    <div className="min-h-dvh bg-background">
+      <GymPreview state={trackFinisherGymSession()} dayLabel="Tomorrow · Tue 24 Nov" startHref={null} />
+    </div>
+  ),
+};
+
+/** Preview of today's lift: the same sheet with Start. */
+export const PreviewToday: StoryObj = {
+  render: () => (
+    <div className="min-h-dvh bg-background">
+      <GymPreview state={freshGymSession()} dayLabel="Today · Mon 23 Nov" startHref="/gym/1" />
     </div>
   ),
 };

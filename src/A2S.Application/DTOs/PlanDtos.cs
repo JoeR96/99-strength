@@ -166,3 +166,15 @@ public sealed record SuggestedPlanPreviewDto(
     IReadOnlyList<string> Habits,
     IReadOnlyList<CheckpointDto> Checkpoints,
     bool AlreadyStarted);
+
+/// <summary>A day from <c>GET /plans/upcoming</c>: the calendar day plus the planned sets of its lifts still to do.</summary>
+public sealed record UpcomingDayDto(DateOnly Date, PhaseType? Phase, IReadOnlyList<TodaySessionDto> Sessions, IReadOnlyList<UpcomingLiftDto> Lifts);
+
+/// <summary>A lift session's plan from the linked workout's current week. <c>Reps</c> of an AMRAP set is its rep-out target.</summary>
+public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNumber, bool IsDeloadWeek, IReadOnlyList<UpcomingExerciseDto> Exercises, UpcomingFinisherDto? Finisher);
+
+public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets);
+
+public sealed record UpcomingSetDto(decimal WeightKg, int Reps, bool IsAmrap);
+
+public sealed record UpcomingFinisherDto(string Name, string Prescription);

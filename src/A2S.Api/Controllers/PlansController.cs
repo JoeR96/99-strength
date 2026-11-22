@@ -234,6 +234,20 @@ public class PlansController : ControllerBase
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
+    /// <summary>The next <c>days</c> (1–31, default 14) days of the plan from <c>from</c> (today by default),
+    /// with each lift's planned sets.</summary>
+    /// <remarks>
+    /// Read-only, so a personal API token (Terran CC) may call it.</remarks>
+    [HttpGet("upcoming")]
+    [AllowApiToken]
+    [ProducesResponseType(typeof(IReadOnlyList<UpcomingDayDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUpcoming([FromQuery] DateOnly? from, [FromQuery] int days = 14, CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(new GetUpcomingDaysQuery(from, days), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
     [HttpGet("calendar")]
     [ProducesResponseType(typeof(IReadOnlyList<PlanDayDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCalendar([FromQuery] int year, [FromQuery] int month, CancellationToken cancellationToken)

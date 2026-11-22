@@ -76,6 +76,15 @@ What the phone keeps, and how a write sent twice is still done once.
   are dropped. `UnsavedChangesGuard` adds `beforeunload` and a react-router `useBlocker` dialog, which is why
   `App.tsx` uses `createBrowserRouter`. Used by `RoutineEditorPage` and the cardio track info sheet.
 
+## Looking ahead (Up next and previews)
+
+`GET /api/v1/plans/upcoming` (`GetUpcomingDays`) returns `days` (1–31) `UpcomingDayDto`s from `from`. Each
+lift still to do carries a `lifts[]` block built by dispatching `GetWeekPlan` for the linked workout's
+**current** week: A2S2 weeks advance on completion, not by date, so a preview of next Thursday shows this
+week's numbers. Today reads it from tomorrow for "Up next"; `?date=` steps Today to any day (read-only unless
+it is today). `/gym/:day?preview=1&date=` renders `GymPreview` and never mounts the session runner, so no
+localStorage draft, wake lock, rest timer or offline op is created.
+
 ## Cardio tracks
 
 Domain: `Aggregates/Cardio/CardioTrack.cs`, `CardioStrategies.cs`, `StageStrategy`, `CardioTrackTemplates.cs`,
@@ -135,7 +144,8 @@ A token can:
 
 - call everything under `/api/v1/habits` (today, history, log, increment, create, edit, archive, import);
 - record a weigh-in and read the trend under `/api/v1/body-weight`;
-- read `GET /api/v1/plans/today`;
+- read `GET /api/v1/plans/today` (optionally `?date=yyyy-MM-dd`);
+- read `GET /api/v1/plans/upcoming?from=yyyy-MM-dd&days=14` (the coming days, with each lift's planned sets);
 - call `GET /api/v1/users/me/api-tokens/whoami` to check that it works.
 
 A token cannot do anything else. It cannot read or change the Hevy key, workouts, plans, meals or

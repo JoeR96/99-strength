@@ -49,12 +49,12 @@ describe('GymModePage', () => {
   let queue: OfflineQueue;
   let manager: SyncManager;
 
-  function renderPage(children: ReactNode = <GymModePage />) {
+  function renderPage(children: ReactNode = <GymModePage />, path = '/gym/1') {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } } });
     return render(
       <QueryClientProvider client={client}>
         <OfflineProvider manager={manager}>
-          <MemoryRouter initialEntries={['/gym/1']}>
+          <MemoryRouter initialEntries={[path]}>
             <Routes>
               <Route path="/gym/:day" element={children} />
             </Routes>
@@ -127,5 +127,30 @@ describe('GymModePage', () => {
     vi.mocked(localStorage.removeItem).mockClear();
     fireEvent.click(within(notice).getByRole('button', { name: "Discard this phone's session" }));
     expect(localStorage.removeItem).toHaveBeenCalledWith('a2s-gym-session:w-1:3:1');
+  });
+
+  it('preview is read-only: every set and the AMRAP target shown, nothing tickable, no draft saved, no Start on another day', async () => {
+    localStorage.clear();
+    const finish = vi.spyOn(gymSessionsApi, 'finish');
+    renderPage(<GymModePage />, '/gym/1?preview=1&date=2030-01-08');
+
+    expect(await screen.findByTestId('preview-banner')).toHaveTextContent('Preview: weights can change if you finish sessions before then');
+    expect(screen.getByText('Open Books')).toBeInTheDocument();
+    expect(within(screen.getByTestId('preview-lift-0')).getAllByRole('listitem')).toHaveLength(5);
+    expect(screen.getByTestId('preview-lift-0')).toHaveTextContent('75 kg × 5+');
+    expect(screen.getByTestId('preview-lift-0')).toHaveTextContent('AMRAP target: 5+ reps');
+    expect(screen.queryByTestId('set-0-0')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('gym-finish-early')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('preview-start')).not.toBeInTheDocument();
+    expect(localStorage.length).toBe(0);
+    expect(await queue.all()).toHaveLength(0);
+    expect(finish).not.toHaveBeenCalled();
+  });
+
+  it('preview of today offers Start into gym mode', async () => {
+    renderPage(<GymModePage />, `/gym/1?preview=1`);
+
+    expect(await screen.findByTestId('preview-start')).toHaveAttribute('href', '/gym/1');
+    expect(localStorage.length).toBe(0);
   });
 });

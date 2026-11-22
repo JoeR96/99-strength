@@ -5,17 +5,32 @@
  *
  * With a Hevy key stored, opening the page (or pulling down, pressing Refresh, or coming back
  * from Hevy) pulls completed workouts in the background; the page never waits for it.
+ *
+ * `?date=yyyy-MM-dd` steps to another day (arrows beside the heading). Any day but today is
+ * read-only: sessions offer Preview instead of Start or Mark done, and the habits are hidden. On a
+ * rest day, or once today is done, "Up next" shows the next day with a session.
  */
 
 import { useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { formatDayLabel } from '@/lib/localDate';
+import { addDays, compareLocalDates, formatDayLabel, type LocalDate } from '@/lib/localDate';
 import { useLocalToday } from '@/hooks/useLocalToday';
-import { useActivePlan, useCompleteSession, useToday, useUndoSessionCompletion } from '@/hooks/usePlan';
-import { hevyErrorMessage, useAutoPullHevy, useHevyInbox, usePushSession } from '@/hooks/useHevySync';
+import {
+  useActivePlan,
+  useCompleteSession,
+  useToday,
+  useUndoSessionCompletion,
+} from '@/hooks/usePlan';
+import {
+  hevyErrorMessage,
+  useAutoPullHevy,
+  useHevyInbox,
+  usePushSession,
+} from '@/hooks/useHevySync';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useHevyStatus } from '@/contexts/hevyStatusContext';
 import { useOnlineStatus } from '@/offline/useOnlineStatus';
@@ -41,6 +56,9 @@ import { HevySyncNotice } from './HevySyncNotice';
 import { openHevyRoutine } from './hevyDeepLink';
 import { useRetryHevyPost } from '@/hooks/useGymSession';
 import { TodayCardioTracks } from '@/features/cardio/TodayCardioTracks';
+import { UpNextCard } from './UpNextCard';
+import { SessionPreviewSheet } from './SessionPreviewSheet';
+import { isAllDoneOrRest, parseDateParam } from './upNext';
 
 export interface TodayPageProps {
   /** Overrides the offline queue length shown in the header (stories); otherwise read from the queue. */
@@ -57,9 +75,25 @@ function Skeleton({ className }: { className: string }) {
 
 export function TodayPage({ pendingSyncCount }: TodayPageProps) {
   const date = useLocalToday();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewDate = parseDateParam(searchParams.get('date')) ?? date;
+  const isToday = viewDate === date;
+  const isFuture = compareLocalDates(viewDate, date) > 0;
+  const stepTo = (target: LocalDate) => setSearchParams(target === date ? {} : { date: target });
+  const [preview, setPreview] = useState<{ session: TodaySessionDto; date: LocalDate } | null>(
+    null
+  );
+  const openPreview = (session: TodaySessionDto, on: LocalDate) => {
+    if (session.kind === SessionKind.Lift && session.liftDay) {
+      navigate(`/gym/${session.liftDay}?preview=1&date=${on}`);
+    } else {
+      setPreview({ session, date: on });
+    }
+  };
   const queuedCount = usePendingSyncCount();
   const pendingCount = pendingSyncCount ?? queuedCount;
-  const todayQuery = useToday(date);
+  const todayQuery = useToday(viewDate);
   const planQuery = useActivePlan();
   const habitsQuery = useHabitsToday(date);
   const trendQuery = useWeightTrend(date, date);
@@ -79,19 +113,23 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
 
   const [cardioSession, setCardioSession] = useState<TodaySessionDto | null>(null);
   const [mobilitySession, setMobilitySession] = useState<TodaySessionDto | null>(null);
-  const mobilityDrills = routines.data?.find((r) => r.id === mobilitySession?.mobilityRoutineId)?.drills.map((d) => d.name) ?? [];
+  const mobilityDrills =
+    routines.data
+      ?.find((r) => r.id === mobilitySession?.mobilityRoutineId)
+      ?.drills.map((d) => d.name) ?? [];
 
   const today = todayQuery.data;
   const plan = planQuery.data;
   const habits = habitsQuery.data;
   const paused = today?.phase === PhaseType.Pause;
-  const phaseDetail = useMemo(() => currentPhase(plan?.phases, date), [plan?.phases, date]);
+  const phaseDetail = useMemo(() => currentPhase(plan?.phases, viewDate), [plan?.phases, viewDate]);
 
   const weighInHabit = habits?.habits.find(isWeighInHabit) ?? null;
   const counters = habits?.habits.filter((h) => h.type === 'Counter') ?? [];
   const ticks = habits?.habits.filter((h) => h.type === 'Checkbox') ?? [];
   const todayPoint = trendQuery.data?.points.find((p) => p.date === date);
-  const weighInKg = todayPoint?.kg ?? (weighInHabit && weighInHabit.value > 0 ? weighInHabit.value : null);
+  const weighInKg =
+    todayPoint?.kg ?? (weighInHabit && weighInHabit.value > 0 ? weighInHabit.value : null);
 
   const saveWeight = (kg: number) => {
     recordWeight.mutate(
@@ -111,7 +149,10 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
     if (session.kind === SessionKind.Mobility) setMobilitySession(session);
   };
 
-  const complete = (session: TodaySessionDto, extra: { cardio?: CardioLogDto; drillTicks?: boolean[] | null }) => {
+  const complete = (
+    session: TodaySessionDto,
+    extra: { cardio?: CardioLogDto; drillTicks?: boolean[] | null }
+  ) => {
     if (!plan) return;
     completeSession.mutate(
       {
@@ -131,7 +172,11 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
         onSuccess: (outcome) => {
           setCardioSession(null);
           setMobilitySession(null);
-          toast.success(outcome.queued ? `${session.label} done — will sync when you're back online` : `${session.label} done`);
+          toast.success(
+            outcome.queued
+              ? `${session.label} done — will sync when you're back online`
+              : `${session.label} done`
+          );
         },
         onError: () => toast.error("Couldn't mark that done. Try again."),
       }
@@ -176,7 +221,10 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
       { planId: plan.id, request: { date, kind: session.kind, liftDay: session.liftDay } },
       {
         onSuccess: () => toast.success(`${session.label} is in Hevy`),
-        onError: (error) => toast.error(hevyErrorMessage(error, `Couldn't push ${session.label} to Hevy. Try again.`)),
+        onError: (error) =>
+          toast.error(
+            hevyErrorMessage(error, `Couldn't push ${session.label} to Hevy. Try again.`)
+          ),
       }
     );
   };
@@ -208,9 +256,35 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
         )}
 
         <header className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Today</p>
-            <h1 className="text-2xl font-bold text-foreground">{formatDayLabel(date)}</h1>
+          <div className="flex min-w-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 shrink-0"
+              onClick={() => stepTo(addDays(viewDate, -1))}
+              aria-label="Previous day"
+              data-testid="previous-day"
+            >
+              <ChevronLeft aria-hidden="true" />
+            </Button>
+            <div className="min-w-0">
+              <p className="text-sm text-muted-foreground">
+                {isToday ? 'Today' : isFuture ? 'Upcoming · preview' : 'Past day'}
+              </p>
+              <h1 className="truncate text-2xl font-bold text-foreground" data-testid="today-date">
+                {formatDayLabel(viewDate)}
+              </h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 shrink-0"
+              onClick={() => stepTo(addDays(viewDate, 1))}
+              aria-label="Next day"
+              data-testid="next-day"
+            >
+              <ChevronRight aria-hidden="true" />
+            </Button>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <PendingSyncBadge count={pendingCount} />
@@ -229,10 +303,22 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
           </div>
         </header>
 
+        {!isToday && (
+          <Link
+            to="/today"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+            data-testid="back-to-today"
+          >
+            Back to today
+          </Link>
+        )}
+
         {hevyConfigured && (
           <HevySyncNotice
             inboxCount={inboxQuery.data?.length ?? 0}
-            pullError={pull.isError ? hevyErrorMessage(pull.error, "Couldn't pull from Hevy.") : null}
+            pullError={
+              pull.isError ? hevyErrorMessage(pull.error, "Couldn't pull from Hevy.") : null
+            }
             onRetry={refresh}
             retrying={pull.isPending}
             offline={!online}
@@ -265,7 +351,9 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
         {!planLoading && !planError && today === null && (
           <StartSuggestedPlanCard
             onStarted={(result) => {
-              toast.success(result.alreadyStarted ? 'Your plan is already running' : 'Plan started');
+              toast.success(
+                result.alreadyStarted ? 'Your plan is already running' : 'Plan started'
+              );
               void todayQuery.refetch();
               void planQuery.refetch();
             }}
@@ -288,55 +376,76 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
                 onRetryHevy={(s) => s.gymSessionId && retryHevy.mutate(s.gymSessionId)}
                 retrying={retryHevy.isPending && retryHevy.variables === session.gymSessionId}
                 busy={completeSession.isPending || undoCompletion.isPending}
+                readOnly={!isToday}
+                onPreview={(s) => openPreview(s, viewDate)}
               />
             ))}
           </section>
         )}
 
-        <TodayCardioTracks />
+        {isToday && today && isAllDoneOrRest(today.sessions) && (
+          <UpNextCard today={date} onPreview={openPreview} />
+        )}
 
-        <section aria-labelledby="habits-heading" className="space-y-2">
-          <h2 id="habits-heading" className="text-sm font-medium text-muted-foreground">
-            Habits
-          </h2>
-          {habitsQuery.isLoading && (
-            <>
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-            </>
-          )}
-          {habitsQuery.isError && (
-            <div className="rounded-lg border border-destructive/50 bg-card p-4" role="alert">
-              <p className="text-sm text-foreground">Couldn't load habits.</p>
-              <Button variant="outline" className="mt-3 h-11" onClick={() => void habitsQuery.refetch()}>
-                <RefreshCw aria-hidden="true" />
-                Try again
-              </Button>
-            </div>
-          )}
-          {habits && habits.habits.length === 0 && (
-            <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No habits yet. Add water, walks and the rest on the Habits tab.
-            </p>
-          )}
-          {counters.map((habit) => (
-            <HabitCounter key={habit.id} habit={habit} onTap={increment.tap} />
-          ))}
-          {ticks.length > 0 && (
-            <div className="grid grid-cols-2 gap-2">
-              {ticks.map((habit) => (
-                <HabitTick key={habit.id} habit={habit} onToggle={(id, done) => setValue.set(id, done ? 1 : 0, date)} />
-              ))}
-            </div>
-          )}
-          {!habitsQuery.isLoading && !habitsQuery.isError && (
-            <WeighInField valueKg={weighInKg} onSave={saveWeight} saving={recordWeight.isPending} />
-          )}
-        </section>
+        {isToday && <TodayCardioTracks />}
+
+        {isToday && (
+          <section aria-labelledby="habits-heading" className="space-y-2">
+            <h2 id="habits-heading" className="text-sm font-medium text-muted-foreground">
+              Habits
+            </h2>
+            {habitsQuery.isLoading && (
+              <>
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+              </>
+            )}
+            {habitsQuery.isError && (
+              <div className="rounded-lg border border-destructive/50 bg-card p-4" role="alert">
+                <p className="text-sm text-foreground">Couldn't load habits.</p>
+                <Button
+                  variant="outline"
+                  className="mt-3 h-11"
+                  onClick={() => void habitsQuery.refetch()}
+                >
+                  <RefreshCw aria-hidden="true" />
+                  Try again
+                </Button>
+              </div>
+            )}
+            {habits && habits.habits.length === 0 && (
+              <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                No habits yet. Add water, walks and the rest on the Habits tab.
+              </p>
+            )}
+            {counters.map((habit) => (
+              <HabitCounter key={habit.id} habit={habit} onTap={increment.tap} />
+            ))}
+            {ticks.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {ticks.map((habit) => (
+                  <HabitTick
+                    key={habit.id}
+                    habit={habit}
+                    onToggle={(id, done) => setValue.set(id, done ? 1 : 0, date)}
+                  />
+                ))}
+              </div>
+            )}
+            {!habitsQuery.isLoading && !habitsQuery.isError && (
+              <WeighInField
+                valueKg={weighInKg}
+                onSave={saveWeight}
+                saving={recordWeight.isPending}
+              />
+            )}
+          </section>
+        )}
 
         {today && <WeeklyRings week={today.week} />}
       </main>
 
+      <SessionPreviewSheet preview={preview} today={date} onClose={() => setPreview(null)} />
       <CardioLogSheet
         session={cardioSession}
         onClose={() => setCardioSession(null)}
