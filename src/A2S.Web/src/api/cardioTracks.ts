@@ -5,6 +5,7 @@ import type {
   CardioTrackDetailDto,
   CardioTrackDto,
   CardioTrackTemplateDto,
+  GateConditionDto,
   HeartRateZonesDto,
   LogTrackSessionRequest,
   TodayCardioDto,
@@ -34,6 +35,13 @@ export const cardioTracksApi = {
 
   decide: async (id: string, accept: boolean): Promise<CardioTrackDto> =>
     (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/suggestion`, { accept })).data,
+
+  /** Accepts the Start suggestion of a gated track. */
+  start: async (id: string): Promise<CardioTrackDto> => (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/start`)).data,
+
+  /** Sets the start gate: `useDefault` applies the template's gate; an empty list removes it. */
+  setGate: async (id: string, conditions: GateConditionDto[] | null, useDefault = false): Promise<CardioTrackDto> =>
+    (await apiClient.put<CardioTrackDto>(`/cardio-tracks/${id}/gate`, { conditions, useDefault })).data,
 
   undo: async (id: string): Promise<CardioTrackDto> => (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/undo`)).data,
 

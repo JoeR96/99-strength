@@ -13,7 +13,8 @@ import { createQueue, type OfflineQueue } from '@/offline/queue';
 import { createSyncManager, type SyncManager } from '@/offline/syncManager';
 import type { WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import type { FinishGymSessionResult } from '@/types/gym';
-import { mobilityA, upperAPlan } from './gymFixtures';
+import { mobilityA, stairFinisher, upperAPlan } from './gymFixtures';
+import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
 
 vi.mock('@/components/layout/Navbar', () => ({ Navbar: () => null }));
 vi.mock('react-hot-toast', () => ({ default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }));
@@ -95,6 +96,44 @@ describe('GymModePage', () => {
     expect(request.performances).toHaveLength(1);
     expect(await screen.findByTestId('gym-hevy-status')).toHaveTextContent('Not in Hevy yet');
     expect(screen.queryByRole('button', { name: 'Send to Hevy' })).not.toBeInTheDocument();
+  });
+
+  describe('finisher and readiness', () => {
+    beforeEach(async () => {
+      const { plansApi } = await import('@/api/plans');
+      const base = plansApi.getToday;
+      plansApi.getToday = async (date) => {
+        const today = await base(date);
+        return today && {
+          ...today,
+          sessions: today.sessions.map((s) => (s.liftDay === 1 ? { ...s, finisherCardioProtocolId: stairFinisher.id } : s)),
+        };
+      };
+      vi.spyOn(cardioProtocolsApi, 'list').mockResolvedValue([stairFinisher]);
+    });
+
+    it('shows the finisher on a normal day', async () => {
+      renderPage();
+
+      expect(await screen.findByText('Open Books')).toBeInTheDocument();
+      expect(screen.getByText(/Finisher: Stair finisher/)).toBeInTheDocument();
+    });
+
+    it('hides the finisher on a red day while it is skipped for recovery', async () => {
+      installReadinessHandlers(readinessHandlers.red());
+      renderPage();
+
+      expect(await screen.findByText('Open Books')).toBeInTheDocument();
+      expect(screen.queryByText(/Finisher: Stair finisher/)).not.toBeInTheDocument();
+    });
+
+    it('keeps the finisher on a red day when the person tapped Undo', async () => {
+      installReadinessHandlers(readinessHandlers.redKeptFinisher());
+      renderPage();
+
+      expect(await screen.findByText('Open Books')).toBeInTheDocument();
+      expect(screen.getByText(/Finisher: Stair finisher/)).toBeInTheDocument();
+    });
   });
 
   it('queues the finish offline with the same client session id', async () => {

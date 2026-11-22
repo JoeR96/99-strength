@@ -203,6 +203,14 @@ Lifting strategies above are untouched. Cardio tracks use their own (pure, unit-
 - **User preference** `PushRoutinesToHevy` (default true, `GET|PUT /api/v1/users/me/preferences`) gates `HevyRoutinePusher`; finished sessions are posted regardless.
 - Sessions are idempotent on a key: `completion:{id}` (plan session completion), `hevy:{workoutId}:{exerciseIndex}` (Hevy pull), `client:{key}` (log sheet), `manual:{guid}`.
 
+## Coach signals (suggestions only)
+
+None of these change A2S2, RPS, minimal-sets or cardio-strategy maths.
+
+- **Readiness** (`Aggregates/Readiness/ReadinessEntry.cs`, table `ReadinessEntries`, one per user + local date): Green / Yellow / Red. `ReadinessAdvice.For`: red skips the lift slot's finisher by default (`KeepFinisher` is the one-tap undo) and suggests skipping hard cardio; yellow is a note. API `GET /api/v1/readiness?date=` (**token-readable**), `PUT /readiness/{date}`, `PUT /readiness/{date}/finisher`. Gym mode hides the finisher while `finisherSkipped`.
+- **Start gates** (`Aggregates/Cardio/StartGate.cs`): `GateCondition` (`TrendWeightAtOrBelow`, `TrackAtOrAbove(template, minutes, intensity, effort, weeks)`, `NoPainInAreas(areas, weeks)`), one spec class each over `GateInputs`. A gated track has status `Gated` (sessions recorded, not evaluated) until the person accepts Start (`StartFromGate`). `StartGate.RunningGate()` is Walk → run's default (trend ≤ 90 kg; walk builder ≥ 45 min at ≥ 8 %, Easy, 2 weeks; no knee/shin/Achilles pain 4 weeks), applied by `withGate` on create or `PUT /cardio-tracks/{id}/gate {useDefault:true}`. `CardioGateEvaluator` (Application) gathers the trend EWMA, tracks and pain flags (track sessions + plan completions) for the list/today queries; `POST /cardio-tracks/{id}/start`.
+- **Phase changes**: `PlanPhase` has `Label`, `Changes` (≤ 10 lines) and `Swaps` (`PhaseSwap(From, To)`), stored in the Phases jsonb. `PlanPhase.HeadsUpOn` = the 7 days before a phase through its first day. `GET /plans/phase-heads-up` resolves each swap to the linked workout's exercise; Today's Swap runs the existing permanent `SubstituteExercise` after the person confirms. `PUT /plans/{id}/phases/{from}/changes` edits them. Push kind `PhaseChange` goes out once per phase (08:00–21:00 inside the window), logged in `PushNudgeLogs` against the phase start date.
+
 ## A2S2 Program Table
 
 21 weeks = 3 blocks × 7 weeks. Defined in `A2SHypertrophyProgram`.

@@ -18,6 +18,8 @@ import {
   useSetTrackPaused,
   useStartCardioTrack,
   useUndoTrack,
+  useStartGatedTrack,
+  useApplyDefaultGate,
   useUpdateCardioTrack,
 } from '@/hooks/useCardioTracks';
 import type { CardioTrackDto, LogTrackSessionRequest, UpdateCardioTrackRequest } from '@/types/cardioTracks';
@@ -33,6 +35,8 @@ export function TracksPage() {
   const log = useLogTrackSession();
   const decide = useDecideSuggestion();
   const undo = useUndoTrack();
+  const startGated = useStartGatedTrack();
+  const applyGate = useApplyDefaultGate();
   const setPaused = useSetTrackPaused();
   const update = useUpdateCardioTrack();
   const [logging, setLogging] = useState<CardioTrackDto | null>(null);
@@ -109,6 +113,8 @@ export function TracksPage() {
                 onDecide={(t, accept) => decide.mutate({ id: t.id, accept }, { onError: fail })}
                 onUndo={(t) => undo.mutate(t.id, { onSuccess: () => toast.success('Undone'), onError: fail })}
                 onPause={(t, paused) => setPaused.mutate({ track: t, paused }, { onError: fail })}
+                onStartGate={(t) => startGated.mutate(t.id, { onSuccess: () => toast.success(` started`), onError: fail })}
+                onAddGate={(t) => applyGate.mutate(t.id, { onSuccess: () => toast.success('Waiting for the running gate'), onError: fail })}
               />
             ))}
           </section>

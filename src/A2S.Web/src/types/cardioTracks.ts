@@ -6,7 +6,7 @@
 export const CardioModality = { Walk: 0, Run: 1, StairClimber: 2, Bike: 3, Row: 4, Other: 5 } as const;
 export type CardioModality = (typeof CardioModality)[keyof typeof CardioModality];
 
-export const CardioTrackStatus = { Active: 0, Paused: 1, Completed: 2 } as const;
+export const CardioTrackStatus = { Active: 0, Paused: 1, Completed: 2, Gated: 3 } as const;
 export type CardioTrackStatus = (typeof CardioTrackStatus)[keyof typeof CardioTrackStatus];
 
 /** The three effort buttons; the value is the RPE stored for each. */
@@ -141,6 +141,10 @@ export interface CardioTrackDto {
   benchmark: TrackBenchmarkDto | null;
   benchmarkDue: boolean;
   safetyNote: string;
+  /** Conditions to meet before the track starts (empty: no gate). */
+  startGate?: GateConditionDto[] | null;
+  /** Progress per condition while the track is gated. */
+  gate?: GateProgressDto | null;
   /** Client only: sessions logged on this phone that have not reached the server yet. */
   pendingSessions?: number;
 }
@@ -239,6 +243,36 @@ export interface TodayCardioDto {
   tracks: CardioTrackDto[];
   highIntensityMinutesThisWeek: number;
   warnings: CardioGuardrailDto[];
+  /** Tracks waiting on a start gate, each with its progress. */
+  gated?: CardioTrackDto[] | null;
+}
+
+/** A start-gate condition (the server sends the type as a string). */
+export type GateConditionType = 'TrendWeightAtOrBelow' | 'TrackAtOrAbove' | 'NoPainInAreas';
+
+export interface GateConditionDto {
+  type: GateConditionType;
+  kg?: number | null;
+  trackTemplateKey?: string | null;
+  minutes?: number | null;
+  intensity?: number | null;
+  effort?: number | null;
+  weeks?: number | null;
+  areas?: string[] | null;
+}
+
+export interface GateConditionResultDto {
+  condition: GateConditionDto;
+  met: boolean;
+  label: string;
+  progress: string;
+}
+
+/** A gated track's progress; `allMet` means Today suggests Start (the person accepts). */
+export interface GateProgressDto {
+  conditions: GateConditionResultDto[];
+  allMet: boolean;
+  metCount: number;
 }
 
 /** What the log sheet sends: the effort button plus anything else the person chose to fill in. */

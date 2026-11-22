@@ -95,6 +95,16 @@ export function useDecideSuggestion() {
   return useTrackMutation(({ id, accept }: { id: string; accept: boolean }) => cardioTracksApi.decide(id, accept));
 }
 
+/** Accepts the Start suggestion of a gated track. */
+export function useStartGatedTrack() {
+  return useTrackMutation((id: string) => cardioTracksApi.start(id));
+}
+
+/** Applies the template's start gate (Walk → run: the running gate) to a track. */
+export function useApplyDefaultGate() {
+  return useTrackMutation((id: string) => cardioTracksApi.setGate(id, null, true));
+}
+
 export function useUndoTrack() {
   return useTrackMutation((id: string) => cardioTracksApi.undo(id));
 }

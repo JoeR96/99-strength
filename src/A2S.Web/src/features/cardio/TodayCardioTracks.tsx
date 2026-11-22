@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useLogTrackSession, useTodayCardio } from '@/hooks/useCardioTracks';
+import { useLogTrackSession, useStartGatedTrack, useTodayCardio } from '@/hooks/useCardioTracks';
 import type { CardioTrackDto, LogTrackSessionRequest } from '@/types/cardioTracks';
 import { TrackCard } from './TrackCard';
 import { TrackLogSheet } from './TrackLogSheet';
@@ -15,10 +15,12 @@ import { TrackLogSheet } from './TrackLogSheet';
 export function TodayCardioTracks() {
   const todayQuery = useTodayCardio();
   const log = useLogTrackSession();
+  const start = useStartGatedTrack();
   const [logging, setLogging] = useState<CardioTrackDto | null>(null);
   const data = todayQuery.data;
 
-  if (!data || data.tracks.length === 0) {
+  const gated = data?.gated ?? [];
+  if (!data || (data.tracks.length === 0 && gated.length === 0)) {
     return null;
   }
 
@@ -55,6 +57,21 @@ export function TodayCardioTracks() {
       ))}
       {data.tracks.map((track) => (
         <TrackCard key={track.id} track={track} compact onLog={setLogging} busy={log.isPending} />
+      ))}
+      {gated.map((track) => (
+        <TrackCard
+          key={track.id}
+          track={track}
+          compact
+          onLog={setLogging}
+          busy={start.isPending}
+          onStartGate={(t) =>
+            start.mutate(t.id, {
+              onSuccess: () => toast.success(` started`),
+              onError: () => toast.error("Couldn't start that track. Try again."),
+            })
+          }
+        />
       ))}
       <TrackLogSheet key={logging?.id ?? 'none'} track={logging} onClose={() => setLogging(null)} onSubmit={submit} saving={log.isPending} />
     </section>

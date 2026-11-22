@@ -19,6 +19,7 @@ import {
   todayUpperA,
   todayUpperAWithHevy,
 } from '../fixtures/plan';
+import { installReadinessHandlers } from './readiness';
 import { installHandlers, never, rejectWith } from './install';
 
 type PlansHandlers = Partial<typeof plansApi>;
@@ -97,5 +98,7 @@ export const plansHandlers = {
 };
 
 export function installPlansHandlers(handlers: PlansHandlers = plansHandlers.default()): void {
-  installHandlers(plansApi, handlers);
+  // Today and gym mode also read the phase heads-up and readiness; default both to "nothing" unless a story sets them.
+  installHandlers(plansApi, { getPhaseHeadsUp: async () => null, ...handlers });
+  installReadinessHandlers();
 }

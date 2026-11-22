@@ -57,6 +57,8 @@ import { openHevyRoutine } from './hevyDeepLink';
 import { useRetryHevyPost } from '@/hooks/useGymSession';
 import { TodayCardioTracks } from '@/features/cardio/TodayCardioTracks';
 import { UpNextCard } from './UpNextCard';
+import { TodayReadiness } from './ReadinessCard';
+import { TodayPhaseHeadsUp } from './PhaseHeadsUpCard';
 import { SessionPreviewSheet } from './SessionPreviewSheet';
 import { isAllDoneOrRest, parseDateParam } from './upNext';
 
@@ -328,6 +330,9 @@ export function TodayPage({ pendingSyncCount }: TodayPageProps) {
         {today?.phase !== undefined && today?.phase !== PhaseType.Cut && (
           <PhaseBanner phase={today?.phase ?? null} detail={phaseDetail} />
         )}
+
+        {isToday && <TodayReadiness date={date} />}
+        {isToday && <TodayPhaseHeadsUp date={date} />}
 
         {planLoading && <Skeleton className="h-36" />}
 

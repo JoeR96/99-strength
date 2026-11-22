@@ -115,6 +115,14 @@ once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors 
 - A workout pulled twice, or edited in Hevy after it was matched, never counts twice.
 - **Settings → Hevy routines → Push routines into Hevy** (on by default) controls whether planned routines are pushed into Hevy. Finished sessions are always sent.
 
+## Coach signals
+
+These only ever suggest. They never change your lifting or cardio numbers.
+
+- **Recovery colour.** Tap Green, Yellow or Red on Today (your WHOOP recovery). On a red day Today marks the stair finisher **Skipped for recovery** and suggests skipping hard cardio; walks and home routines stay. One tap on **Undo** keeps the finisher. Gym mode leaves out a skipped finisher. Yellow just reminds you to go by feel.
+- **Running gate.** Walk → run can wait behind a gate: trend weight at or under 90 kg, the walk builder at 45 minutes and 8 % incline rated Easy for two weeks, and no knee, shin or Achilles pain for four weeks. Today and the Tracks page show each condition's progress and offer **Start** once they're all met. You decide when to start. On the Tracks page, **Wait for the running gate** adds it to an existing Walk → run track.
+- **Phase heads-up.** A plan phase (for example Base, Build, Transition) can list what changes when it starts. Today shows them the week before and on the first day, and a push notification goes out once. If the phase swaps an exercise (Pause Squat → Squat (Barbell)), tap **Swap** and confirm to make the swap in your workout.
+
 ## Install on your phone
 
 **iPhone (Safari, iOS 16.4+)**: open the site, tap **Share → Add to Home Screen → Add**, then launch it from

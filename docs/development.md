@@ -97,6 +97,10 @@ through `SessionHevyPoster` on the gym-mode `HevyWorkoutPost` queue; the pull us
 `src/mocks/{fixtures,handlers}/cardioTracks.ts`; any story that renders `TodayCardioTracks` or
 `CardioTrackProgress` must install `cardioTracksHandlers`.
 
+## Coach signals
+
+Readiness (`ReadinessEntries`), cardio start gates (`CardioTracks.StartGate` jsonb) and phase changes (inside the `Phases` jsonb) arrive with migration `AddCoachSignals` (additive; Down tested in `CoachSignalsPersistenceTests`). Story mocks: `src/mocks/handlers/readiness.ts` (`installPlansHandlers` also resets readiness to "not set" and the phase heads-up to null, so install readiness/heads-up stubs **after** it), `src/mocks/fixtures/gates.ts` and `phaseHeadsUp.ts`. The `PhaseChange` push is the one nudge logged against a date other than today (the phase start), which is what makes it once per phase.
+
 ## Secrets
 
 Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,
@@ -146,6 +150,7 @@ A token can:
 - record a weigh-in and read the trend under `/api/v1/body-weight`;
 - read `GET /api/v1/plans/today` (optionally `?date=yyyy-MM-dd`);
 - read `GET /api/v1/plans/upcoming?from=yyyy-MM-dd&days=14` (the coming days, with each lift's planned sets);
+- read `GET /api/v1/readiness?date=yyyy-MM-dd` (the day's recovery colour and what it suggests);
 - call `GET /api/v1/users/me/api-tokens/whoami` to check that it works.
 
 A token cannot do anything else. It cannot read or change the Hevy key, workouts, plans, meals or
