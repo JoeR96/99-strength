@@ -22,6 +22,15 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     public int BaseSetsPerExercise { get; private set; }
     public ProgramTier Tier { get; private set; }
 
+    /// <summary>
+    /// True until the person enters a training max ("start without weights"). <see cref="TrainingMax"/>
+    /// then holds a placeholder that is never used: planned sets carry no weight and completion is refused.
+    /// </summary>
+    public bool IsTrainingMaxPending { get; private set; }
+
+    /// <summary>Placeholder stored while the TM is pending (the column is required).</summary>
+    public const decimal PendingPlaceholderValue = 1m;
+
     // EF Core constructor
     private LinearProgressionStrategy()
     {
@@ -59,6 +68,18 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
             tier);
     }
 
+    /// <summary>An A2S2 strategy without a training max yet; see <see cref="IsTrainingMaxPending"/>.</summary>
+    public static LinearProgressionStrategy CreatePending(
+        WeightUnit unit,
+        bool useAmrap = true,
+        int baseSetsPerExercise = 4,
+        ProgramTier tier = ProgramTier.Primary)
+    {
+        var strategy = Create(TrainingMax.Create(PendingPlaceholderValue, unit), useAmrap, baseSetsPerExercise, tier);
+        strategy.IsTrainingMaxPending = true;
+        return strategy;
+    }
+
     /// <summary>
     /// Calculates planned sets for a given week and block.
     /// Intensity, sets, and reps are taken directly from the A2S Hypertrophy spreadsheet.
@@ -71,7 +92,10 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
         CheckRule(blockNumber >= 1 && blockNumber <= 3, "Block number must be between 1 and 3");
 
         var weekData = A2SHypertrophyProgram.GetWeekData(weekNumber, Tier);
-        var workingWeight = TrainingMax.CalculateWorkingWeight(weekData.Intensity);
+        // Pending TM: same sets, reps and AMRAP; no weight until the TM is entered.
+        var workingWeight = IsTrainingMaxPending
+            ? Weight.Create(0, TrainingMax.Unit)
+            : TrainingMax.CalculateWorkingWeight(weekData.Intensity);
         var setsForWeek = weekData.Sets;
 
         var sets = new List<PlannedSet>();
@@ -95,6 +119,8 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     /// </summary>
     public override void ApplyPerformanceResult(ExercisePerformance performance)
     {
+        CheckRule(!IsTrainingMaxPending, "Set your training max before finishing this exercise");
+
         if (!UseAmrap)
         {
             // No TM adjustment for non-AMRAP exercises
@@ -134,7 +160,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
             Type = "Linear (RTF)",
             Details = new Dictionary<string, string>
             {
-                ["Training Max"] = TrainingMax.ToString(),
+                ["Training Max"] = IsTrainingMaxPending ? "Not set" : TrainingMax.ToString(),
                 ["Uses AMRAP"] = UseAmrap ? "Yes" : "No",
                 ["Sets per Exercise"] = BaseSetsPerExercise.ToString()
             }
@@ -148,6 +174,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
     public override TrainingMaxAdjusted? UpdateTrainingMaxValue(TrainingMax newTrainingMax, string? reason = null)
     {
         TrainingMax = newTrainingMax;
+        IsTrainingMaxPending = false;
         return new TrainingMaxAdjusted(
             Id,
             newTrainingMax,
@@ -158,7 +185,7 @@ public sealed class LinearProgressionStrategy : ExerciseProgression
 
     public override Weight? GetCurrentWeight() => null;
 
-    public override TrainingMax? GetTrainingMax() => TrainingMax;
+    public override TrainingMax? GetTrainingMax() => IsTrainingMaxPending ? null : TrainingMax;
 
     public override Weight GetWeightIncrement() => Weight.Create(0, WeightUnit.Kilograms);
 

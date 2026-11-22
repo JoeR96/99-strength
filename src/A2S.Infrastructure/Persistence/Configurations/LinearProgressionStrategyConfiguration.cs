@@ -28,5 +28,9 @@ public class LinearProgressionStrategyConfiguration : IEntityTypeConfiguration<L
 
         builder.Property(lps => lps.BaseSetsPerExercise)
             .HasColumnName("BaseSetsPerExercise");
+
+        builder.Property(lps => lps.IsTrainingMaxPending)
+            .HasColumnName("IsTrainingMaxPending")
+            .HasDefaultValue(false);
     }
 }
