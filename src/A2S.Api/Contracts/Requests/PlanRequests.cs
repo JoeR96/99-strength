@@ -44,3 +44,5 @@ public sealed record SetRepeatWeekRequest(bool Repeat);
 
 /// <summary>Body for <c>PUT /api/v1/mobility-routines/{id}/drills</c>.</summary>
 public sealed record ReplaceDrillsRequest(IReadOnlyList<MobilityDrillDto> Drills);
+
+public sealed record UpdateMobilityRoutineRequest(string Name, int TargetMinutes);

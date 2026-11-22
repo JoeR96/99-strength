@@ -238,4 +238,29 @@ public class MobilityRoutineTests
 
         act.Should().Throw<BusinessRuleViolationException>();
     }
+    [Fact]
+    public void UpdateDetails_RenamesAndChangesTargetMinutes_KeepingDrills()
+    {
+        var routine = MobilityRoutine.Create(Owner, "Mobility A", 10, MobilityA());
+
+        routine.UpdateDetails("  Gym warm-up  ", 12);
+
+        routine.Name.Should().Be("Gym warm-up");
+        routine.TargetMinutes.Should().Be(12);
+        routine.Drills.Should().HaveCount(5);
+    }
+
+    [Theory]
+    [InlineData(" ", 10)]
+    [InlineData("Gym warm-up", 0)]
+    public void UpdateDetails_WithBlankNameOrNonPositiveMinutes_ThrowsAndChangesNothing(string name, int minutes)
+    {
+        var routine = MobilityRoutine.Create(Owner, "Mobility A", 10, MobilityA());
+
+        var act = () => routine.UpdateDetails(name, minutes);
+
+        act.Should().Throw<BusinessRuleViolationException>();
+        routine.Name.Should().Be("Mobility A");
+        routine.TargetMinutes.Should().Be(10);
+    }
 }

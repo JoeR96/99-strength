@@ -39,6 +39,16 @@ public sealed class MobilityRoutine : AggregateRoot<MobilityRoutineId>
         return new MobilityRoutine(new MobilityRoutineId(Guid.NewGuid()), userId, name.Trim(), targetMinutes, list);
     }
 
+    /// <summary>Renames the routine and changes its target duration; drills are untouched.</summary>
+    public void UpdateDetails(string name, int targetMinutes)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(name), "Routine name is required");
+        CheckRule(targetMinutes > 0, "Target minutes must be positive");
+
+        Name = name.Trim();
+        TargetMinutes = targetMinutes;
+    }
+
     public void AddDrill(MobilityDrill drill)
     {
         CheckRule(drill is not null, "Drill is required");

@@ -31,6 +31,13 @@ cd src/A2S.Web && npm run storybook # component states; Playwright screenshots u
 
 Infrastructure and API tests need Docker running (they start `postgres:16-alpine` containers).
 
+API tests share one test host whose current user is whichever `CreateAuthenticatedClient` call ran last
+(`TestCurrentUserService` is static). In cross-user tests, create each client just before its requests;
+see `PlansControllerTests.MobilityRoutines_AnotherUserCannotRenameOrDelete`.
+
+Run the Storybook suite one branch at a time: `playwright.storybook.config.ts` reuses an existing server on
+port 6007, so two worktrees running it together test each other's build. Set `STORYBOOK_PORT` to separate them.
+
 ## Secrets
 
 Never commit a Hevy API key, a Clerk secret or a Bitwarden session, and never paste one into a log,

@@ -401,4 +401,13 @@ public class TrainingPlanTests
 
         act.Should().Throw<BusinessRuleViolationException>();
     }
+
+    [Fact]
+    public void SchedulesMobilityRoutine_IsTrueOnlyForARoutineInTheWeek()
+    {
+        var plan = CreatePlan();
+
+        plan.SchedulesMobilityRoutine(MobilityB).Should().BeTrue();
+        plan.SchedulesMobilityRoutine(new MobilityRoutineId(Guid.Parse("0b0b0b0b-0000-0000-0000-000000000099"))).Should().BeFalse();
+    }
 }

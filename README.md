@@ -22,7 +22,9 @@ Accessories progress on their own rules: add a set, add weight, or drop back whe
 and steady easy work. Each session logs its duration, effort, and minutes in heart-rate zones 4–5. The zone minutes count toward a weekly target.
 
 **Mobility** routines are ordered lists of drills, each with sets, reps, seconds or breaths. A drill can
-add an extra set for one side and list a standing alternative for when you can't get on the floor.
+add an extra set for one side and list a standing alternative for when you can't get on the floor. You can
+rename a routine, change its target minutes or delete it. A routine that's still in your week can't be deleted
+until you take it out of the schedule, and sessions you've already done stay in your history.
 
 **Habits** come in three types: counters (water 3/6), numbers (weight) and checkboxes. Each habit has a minimum
 for bad days, and the streak uses a "never miss twice" rule: one missed day keeps it, two in a row breaks it.
