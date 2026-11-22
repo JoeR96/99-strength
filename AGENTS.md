@@ -269,6 +269,8 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `RecordCardioBenchmark` | Adds a benchmark result (PR history) | |
 | `SetHeartRateZones` | Max HR and zone boundaries on the user | |
 | `CompleteSession` (cardio slot with a track) | Also evaluates the track once per completion | |
+| `ApplyPlanTemplate` | Applies any `IPlanTemplate` (`SuggestedPlans/`, found by `PlanTemplates`) through `PlanTemplateApplier`: start date snaps to the Monday on/after it (Europe/London, never past), optional training maxes left empty start **pending**, routines/tracks reused by name/template key, everything is the user's own editable data. Idempotent while that template is active; another active plan → 409 until `confirmReplace` (old plan made inactive, kept with history; old workout paused) | `POST /api/v1/plans/templates/{key}/apply` |
+| `SetTrainingMax` | "Set your training max" for an A2S2 exercise: the TM, or a recent set → Epley e1RM × 90 % rounded to 2.5 kg/5 lb (`TrainingMaxEstimator`). Clears a pending TM; same manual-TM path as UpdateExercises (no TM maths change) | `POST /api/v1/workouts/{id}/exercises/{exerciseId}/training-max` |
 | `StartSuggestedPlan` | One-tap onboarding: builds "Cut to 85 — Nov 2026" from `SuggestedPlans/CutTo85Nov2026` (workout + cardio protocols + Mobility A/B + habits + linked plan) in one unit of work; idempotent while that plan is active | `POST /api/v1/plans/suggested/cut-to-85` |
 | Mobility: `CreateMobilityRoutine`, `UpdateMobilityRoutine`, `ReplaceDrills`, `DeleteMobilityRoutine` | Mobility routines and their ordered drills. Update renames and changes target minutes; delete returns 409 while any of the user's plans schedules the routine (past completions keep the id as history) | `POST /api/v1/mobility-routines`, `PUT /{id}`, `PUT /{id}/drills`, `DELETE /{id}` |
 | `UpdateSchedule` | Replaces the plan's weekly template; returns `PlanScheduleRules` warnings (4×4 the day before Lower A/B) alongside the plan. A lift slot may carry `WarmUpRoutineId` and `FinisherCardioProtocolId` | `PUT /api/v1/plans/{id}/schedule` |
@@ -304,7 +306,8 @@ Personal API tokens (`[AllowApiToken]`) may read `GET /plans/today?date=` and `G
 | `ListCardioTrackTemplates` | The shipped templates |
 | `GetTodayCardio` | Active tracks' prescriptions, this week's zone 4–5 minutes and guardrail warnings |
 | `GetHeartRateZones` | Max HR and zones |
-| `GetSuggestedPlans` | Previews the suggested plans for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
+| `GetPlanTemplates` | Every template previewed from a start date: phases with dates, schedule slots, sessions with 2a/2b slots and prescriptions, warm-ups, home routines, cardio tracks, `toFillIn` — `GET /api/v1/plans/templates[?startDate=]`, `GET /api/v1/plans/templates/{key}` |
+| `GetSuggestedPlans` | Previews every plan template (Cut to 85, Plan v3) for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
 
 ## Gym mode
 
@@ -332,7 +335,21 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
   the workout before the post recorded its id never completes the session twice.
 - The browser never writes workouts to Hevy: the v1 Send to Hevy on the completion summary is gone and the
   `/hevy/workouts` proxy refuses POST (GET stays for Pull from Hevy).
-- Settings → Gym sessions sets each lift slot's warm-up and finisher.
+- Settings → Gym sessions sets each lift slot's warm-up and finisher (protocol, track, or a fixed cool-down).
+- **Supersets.** `Exercise.SupersetGroup` (per day, max two exercises; set by plan specs, editable via
+  UpdateExercises) feeds `PlannedExerciseDto.supersetGroup`, gym mode (A1 → B1 → A2 …, no rest between A
+  and B, `RestDefaults.SupersetSeconds` 60 s after B) and `RoutineBuilder` superset ids. Older specs'
+  `SupersetSpec` lists are turned into groups when a plan is applied.
+- **Unilateral work is left side first**: gym mode lists Left then Right; Hevy routine/workout notes say "Left side first".
+- **Extra set** (`Exercise.ExtraSetSide` None/Left/Right, unilateral reps-per-set only): sent as
+  `ExercisePerformanceRequest.ExtraSet`, outside `CompletedSets`, so RPS evaluation never sees it (tested
+  identical with/without); Hevy gets it as one more set with the note "Extra set: left". Plan v3 doesn't use it.
+- **Fixed cool-down finisher** (`SessionFinisher.Fixed` = `FixedActivity` Walk/Treadmill, 1–60 min, notes):
+  no LISS rule, no track. Gym mode ticks it; the finish logs a plain cardio completion; Hevy gets Treadmill
+  `243710DE` (or Walking) with the duration.
+- **Pending training max** (`LinearProgressionStrategy.IsTrainingMaxPending`): planned sets keep A2S2 sets,
+  reps and AMRAP but weigh 0 (`metadata.isTrainingMaxPending`, `intensityPercentage`, `tier`); completing
+  the exercise is refused ("Set your training max for … before finishing it.") until a TM is set.
 - **Two devices.** `FinishGymSession` refuses (`ErrorCode.Conflict`, 409, "This day was already finished on
   another device") when the workout's current week already has the day recorded under a different client
   session id; nothing is staged and progression is untouched. The same client session id still replays.
