@@ -53,9 +53,6 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
     /// <summary>Stable key from an external source (e.g. <c>terran:walks</c>) so imports are idempotent.</summary>
     public string? ExternalKey { get; private set; }
 
-    /// <summary>How the target is judged: each day's minimum (default) or the week's daily average (numeric habits only).</summary>
-    public HabitTargetMode TargetMode { get; private set; }
-
     public static HabitDefinition Create(
         UserId userId,
         string name,
@@ -91,14 +88,6 @@ public sealed class HabitDefinition : AggregateRoot<HabitId>
     }
 
     public void SetUnit(string? unit) => Unit = Clean(unit);
-
-    /// <summary>Switches between a daily minimum and a weekly average. Only a numeric habit (steps, minutes) can average.</summary>
-    public void SetTargetMode(HabitTargetMode mode)
-    {
-        CheckRule(Enum.IsDefined(mode), "Unknown habit target mode.");
-        CheckRule(mode == HabitTargetMode.DailyMinimum || Type == HabitType.Numeric, "Only a numeric habit can use a weekly average.");
-        TargetMode = mode;
-    }
 
     public void SetIcon(string? icon) => Icon = Clean(icon);
 
