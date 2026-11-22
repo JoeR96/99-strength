@@ -24,6 +24,8 @@ public sealed record ScheduledSession
 
     /// <summary>Lift sessions only: conditioning done straight after the lifts (e.g. a stair finisher).</summary>
     public SessionFinisher? Finisher { get; }
+    /// <summary>A cardio slot may point at a progression track instead of (or as well as) a fixed protocol.</summary>
+    public CardioTrackId? CardioTrackId { get; }
 
     public ScheduledSession(
         DayOfWeek day,
@@ -33,7 +35,8 @@ public sealed record ScheduledSession
         MobilityRoutineId? mobilityRoutineId,
         string label,
         MobilityRoutineId? warmUpRoutineId = null,
-        SessionFinisher? finisher = null)
+        SessionFinisher? finisher = null,
+        CardioTrackId? cardioTrackId = null)
     {
         if (string.IsNullOrWhiteSpace(label))
         {
@@ -55,6 +58,11 @@ public sealed record ScheduledSession
             throw new BusinessRuleViolationException("Only cardio sessions carry a cardio protocol");
         }
 
+        if (kind != SessionKind.Cardio && cardioTrackId is not null)
+        {
+            throw new BusinessRuleViolationException("Only cardio sessions carry a cardio track");
+        }
+
         if (kind != SessionKind.Mobility && mobilityRoutineId is not null)
         {
             throw new BusinessRuleViolationException("Only mobility sessions carry a mobility routine");
@@ -73,6 +81,7 @@ public sealed record ScheduledSession
         Label = label.Trim();
         WarmUpRoutineId = warmUpRoutineId;
         Finisher = finisher;
+        CardioTrackId = cardioTrackId;
     }
 
     public static ScheduledSession Lift(
@@ -84,8 +93,8 @@ public sealed record ScheduledSession
         new(day, SessionKind.Lift, liftDay, null, null, label, warmUp, finisher);
 
     /// <summary>A cardio slot; the protocol may be left open ("C25K run or LISS").</summary>
-    public static ScheduledSession Cardio(DayOfWeek day, CardioProtocolId? protocol, string label) =>
-        new(day, SessionKind.Cardio, null, protocol, null, label);
+    public static ScheduledSession Cardio(DayOfWeek day, CardioProtocolId? protocol, string label, CardioTrackId? track = null) =>
+        new(day, SessionKind.Cardio, null, protocol, null, label, cardioTrackId: track);
 
     public static ScheduledSession Mobility(DayOfWeek day, MobilityRoutineId? routine, string label) =>
         new(day, SessionKind.Mobility, null, null, routine, label);

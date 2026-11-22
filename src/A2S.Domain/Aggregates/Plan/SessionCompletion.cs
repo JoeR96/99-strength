@@ -22,13 +22,15 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
         string? hevyWorkoutId,
         DateTimeOffset recordedAtUtc,
         CardioLog? cardio,
-        IReadOnlyList<bool>? drillTicks)
+        IReadOnlyList<bool>? drillTicks,
+        CardioTrackId? cardioTrackId = null)
         : base(id)
     {
         CheckRule(kind != SessionKind.Rest, "A rest day is not completed");
         CheckRule(kind != SessionKind.Lift || liftDay is not null, "A lift completion needs the A2S2 day it trained");
         CheckRule(kind == SessionKind.Lift || liftDay is null, "Only lift completions carry a lift day");
         CheckRule(kind == SessionKind.Cardio || cardioProtocolId is null, "Only cardio completions carry a cardio protocol");
+        CheckRule(kind == SessionKind.Cardio || cardioTrackId is null, "Only cardio completions carry a cardio track");
         CheckRule(kind == SessionKind.Cardio || cardio is null, "Only cardio completions carry a cardio log");
         CheckRule(kind == SessionKind.Mobility || mobilityRoutineId is null, "Only mobility completions carry a mobility routine");
         CheckRule(kind == SessionKind.Mobility || drillTicks is null, "Only mobility completions carry drill ticks");
@@ -44,6 +46,7 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
         RecordedAtUtc = recordedAtUtc.ToUniversalTime();
         Cardio = cardio;
         _drillTicks = drillTicks?.ToList();
+        CardioTrackId = cardioTrackId;
     }
 
     // EF Core constructor
@@ -60,6 +63,12 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
     public string? HevyWorkoutId { get; private set; }
     public DateTimeOffset RecordedAtUtc { get; private set; }
     public CardioLog? Cardio { get; private set; }
+
+    /// <summary>The cardio track this session was evaluated against, when the slot pointed at one.</summary>
+    public CardioTrackId? CardioTrackId { get; private set; }
+
+    /// <summary>The idempotency key the track uses for this completion.</summary>
+    public string TrackSessionKey => $"completion:{Id.Value:N}";
 
     /// <summary>Optional per-drill ticks for a mobility completion, in routine order.</summary>
     public IReadOnlyList<bool>? DrillTicks => _drillTicks?.AsReadOnly();

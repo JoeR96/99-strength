@@ -34,6 +34,33 @@ public sealed class User : AggregateRoot<UserId>
     /// </summary>
     public string? HevyApiKeyProtected { get; private set; }
 
+    /// <summary>Max heart rate in bpm, entered by hand (or from WHOOP later). Null until set.</summary>
+    public int? MaxHeartRate { get; private set; }
+
+    /// <summary>Lower bounds of zones 1–5 as % of max HR. Null means WHOOP's 50/60/70/80/90.</summary>
+    public List<int>? HeartRateZonePercents { get; private set; }
+
+    /// <summary>The person's heart-rate zones, or null without a max HR.</summary>
+    public HeartRateZones? HeartRateZones => MaxHeartRate is { } max
+        ? new HeartRateZones(max, HeartRateZonePercents ?? HeartRateZones.WhoopLowerPercents.ToList())
+        : null;
+
+    /// <summary>Sets max HR and (optionally) custom zone boundaries. Null max clears both.</summary>
+    public void SetHeartRate(int? maxHeartRate, IReadOnlyList<int>? zoneLowerPercents)
+    {
+        if (maxHeartRate is null)
+        {
+            MaxHeartRate = null;
+            HeartRateZonePercents = null;
+            return;
+        }
+
+        // Validates both through the value object.
+        var zones = new HeartRateZones(maxHeartRate.Value, zoneLowerPercents ?? HeartRateZones.WhoopLowerPercents);
+        MaxHeartRate = zones.MaxHeartRate;
+        HeartRateZonePercents = zoneLowerPercents is null ? null : zones.LowerPercents.ToList();
+    }
+
     /// <summary>Whether a Hevy API key is stored for this user.</summary>
     public bool HasHevyApiKey => HevyApiKeyProtected is not null;
 
