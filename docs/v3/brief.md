@@ -18,7 +18,7 @@ All existing .NET and Vitest tests must stay green.
 |---|---|---|
 | Native app | **Not now.** Stay a PWA; web push already works for the installed iOS app (16.4+). | Expo/native is parked. |
 | Hosting | **No change.** Frontend stays on Vercel, API on Dokploy. | Out of scope for v3. |
-| Hevy | **Stays the logging source of truth in the gym.** | Keep every existing push and pull flow working. Extend it to cardio finishers (§ 4). |
+| Hevy | **99 Strength is the gym app; Hevy is the record.** I open 99 Strength at the gym, work through today's checklist, and it sends the finished workout to Hevy. | One app to open. Logging directly in Hevy keeps working as a fallback (the existing pull/match). See § 3a. |
 | Progression maths | **A2S2, RPS and MinimalSets maths don't change.** | Any change needs my approval first (§ 8). |
 | Specific routines | **Build generic engines, not my routines.** | I'll author my own mobility, stretch and yoga routines and cardio tracks in the app. Seed only what's needed for tests and Storybook. The existing "Cut to 85" seed stays as editable data. |
 
@@ -103,6 +103,42 @@ Hosting stays as it is. Only fix what blocks v3 or the audit:
 - Defects 12 (health check touches the DB) and 16 (route-level code splitting, source maps). 10, 11 and 14 go on a backlog list.
 
 ---
+
+## 3a. Gym mode: the app wraps Hevy (top priority after Phase 1)
+
+At the gym I only open 99 Strength. Today's session is a checklist; when I finish, the app writes the
+completed workout to Hevy.
+
+**What exists:** in-app set logging for lifts (`WorkoutSession`, `/workout/session/:day`) and a v1
+browser-side "Send to Hevy" on `CompletionSummary` (`createCompletedWorkoutInHevy` via the proxy).
+`HevyIntegrationService` can already create workouts server-side. Reuse these rather than rebuilding.
+
+**Build:**
+
+- **One checklist for the whole session, in order:** warm-up drills (tick each, or "all done"), then
+  each lift with its planned sets pre-filled (weight, target reps; tap a set to confirm, edit reps or
+  weight if different; the AMRAP set asks for reps), then any attached finisher (prescription shown,
+  log duration, level, floors, effort), then "Finish".
+- **Gym-proof UI:** big targets, one hand, works with no signal (sets saved on the phone first, through
+  the offline queue), screen stays awake (Wake Lock), and a rest timer between sets that starts
+  automatically from the plan's rest seconds, with a sound when it ends.
+- **Finish = two things at once:** complete the session in the app (same `CompleteDay` path as now, so
+  A2S2 progression and undo are unchanged; cardio/mobility through `CompleteSession`) **and** post the
+  workout to Hevy **from the server** (`POST /v1/workouts`, key never in the browser) with real start
+  and end times, sets typed correctly (warm-up / normal / failure for AMRAP), and the finisher as Stair
+  Machine (Floors).
+- **No double counting:** store the returned Hevy workout id on the completion (a `HevyLink`), so when
+  the 15-minute pull sees that workout it recognises it as already done. Pinned by a test: post, pull,
+  exactly one completion and one progression.
+- **Retry safely:** if the Hevy post fails or I'm offline, the session is still complete in the app and
+  the post is queued and retried; the Today card shows "Not in Hevy yet" until it succeeds. Retrying
+  must never create a second Hevy workout (look up by start time and title before re-posting).
+- **Partial sessions:** "Finish early" posts what was done; skipped exercises keep their progression
+  untouched, as today.
+- Remove the v1 browser-side send once the server path ships.
+- Walks, runs and home routines use the same pattern: start from Today, log or play, finish, and it is
+  posted to Hevy (Walking / Treadmill / Running / Stretching / Yoga).
+- Pushing routines *into* Hevy becomes optional (a setting), since I no longer start workouts there.
 
 ## 3. Progression schemes: keep everything working
 
@@ -286,7 +322,7 @@ Extend the existing Web Push nudge service (it has `SessionStart` and `HabitsUnd
 - Stop and ask me before deleting features, changing progression maths, or touching the production DB.
 - Keep `README.md` (user-facing), `docs/development.md` and `AGENTS.md` up to date in the same PR as the change.
 
-**Order:** Phase 1 audit and cleanup (1a–1c) → my approval → platform fixes (§ 2) → golden
+**Order:** Phase 1 audit and cleanup (1a–1c) → my approval → platform fixes (§ 2) → golden progression tests → **gym mode (§ 3a)** →
 progression tests → a11y fixes and the CI gate → cardio engine and templates → Hevy cardio push/pull → mobility builder,
 library and player → scheduling (slots, rules, missed-session moves, ICS) → notifications → weekly review → WHOOP (optional) → final live walkthrough with
 screenshots compared against the Phase 1 audit.
