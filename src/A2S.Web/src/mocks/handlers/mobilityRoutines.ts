@@ -1,7 +1,7 @@
 /** Story/test handlers for `mobilityRoutinesApi` (the repo stubs API modules directly). */
 
 import { mobilityRoutinesApi } from '@/api/mobilityRoutines';
-import { mobilityRoutinesFixture } from '../fixtures/mobility';
+import { followAlongFixture, homeYogaFixture, ladderLevelUpResult, ladderStepUpResult, mobilityRoutinesFixture } from '../fixtures/mobility';
 import { installHandlers, never, rejectWith } from './install';
 
 type Handlers = Partial<typeof mobilityRoutinesApi>;
@@ -13,6 +13,21 @@ export const mobilityRoutinesHandlers = {
     update: async (id, request) => ({ ...structuredClone(mobilityRoutinesFixture.find((r) => r.id === id)!), ...request }),
     remove: async () => {},
     replaceDrills: async (id, drills) => ({ ...structuredClone(mobilityRoutinesFixture.find((r) => r.id === id)!), drills }),
+    recordFeedback: async () => ladderStepUpResult(),
+  }),
+  /** The home yoga routine (levels) and a follow-along video alongside the usual two; feedback steps the ladder up. */
+  home: (): Handlers => ({
+    ...mobilityRoutinesHandlers.default(),
+    list: async () => structuredClone([...mobilityRoutinesFixture, homeYogaFixture, followAlongFixture]),
+    replaceDrills: async (id, drills) => ({ ...structuredClone([homeYogaFixture, ...mobilityRoutinesFixture].find((r) => r.id === id)!), drills }),
+    recordFeedback: async () => ladderStepUpResult(),
+    respondToSuggestion: async () => structuredClone(homeYogaFixture),
+    undoProgression: async () => structuredClone(homeYogaFixture),
+  }),
+  /** Like `home`, but the ladder is at the top of Level 1, so the feedback suggests Level 2. */
+  homeLevelUp: (): Handlers => ({
+    ...mobilityRoutinesHandlers.home(),
+    recordFeedback: async () => ladderLevelUpResult(),
   }),
   empty: (): Handlers => ({ list: async () => [] }),
   loading: (): Handlers => ({ list: never }),

@@ -245,6 +245,8 @@ export interface CompleteSessionRequest {
   cardio?: CardioLogDto | null;
   drillTicks?: boolean[] | null;
   hevyWorkoutId?: string | null;
+  /** Mobility: minutes actually done (a follow-along video); omitted means the routine's target. */
+  durationMinutes?: number | null;
 }
 
 /** Body for `POST /plans/{id}/allowances`; the DELETE takes the same two values as query params. */

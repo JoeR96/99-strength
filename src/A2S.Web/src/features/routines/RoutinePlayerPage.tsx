@@ -1,8 +1,10 @@
 /**
  * Full-screen follow-along player for a routine at home. Big type, one step at a time: a short
  * get-ready gap, then the hold counts down (or, for reps, waits for Done). Per-side drills switch
- * sides by themselves. Works offline once the routine is loaded; finishing marks today's mobility
- * session done when this routine is on today's plan (through the offline-safe completion).
+ * sides by themselves, always left side first. Drills with levels show the current level and its cues,
+ * with the easier (and harder) version on demand. Works offline once the routine is loaded; finishing
+ * asks how each levelled drill felt (clean / strained) and marks today's mobility session done when this
+ * routine is on today's plan (both through the offline queue). Follow-along routines get their own screen.
  */
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -14,8 +16,16 @@ import { useMobilityRoutine } from '@/hooks/useMobilityRoutines';
 import { useActivePlan, useCompleteSession, useToday } from '@/hooks/usePlan';
 import { useLocalToday } from '@/hooks/useLocalToday';
 import { SessionKind, SessionStatus } from '@/types/plan';
+import { MobilityRoutineKind } from '@/types/mobility';
 import { buildSteps, drillTicks, formatDose, initialState, playerReducer, type PlayerStep } from './routinePlayer';
 import { beep, primeAudio, useWakeLock } from './playerEffects';
+import { levelLabel, levelNeighbours, shortDose } from './drillLevels';
+import { DrillFeedbackPanel } from './DrillFeedbackPanel';
+import { FollowAlongPlayer } from './FollowAlongPlayer';
+
+function newSessionKey(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `s-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 function sideLabel(step: PlayerStep): string | null {
   if (step.side === 'left') return 'Left side';
@@ -43,6 +53,7 @@ export function RoutinePlayerPage() {
       </div>
     );
   }
+  if (routine.kind === MobilityRoutineKind.FollowAlong) return <FollowAlongPlayer key={routine.id} routine={routine} />;
   return <Player key={routine.id} routineId={routine.id} />;
 }
 
@@ -53,6 +64,9 @@ function Player({ routineId }: { routineId: string }) {
   const [state, dispatch] = useReducer(playerReducer, steps, initialState);
   const [started, setStarted] = useState(false);
   const [showAlt, setShowAlt] = useState(false);
+  // Which alternative is open, tied to the drill it was opened on so a new drill starts closed.
+  const [levelChoice, setLevelChoice] = useState<{ drill: number; which: 'easier' | 'harder' } | null>(null);
+  const [sessionKey] = useState(newSessionKey);
 
   const date = useLocalToday();
   const { data: plan } = useActivePlan();
@@ -84,6 +98,13 @@ function Player({ routineId }: { routineId: string }) {
 
   if (!routine) return null;
   const step = state.steps[state.index];
+  const stepDrill = step ? routine.drills[step.drillIndex] : undefined;
+  const neighbours = stepDrill ? levelNeighbours(stepDrill) : { easier: null, harder: null };
+  const showLevel = step && levelChoice?.drill === step.drillIndex ? levelChoice.which : null;
+  const setShowLevel = (which: 'easier' | 'harder') =>
+    setLevelChoice(showLevel === which || !step ? null : { drill: step.drillIndex, which });
+  const shownLevel = showLevel ? neighbours[showLevel] : null;
+  const ticks = drillTicks(state, routine.drills.length);
   const next = state.steps[state.index + 1];
   const progress = state.steps.length ? Math.round((state.index / state.steps.length) * 100) : 100;
 
@@ -96,7 +117,7 @@ function Player({ routineId }: { routineId: string }) {
           date,
           kind: SessionKind.Mobility,
           mobilityRoutineId: routineId,
-          drillTicks: drillTicks(state, routine.drills.length),
+          drillTicks: ticks,
         },
         label: todaysSession.label,
       },
@@ -158,7 +179,34 @@ function Player({ routineId }: { routineId: string }) {
             <div className="py-4 text-7xl font-black tabular-nums text-foreground" data-testid="player-clock" aria-label={state.remaining === null ? 'Tap Done when finished' : `${state.remaining} seconds`}>
               {state.remaining === null ? '—' : formatClock(state.remaining)}
             </div>
+            {step.levelName && (
+              <p className="text-base font-medium text-primary" data-testid="player-level">
+                {stepDrill?.levels?.[stepDrill.currentLevel ?? 0] ? levelLabel(stepDrill.levels[stepDrill.currentLevel ?? 0]) : step.levelName}
+              </p>
+            )}
             {step.cues && <p className="text-base text-muted-foreground">{step.cues}</p>}
+            {stepDrill?.perSide && <p className="text-sm text-muted-foreground">Left side first</p>}
+            {(neighbours.easier || neighbours.harder) && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {neighbours.easier && (
+                  <Button variant="ghost" className="h-11" aria-expanded={showLevel === 'easier'} onClick={() => setShowLevel('easier')}>
+                    Too much? Easier version
+                  </Button>
+                )}
+                {neighbours.harder && (
+                  <Button variant="ghost" className="h-11" aria-expanded={showLevel === 'harder'} onClick={() => setShowLevel('harder')}>
+                    Harder version
+                  </Button>
+                )}
+              </div>
+            )}
+            {shownLevel && (
+              <p className="rounded-lg border border-border bg-card p-3 text-base text-foreground" data-testid="level-alternative">
+                {showLevel === 'easier' ? 'Easier version: ' : 'Harder version: '}
+                {levelLabel(shownLevel)} · {shortDose(shownLevel.sets, shownLevel.dose)}
+                {shownLevel.cues ? ` · ${shownLevel.cues}` : ''}
+              </p>
+            )}
             {step.standingAlternative && (
               <Button variant="ghost" className="h-11" onClick={() => setShowAlt((v) => !v)}>
                 {showAlt ? 'Show the floor version' : 'Floor out? Show the standing version'}
@@ -177,6 +225,7 @@ function Player({ routineId }: { routineId: string }) {
           <div className="w-full max-w-md space-y-5">
             <CheckCircle2 className="mx-auto h-16 w-16 text-success" aria-hidden="true" />
             <h1 className="text-3xl font-black text-foreground">Routine finished</h1>
+            <DrillFeedbackPanel routine={routine} ticks={ticks} sessionKey={sessionKey} />
             {todaysSession && !alreadyDone && (
               <Button size="lg" className="h-14 w-full text-lg" onClick={markDone} disabled={completeSession.isPending} data-testid="mark-routine-done">
                 {completeSession.isPending ? 'Saving…' : `Mark today's ${todaysSession.label} done`}

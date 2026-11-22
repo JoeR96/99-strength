@@ -52,3 +52,46 @@ describe('moveDrill', () => {
     expect(moveDrill(drills, 2, 1)).toBe(drills);
   });
 });
+
+describe('levels in the form', () => {
+  const ladderRoutine = () => ({
+    id: 'r2',
+    name: 'Home',
+    targetMinutes: 20,
+    drills: [
+      {
+        name: 'Ladder',
+        sets: 3,
+        dose: { unit: DoseUnit.Seconds, amount: 25 },
+        extraSetSide: SideBias.None,
+        cues: null,
+        standingAlternative: null,
+        perSide: false,
+        levels: [
+          { name: 'Level 1', description: null, sets: 3, dose: { unit: DoseUnit.Seconds, amount: 15 }, range: { min: 15, max: 30, step: 5 }, cues: null },
+          { name: 'Level 2', description: null, sets: 2, dose: { unit: DoseUnit.Seconds, amount: 20 }, range: { min: 20, max: 30, step: 5 }, cues: null },
+        ],
+        currentLevel: 0,
+        cleanStreak: 1,
+        suggestedLevel: null,
+      },
+    ],
+  });
+
+  it('keeps the progress when the starting level is unchanged', () => {
+    const dto = toDrillDtos(draftFromRoutine(ladderRoutine()))[0];
+    expect(dto).toMatchObject({ currentLevel: 0, cleanStreak: 1, dose: { amount: 25 }, sets: 3 });
+  });
+
+  it('starts a new level at the bottom of its range with its sets', () => {
+    const draft = draftFromRoutine(ladderRoutine());
+    draft.drills[0].startingLevel = 1;
+    expect(toDrillDtos(draft)[0]).toMatchObject({ currentLevel: 1, cleanStreak: 0, dose: { amount: 20 }, sets: 2 });
+  });
+
+  it('flags a level range that runs backwards', () => {
+    const draft = draftFromRoutine(ladderRoutine());
+    draft.drills[0].levels[0].rangeMax = '10';
+    expect(validateRoutine(draft).level[draft.drills[0].levels[0].key]?.range).toBeDefined();
+  });
+});

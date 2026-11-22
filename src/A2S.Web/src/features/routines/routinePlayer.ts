@@ -5,7 +5,7 @@
  * No timers or audio here: the page drives `tick` once a second and plays sounds on transitions.
  */
 
-import { DoseUnit, SideBias, type MobilityDrillDto, type MobilityRoutineDto } from '@/types/mobility';
+import { DoseUnit, SideBias, type DrillLevelDto, type MobilityDrillDto, type MobilityRoutineDto } from '@/types/mobility';
 
 export type Side = 'left' | 'right' | null;
 
@@ -23,6 +23,8 @@ export interface PlayerStep {
   seconds: number | null;
   cues: string | null;
   standingAlternative: string | null;
+  /** The drill's current level ("Level 2"), when it has a progression chain. */
+  levelName: string | null;
 }
 
 export interface PlayerOptions {
@@ -46,9 +48,15 @@ function stepSeconds(drill: MobilityDrillDto, secondsPerBreath: number): number 
   return null;
 }
 
+/** The level a drill is on now, or null when it has no progression chain. */
+export function currentLevel(drill: MobilityDrillDto): DrillLevelDto | null {
+  const levels = drill.levels ?? [];
+  return levels.length ? levels[Math.min(drill.currentLevel ?? 0, levels.length - 1)] : null;
+}
+
 /**
- * Per-side drills alternate sides set by set, starting with the biased side (left when there is
- * no bias), and finish with the extra set on the biased side. A drill that isn't per side gets
+ * Per-side drills alternate sides set by set, always left side first, and finish with any (legacy)
+ * extra set on the biased side. A drill that isn't per side gets
  * its extra set at the end, labelled with the biased side.
  */
 export function buildSteps(routine: MobilityRoutineDto, options: PlayerOptions = {}): PlayerStep[] {
@@ -64,12 +72,13 @@ export function buildSteps(routine: MobilityRoutineDto, options: PlayerOptions =
       unit: drill.dose.unit,
       amount: drill.dose.amount,
       seconds,
-      cues: drill.cues,
+      cues: currentLevel(drill)?.cues ?? drill.cues,
       standingAlternative: drill.standingAlternative,
+      levelName: currentLevel(drill)?.name ?? null,
     };
 
     if (drill.perSide) {
-      const first: Side = extra ?? 'left';
+      const first: Side = 'left';
       const second: Side = first === 'left' ? 'right' : 'left';
       const setsOn = (side: Side) => drill.sets + (extra === side ? 1 : 0);
       for (let set = 1; set <= drill.sets; set++) {
@@ -177,10 +186,11 @@ export function formatDose(unit: DoseUnit, amount: number): string {
   return `${amount} ${amount === 1 ? word[0] : word[1]}`;
 }
 
-/** "2 × 30 s per side, extra set left". */
+/** "2 × 30 s per side, left side first". */
 export function describeDrill(drill: MobilityDrillDto): string {
   const unit = { [DoseUnit.Reps]: '', [DoseUnit.Seconds]: ' s', [DoseUnit.Breaths]: ' breaths' }[drill.dose.unit];
   const parts = [`${drill.sets} × ${drill.dose.amount}${unit}${drill.perSide ? ' per side' : ''}`];
+  if (drill.perSide) parts.push('left side first');
   if (drill.extraSetSide === SideBias.Left) parts.push('extra set left');
   if (drill.extraSetSide === SideBias.Right) parts.push('extra set right');
   return parts.join(', ');

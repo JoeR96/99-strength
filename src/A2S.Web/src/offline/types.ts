@@ -13,8 +13,9 @@ import type { CompleteSessionRequest } from '@/types/plan';
 import type { RecordBodyWeightRequest } from '@/types/bodyWeight';
 import type { FinishGymSessionRequest } from '@/types/gym';
 import type { LogTrackSessionRequest } from '@/types/cardioTracks';
+import type { DrillFeedbackRequest } from '@/types/mobility';
 
-export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete' | 'gym.finish' | 'cardio.log';
+export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete' | 'gym.finish' | 'cardio.log' | 'mobility.feedback';
 
 interface OpBase {
   /**
@@ -76,7 +77,14 @@ export interface CardioLogOp extends OpBase {
   payload: LogTrackSessionRequest;
 }
 
-export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp | GymFinishOp | CardioLogOp;
+/** Per-drill feedback after a home routine. `payload.sessionKey` keeps a replay to one evaluation on the server. */
+export interface MobilityFeedbackOp extends OpBase {
+  kind: 'mobility.feedback';
+  target: { routineId: string };
+  payload: DrillFeedbackRequest;
+}
+
+export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp | GymFinishOp | CardioLogOp | MobilityFeedbackOp;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 

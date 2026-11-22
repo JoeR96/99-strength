@@ -6,6 +6,7 @@ import { habitKeys } from '@/hooks/useHabits';
 import { planKeys } from '@/hooks/usePlan';
 import { bodyWeightKeys } from '@/hooks/useBodyWeight';
 import { cardioTrackKeys } from '@/hooks/useCardioTracks';
+import { mobilityKeys } from '@/hooks/useMobilityRoutines';
 import type { OfflineOp } from './types';
 
 export function invalidateFor(queryClient: QueryClient, op: OfflineOp): Promise<unknown> {
@@ -35,6 +36,8 @@ export function invalidateFor(queryClient: QueryClient, op: OfflineOp): Promise<
         queryClient.invalidateQueries({ queryKey: cardioTrackKeys.all }),
         queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'today'] }),
       ]);
+    case 'mobility.feedback':
+      return queryClient.invalidateQueries({ queryKey: mobilityKeys.all });
   }
 }
 
@@ -53,5 +56,7 @@ export function describeDrop(op: OfflineOp): string {
       return `Couldn't finish ${op.label ?? 'your gym session'} for ${day}; the server refused it.`;
     case 'cardio.log':
       return `Couldn't log ${op.label ?? 'a cardio session'} for ${day}; the server refused it.`;
+    case 'mobility.feedback':
+      return `Couldn't save how ${op.label ?? 'your routine'} felt for ${day}; the server refused it.`;
   }
 }

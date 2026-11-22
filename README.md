@@ -29,6 +29,20 @@ add an extra set for one side and list a standing alternative for when you can't
 rename a routine, change its target minutes or delete it. A routine that's still in your week can't be deleted
 until you take it out of the schedule, and sessions you've already done stay in your history.
 
+Each routine has a kind: warm-up, corrective, stretch, yoga flow or follow-along video. Yoga flows and videos
+go to Hevy as Yoga, the rest as Stretching. Drills done on each side always start on the left.
+
+A drill can have levels, such as Easier / Standard / Harder, or a ladder like the reverse plank (level 1
+tabletop with knees bent, level 2 hands on a bench, level 3 full reverse plank). Each level has its own sets,
+amount, cues and an optional range, like holding 15 to 30 seconds in 5-second steps. The player shows the
+level you're on and its cues, and the easier or harder version if you ask. When you finish, each drill is
+marked "felt clean" unless you tap "strained". After two clean sessions in a row the hold goes up a step, and
+at the top of the range the app suggests the next level, which you can accept or turn down. A strain takes the
+hold back a step. Every change is listed with its reason and the last one can be undone.
+
+A **follow-along** routine is just a title, a link and the minutes it usually takes. Start opens the video in a
+new tab; when you come back, "I'm back — log it" records the minutes you actually did.
+
 **Habits** come in three types: counters (water 3/6), numbers (weight) and checkboxes. Each habit has a minimum
 for bad days, and the streak uses a "never miss twice" rule: one missed day keeps it, two in a row breaks it.
 
@@ -78,7 +92,7 @@ plan, the app asks first; your old plan and its history are kept. Everything it 
 | **Push notifications** | server → phone | "Time to train" at the session's start time, and an evening nudge when a habit is still under its minimum. Uses standard Web Push. On iPhone it only works from the installed home-screen app (iOS 16.4+). |
 | **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read the plan for any day (today's sessions, and the coming days with each lift's planned sets), and nothing else. The Terran CC habit widget uses one. |
 | **Sign-in** | — | Clerk. |
-| **Offline** | — | The app shell is cached. Habit taps, weigh-ins, finished sessions and cardio track logs made without signal are queued on the phone and synced later, each one dated to the day it was made and counted once even if it is sent twice. A track waiting to sync says so. If you leave a routine or a track's settings half edited, the app keeps your changes on the phone and offers **Restore unsaved changes?** next time, and asks before you navigate away. |
+| **Offline** | — | The app shell is cached. Habit taps, weigh-ins, finished sessions, cardio track logs and how a routine's drills felt, made without signal are queued on the phone and synced later, each one dated to the day it was made and counted once even if it is sent twice. A track waiting to sync says so. If you leave a routine or a track's settings half edited, the app keeps your changes on the phone and offers **Restore unsaved changes?** next time, and asks before you navigate away. |
 
 Not connected, by design: MacroFactor (it has no usable API) and calorie or protein tracking.
 
