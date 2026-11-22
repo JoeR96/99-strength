@@ -2,7 +2,7 @@
 
 A phone-first training planner. It runs your whole week from one screen: lifting on Greg Nuckols'
 Average to Savage 2 (A2S2) programme, cardio, mobility, daily habits and body-weight checkpoints.
-You log your lifts in Hevy, and 99 Strength works out what comes next.
+At the gym you log your session in 99 Strength, it sends the workout to Hevy, and it works out what comes next.
 
 Live at **https://99-strength.enjoeneer.dev**. Install it to your home screen (steps below).
 
@@ -34,11 +34,28 @@ week against your caps.
 
 **Meals and shopping list** let you pick the week's meals and get a combined shopping list to share or copy.
 
+## Gym mode
+
+At the gym, open Today and tap **Start** on the lifting session. You get one list for the whole
+session: tick the warm-up drills (or tap **All done**), then tap each set as you finish it. The weight
+and reps are already filled in from your plan; tap the pencil if a set went differently. The last set of a
+main lift asks how many reps you got. If the day has a finisher, log the minutes, level, floors and how it
+felt (Easy, Solid or Brutal), then tap **Finish**. **Finish early** saves only what you ticked; anything
+you skipped keeps its progression for next time.
+
+A rest timer starts after every set and beeps when it ends, and the screen stays on. Everything you tick
+is saved on your phone, so it works with no signal and finishes when you are back online.
+
+When you finish, the session counts in the app straight away and the workout is sent to Hevy for you.
+If Hevy can't be reached, Today shows **Not in Hevy yet** with a **Retry** button, and the app keeps
+trying in the background. It never adds the same workout to Hevy twice. Choose each lifting day's warm-up
+and finisher under **Settings → Gym sessions**.
+
 ## How it connects
 
 | Integration | Direction | What flows |
 |---|---|---|
-| **Hevy** | both ways | Each scheduled session is pushed to Hevy as a routine, with warm-up drills first. Finished Hevy workouts are pulled back and matched to the planned session, and AMRAP results drive the A2S2 progression as if you'd entered them by hand. A workout that matches nothing goes to an inbox, where one tap assigns it. Weigh-ins are mirrored to Hevy. Needs a Hevy Pro API key, which the server stores encrypted. The browser never sees it. |
+| **Hevy** | both ways | Each scheduled session is pushed to Hevy as a routine, with warm-up drills first. Sessions you finish in gym mode are sent to Hevy as finished workouts. Finished Hevy workouts are pulled back and matched to the planned session, and AMRAP results drive the A2S2 progression as if you'd entered them by hand. A workout that matches nothing goes to an inbox, where one tap assigns it. Weigh-ins are mirrored to Hevy. Needs a Hevy Pro API key, which the server stores encrypted. The browser never sees it. |
 | **Push notifications** | server → phone | "Time to train" at the session's start time, and an evening nudge when a habit is still under its minimum. Uses standard Web Push. On iPhone it only works from the installed home-screen app (iOS 16.4+). |
 | **Desktop widgets and scripts** | both ways, limited | Personal API tokens (`nns_pat_…`, created in Settings) can read and log habits and weigh-ins and read today's session, and nothing else. The Terran CC habit widget uses one. |
 | **Sign-in** | — | Clerk. |

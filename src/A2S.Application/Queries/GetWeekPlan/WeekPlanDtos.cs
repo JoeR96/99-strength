@@ -35,6 +35,9 @@ public sealed record PlannedExerciseDto
     [JsonPropertyName("hevyExerciseTemplateId")]
     public string ExternalTemplateId { get; init; } = string.Empty;
     public string ProgressionType { get; init; } = string.Empty;
+
+    /// <summary>Rest between sets for gym mode's timer: main lifts 180 s, everything else 90 s (<c>RestDefaults</c>).</summary>
+    public int RestSeconds { get; init; }
     public IReadOnlyList<PlannedSetDto> PlannedSets { get; init; } = Array.Empty<PlannedSetDto>();
     public PlannedExerciseMetadataDto Metadata { get; init; } = new();
 }

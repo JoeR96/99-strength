@@ -15,7 +15,9 @@ public sealed record ScheduledSessionDto(
     DayNumber? LiftDay,
     Guid? CardioProtocolId,
     Guid? MobilityRoutineId,
-    string Label);
+    string Label,
+    Guid? WarmUpRoutineId = null,
+    Guid? FinisherCardioProtocolId = null);
 
 public sealed record PlanPhaseDto(PhaseType Type, DateOnly From, DateOnly To, string? Note);
 
@@ -58,7 +60,11 @@ public sealed record TrainingPlanDto(
     IReadOnlyList<SessionCompletionDto> Completions,
     IReadOnlyList<AllowanceUseDto> AllowanceUses);
 
-/// <summary>One session of a plan day. <c>HevyRoutineId</c> is the routine a push left in Hevy, or null when never pushed.</summary>
+/// <summary>
+/// One session of a plan day. <c>HevyRoutineId</c> is the routine a push left in Hevy, or null when never pushed.
+/// For a lift finished in gym mode, <c>GymSessionId</c> is the phone's client session id and <c>HevyPostStatus</c>
+/// is Pending, Posted, Failed or Skipped (null when the session was not finished in gym mode).
+/// </summary>
 public sealed record TodaySessionDto(
     SessionKind Kind,
     string Label,
@@ -67,7 +73,11 @@ public sealed record TodaySessionDto(
     Guid? CardioProtocolId,
     Guid? MobilityRoutineId,
     Guid? CompletionId,
-    string? HevyRoutineId = null);
+    string? HevyRoutineId = null,
+    Guid? GymSessionId = null,
+    string? HevyPostStatus = null,
+    Guid? WarmUpRoutineId = null,
+    Guid? FinisherCardioProtocolId = null);
 
 public sealed record WeeklyGoalsDto(
     DateOnly WeekStart,

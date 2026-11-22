@@ -97,17 +97,6 @@ class HevyApiService {
   }
 
   /**
-   * Create a new workout
-   */
-  async createWorkout(workout: HevyCreateWorkoutRequest): Promise<HevyWorkout> {
-    const response = await this.request<{ workout: HevyWorkout }>('/workouts', {
-      method: 'POST',
-      body: workout,
-    });
-    return response.workout;
-  }
-
-  /**
    * Update an existing workout
    */
   async updateWorkout(

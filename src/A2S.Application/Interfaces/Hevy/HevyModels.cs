@@ -168,6 +168,37 @@ public sealed record HevyWorkout
     }
 }
 
+/// <summary>One set of a workout the app logs in Hevy. <c>custom_metric</c> carries floors (or steps) for stair machines.</summary>
+public sealed record HevyWorkoutSetDraft
+{
+    [JsonPropertyName("type")] public string Type { get; init; } = HevySetTypes.Normal;
+    [JsonPropertyName("weight_kg")] public decimal? WeightKg { get; init; }
+    [JsonPropertyName("reps")] public int? Reps { get; init; }
+    [JsonPropertyName("distance_meters")] public int? DistanceMeters { get; init; }
+    [JsonPropertyName("duration_seconds")] public int? DurationSeconds { get; init; }
+    [JsonPropertyName("custom_metric")] public decimal? CustomMetric { get; init; }
+    [JsonPropertyName("rpe")] public decimal? Rpe { get; init; }
+}
+
+public sealed record HevyWorkoutExerciseDraft
+{
+    [JsonPropertyName("exercise_template_id")] public required string ExerciseTemplateId { get; init; }
+    [JsonPropertyName("superset_id")] public int? SupersetId { get; init; }
+    [JsonPropertyName("notes")] public string? Notes { get; init; }
+    [JsonPropertyName("sets")] public IReadOnlyList<HevyWorkoutSetDraft> Sets { get; init; } = [];
+}
+
+/// <summary>What the app sends to log a completed workout (<c>POST /v1/workouts</c>).</summary>
+public sealed record HevyWorkoutDraft
+{
+    [JsonPropertyName("title")] public required string Title { get; init; }
+    [JsonPropertyName("description")] public string? Description { get; init; }
+    [JsonPropertyName("start_time")] public required DateTimeOffset StartTime { get; init; }
+    [JsonPropertyName("end_time")] public required DateTimeOffset EndTime { get; init; }
+    [JsonPropertyName("is_private")] public bool IsPrivate { get; init; }
+    [JsonPropertyName("exercises")] public IReadOnlyList<HevyWorkoutExerciseDraft> Exercises { get; init; } = [];
+}
+
 /// <summary>One entry from <c>GET /v1/workouts/events</c>: an updated workout or a deletion.</summary>
 public sealed record HevyWorkoutEvent
 {

@@ -1,7 +1,7 @@
 /**
  * Pins defect 9 of the live walkthrough: when a week rolls over, the summary no longer builds
  * next week's Hevy routine (and deletes last week's) from the browser. Nothing goes to Hevy
- * until Send to Hevy is tapped.
+ * from the browser at all: the server posts gym-mode sessions, and the v1 Send to Hevy is gone.
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -49,7 +49,7 @@ const entries = [
 ] as unknown as ExerciseEntry[];
 
 describe('CompletionSummary at week rollover', () => {
-  it('makes no Hevy call by itself', async () => {
+  it('makes no Hevy call and offers no browser-side Send to Hevy', async () => {
     hevyApi.setConfigured(true);
     const { apiClient } = await import('@/api/apiClient');
 
@@ -60,14 +60,12 @@ describe('CompletionSummary at week rollover', () => {
         dayNumber={4}
         dayName="Thursday"
         exerciseEntries={entries}
-        workoutStartTime={new Date('2026-11-12T17:00:00Z')}
-        workoutEndTime={new Date('2026-11-12T17:50:00Z')}
         onContinue={vi.fn()}
       />
     );
 
     expect(await screen.findByTestId('week-progressed-notice')).toHaveTextContent('Moving to Week 12');
-    expect(screen.getByRole('button', { name: 'Send to Hevy' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Send to Hevy' })).not.toBeInTheDocument();
     // Let any effect that would have fired on mount run before looking.
     await new Promise((resolve) => setTimeout(resolve, 0));
 

@@ -93,7 +93,7 @@ describe('TodayPage', () => {
   it('shows Start for a planned lift', async () => {
     renderToday();
     const start = await screen.findByTestId('start-session');
-    expect(start).toHaveAttribute('href', '/workout/session/1');
+    expect(start).toHaveAttribute('href', '/gym/1');
   });
 
   it('on a paused day shows the banner and no Start button', async () => {

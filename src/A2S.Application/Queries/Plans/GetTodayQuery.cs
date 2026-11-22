@@ -1,6 +1,8 @@
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Application.Hevy;
+using A2S.Domain.Aggregates.HevySync;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
@@ -16,6 +18,7 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
     private readonly ITrainingPlanRepository _plans;
     private readonly IWorkoutRepository _workouts;
     private readonly IHevyLinkRepository _hevyLinks;
+    private readonly IHevyWorkoutPostRepository _posts;
     private readonly ICurrentUserService _currentUser;
     private readonly PlanCalendarService _calendar;
     private readonly ILocalClock _clock;
@@ -24,6 +27,7 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
         ITrainingPlanRepository plans,
         IWorkoutRepository workouts,
         IHevyLinkRepository hevyLinks,
+        IHevyWorkoutPostRepository posts,
         ICurrentUserService currentUser,
         PlanCalendarService calendar,
         ILocalClock clock)
@@ -31,6 +35,7 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
         _workouts = workouts ?? throw new ArgumentNullException(nameof(workouts));
         _hevyLinks = hevyLinks ?? throw new ArgumentNullException(nameof(hevyLinks));
+        _posts = posts ?? throw new ArgumentNullException(nameof(posts));
         _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         _calendar = calendar ?? throw new ArgumentNullException(nameof(calendar));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -59,6 +64,32 @@ public sealed class GetTodayQueryHandler : IRequestHandler<GetTodayQuery, Result
         var day = _calendar.DayFor(plan, date, history);
         var week = _calendar.ForWeek(plan, date, history);
 
-        return Result.Success(new TodayDto(day.Date, day.Phase, day.ToDto(plan.Id, routines).Sessions, week.ToDto()));
+        var posts = await _posts.ListForUserAsync(user.Value, day.Date, day.Date, cancellationToken);
+        var scheduled = plan.SessionsOn(day.Date);
+        var sessions = day.ToDto(plan.Id, routines).Sessions.Select(s => WithGymMode(s, scheduled, posts)).ToList();
+
+        return Result.Success(new TodayDto(day.Date, day.Phase, sessions, week.ToDto()));
+    }
+
+    /// <summary>Adds the lift slot's warm-up and finisher, and the Hevy post status when it was finished in gym mode.</summary>
+    private static TodaySessionDto WithGymMode(TodaySessionDto session, IReadOnlyList<ScheduledSession> scheduled, IReadOnlyList<HevyWorkoutPost> posts)
+    {
+        if (session.Kind != SessionKind.Lift)
+        {
+            return session;
+        }
+
+        var slot = scheduled.FirstOrDefault(s => s.Kind == SessionKind.Lift && s.LiftDay == session.LiftDay && s.Label == session.Label);
+        var post = session.CompletionId is { } completionId
+            ? posts.LastOrDefault(p => p.CompletionId?.Value == completionId)
+            : null;
+
+        return session with
+        {
+            WarmUpRoutineId = slot?.WarmUpRoutineId?.Value,
+            FinisherCardioProtocolId = slot?.Finisher?.CardioProtocolId.Value,
+            GymSessionId = post?.ClientSessionId,
+            HevyPostStatus = post?.Status.ToString()
+        };
     }
 }

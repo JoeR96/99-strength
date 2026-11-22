@@ -134,6 +134,12 @@ export function todayDone(date: LocalDate): TodayDto {
   };
 }
 
+/** Monday: Upper A finished in gym mode, but the workout has not reached Hevy yet. */
+export function todayDoneNotInHevy(date: LocalDate): TodayDto {
+  const done = todayDone(date);
+  return { ...done, sessions: done.sessions.map((s) => ({ ...s, gymSessionId: '9a9a9a9a-0000-4000-8000-000000000001', hevyPostStatus: 'Pending' as const })) };
+}
+
 /** Sunday: rest, walk only. */
 export function todayRest(date: LocalDate): TodayDto {
   return {

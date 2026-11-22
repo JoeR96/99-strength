@@ -1,13 +1,14 @@
 /**
- * One of today's sessions. Lifts get a big Start that opens the session page;
+ * One of today's sessions. Lifts get a big Start that opens gym mode (`/gym/:day`);
  * cardio and mobility get Mark done, which the page turns into a log sheet.
  * Beside it sits Hevy: Open in Hevy once the session has a pushed routine, or
  * Push to Hevy when a key is stored and it has none. A paused day shows the
- * status and nothing to press. Every button is at least 44 px tall.
+ * status and nothing to press. A lift finished in gym mode whose workout has not reached
+ * Hevy yet says "Not in Hevy yet" with a Retry. Every button is at least 44 px tall.
  */
 
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Dumbbell, ExternalLink, HeartPulse, Moon, Play, StretchHorizontal, Undo2, Upload } from 'lucide-react';
+import { CheckCircle2, CloudOff, Dumbbell, ExternalLink, HeartPulse, Moon, Play, RefreshCw, StretchHorizontal, Undo2, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,10 @@ export interface SessionCardProps {
   onPushToHevy?: (session: TodaySessionDto) => void;
   /** A push for this card is in flight. */
   pushing?: boolean;
+  /** Retries the Hevy post of a lift finished in gym mode ("Not in Hevy yet"). */
+  onRetryHevy?: (session: TodaySessionDto) => void;
+  /** A Hevy retry for this card is in flight. */
+  retrying?: boolean;
   busy?: boolean;
 }
 
@@ -71,6 +76,8 @@ export function SessionCard({
   onOpenInHevy,
   onPushToHevy,
   pushing = false,
+  onRetryHevy,
+  retrying = false,
   busy = false,
 }: SessionCardProps) {
   const Icon = kindIcon[session.kind];
@@ -136,7 +143,7 @@ export function SessionCard({
       {canAct && session.kind === SessionKind.Lift && session.liftDay && (
         <div className={cn('mt-4 grid gap-2', hasHevyButton ? TWO_UP : 'grid-cols-1')}>
           <Button asChild size="lg" className={cn('w-full', hasHevyButton && 'px-3 text-base')} data-testid="start-session">
-            <Link to={`/workout/session/${session.liftDay}`}>
+            <Link to={`/gym/${session.liftDay}`} aria-label={`Start gym mode: ${session.label}`}>
               <Play aria-hidden="true" />
               Start
             </Link>
@@ -167,6 +174,29 @@ export function SessionCard({
             Mark done
           </Button>
           {hevyButton}
+        </div>
+      )}
+
+      {isDone && (session.hevyPostStatus === 'Pending' || session.hevyPostStatus === 'Failed') && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-warning/50 bg-warning/10 p-2" data-testid="not-in-hevy">
+          <CloudOff className="h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+          <span className="min-w-0 flex-1 text-sm text-foreground">
+            Not in Hevy yet{session.hevyPostStatus === 'Failed' ? ': Hevy refused it' : ''}
+          </span>
+          {onRetryHevy && session.gymSessionId && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-11"
+              onClick={() => onRetryHevy(session)}
+              disabled={retrying}
+              data-testid="retry-hevy"
+              aria-label={`Retry sending ${session.label} to Hevy`}
+            >
+              <RefreshCw aria-hidden="true" />
+              {retrying ? 'Retrying…' : 'Retry'}
+            </Button>
+          )}
         </div>
       )}
 

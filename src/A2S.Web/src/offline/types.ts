@@ -11,8 +11,9 @@ import type { LocalDate } from '@/lib/localDate';
 import type { IncrementHabitRequest, SetHabitLogRequest } from '@/types/habits';
 import type { CompleteSessionRequest } from '@/types/plan';
 import type { RecordBodyWeightRequest } from '@/types/bodyWeight';
+import type { FinishGymSessionRequest } from '@/types/gym';
 
-export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete';
+export type OfflineOpKind = 'habit.increment' | 'habit.set' | 'bodyweight.put' | 'plan.complete' | 'gym.finish';
 
 interface OpBase {
   /** Stable id (nanoid) used to remove or update the op. */
@@ -51,7 +52,17 @@ export interface PlanCompleteOp extends OpBase {
   payload: CompleteSessionRequest;
 }
 
-export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp;
+/**
+ * A gym-mode finish. The payload carries the client session id generated when the session started,
+ * so replaying it any number of times completes the session once (the server returns the first result).
+ */
+export interface GymFinishOp extends OpBase {
+  kind: 'gym.finish';
+  target: { clientSessionId: string };
+  payload: FinishGymSessionRequest;
+}
+
+export type OfflineOp = HabitIncrementOp | HabitSetOp | BodyWeightPutOp | PlanCompleteOp | GymFinishOp;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 

@@ -16,13 +16,24 @@ public sealed record ScheduledSession
     public MobilityRoutineId? MobilityRoutineId { get; }
     public string Label { get; }
 
+    /// <summary>
+    /// Lift sessions only: the mobility routine done as the warm-up. Null falls back to the routine
+    /// named "Mobility A" (the behaviour before this was configurable).
+    /// </summary>
+    public MobilityRoutineId? WarmUpRoutineId { get; }
+
+    /// <summary>Lift sessions only: conditioning done straight after the lifts (e.g. a stair finisher).</summary>
+    public SessionFinisher? Finisher { get; }
+
     public ScheduledSession(
         DayOfWeek day,
         SessionKind kind,
         DayNumber? liftDay,
         CardioProtocolId? cardioProtocolId,
         MobilityRoutineId? mobilityRoutineId,
-        string label)
+        string label,
+        MobilityRoutineId? warmUpRoutineId = null,
+        SessionFinisher? finisher = null)
     {
         if (string.IsNullOrWhiteSpace(label))
         {
@@ -49,16 +60,28 @@ public sealed record ScheduledSession
             throw new BusinessRuleViolationException("Only mobility sessions carry a mobility routine");
         }
 
+        if (kind != SessionKind.Lift && (warmUpRoutineId is not null || finisher is not null))
+        {
+            throw new BusinessRuleViolationException("Only lift sessions carry a warm-up or a finisher");
+        }
+
         Day = day;
         Kind = kind;
         LiftDay = liftDay;
         CardioProtocolId = cardioProtocolId;
         MobilityRoutineId = mobilityRoutineId;
         Label = label.Trim();
+        WarmUpRoutineId = warmUpRoutineId;
+        Finisher = finisher;
     }
 
-    public static ScheduledSession Lift(DayOfWeek day, DayNumber liftDay, string label) =>
-        new(day, SessionKind.Lift, liftDay, null, null, label);
+    public static ScheduledSession Lift(
+        DayOfWeek day,
+        DayNumber liftDay,
+        string label,
+        MobilityRoutineId? warmUp = null,
+        SessionFinisher? finisher = null) =>
+        new(day, SessionKind.Lift, liftDay, null, null, label, warmUp, finisher);
 
     /// <summary>A cardio slot; the protocol may be left open ("C25K run or LISS").</summary>
     public static ScheduledSession Cardio(DayOfWeek day, CardioProtocolId? protocol, string label) =>

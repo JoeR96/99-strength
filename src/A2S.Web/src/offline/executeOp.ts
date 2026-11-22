@@ -3,6 +3,7 @@
 import { habitsApi } from '@/api/habits';
 import { plansApi } from '@/api/plans';
 import { bodyWeightApi } from '@/api/bodyWeight';
+import { gymSessionsApi } from '@/api/gymSessions';
 import type { OfflineOp } from './types';
 
 export function executeOp(op: OfflineOp): Promise<unknown> {
@@ -15,5 +16,7 @@ export function executeOp(op: OfflineOp): Promise<unknown> {
       return bodyWeightApi.record(op.localDate, op.payload.kg);
     case 'plan.complete':
       return plansApi.completeSession(op.target.planId, op.payload);
+    case 'gym.finish':
+      return gymSessionsApi.finish(op.payload);
   }
 }

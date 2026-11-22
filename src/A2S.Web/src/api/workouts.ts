@@ -246,6 +246,8 @@ export interface PlannedExerciseDto {
   orderInDay: number;
   hevyExerciseTemplateId: string;
   progressionType: string;
+  /** Rest between sets for gym mode's timer: main lifts 180 s, everything else 90 s. */
+  restSeconds?: number;
   plannedSets: PlannedSetDto[];
   metadata: PlannedExerciseMetadataDto;
 }

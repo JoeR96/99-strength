@@ -13,6 +13,7 @@ import {
   planFixture,
   todayCardio,
   todayDone,
+  todayDoneNotInHevy,
   todayPaused,
   todayRest,
   todayUpperA,
@@ -54,6 +55,8 @@ export const plansHandlers = {
   /** Each date answers from the weekly schedule (Mon Upper A … Sun Rest). */
   week: (): PlansHandlers => withToday(dayFromSchedule),
   done: (): PlansHandlers => withToday(todayDone),
+  /** Upper A finished in gym mode; its Hevy post is still pending. */
+  doneNotInHevy: (): PlansHandlers => withToday(todayDoneNotInHevy),
   rest: (): PlansHandlers => withToday(todayRest),
   cardio: (): PlansHandlers => withToday(todayCardio),
   paused: (): PlansHandlers => withToday(todayPaused, pausedPlanFixture(todayLocal())),

@@ -33,6 +33,9 @@ public static class HevyLocalKeys
 
     public static string CardioTemplate(CardioProtocolKind kind) => $"cardio:{kind}";
 
+    /// <summary>The Workout link for a gym-mode session, keyed by the id the phone generated when it started.</summary>
+    public static string GymSession(Guid clientSessionId) => $"gym:{clientSessionId:D}";
+
     /// <summary>Reads a routine key back into the plan, kind and either lift day + date or slot label slug.</summary>
     public static bool TryParseRoutine(string localKey, out ParsedRoutineKey parsed)
     {

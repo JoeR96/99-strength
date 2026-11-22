@@ -50,27 +50,8 @@ describe('hevyApi', () => {
       );
     });
 
-    it('makes POST request for createWorkout', async () => {
-      hevyApi.setConfigured(true);
-      const requestBody = {
-        workout: {
-          title: 'Test',
-          description: '',
-          start_time: '2024-01-01T00:00:00Z',
-          end_time: '2024-01-01T01:00:00Z',
-          is_private: false,
-          exercises: [],
-        },
-      };
-      vi.mocked(apiClient.post).mockResolvedValue({
-        data: { workout: { id: 'w-1', ...requestBody.workout } },
-      });
-
-      await hevyApi.createWorkout(requestBody);
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/hevy/workouts',
-        requestBody
-      );
+    it('cannot post a workout from the browser (the server posts gym sessions)', () => {
+      expect('createWorkout' in hevyApi).toBe(false);
     });
 
     it('extracts error message from API response', async () => {

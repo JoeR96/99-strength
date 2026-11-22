@@ -51,6 +51,12 @@ public sealed class HevyClient : IHevyClient
         return SendAsync(apiKey, HttpMethod.Get, path, null, root => ReadPage<HevyWorkoutEvent>(root, "events"), ct);
     }
 
+    public Task<HevyResult<HevyPage<HevyWorkout>>> GetWorkoutsAsync(string apiKey, int page, CancellationToken ct = default) =>
+        SendAsync(apiKey, HttpMethod.Get, $"workouts?page={Math.Max(page, 1)}&pageSize=10", null, root => ReadPage<HevyWorkout>(root, "workouts"), ct);
+
+    public Task<HevyResult<HevyWorkout>> CreateWorkoutAsync(string apiKey, HevyWorkoutDraft workout, CancellationToken ct = default) =>
+        SendAsync(apiKey, HttpMethod.Post, "workouts", new Dictionary<string, object> { ["workout"] = workout }, ReadWorkout, ct);
+
     public Task<HevyResult<HevyPage<HevyRoutine>>> GetRoutinesAsync(string apiKey, int page, CancellationToken ct = default) =>
         SendAsync(apiKey, HttpMethod.Get, $"routines?page={Math.Max(page, 1)}&pageSize=10", null, root => ReadPage<HevyRoutine>(root, "routines"), ct);
 
@@ -323,6 +329,17 @@ public sealed class HevyClient : IHevyClient
     }
 
     /// <summary>Hevy wraps some single objects (<c>{ "routine": {...} }</c>) and returns others bare; accept both.</summary>
+    /// <summary>Hevy has answered a created workout as the bare object, <c>{"workout": {...}}</c> and <c>{"workout": [{...}]}</c>; read all three.</summary>
+    private static HevyWorkout ReadWorkout(JsonElement root)
+    {
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("workout", out var inner) && inner.ValueKind == JsonValueKind.Array)
+        {
+            return inner.GetArrayLength() > 0 ? inner[0].Deserialize<HevyWorkout>(Json)! : new HevyWorkout();
+        }
+
+        return root.ValueKind == JsonValueKind.Undefined ? new HevyWorkout() : ReadObject<HevyWorkout>(root, "workout");
+    }
+
     private static T ReadObject<T>(JsonElement root, string wrapperName)
     {
         if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty(wrapperName, out var inner) && inner.ValueKind == JsonValueKind.Object)

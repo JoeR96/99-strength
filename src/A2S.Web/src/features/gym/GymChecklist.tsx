@@ -1,0 +1,138 @@
+/**
+ * Gym mode's one scrolling checklist (brief § 3a): warm-up → each lift → finisher → Finish. Purely
+ * presentational: the page owns the session state and the rest timer and passes the steps in. Big
+ * targets for one hand; the rest timer sticks to the top while it runs.
+ */
+
+import { useState } from 'react';
+import { CheckCircle2, WifiOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { GymFinisher, GymSessionState } from './gymSession';
+import { progressOf } from './gymSession';
+import { GymLiftCard } from './GymLiftCard';
+import { AmrapPrompt, FinishEarlyDialog } from './GymDialogs';
+import { FinisherCard, RestTimerBar, WarmUpSection } from './GymSections';
+
+export interface GymChecklistProps {
+  state: GymSessionState;
+  rest: { remaining: number; total: number; running: boolean; onAdjust: (seconds: number) => void; onSkip: () => void };
+  online: boolean;
+  finishing: boolean;
+  onTickDrill: (index: number) => void;
+  onAllDrillsDone: () => void;
+  /** Confirms (or undoes) a set; `reps` is given for the AMRAP set. */
+  onToggleSet: (lift: number, set: number, reps?: number) => void;
+  onEditSet: (lift: number, set: number, change: { weight?: number; reps?: number }) => void;
+  onFinisherChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort'>>) => void;
+  onFinish: () => void;
+  /** Stories and tests: open with the AMRAP prompt or the Finish early dialog showing. */
+  initialPrompt?: { lift: number; set: number } | null;
+  initialConfirmEarly?: boolean;
+}
+
+export function GymChecklist({
+  state,
+  rest,
+  online,
+  finishing,
+  onTickDrill,
+  onAllDrillsDone,
+  onToggleSet,
+  onEditSet,
+  onFinisherChange,
+  onFinish,
+  initialPrompt = null,
+  initialConfirmEarly = false,
+}: GymChecklistProps) {
+  const [prompt, setPrompt] = useState(initialPrompt);
+  const [confirmEarly, setConfirmEarly] = useState(initialConfirmEarly);
+  const progress = progressOf(state);
+  const promptLift = prompt ? state.lifts[prompt.lift] : null;
+  const promptSet = prompt && promptLift ? promptLift.sets[prompt.set] : null;
+  const skipped = state.lifts.filter((l) => l.sets.every((s) => !s.done)).map((l) => l.name);
+
+  return (
+    <div>
+      {rest.running && <RestTimerBar remaining={rest.remaining} total={rest.total} onAdjust={rest.onAdjust} onSkip={rest.onSkip} />}
+
+      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
+        <header>
+          <p className="text-sm text-muted-foreground">Gym mode · Week {state.week}</p>
+          <h1 className="text-2xl font-semibold text-foreground">{state.title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground" aria-live="polite" data-testid="gym-progress">
+            {progress.setsDone} of {progress.setsTotal} sets done
+          </p>
+        </header>
+
+        {!online && (
+          <p className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm text-foreground" data-testid="gym-offline">
+            <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Offline. Every set is saved on this phone; Finish waits until you are back online.
+          </p>
+        )}
+
+        {state.drills.length > 0 && <WarmUpSection drills={state.drills} onTick={onTickDrill} onAllDone={onAllDrillsDone} />}
+
+        {state.lifts.map((lift, i) => (
+          <GymLiftCard
+            key={lift.exerciseId}
+            lift={lift}
+            index={i}
+            onToggleSet={(l, s) => onToggleSet(l, s)}
+            onAmrap={(l, s) => setPrompt({ lift: l, set: s })}
+            onEditSet={onEditSet}
+          />
+        ))}
+
+        {state.finisher && <FinisherCard finisher={state.finisher} onChange={onFinisherChange} />}
+
+        <div className="space-y-2 pb-8 pt-2">
+          {progress.complete ? (
+            <Button type="button" size="lg" className="w-full" onClick={onFinish} disabled={finishing} data-testid="gym-finish">
+              <CheckCircle2 aria-hidden="true" />
+              {finishing ? 'Finishing…' : 'Finish'}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="lg"
+              variant={progress.canFinish ? 'default' : 'outline'}
+              className="w-full"
+              onClick={() => setConfirmEarly(true)}
+              disabled={!progress.canFinish || finishing}
+              data-testid="gym-finish-early"
+            >
+              {finishing ? 'Finishing…' : 'Finish early'}
+            </Button>
+          )}
+          {!progress.canFinish && <p className="text-center text-sm text-muted-foreground">Tick at least one set to finish.</p>}
+        </div>
+      </main>
+
+      {prompt && promptLift && promptSet && (
+        <AmrapPrompt
+          open
+          exerciseName={promptLift.name}
+          weightLabel={`${promptSet.weight} ${promptLift.unit}`}
+          targetReps={promptSet.plannedReps}
+          onCancel={() => setPrompt(null)}
+          onSubmit={(reps) => {
+            onToggleSet(prompt.lift, prompt.set, reps);
+            setPrompt(null);
+          }}
+        />
+      )}
+
+      <FinishEarlyDialog
+        open={confirmEarly}
+        skipped={skipped}
+        setsLeft={progress.setsTotal - progress.setsDone}
+        onCancel={() => setConfirmEarly(false)}
+        onConfirm={() => {
+          setConfirmEarly(false);
+          onFinish();
+        }}
+      />
+    </div>
+  );
+}

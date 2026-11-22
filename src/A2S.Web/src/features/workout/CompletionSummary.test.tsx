@@ -74,8 +74,6 @@ function renderSummary(result: CompleteDayResult) {
       dayNumber={1}
       dayName="Day 1"
       exerciseEntries={exerciseEntries}
-      workoutStartTime={new Date('2026-07-16T10:00:00Z')}
-      workoutEndTime={new Date('2026-07-16T11:00:00Z')}
       onContinue={vi.fn()}
     />
   );

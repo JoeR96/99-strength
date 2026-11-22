@@ -215,6 +215,17 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
         return completion;
     }
 
+    /// <summary>
+    /// Records the Hevy workout a completion was posted as (gym mode), so a later pull of that workout
+    /// is recognised as already done. False when the completion is gone or already carries another id.
+    /// </summary>
+    public bool LinkCompletionToHevy(SessionCompletionId completionId, string hevyWorkoutId)
+    {
+        CheckRule(!string.IsNullOrWhiteSpace(hevyWorkoutId), "A Hevy workout id is required");
+        var completion = _completions.FirstOrDefault(c => c.Id == completionId);
+        return completion is not null && completion.AttachHevyWorkout(hevyWorkoutId.Trim());
+    }
+
     public bool UndoCompletion(SessionCompletionId completionId) =>
         _completions.RemoveAll(c => c.Id == completionId) > 0;
 

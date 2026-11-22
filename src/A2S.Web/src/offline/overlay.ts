@@ -7,7 +7,7 @@
  */
 
 import type { HabitsTodayDto } from '@/types/habits';
-import { SessionStatus, type TodayDto } from '@/types/plan';
+import { SessionKind, SessionStatus, type TodayDto } from '@/types/plan';
 import type { WeightTrendDto } from '@/types/bodyWeight';
 import type { OfflineOp } from './types';
 
@@ -42,7 +42,10 @@ export function overlayPlanOps(today: TodayDto | null, ops: OfflineOp[]): TodayD
   const relevant = ops.filter(
     (op): op is Extract<OfflineOp, { kind: 'plan.complete' }> => op.kind === 'plan.complete' && op.localDate === today.date
   );
-  if (relevant.length === 0) return today;
+  const gym = ops.filter(
+    (op): op is Extract<OfflineOp, { kind: 'gym.finish' }> => op.kind === 'gym.finish' && op.localDate === today.date
+  );
+  if (relevant.length === 0 && gym.length === 0) return today;
 
   return {
     ...today,
@@ -54,6 +57,11 @@ export function overlayPlanOps(today: TodayDto | null, ops: OfflineOp[]): TodayD
           (op.payload.cardioProtocolId ?? null) === session.cardioProtocolId &&
           (op.payload.mobilityRoutineId ?? null) === session.mobilityRoutineId
       );
+      const finished = gym.find((op) => session.kind === SessionKind.Lift && op.payload.day === session.liftDay);
+      if (finished && session.status !== SessionStatus.Done) {
+        // Finished in gym mode but still on the phone: done here, not in Hevy yet.
+        return { ...session, status: SessionStatus.Done, gymSessionId: finished.target.clientSessionId, hevyPostStatus: 'Pending' as const };
+      }
       return done && session.status !== SessionStatus.Done ? { ...session, status: SessionStatus.Done } : session;
     }),
   };

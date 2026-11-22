@@ -92,8 +92,10 @@ public static class DependencyInjection
         services.AddScoped<IHevyLinkRepository, HevyLinkRepository>();
         services.AddScoped<IHevyWorkoutSnapshotRepository, HevyWorkoutSnapshotRepository>();
         services.AddScoped<IHevyPullCursorRepository, HevyPullCursorRepository>();
+        services.AddScoped<IHevyWorkoutPostRepository, HevyWorkoutPostRepository>();
         // The 15-minute poll: idle in Testing; pulls as each user through AmbientUser.
         services.AddHostedService<HevyPollHostedService>();
+        services.AddHostedService<HevyPostRetryHostedService>();
 
         // Personal API tokens (hash-only storage) for the desktop habit widget.
         services.AddScoped<IApiTokenRepository, ApiTokenRepository>();

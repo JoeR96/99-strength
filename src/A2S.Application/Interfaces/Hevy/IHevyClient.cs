@@ -11,6 +11,15 @@ public interface IHevyClient
     /// <summary><c>GET /v1/workouts/events?since=</c>: newest first, <paramref name="pageSize"/> at most 10.</summary>
     Task<HevyResult<HevyPage<HevyWorkoutEvent>>> GetWorkoutEventsAsync(string apiKey, DateTimeOffset since, int page, int pageSize = 10, CancellationToken ct = default);
 
+    /// <summary><c>GET /v1/workouts</c>: the user's workouts, newest first, 10 per page.</summary>
+    Task<HevyResult<HevyPage<HevyWorkout>>> GetWorkoutsAsync(string apiKey, int page, CancellationToken ct = default);
+
+    /// <summary>
+    /// <c>POST /v1/workouts</c> (201): logs a completed workout. Not retried: a timeout may still have
+    /// created it, so callers look it up (title + start time) before posting again.
+    /// </summary>
+    Task<HevyResult<HevyWorkout>> CreateWorkoutAsync(string apiKey, HevyWorkoutDraft workout, CancellationToken ct = default);
+
     Task<HevyResult<HevyPage<HevyRoutine>>> GetRoutinesAsync(string apiKey, int page, CancellationToken ct = default);
 
     /// <summary><c>POST /v1/routines</c> (201). Not retried: a timeout may still have created it.</summary>

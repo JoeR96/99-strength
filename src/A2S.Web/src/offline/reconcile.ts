@@ -21,7 +21,9 @@ export function invalidateFor(queryClient: QueryClient, op: OfflineOp): Promise<
         queryClient.invalidateQueries({ queryKey: habitKeys.today(op.localDate) }),
       ]);
     case 'plan.complete':
+    case 'gym.finish':
       return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['workouts'] }),
         queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'today'] }),
         queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'weekly-goals'] }),
         queryClient.invalidateQueries({ queryKey: [...planKeys.all, 'calendar'] }),
@@ -41,5 +43,7 @@ export function describeDrop(op: OfflineOp): string {
       return `Couldn't save your ${op.payload.kg} kg weigh-in for ${day}; the server refused it.`;
     case 'plan.complete':
       return `Couldn't mark ${op.label ?? 'a session'} done for ${day}; the server refused it.`;
+    case 'gym.finish':
+      return `Couldn't finish ${op.label ?? 'your gym session'} for ${day}; the server refused it.`;
   }
 }
