@@ -45,6 +45,7 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<TrainingPlan> TrainingPlans => Set<TrainingPlan>();
     public DbSet<CardioProtocol> CardioProtocols => Set<CardioProtocol>();
     public DbSet<MobilityRoutine> MobilityRoutines => Set<MobilityRoutine>();
+    public DbSet<CardioTrack> CardioTracks => Set<CardioTrack>();
     // Habits and body weight
     public DbSet<HabitDefinition> Habits => Set<HabitDefinition>();
     public DbSet<HabitLog> HabitLogs => Set<HabitLog>();

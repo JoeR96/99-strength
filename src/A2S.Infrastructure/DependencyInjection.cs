@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<ITrainingPlanRepository, TrainingPlanRepository>();
         services.AddScoped<ICardioProtocolRepository, CardioProtocolRepository>();
         services.AddScoped<IMobilityRoutineRepository, MobilityRoutineRepository>();
+        services.AddScoped<ICardioTrackRepository, CardioTrackRepository>();
         services.AddSingleton<PlanCalendarService>();
         // Habits and body weight; the pace reading takes its checkpoints from the active TrainingPlan.
         services.AddScoped<IHabitRepository, HabitRepository>();
