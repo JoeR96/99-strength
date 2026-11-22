@@ -298,7 +298,7 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
               Delete routine
             </h2>
             <p className="text-sm text-muted-foreground">Take it out of your plan's week first if it's scheduled.</p>
-            <Button type="button" variant="destructive" className="h-12 w-full" onClick={askToDelete} disabled={saving} data-testid="delete-routine">
+            <Button type="button" variant="outline" className="h-12 w-full border-destructive/60 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={askToDelete} disabled={saving} data-testid="delete-routine">
               <Trash2 aria-hidden="true" />
               Delete routine
             </Button>

@@ -49,7 +49,7 @@ export function useConfirmDialog() {
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => handleAction(true)}
-            className={state.variant === "destructive" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : undefined}
+            className={state.variant === "destructive" ? "bg-destructive text-black hover:bg-destructive/90" : undefined}
           >
             {state.confirmLabel ?? "Continue"}
           </AlertDialogAction>
