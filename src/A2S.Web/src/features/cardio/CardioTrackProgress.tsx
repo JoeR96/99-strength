@@ -29,7 +29,7 @@ export function CardioTrackChart({ detail }: { detail: CardioTrackDetailDto }) {
       {chart.length > 1 ? (
         <div className="h-48" aria-hidden="true">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+            <LineChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: -16 }} accessibilityLayer={false}>
               <CartesianGrid stroke={chartColors.border} strokeDasharray="3 3" />
               <XAxis dataKey="date" tickFormatter={(d: string) => formatShortDate(d)} {...chartAxisProps} />
               <YAxis allowDecimals={false} {...chartAxisProps} />

@@ -38,6 +38,10 @@ public class TestDbContext : DbContext
             builder.Property(u => u.Name).IsRequired().HasMaxLength(100);
             builder.Property(u => u.CreatedAt).IsRequired();
             builder.HasIndex(u => u.Email).IsUnique();
+            // Cardio heart-rate settings are mapped (as jsonb) by A2SDbContext only; this minimal context skips them.
+            builder.Ignore(u => u.MaxHeartRate);
+            builder.Ignore(u => u.HeartRateZonePercents);
+            builder.Ignore(u => u.HeartRateZones);
         });
     }
 }
