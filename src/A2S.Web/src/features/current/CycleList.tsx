@@ -18,7 +18,6 @@ function Row({ session }: { session: CycleSessionDto }) {
         to={previewHref(session)}
         className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 hover:bg-muted/60"
         data-testid={`cycle-row-${session.week}-${session.day}`}
-        aria-label={`Preview week ${session.week} ${session.label}`}
       >
         <span className="w-14 shrink-0 text-xs text-muted-foreground">W{session.week} · {session.position}</span>
         <span className="min-w-0 flex-1">

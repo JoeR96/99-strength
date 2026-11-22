@@ -59,7 +59,7 @@ export function CurrentSessionCard({ session, daysPerWeek, warmUp }: CurrentSess
                 variant="outline"
                 className="h-11"
                 onClick={() => setTmFor(exercise.exerciseId)}
-                aria-label={`Set training max for ${exercise.name}`}
+                aria-label={`Set TM for ${exercise.name}`}
                 data-testid="set-tm"
               >
                 Set TM

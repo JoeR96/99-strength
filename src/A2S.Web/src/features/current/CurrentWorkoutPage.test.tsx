@@ -92,7 +92,7 @@ describe('CurrentWorkoutPage', () => {
     installWorkoutsHandlers(workoutsHandlers.cycle({ pendingTm: true }));
     renderPage();
 
-    expect(await screen.findByRole('button', { name: 'Set training max for Bench Press (Barbell)' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Set TM for Bench Press (Barbell)' })).toBeInTheDocument();
     expect(screen.getByTestId('current-session')).not.toHaveTextContent('75 kg');
   });
 

@@ -96,13 +96,13 @@ export function CurrentWorkoutPage({ pendingSyncCount }: CurrentWorkoutPageProps
             <p className="truncate text-sm text-muted-foreground">{cycle?.workoutName ?? 'Workout'}</p>
             <h1 className="text-2xl font-bold text-foreground">Current workout</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <PendingSyncBadge count={pendingCount} />
             {habitsQuery.data && <StreakChip streak={habitsQuery.data.streak} />}
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11"
+              className="h-11 w-11 shrink-0"
               onClick={refresh}
               disabled={refreshing}
               aria-label={hevyConfigured ? 'Refresh and pull from Hevy' : 'Refresh'}
