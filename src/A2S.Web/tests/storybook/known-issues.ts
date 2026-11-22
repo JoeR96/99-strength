@@ -14,42 +14,8 @@ export interface KnownIssue {
 }
 
 export const KNOWN_ISSUES: KnownIssue[] = [
-  // Footer links Help / Privacy / Terms are 20 px tall on every dashboard story.
-  {
-    story: /^features-dashboard-dashboardpage--/,
-    check: 'tap-targets',
-    reason: 'footer links Help / Privacy / Terms are 30-47 × 20 px',
-  },
-  // Programs list cards: View Workout / Set Active / Delete are 40 px tall.
-  {
-    story: /^features-programs-programspage--(multiple-programs|single-active-program|all-completed)$/,
-    check: 'tap-targets',
-    reason: 'View Workout / Set Active / Delete buttons are 40 px tall',
-  },
-  // Exercise library: filter chips and view toggles.
-  {
-    story: /^features-exercises-exerciselibrarypage--/,
-    check: 'tap-targets',
-    reason: 'muscle-group chips are 26 px and equipment chips 24 px tall; Grouped / Grid / List toggles are 36 px',
-  },
-  // Setup wizard exercise step: equipment filter chips are 30 px, the "Add <exercise>" buttons 39 × 24.
-  {
-    story: /^features-workout-setupwizard--exercise-config-step$/,
-    check: 'tap-targets',
-    reason: 'equipment filter chips are 30 px tall and the Add buttons 39 × 24 px',
-  },
-  // Workout dashboard with a programme loaded: day / exercise action buttons under 44 px.
-  {
-    story: /^features-workout-workoutdashboard--(active-workout|deload-week|final-week|all-days-complete|with-minimal-sets-exercise)$/,
-    check: 'tap-targets',
-    reason: 'day and exercise action buttons are under 44 px',
-  },
-  // Setup wizard: the template list is a scrollable region without keyboard access (.gap-1).
-  {
-    story: /^features-workout-setupwizard--/,
-    check: 'axe',
-    reason: 'scrollable-region-focusable (serious): the template list (.gap-1) scrolls but cannot take focus',
-  },
+  // Empty since 2026-11-22: every page story passes overflow, 44 px tap targets and axe (serious/critical).
+  // Add an entry only for a defect you are deliberately leaving open, with the reason.
 ];
 
 export function knownIssue(storyId: string, check: Check): KnownIssue | undefined {

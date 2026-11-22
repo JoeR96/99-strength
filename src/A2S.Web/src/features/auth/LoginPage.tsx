@@ -1,65 +1,17 @@
 import { SignIn } from '@clerk/clerk-react';
 import { clerkAppearance } from './clerkAppearance';
+import { AuthLayout } from './AuthLayout';
 
-/**
- * Login page component that displays Clerk's pre-built sign-in UI with SSO options.
- * Uses Golden Twilight theme with navy background and gold accents.
- */
+/** Sign-in screen: Clerk's sign-in form on our own origin, inside the shared phone-first frame. */
 export function LoginPage() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/4 h-[800px] w-[800px] rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/4 h-[600px] w-[600px] rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute top-1/4 right-1/4 h-[300px] w-[300px] rounded-full bg-primary/5 blur-2xl" />
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,212,10,0.3) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,212,10,0.3) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px',
-        }}
-      />
-
-      <div className="relative z-10 w-full max-w-md px-4 py-8">
-        {/* Hero Section */}
-        <div className="mb-10 text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 shadow-[0_0_40px_rgba(255,212,10,0.2)]">
-              <span className="text-4xl font-black text-primary">99</span>
-            </div>
-          </div>
-          <h1 className="text-5xl font-black tracking-tight text-gradient-gold drop-shadow-lg">
-            99 Strength
-          </h1>
-          <p className="mt-4 text-lg text-gold-light/80 font-medium">
-            Your whole training plan in one place
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to see what's on today
-          </p>
-        </div>
-
-        {/* Sign In Card */}
-        <div className="rounded-2xl border border-primary/10 bg-card/80 backdrop-blur-xl p-1 shadow-2xl shadow-black/20">
-          <SignIn
-            routing="path"
-            path="/sign-in"
-            signUpUrl="/sign-up"
-            fallbackRedirectUrl="/today"
-            appearance={clerkAppearance}
-          />
-        </div>
-
-        {/* Footer */}
-        <p className="mt-8 text-center text-xs text-muted-foreground/60">
-          Lifts, cardio, mobility, habits and weight
-        </p>
-      </div>
-    </div>
+    <AuthLayout
+      title="99 Strength"
+      subtitle="Your whole training plan in one place"
+      hint="Sign in to see what's on today"
+      footer="Lifts, cardio, mobility, habits and weight"
+    >
+      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" fallbackRedirectUrl="/today" appearance={clerkAppearance} />
+    </AuthLayout>
   );
 }

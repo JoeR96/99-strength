@@ -126,11 +126,11 @@ export function DashboardPage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <Link to={`/workout/session/${currentDay}`}>
-                      <Button className="w-full" data-testid="start-current-workout">
+                    <Button asChild className="w-full" data-testid="start-current-workout">
+                      <Link to={`/workout/session/${currentDay}`}>
                         Start W{workout.currentWeek} D{currentDay} Workout
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -222,9 +222,9 @@ export function DashboardPage() {
               99 Strength — Built for strength athletes
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</a>
+              <a href="#" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-sm text-muted-foreground hover:text-primary transition-colors">Help</a>
+              <a href="#" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</a>
+              <a href="#" className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-sm text-muted-foreground hover:text-primary transition-colors">Terms</a>
             </div>
           </div>
         </div>

@@ -151,7 +151,7 @@ export function ExerciseListItem({ exercise, onClick }: { exercise: Exercise; on
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors flex items-center gap-4 w-full text-left cursor-pointer`}
+      className={`min-h-11 px-3 py-2 rounded border ${exercise.is_custom ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'} hover:border-primary/50 transition-colors flex items-center gap-4 w-full text-left cursor-pointer`}
     >
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-sm text-foreground truncate">{exercise.title}</h3>
@@ -215,7 +215,7 @@ export function ExerciseHistoryModal({ exercise, onClose }: { exercise: Exercise
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+            className="flex min-h-11 min-w-11 items-center justify-center p-2 rounded-lg hover:bg-muted transition-colors"
           >
             <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

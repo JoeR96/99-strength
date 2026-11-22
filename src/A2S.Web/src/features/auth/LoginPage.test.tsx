@@ -31,4 +31,18 @@ describe('sign-in screens copy', () => {
     expect(screen.getByTestId('clerk-sign-up')).toBeInTheDocument();
     expect(container.textContent).not.toMatch(V1_WORDING);
   });
+
+  it.each([
+    ['sign-in', <LoginPage key="in" />],
+    ['sign-up', <SignUpPage key="up" />],
+  ])('%s fits the phone: visible-viewport height, safe areas, no leftover gold theme', (_name, page) => {
+    const { container } = render(page);
+    const frame = screen.getByTestId('auth-layout');
+
+    expect(frame.className).toContain('min-h-dvh');
+    expect(frame.className).not.toContain('min-h-screen');
+    expect(frame.className).toContain('safe-area-inset-top');
+    expect(frame.className).toContain('safe-area-inset-bottom');
+    expect(container.innerHTML).not.toMatch(/gold|navy|255,\s*212,\s*10/);
+  });
 });

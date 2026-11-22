@@ -206,8 +206,9 @@ export function SetupWizard() {
             {setupMode === "scratch" && (
               <div className="space-y-5 max-w-md mx-auto pt-6 border-t border-border/50">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Program Name</label>
+                  <label htmlFor="setup-program-name" className="block text-sm font-semibold text-foreground">Program Name</label>
                   <Input
+                    id="setup-program-name"
                     type="text"
                     value={workoutName}
                     onChange={(e) => setWorkoutName(e.target.value)}
@@ -216,8 +217,9 @@ export function SetupWizard() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Program Variant</label>
+                  <label htmlFor="setup-program-variant" className="block text-sm font-semibold text-foreground">Program Variant</label>
                   <select
+                    id="setup-program-variant"
                     value={variant}
                     onChange={(e) => setVariant(Number(e.target.value) as ProgramVariant)}
                     className="flex h-11 w-full rounded-lg border border-border/50 bg-muted/30 px-4 py-2.5 text-base text-foreground transition-all duration-200 hover:border-border focus:border-primary focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 md:text-sm"
@@ -229,8 +231,9 @@ export function SetupWizard() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Total Weeks</label>
+                  <label htmlFor="setup-total-weeks" className="block text-sm font-semibold text-foreground">Total Weeks</label>
                   <Input
+                    id="setup-total-weeks"
                     type="number"
               inputMode="decimal"
                     value={totalWeeks}
@@ -334,8 +337,9 @@ export function SetupWizard() {
             {selectedTemplate && (
               <div className="max-w-md mx-auto pt-6 border-t border-border/50">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-foreground">Program Name</label>
+                  <label htmlFor="setup-program-name" className="block text-sm font-semibold text-foreground">Program Name</label>
                   <Input
+                    id="setup-program-name"
                     type="text"
                     value={workoutName}
                     onChange={(e) => setWorkoutName(e.target.value)}
@@ -515,7 +519,7 @@ export function SetupWizard() {
 
         {/* Progress indicator */}
         <div className="mb-8">
-          <div className="flex items-center justify-between gap-1 max-w-md mx-auto overflow-x-auto px-1">
+          <div role="group" aria-label="Setup progress" tabIndex={0} className="flex items-center justify-between gap-1 max-w-md mx-auto overflow-x-auto px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             {steps.map((step, index) => {
               const isReached = !step.pending && index <= currentStepIndex;
               const nextStep = steps[index + 1];

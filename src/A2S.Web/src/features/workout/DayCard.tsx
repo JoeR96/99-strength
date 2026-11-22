@@ -173,7 +173,7 @@ export function DayCard({ weekNumber, dayNumber, exercises, isCompleted, isCurre
         <div className="flex items-center gap-2">
           <button
             onClick={onEdit}
-            className="p-1 hover:bg-muted rounded transition-colors"
+            className="flex min-h-11 min-w-11 items-center justify-center p-1 hover:bg-muted rounded transition-colors"
             title="Edit exercises"
             aria-label={`Edit exercises for ${dayLabel}`}
           >
