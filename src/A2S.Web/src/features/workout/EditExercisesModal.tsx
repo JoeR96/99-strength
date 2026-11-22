@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { useUpdateExercises, useSubstituteExercise, useRemoveExercise } from "@/hooks/useWorkouts";
 import { ExerciseEditRow } from "./ExerciseEditRow";
+import { ExerciseGroupingEditor } from "./ExerciseGroupingEditor";
 import {
   deriveExerciseEditStates,
   withRecalculatedHasChanged,
@@ -230,6 +231,8 @@ export function EditExercisesModal({ workout, day, isOpen, onClose, onExercisesC
             />
           ))}
         </div>
+
+        <ExerciseGroupingEditor workoutId={workout.id} exercises={exercisesForDay} onSaved={onExercisesChanged} />
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
           <Button variant="outline" onClick={onClose} disabled={isSaving}>

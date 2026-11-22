@@ -98,3 +98,118 @@ export function trackFinisherGymSession(): GymSessionState {
     finisherTrack: stairTrack,
   });
 }
+
+const kgSets = (count: number, kg: number, reps: number) =>
+  Array.from({ length: count }, (_, i) => ({ setNumber: i + 1, weightKg: kg, weightLbs: Math.round(kg * 2.20462), originalUnit: 'Kilograms', targetReps: reps, isAmrap: false }));
+
+/** Plan v3 Upper A: bench without a training max yet, two supersets (2a/2b, 3a/3b), an extra set on the left. */
+export const planV3UpperA: WeekPlanDto = {
+  workoutId: 'w-v3',
+  workoutName: 'Plan v3',
+  weekNumber: 1,
+  dayNumber: 1,
+  blockNumber: 1,
+  isDeloadWeek: false,
+  intensityPercentage: 70,
+  exercises: [
+    {
+      exerciseId: 'v3-bench',
+      name: 'Bench Press (Barbell)',
+      category: 'MainLift',
+      equipment: 'Barbell',
+      orderInDay: 1,
+      hevyExerciseTemplateId: '79D0BB3A',
+      progressionType: 'Linear',
+      restSeconds: 180,
+      supersetGroup: null,
+      extraSetSide: 'None',
+      plannedSets: [1, 2, 3, 4, 5].map((n) => ({ setNumber: n, weightKg: 0, weightLbs: 0, originalUnit: 'Kilograms', targetReps: n === 5 ? 10 : 5, isAmrap: n === 5 })),
+      metadata: { isTrainingMaxPending: true, intensityPercentage: 0.7, tier: 'Primary' },
+    },
+    {
+      exerciseId: 'v3-row',
+      name: 'Bent Over Row (Barbell)',
+      category: 'Accessory',
+      equipment: 'Barbell',
+      orderInDay: 2,
+      hevyExerciseTemplateId: '55E6546F',
+      progressionType: 'RepsPerSet',
+      restSeconds: 60,
+      supersetGroup: 2,
+      extraSetSide: 'None',
+      plannedSets: kgSets(3, 50, 8),
+      metadata: {},
+    },
+    {
+      exerciseId: 'v3-lateral',
+      name: 'Single Arm Lateral Raise (Cable)',
+      category: 'Accessory',
+      equipment: 'Cable',
+      orderInDay: 3,
+      hevyExerciseTemplateId: 'custom:single-arm-lateral',
+      progressionType: 'RepsPerSet',
+      restSeconds: 60,
+      supersetGroup: 2,
+      extraSetSide: 'None',
+      plannedSets: kgSets(2, 5, 12),
+      metadata: { isUnilateral: true },
+    },
+    {
+      exerciseId: 'v3-cable-row',
+      name: 'Single Arm Cable Row',
+      category: 'Accessory',
+      equipment: 'Cable',
+      orderInDay: 4,
+      hevyExerciseTemplateId: 'custom:single-arm-cable-row',
+      progressionType: 'RepsPerSet',
+      restSeconds: 60,
+      supersetGroup: 3,
+      extraSetSide: 'Left',
+      plannedSets: kgSets(2, 25, 10),
+      metadata: { isUnilateral: true },
+    },
+    {
+      exerciseId: 'v3-skull',
+      name: 'Skullcrusher (Dumbbell)',
+      category: 'Accessory',
+      equipment: 'Dumbbell',
+      orderInDay: 5,
+      hevyExerciseTemplateId: 'custom:skull-db',
+      progressionType: 'RepsPerSet',
+      restSeconds: 60,
+      supersetGroup: 3,
+      extraSetSide: 'None',
+      plannedSets: kgSets(2, 12, 10),
+      metadata: {},
+    },
+    {
+      exerciseId: 'v3-palloff',
+      name: 'Cable Core Palloff Press',
+      category: 'Accessory',
+      equipment: 'Cable',
+      orderInDay: 6,
+      hevyExerciseTemplateId: 'custom:palloff',
+      progressionType: 'RepsPerSet',
+      restSeconds: 90,
+      supersetGroup: null,
+      extraSetSide: 'None',
+      plannedSets: kgSets(2, 15, 10),
+      metadata: {},
+    },
+  ],
+};
+
+export const treadmillCoolDown = { kind: 'Treadmill' as const, minutes: 10, notes: 'Easy incline' };
+
+/** Plan v3 Upper A in gym mode: no warm-up drills, a fixed treadmill cool-down. */
+export function planV3GymSession(): GymSessionState {
+  return createGymSession({
+    clientSessionId: GYM_CLIENT_SESSION,
+    startedAt: GYM_STARTED_AT,
+    title: 'Plan v3 · W1 Upper A',
+    plan: planV3UpperA,
+    warmUp: null,
+    finisher: null,
+    finisherFixed: treadmillCoolDown,
+  });
+}

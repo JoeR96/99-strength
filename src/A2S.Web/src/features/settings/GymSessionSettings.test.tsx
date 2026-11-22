@@ -41,4 +41,18 @@ describe('GymSessionSettings', () => {
     expect(schedule).toHaveLength(planFixture.schedule.length);
     expect(schedule.filter((s) => s.finisherCardioProtocolId === stairFinisher.id)).toHaveLength(1);
   });
+
+  it('chooses the treadmill cool-down as a lift slot’s finisher', async () => {
+    const update = vi.spyOn(plansApi, 'updateSchedule').mockResolvedValue({ plan: planFixture });
+    renderSettings();
+
+    const finisher = (await screen.findAllByLabelText('Finisher'))[0];
+    fireEvent.change(finisher, { target: { value: 'fixed:treadmill-10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save gym sessions' }));
+
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    const fixed = update.mock.calls[0][1].filter((s) => s.finisherFixed);
+    expect(fixed).toHaveLength(1);
+    expect(fixed[0]).toMatchObject({ finisherFixed: { kind: 'Treadmill', minutes: 10, notes: 'Easy incline' }, finisherCardioProtocolId: null, finisherCardioTrackId: null });
+  });
 });

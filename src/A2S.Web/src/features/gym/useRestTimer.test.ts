@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { formatClock, useRestTimer } from './useRestTimer';
+import { restAfterSet, toggleSet } from './gymSession';
+import { planV3GymSession } from './gymFixtures';
 
 describe('useRestTimer', () => {
   beforeEach(() => {
@@ -54,6 +56,33 @@ describe('useRestTimer', () => {
     act(() => vi.advanceTimersByTime(60_000));
     expect(result.current.running).toBe(false);
     expect(onEnd).not.toHaveBeenCalled();
+  });
+});
+
+describe('useRestTimer in a superset', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('runs no timer after the A set and the 60 s superset rest after the B set', () => {
+    const onEnd = vi.fn();
+    const { result } = renderHook(() => useRestTimer(onEnd));
+    let state = planV3GymSession();
+
+    act(() => result.current.start(restAfterSet(state, 1, 0)));
+    expect(result.current.running).toBe(false);
+    state = toggleSet(state, 1, 0);
+
+    act(() => result.current.start(restAfterSet(state, 2, 0)));
+    expect(result.current).toMatchObject({ running: true, remaining: 60, total: 60 });
+  });
+
+  it('stops a running rest when the A set of the next round is confirmed', () => {
+    const { result } = renderHook(() => useRestTimer());
+    act(() => result.current.start(60));
+
+    act(() => result.current.start(null));
+
+    expect(result.current.running).toBe(false);
   });
 });
 

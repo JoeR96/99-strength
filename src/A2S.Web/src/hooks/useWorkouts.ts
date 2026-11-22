@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { workoutsApi } from "../api/workouts";
+import { workoutsApi, type SetTrainingMaxRequest } from "../api/workouts";
 import type { CreateWorkoutRequest, UpdateExercisesRequest, SubstituteExerciseRequest } from "../types/workout";
 
 /**
@@ -192,6 +192,19 @@ export function useUndoCompletion() {
       // Invalidate workout queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['workout'] });
       queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    },
+  });
+}
+
+/** Sets an A2S2 lift's training max (directly or from a recent set); week plans and the workout reload. */
+export function useSetTrainingMax() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workoutId, exerciseId, request }: { workoutId: string; exerciseId: string; request: SetTrainingMaxRequest }) =>
+      workoutsApi.setTrainingMax(workoutId, exerciseId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 }

@@ -12,7 +12,7 @@
 import { useCardioTracks } from '@/hooks/useCardioTracks';
 import { useReadiness } from '@/hooks/useReadiness';
 import type { CardioTrackDto } from '@/types/cardioTracks';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Navbar } from '@/components/layout/Navbar';
@@ -26,7 +26,7 @@ import { useLocalToday } from '@/hooks/useLocalToday';
 import { useOnlineStatus } from '@/offline/useOnlineStatus';
 import { statusOf } from '@/offline/errors';
 import type { OfflineOutcome } from '@/offline/useOfflineMutation';
-import { SessionKind } from '@/types/plan';
+import { SessionKind, type FixedFinisherDto } from '@/types/plan';
 import type { CardioProtocolDto, FinishGymSessionResult } from '@/types/gym';
 import type { WeekPlanDto } from '@/api/workouts';
 import type { MobilityRoutineDto } from '@/types/mobility';
@@ -52,8 +52,14 @@ import {
   toFinishRequest,
   toggleSet,
   updateFinisher,
+  restAfterSet,
+  syncPendingLifts,
+  toggleExtraSet,
+  toggleFixedFinisher,
+  toggleSide,
   type GymSessionState,
 } from './gymSession';
+import { SetTrainingMaxDialog } from './SetTrainingMaxDialog';
 import { useRestTimer } from './useRestTimer';
 
 const MOBILITY_A = 'mobility a';
@@ -81,6 +87,7 @@ export function GymModePage() {
   const scheduled = plan?.schedule.find((s) => s.kind === SessionKind.Lift && s.liftDay === day) ?? null;
   const finisherId = slot?.finisherCardioProtocolId ?? scheduled?.finisherCardioProtocolId ?? null;
   const finisherTrackId = slot?.finisherCardioTrackId ?? scheduled?.finisherCardioTrackId ?? null;
+  const finisherFixed = slot?.finisherFixed ?? scheduled?.finisherFixed ?? null;
   const tracks = useCardioTracks(Boolean(finisherTrackId));
   const warmUpId = slot?.warmUpRoutineId ?? scheduled?.warmUpRoutineId ?? null;
   const protocols = useCardioProtocols(Boolean(finisherId));
@@ -130,7 +137,7 @@ export function GymModePage() {
   const title = `${plan?.name ?? workout.name} · W${weekPlan.data.weekNumber} ${label}`;
 
   if (preview) {
-    const state = createGymSession({ clientSessionId: 'preview', startedAt: '', title, plan: weekPlan.data, warmUp, finisher, finisherTrack });
+    const state = createGymSession({ clientSessionId: 'preview', startedAt: '', title, plan: weekPlan.data, warmUp, finisher, finisherTrack, finisherFixed });
     return (
       <div className="min-h-dvh bg-background">
         <Navbar />
@@ -150,6 +157,7 @@ export function GymModePage() {
       warmUp={warmUp}
       finisher={finisher}
       finisherTrack={finisherTrack}
+      finisherFixed={finisherFixed}
     />
   );
 }
@@ -163,10 +171,11 @@ interface RunnerProps {
   warmUp: MobilityRoutineDto | null;
   finisher: CardioProtocolDto | null;
   finisherTrack: CardioTrackDto | null;
+  finisherFixed: FixedFinisherDto | null;
 }
 
 /** Owns one session from its first render: resumes what this phone saved, or starts a new one. */
-function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, finisherTrack }: RunnerProps) {
+function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, finisherTrack, finisherFixed }: RunnerProps) {
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const [state, setState] = useState<GymSessionState>(() => {
@@ -174,12 +183,13 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
     expireGymDrafts(new Date(), { workoutId: workout.id, currentWeek: workout.currentWeek });
     const saved = loadGymSession(workout.id, plan.weekNumber, day);
     if (saved) return saved;
-    const created = createGymSession({ clientSessionId: newClientSessionId(), startedAt: new Date().toISOString(), title, plan, warmUp, finisher, finisherTrack });
+    const created = createGymSession({ clientSessionId: newClientSessionId(), startedAt: new Date().toISOString(), title, plan, warmUp, finisher, finisherTrack, finisherFixed });
     saveGymSession(created);
     return created;
   });
   const [outcome, setOutcome] = useState<OfflineOutcome<FinishGymSessionResult> | null>(null);
   const [finishedElsewhere, setFinishedElsewhere] = useState<string | null>(null);
+  const [tmLift, setTmLift] = useState<number | null>(null);
   const finish = useFinishGymSession(label);
   const retry = useRetryHevyPost();
   const rest = useRestTimer(() => {
@@ -196,11 +206,17 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
     });
   }, []);
 
+  // A training max set mid-session brings the week plan back with weights: fill them in.
+  useEffect(() => {
+    update((s) => syncPendingLifts(s, plan));
+  }, [plan, update]);
+
   const onToggleSet = (lift: number, set: number, reps?: number) => {
     primeAudio();
     const wasDone = state.lifts[lift]?.sets[set]?.done ?? false;
     update((s) => toggleSet(s, lift, set, reps));
-    if (!wasDone || reps !== undefined) rest.start(state.lifts[lift]?.restSeconds ?? 90);
+    // Superset: no rest between A and B; after B the superset rest.
+    if (!wasDone || reps !== undefined) rest.start(restAfterSet(state, lift, set));
   };
 
   const onFinish = () => {
@@ -277,7 +293,21 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         onEditSet={(l, s, change) => update((st) => editSet(st, l, s, change))}
         onFinisherChange={(change) => update((s) => updateFinisher(s, change))}
         onFinish={onFinish}
+        onToggleExtraSet={(l, change) => update((s) => toggleExtraSet(s, l, change))}
+        onToggleFixedFinisher={() => update(toggleFixedFinisher)}
+        onSetTrainingMax={setTmLift}
+        onToggleLeft={(l, set) => update((s) => toggleSide(s, l, set, 'Left'))}
       />
+      {tmLift !== null && state.lifts[tmLift] && (
+        <SetTrainingMaxDialog
+          open
+          workoutId={workout.id}
+          exerciseId={state.lifts[tmLift].exerciseId}
+          exerciseName={state.lifts[tmLift].name}
+          onClose={() => setTmLift(null)}
+          onSaved={(result) => toast.success(`Training max set: ${result.trainingMax} kg`)}
+        />
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@
 import { Link } from 'react-router-dom';
 import { Eye, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { GymSessionState, GymSet } from './gymSession';
+import { liftBlocks, type GymLift, type GymSessionState, type GymSet } from './gymSession';
 
 export interface GymPreviewProps {
   state: GymSessionState;
@@ -18,11 +18,14 @@ export interface GymPreviewProps {
   startHref: string | null;
 }
 
-function weight(set: GymSet, unit: string): string {
+function weight(set: GymSet, unit: string, lift?: GymLift): string {
+  if (lift?.trainingMaxPending && set.plannedWeight === 0) return lift.intensity ? `${Math.round(lift.intensity * 100)} %` : 'TM not set';
   return `${Number.isInteger(set.plannedWeight) ? set.plannedWeight : set.plannedWeight.toFixed(1)} ${unit}`;
 }
 
 export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
+  const supersetLabels: (string | null)[] = state.lifts.map(() => null);
+  for (const block of liftBlocks(state)) block.lifts.forEach((l, k) => (supersetLabels[l] = block.labels[k]));
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 py-6" data-testid="gym-preview">
       <header>
@@ -72,6 +75,7 @@ export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
               id={`preview-lift-${li}`}
               className="min-w-0 truncate text-lg font-semibold text-foreground"
             >
+              {supersetLabels[li] ? `${supersetLabels[li]} ` : ''}
               {lift.name}
             </h2>
             <span className="shrink-0 text-sm text-muted-foreground">{lift.sets.length} sets</span>
@@ -87,11 +91,17 @@ export function GymPreview({ state, dayLabel, startHref }: GymPreviewProps) {
                   {set.isAmrap && ' · AMRAP'}
                 </span>
                 <span className="font-semibold text-foreground">
-                  {weight(set, lift.unit)} × {set.isAmrap ? `${set.plannedReps}+` : set.plannedReps}
+                  {weight(set, lift.unit, lift)} × {set.isAmrap ? `${set.plannedReps}+` : set.plannedReps}
                 </span>
               </li>
             ))}
           </ol>
+          {lift.extraSet && (
+            <p className="mt-2 text-sm text-muted-foreground">Extra set: +1 {lift.extraSet.side.toLowerCase()}.</p>
+          )}
+          {lift.trainingMaxPending && (
+            <p className="mt-2 text-sm text-foreground">Training max not set yet: set it on Today or in gym mode.</p>
+          )}
           {lift.sets.some((s) => s.isAmrap) && (
             <p className="mt-2 text-sm text-muted-foreground">
               AMRAP target: {lift.sets.find((s) => s.isAmrap)!.plannedReps}+ reps on the last set.

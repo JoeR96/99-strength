@@ -17,6 +17,8 @@ export interface FinisherLogRequest {
   level?: number | null;
   floors?: number | null;
   pain?: 'None' | 'Niggle' | 'Stop';
+  /** A fixed cool-down ticked as done (treadmill 10 min): logged as prescribed. */
+  completedAsPrescribed?: boolean;
 }
 
 /** Body for `POST /gym-sessions`. `clientSessionId` is generated when the session starts and makes the finish idempotent. */

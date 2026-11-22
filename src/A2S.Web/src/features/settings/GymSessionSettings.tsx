@@ -12,8 +12,12 @@ import { Label } from '@/components/ui/label';
 import { useActivePlan } from '@/hooks/usePlan';
 import { useMobilityRoutines } from '@/hooks/useMobilityRoutines';
 import { useCardioProtocols, useUpdateSchedule } from '@/hooks/useGymSession';
-import { SessionKind, type ScheduledSessionDto } from '@/types/plan';
+import { SessionKind, type FixedFinisherDto, type ScheduledSessionDto } from '@/types/plan';
 import { useCardioTracks } from '@/hooks/useCardioTracks';
+
+/** The fixed cool-down choice: logged as cardio after the lifts, no track or protocol. */
+const TREADMILL_VALUE = 'fixed:treadmill-10';
+const TREADMILL_COOL_DOWN: FixedFinisherDto = { kind: 'Treadmill', minutes: 10, notes: 'Easy incline' };
 
 const DAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SELECT = 'mt-1 h-12 w-full rounded-md border border-border bg-muted/50 px-3 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary';
@@ -65,18 +69,27 @@ export function GymSessionSettings() {
                 <select
                   id={`finisher-${i}`}
                   className={SELECT}
-                  value={s.finisherCardioTrackId ? `track:${s.finisherCardioTrackId}` : (s.finisherCardioProtocolId ?? '')}
+                  value={
+                    s.finisherFixed
+                      ? TREADMILL_VALUE
+                      : s.finisherCardioTrackId
+                        ? `track:${s.finisherCardioTrackId}`
+                        : (s.finisherCardioProtocolId ?? '')
+                  }
                   onChange={(e) => {
                     const value = e.target.value;
                     change(
                       i,
-                      value.startsWith('track:')
-                        ? { finisherCardioTrackId: value.slice(6), finisherCardioProtocolId: null }
-                        : { finisherCardioProtocolId: value || null, finisherCardioTrackId: null }
+                      value === TREADMILL_VALUE
+                        ? { finisherFixed: TREADMILL_COOL_DOWN, finisherCardioTrackId: null, finisherCardioProtocolId: null }
+                        : value.startsWith('track:')
+                          ? { finisherCardioTrackId: value.slice(6), finisherCardioProtocolId: null, finisherFixed: null }
+                          : { finisherCardioProtocolId: value || null, finisherCardioTrackId: null, finisherFixed: null }
                     );
                   }}
                 >
                   <option value="">None</option>
+                  <option value={TREADMILL_VALUE}>Treadmill, easy incline, 10 min</option>
                   {(tracks.data ?? []).map((t) => (
                     <option key={t.id} value={`track:${t.id}`}>
                       {t.name} (track)

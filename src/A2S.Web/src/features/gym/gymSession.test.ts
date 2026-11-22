@@ -15,8 +15,15 @@ import {
   toFinishRequest,
   toggleSet,
   updateFinisher,
+  liftBlocks,
+  restAfterSet,
+  toggleExtraSet,
+  toggleFixedFinisher,
+  syncPendingLifts,
+  sideRows,
+  toggleSide,
 } from './gymSession';
-import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession, trackFinisherGymSession } from './gymFixtures';
+import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession, planV3GymSession, planV3UpperA, trackFinisherGymSession } from './gymFixtures';
 
 const ENDED_AT = '2026-11-16T18:58:00.000Z';
 
@@ -230,5 +237,111 @@ describe('expireGymDrafts', () => {
 describe('newClientSessionId', () => {
   it('is a v4 uuid', () => {
     expect(newClientSessionId()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+});
+
+describe('supersets, extra sets, fixed cool-down and pending training max (Plan v3)', () => {
+  it('groups superset partners into one block labelled 2a/2b and alternates A1 → B1 → A2 → B2, then the longer one’s rest', () => {
+    const state = planV3GymSession();
+    const blocks = liftBlocks(state);
+
+    expect(blocks.map((b) => b.labels)).toEqual([[null], ['2a', '2b'], ['3a', '3b'], [null]]);
+    const rowBlock = blocks[1];
+    expect(rowBlock.order.map((s) => `${state.lifts[s.lift].name.split(' ')[0]}${s.set + 1}`)).toEqual([
+      'Bent1',
+      'Single1',
+      'Bent2',
+      'Single2',
+      'Bent3',
+    ]);
+  });
+
+  it('starts no rest between A and B, the superset rest after B, and rest after A’s sets left over', () => {
+    let state = planV3GymSession();
+
+    expect(restAfterSet(state, 1, 0)).toBeNull();
+    state = toggleSet(state, 1, 0);
+    expect(restAfterSet(state, 2, 0)).toBe(60);
+    expect(restAfterSet(state, 1, 2)).toBe(60);
+    expect(restAfterSet(state, 0, 0)).toBe(180);
+  });
+
+  it('rests after A when B’s matching set is already done', () => {
+    const state = toggleSet(planV3GymSession(), 2, 0);
+
+    expect(restAfterSet(state, 1, 0)).toBe(60);
+  });
+
+  it('sends a ticked extra set as extraSet, not in completedSets', () => {
+    let state = planV3GymSession();
+    expect(state.lifts[3].extraSet).toEqual({ side: 'Left', weight: 25, reps: 10, done: false });
+    state = toggleSet(toggleSet(state, 3, 0), 3, 1);
+    state = toggleExtraSet(state, 3);
+
+    const request = toFinishRequest(state, ENDED_AT);
+    const row = request.performances.find((p) => p.exerciseId === 'v3-cable-row')!;
+    expect(row.completedSets).toHaveLength(2);
+    expect(row.extraSet).toEqual({ setNumber: 3, weight: 25, weightUnit: WeightUnit.Kilograms, actualReps: 10, wasAmrap: false });
+    expect(progressOf(state).setsTotal).toBe(16);
+  });
+
+  it('leaves an unticked extra set out', () => {
+    const state = toggleSet(planV3GymSession(), 3, 0);
+
+    expect(toFinishRequest(state, ENDED_AT).performances[0].extraSet).toBeUndefined();
+  });
+
+  it('ticks the fixed treadmill cool-down and sends it as done as prescribed', () => {
+    let state = toggleSet(planV3GymSession(), 1, 0);
+    expect(state.finisher?.prescription).toBe('Treadmill · easy incline · 10 min');
+    expect(toFinishRequest(state, ENDED_AT).finisher).toBeNull();
+
+    state = toggleFixedFinisher(state);
+
+    expect(progressOf(state).finisherLogged).toBe(true);
+    expect(toFinishRequest(state, ENDED_AT).finisher).toEqual({ durationSeconds: 600, effort: 'Easy', completedAsPrescribed: true });
+  });
+
+  it('blocks Finish while a lift without a training max has logged sets, and allows it when that lift is left out', () => {
+    const withBench = toggleSet(toggleSet(planV3GymSession(), 1, 0), 0, 0);
+    const withoutBench = toggleSet(planV3GymSession(), 1, 0);
+
+    expect(progressOf(withBench)).toMatchObject({ canFinish: false, needsTrainingMax: ['Bench Press (Barbell)'] });
+    expect(progressOf(withoutBench)).toMatchObject({ canFinish: true, needsTrainingMax: [] });
+    expect(withBench.lifts[0]).toMatchObject({ trainingMaxPending: true, intensity: 0.7 });
+  });
+
+  it('fills a pending lift’s weights from the plan once its training max is set', () => {
+    const state = toggleSet(planV3GymSession(), 0, 0);
+    const plan = {
+      ...planV3UpperA,
+      exercises: planV3UpperA.exercises.map((e) =>
+        e.exerciseId === 'v3-bench'
+          ? { ...e, metadata: { ...e.metadata, isTrainingMaxPending: false }, plannedSets: e.plannedSets.map((s) => ({ ...s, weightKg: 70, weightLbs: 155 })) }
+          : e
+      ),
+    };
+
+    const synced = syncPendingLifts(state, plan);
+
+    expect(synced.lifts[0].trainingMaxPending).toBe(false);
+    expect(synced.lifts[0].sets[0]).toMatchObject({ done: true, weight: 0, plannedWeight: 70 });
+    expect(synced.lifts[0].sets[1]).toMatchObject({ done: false, weight: 70 });
+    expect(syncPendingLifts(state, planV3UpperA)).toBe(state);
+  });
+});
+
+describe('unilateral lifts', () => {
+  it('lists each set Left then Right, left side first, and only Right confirms the set', () => {
+    let state = planV3GymSession();
+    const lateral = state.lifts[2];
+    expect(lateral.unilateral).toBe(true);
+    expect(sideRows(lateral)).toEqual(['Left', 'Right']);
+    expect(sideRows(state.lifts[1])).toEqual([null]);
+
+    state = toggleSide(state, 2, 0, 'Left');
+    expect(state.lifts[2].sets[0]).toMatchObject({ leftDone: true, done: false });
+    state = toggleSide(state, 2, 0, 'Right');
+    expect(state.lifts[2].sets[0]).toMatchObject({ leftDone: true, done: true });
   });
 });

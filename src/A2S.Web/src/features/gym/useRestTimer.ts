@@ -12,7 +12,8 @@ export interface RestTimer {
   /** The length of the current rest. */
   total: number;
   running: boolean;
-  start: (seconds: number) => void;
+  /** `null` (a superset's A set, straight on to B) stops any running rest and starts none. */
+  start: (seconds: number | null) => void;
   /** Adds (or with a negative value, removes) time from the current rest. */
   adjust: (seconds: number) => void;
   skip: () => void;
@@ -40,11 +41,11 @@ export function useRestTimer(onEnd?: () => void, tickMs = 250): RestTimer {
     return () => clearInterval(id);
   }, [endsAt, tickMs]);
 
-  const start = useCallback((seconds: number) => {
+  const start = useCallback((seconds: number | null) => {
     const current = Date.now();
     setNow(current);
-    setTotal(seconds);
-    setEndsAt(seconds > 0 ? current + seconds * 1000 : null);
+    setTotal(seconds ?? 0);
+    setEndsAt(seconds && seconds > 0 ? current + seconds * 1000 : null);
   }, []);
 
   const adjust = useCallback((seconds: number) => {

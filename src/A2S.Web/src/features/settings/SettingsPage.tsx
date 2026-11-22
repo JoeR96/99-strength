@@ -114,6 +114,7 @@ export function SettingsPage() {
             <ul className="grid gap-2 sm:grid-cols-2">
               {[
                 { to: '/programs', label: 'Programmes', hint: 'Create, activate or delete a programme' },
+                { to: '/plans/templates', label: 'Plan templates', hint: 'Preview and start a ready-made plan' },
                 { to: '/exercises', label: 'Exercise library', hint: 'Browse exercises and Hevy history' },
                 { to: '/hevy', label: 'Hevy routines', hint: 'Routines pushed to Hevy' },
                 { to: '/hevy/data', label: 'Hevy data', hint: 'Charts from your Hevy workouts' },

@@ -37,6 +37,8 @@ export interface WorkoutDto {
   exercises: ExerciseDto[];
 }
 
+export type ExtraSetSide = 'None' | 'Left' | 'Right';
+
 export interface ExerciseDto {
   id: string;
   name: string;
@@ -46,6 +48,12 @@ export interface ExerciseDto {
   orderInDay: number;
   hevyExerciseTemplateId: string;
   progression: ExerciseProgressionDto;
+  /** Exercises on the same day with the same number are a superset (A = lower orderInDay). */
+  supersetGroup?: number | null;
+  /** One bonus set on that side (unilateral reps-per-set only). */
+  extraSetSide?: ExtraSetSide;
+  /** An A2S2 lift created without a training max: it needs one before its first session. */
+  isTrainingMaxPending?: boolean;
   lastPerformance?: LastPerformanceDto | null;
 }
 
@@ -197,6 +205,8 @@ export interface CompletedSetRequest {
 export interface ExercisePerformanceRequest {
   exerciseId: string;
   completedSets: CompletedSetRequest[];
+  /** The bonus set on one side (never part of completedSets, never affects progression). */
+  extraSet?: CompletedSetRequest | null;
   /** When true, progression rules are skipped for this exercise (used for temporary substitutions) */
   wasTemporarySubstitution?: boolean;
 }
@@ -282,6 +292,11 @@ export interface ExerciseUpdateRequest {
   weightValue?: number;
   weightUnit?: WeightUnit;
   reason?: string;
+  /** Joins a superset (a number shared with the partner exercise on the same day). */
+  supersetGroup?: number | null;
+  /** True takes the exercise out of its superset. */
+  clearSupersetGroup?: boolean;
+  extraSetSide?: ExtraSetSide;
 }
 
 export interface UpdateExercisesRequest {
