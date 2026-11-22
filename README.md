@@ -8,11 +8,22 @@ Live at **https://99-strength.enjoeneer.dev**. Install it to your home screen (s
 
 ## What it does
 
-**Today** shows what's on today and nothing else: the session (lift, cardio, mobility or rest) with a
-big Start button, habit counters you tap once to log, this morning's weigh-in (only while you have a weigh-in habit; archive it and Today stops asking), weekly goal rings and your streak.
-On a rest day, or once today is done, **Up next** shows the next day you train and what's in it. The arrows
-beside the date let you look at any other day; tap **Preview** to see a coming lift set by set (weights can
-still change if you finish sessions before then).
+**Workout** (the first tab, the **Current workout** page) follows your training cycle, not the calendar. It
+always shows the next session to do: "Week 1 · Session 2 of 4", Lower A, each exercise with its sets and
+weights (or **Set TM** while a main lift has no training max), the cardio finisher as the last item with its
+prescription ("5 min continuous @ level 6, 2 more sessions to step up"), the warm-up, an estimated time and a
+big **Start workout**. Finish a session and the page moves straight on to the next one. Under it: the home
+routine the plan pairs with that session ("After this workout: Mobility B, Play"), the rest of this week's
+sessions and **Preview next week** (tap any session to see it set by set, read-only), and today's habits and
+weigh-in (only while you have a weigh-in habit). A session you just finished shows **In Hevy ✓** or **Not in
+Hevy yet** with **Retry**. The full week view and history are one link away.
+
+**Mobility** (second tab) lists your routines by kind (warm-ups, corrective, stretch, yoga flow,
+follow-along). Each shows its minutes and drill count; **Preview** shows every pose with its dose, cues
+and the easier and harder versions, and **Play** starts it.
+
+**Cardio** (from Progress, `/cardio`) holds your walk, run and finisher tracks, the running gate and the
+week's zone 4–5 warning.
 
 **Plan** is the weekly schedule plus phases (cut, maintenance, pause, deload) and weight checkpoints.
 Pausing for a holiday freezes the programme, and missed sessions during a pause aren't counted as failures.
@@ -55,7 +66,7 @@ week against your caps.
 
 ## Gym mode
 
-At the gym, open Today and tap **Start** on the lifting session. You get one list for the whole
+At the gym, open the app and tap **Start workout**. You get one list for the whole
 session: tick the warm-up drills (or tap **All done**), then tap each set as you finish it. The weight
 and reps are already filled in from your plan; tap the pencil if a set went differently. The last set of a
 main lift asks how many reps you got. If the day has a finisher, log the minutes, level, floors and how it
@@ -68,7 +79,7 @@ finish the same day on two devices, the second one says **This day was already f
 device**, changes nothing, and lets you throw away that device's copy.
 
 When you finish, the session counts in the app straight away and the workout is sent to Hevy for you.
-If Hevy can't be reached, Today shows **Not in Hevy yet** with a **Retry** button, and the app keeps
+If Hevy can't be reached, the Workout page shows **Not in Hevy yet** with a **Retry** button, and the app keeps
 trying in the background. It never adds the same workout to Hevy twice. Choose each lifting day's warm-up
 and finisher under **Settings → Gym sessions** (a stair track, a cardio protocol, or a simple
 "Treadmill, easy incline, 10 min" cool-down you just tick off).
@@ -80,7 +91,7 @@ of your estimated one-rep max).
 
 ## Plan templates
 
-**Plan templates** (in Settings next to Programmes, on the Programmes page, or on Today when you have no plan) lists the ready-made plans:
+**Plan templates** (in Settings next to Programmes, on the Programmes page, or on the Workout page when you have no plan) lists the ready-made plans:
 "Lumbridge Lard Shed" (a cut to 85 kg by March 2027) and "Plan v3 — Base/Build/Transition". Each shows its phases with dates, the week, every
 session's exercises, warm-ups, home routines, cardio tracks and what's left to fill in. Pick a start date
 (it moves to a Monday), enter training maxes now or leave them for later, and apply. If you already have a
@@ -128,7 +139,7 @@ where it hurts).
 - **Undo** puts the track back exactly as it was before your last log, decision or edit. **Pause** keeps a track where it is while you're ill or away.
 - Each track has a check-in test every 4 weeks (for example floors in 5 minutes, or your 5 K time). Your best results are kept.
 
-Today shows each track's session and how many more good sessions you need before it steps up.
+The Cardio page shows each track's session and how many more good sessions you need before it steps up.
 It also warns you when your zone 4–5 minutes for the week go over your plan's maximum. Progress
 shows a chart for each track, with every change and the reason for it, and the same data as a
 table.
@@ -145,7 +156,10 @@ against the week, so the app suggests repeating it.
 **Stair finisher in gym mode:** in **Settings → Gym sessions**, pick the stair finisher track as a
 lifting day's finisher. The gym checklist then shows today's stair session, how many more good
 sessions you need before it steps up, and a pain flag. When you tap Finish, the track moves on
-once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors and level.
+once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors and level. The finish
+summary shows what the finisher did next to the lift changes, for example "Stair finisher: 5 min continuous
+@ level 6 → 6 min continuous @ level 6" or "Hold: 1 more qualifying session to step up", and the next
+prescription.
 
 **With Hevy:**
 - Walks, runs and home routines you finish in the app are sent to Hevy from the server, just like gym sessions: Walking, Treadmill or Running for cardio, Stretching or Yoga for routines. If Hevy is down, they are retried, and never sent twice.
@@ -157,9 +171,9 @@ once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors 
 
 These only ever suggest. They never change your lifting or cardio numbers.
 
-- **Recovery colour.** Tap Green, Yellow or Red on Today (your WHOOP recovery). On a red day Today marks the stair finisher **Skipped for recovery** and suggests skipping hard cardio; walks and home routines stay. One tap on **Undo** keeps the finisher. Gym mode leaves out a skipped finisher. Yellow just reminds you to go by feel.
-- **Running gate.** Walk → run can wait behind a gate: trend weight at or under 90 kg, the walk builder at 45 minutes and 8 % incline rated Easy for two weeks, and no knee, shin or Achilles pain for four weeks. (Plan v3 uses the gate without the walk-builder condition.) Today and the Tracks page show each condition's progress and offer **Start** once they're all met. You decide when to start. On the Tracks page, **Wait for the running gate** adds it to an existing Walk → run track.
-- **Phase heads-up.** A plan phase (for example Base, Build, Transition) can list what changes when it starts. Today shows them the week before and on the first day, and a push notification goes out once. If the phase swaps an exercise (Pause Squat → Squat (Barbell)), tap **Swap** and confirm to make the swap in your workout.
+- **Recovery colour.** The recovery card is gone from the main page; the API (`/readiness`) stays, and gym mode still leaves out the finisher on a red day recorded there.
+- **Running gate.** Walk → run can wait behind a gate: trend weight at or under 90 kg, the walk builder at 45 minutes and 8 % incline rated Easy for two weeks, and no knee, shin or Achilles pain for four weeks. (Plan v3 uses the gate without the walk-builder condition.) The Cardio page shows each condition's progress and offer **Start** once they're all met. You decide when to start. On the Cardio page, **Wait for the running gate** adds it to an existing Walk → run track.
+- **Phase heads-up.** A plan phase (for example Base, Build, Transition) can list what changes when it starts. The Workout page shows them the week before and on the first day, and a push notification goes out once. If the phase swaps an exercise (Pause Squat → Squat (Barbell)), tap **Swap** and confirm to make the swap in your workout.
 
 ## Install on your phone
 
