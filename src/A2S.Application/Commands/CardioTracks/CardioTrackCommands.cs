@@ -1,6 +1,7 @@
 using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Application.Hevy;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -194,8 +195,16 @@ public sealed class LogCardioTrackSessionCommandHandler : IRequestHandler<LogCar
     private readonly ICurrentUserService _currentUser;
     private readonly ILocalClock _clock;
 
-    public LogCardioTrackSessionCommandHandler(CardioTrackSessionRecorder recorder, IUnitOfWork unitOfWork, ICurrentUserService currentUser, ILocalClock clock)
+    private readonly SessionHevyPoster? _hevyPoster;
+
+    public LogCardioTrackSessionCommandHandler(
+        CardioTrackSessionRecorder recorder,
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUser,
+        ILocalClock clock,
+        SessionHevyPoster? hevyPoster = null)
     {
+        _hevyPoster = hevyPoster;
         _recorder = recorder;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
@@ -221,7 +230,17 @@ public sealed class LogCardioTrackSessionCommandHandler : IRequestHandler<LogCar
                 return Result.Failure<TrackEvaluationDto>("Cardio track not found.", ErrorCode.NotFound);
             }
 
+            // Posted to Hevy from the server; the client key (a UUID from the phone) makes it idempotent.
+            var post = _hevyPoster is not null && !r.Result.AlreadyRecorded
+                ? await _hevyPoster.StageForTrackAsync(r.Track, ClientSessionId(request.ClientKey), date, request.Log.ToDomain(), _clock.NowUtc(), cancellationToken)
+                : null;
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (_hevyPoster is not null)
+            {
+                await _hevyPoster.TryPostAsync(post, cancellationToken);
+            }
+
             return Result.Success(new TrackEvaluationDto(r.Result.Outcome, r.Result.Reason, r.Result.Qualified, r.Result.AlreadyRecorded,
                 r.Track.ToDto(_clock.Today())));
         }
@@ -230,6 +249,9 @@ public sealed class LogCardioTrackSessionCommandHandler : IRequestHandler<LogCar
             return PlanAccess.FromDomain<TrackEvaluationDto>(ex);
         }
     }
+
+    private static Guid ClientSessionId(string? clientKey) =>
+        Guid.TryParse(clientKey, out var id) && id != Guid.Empty ? id : Guid.NewGuid();
 }
 
 /// <summary>Accepts or declines the track's pending suggestion (repeat week, drop back, next stage).</summary>

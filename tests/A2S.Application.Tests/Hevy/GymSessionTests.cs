@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.GymSessions;
 using A2S.Application.Commands.Plans;
@@ -57,6 +58,8 @@ public class GymSessionTests
     private readonly InMemorySnapshots _snapshots = new();
     private readonly InMemoryCursors _cursors = new();
     private readonly InMemoryGymPosts _posts = new();
+    private readonly ICardioTrackRepository _tracks = Substitute.For<ICardioTrackRepository>();
+    private readonly CardioTrack _stairTrack;
 
     private readonly FinishGymSessionCommandHandler _finish;
     private readonly HevyPullService _pull;
@@ -89,9 +92,14 @@ public class GymSessionTests
         _stairs = CardioProtocol.Liss(Joe, 30, "Stair finisher");
         _protocols.GetByIdAsync(_stairs.Id, Arg.Any<CancellationToken>()).Returns(_stairs);
 
+        _stairTrack = CardioTrackTemplates.Create(CardioTrackTemplates.StairFinisher, Joe, Mon16Nov);
+        _tracks.GetByIdAsync(_stairTrack.Id, Arg.Any<CancellationToken>()).Returns(_stairTrack);
+        _tracks.ListForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns([_stairTrack]);
+
         _plan = TrainingPlan.Create(Joe, CutTo85Nov2026.Name, Mon16Nov,
         [
             ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A", finisher: new SessionFinisher(_stairs.Id)),
+            ScheduledSession.Lift(DayOfWeek.Thursday, DayNumber.Day1, "Upper B", finisher: SessionFinisher.ForTrack(_stairTrack.Id)),
             ScheduledSession.Rest(DayOfWeek.Sunday)
         ], 95m);
         _plan.LinkWorkout(_workout.Id);
@@ -122,9 +130,11 @@ public class GymSessionTests
             .Returns(call => completeSession.Handle(call.Arg<CompleteSessionCommand>(), CancellationToken.None));
 
         var catalogue = new HevyTemplateCatalogue(_hevy, _links, Substitute.For<IExerciseLibraryProvider>(), _unitOfWork, _clock);
-        var poster = new HevyWorkoutPoster(_hevy, _keys, _posts, _plans, _workouts, _routines, _protocols, _links, catalogue, _unitOfWork, _clock, NullLogger<HevyWorkoutPoster>.Instance);
+        var poster = new HevyWorkoutPoster(_hevy, _keys, _posts, _plans, _workouts, _routines, _protocols, _links, catalogue, _unitOfWork, _clock,
+            NullLogger<HevyWorkoutPoster>.Instance, _tracks);
+        var recorder = new CardioTrackSessionRecorder(_tracks, Substitute.For<IUserRepository>(), Substitute.For<IHabitRepository>());
         _finish = new FinishGymSessionCommandHandler(_sender, _workouts, _plans, _routines, _posts, _keys, poster, _unitOfWork, currentUser, _clock,
-            NullLogger<FinishGymSessionCommandHandler>.Instance);
+            NullLogger<FinishGymSessionCommandHandler>.Instance, recorder);
         _pull = new HevyPullService(_hevy, _keys, _plans, _workouts, _links, _snapshots, _cursors, catalogue, new HevySessionCompleter(_sender, _routines),
             _posts, poster, _unitOfWork, _clock, NullLogger<HevyPullService>.Instance);
         _retry = new HevyPostRetryRunner(_posts, poster, _clock, NullLogger<HevyPostRetryRunner>.Instance);
@@ -375,7 +385,11 @@ public class GymSessionTests
         cardio.CardioProtocolId.Should().Be(_stairs.Id);
         cardio.Cardio!.DurationSeconds.Should().Be(600);
         cardio.Cardio.Rpe.Should().Be(7);
-        cardio.Cardio.Notes.Should().Be("Level 8 · 42 floors · Solid");
+        cardio.Cardio.Notes.Should().BeNull("level, floors and effort are fields on the cardio log now");
+        cardio.Cardio.Floors.Should().Be(42);
+        cardio.Cardio.IntensityUnit.Should().Be(IntensityUnit.Level);
+        cardio.Cardio.IntensityValue.Should().Be(8);
+        cardio.Cardio.Effort.Should().Be(EffortRating.Solid);
 
         var stair = _posted.Single().Exercises[^1];
         stair.ExerciseTemplateId.Should().Be(HevyWorkoutPoster.StairMachineFloorsTemplateId);
@@ -383,6 +397,35 @@ public class GymSessionTests
         stair.Sets.Single().CustomMetric.Should().Be(42m);
         stair.Sets.Single().Rpe.Should().Be(7m);
         stair.Notes.Should().Be("Level 8 · Solid");
+    }
+
+    [Fact]
+    public async Task TrackFinisher_IsCompletedAndEvaluatedOnce_AndPostedAsStairMachineFloors()
+    {
+        var thursday = new DateTimeOffset(2026, 11, 19, 18, 0, 0, TimeSpan.Zero);
+        var command = new FinishGymSessionCommand(ClientSession, _workout.Id.Value, DayNumber.Day1, thursday, thursday.AddHours(1), AsPlanned(amrapReps: 12),
+            Finisher: new FinisherLogRequest(300, Effort.Brutal, Level: 6, Floors: 31, Pain: PainFlag.Niggle, PainArea: "left knee"));
+
+        var first = await _finish.Handle(command, CancellationToken.None);
+        var replay = await _finish.Handle(command, CancellationToken.None);
+
+        first.IsSuccess.Should().BeTrue(first.Error);
+        replay.Value.Replayed.Should().BeTrue();
+        var cardio = _plan.Completions.Single(c => c.Kind == SessionKind.Cardio);
+        cardio.CardioTrackId.Should().Be(_stairTrack.Id);
+        cardio.CardioProtocolId.Should().BeNull();
+        cardio.Cardio!.Pain.Should().Be(PainFlag.Niggle);
+        cardio.Cardio.PainArea.Should().Be("left knee");
+
+        var session = _stairTrack.Sessions.Should().ContainSingle().Subject;
+        session.Key.Should().Be(cardio.TrackSessionKey);
+        session.Floors.Should().Be(31);
+        session.Outcome.Should().Be(TrackOutcome.Held, "a niggle never counts towards the next step");
+
+        var stair = _posted.Should().ContainSingle().Subject.Exercises[^1];
+        stair.ExerciseTemplateId.Should().Be(HevyTemplateCatalogue.StairMachineFloors);
+        stair.Sets.Single().CustomMetric.Should().Be(31m);
+        stair.Notes.Should().Be("Stair finisher · Level 6 · Brutal");
     }
 
     [Fact]

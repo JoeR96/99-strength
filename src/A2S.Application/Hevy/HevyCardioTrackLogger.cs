@@ -30,7 +30,38 @@ public sealed class HevyCardioTrackLogger
 
     /// <param name="skipTrack">A track the session completion already evaluated (a cardio slot pointing at it).</param>
     /// <returns>How many track sessions were newly recorded.</returns>
-    public async Task<int> LogAsync(UserId userId, HevyWorkout workout, DateOnly date, CardioTrackId? skipTrack, CancellationToken ct)
+    public Task<int> LogAsync(UserId userId, HevyWorkout workout, DateOnly date, CardioTrackId? skipTrack, CancellationToken ct) =>
+        LogAsync(userId, workout, date, skipTrack is { } one ? [one] : [], ct);
+
+    /// <summary>
+    /// The built-in cardio exercises of <paramref name="workout"/> that belong to one of <paramref name="slotTracks"/>
+    /// (a lift's finisher track, or a cardio slot's track that day), each with its log. Used to complete those
+    /// plan slots so Today shows them done.
+    /// </summary>
+    public async Task<IReadOnlyList<(CardioTrackId Track, int ExerciseIndex, CardioLog Log)>> MatchSlotsAsync(
+        HevyWorkout workout, IReadOnlyList<CardioTrackId> slotTracks, CancellationToken ct)
+    {
+        var matches = new List<(CardioTrackId, int, CardioLog)>();
+        var used = new HashSet<CardioTrackId>();
+        foreach (var exercise in workout.Exercises.Where(e => HevyTemplateCatalogue.IsBuiltInCardio(e.ExerciseTemplateId)))
+        {
+            var modalities = HevyTemplateCatalogue.ModalitiesForTemplate(exercise.ExerciseTemplateId);
+            foreach (var id in slotTracks.Where(t => !used.Contains(t)))
+            {
+                var track = await _tracks.GetByIdAsync(id, ct);
+                if (track is not null && modalities.Contains(track.Modality) && LogFrom(exercise) is { } log)
+                {
+                    matches.Add((id, exercise.Index, log));
+                    used.Add(id);
+                    break;
+                }
+            }
+        }
+
+        return matches;
+    }
+
+    public async Task<int> LogAsync(UserId userId, HevyWorkout workout, DateOnly date, IReadOnlyCollection<CardioTrackId> skipTracks, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(workout);
         var cardio = workout.Exercises.Where(e => HevyTemplateCatalogue.IsBuiltInCardio(e.ExerciseTemplateId)).ToList();
@@ -40,7 +71,7 @@ public sealed class HevyCardioTrackLogger
         }
 
         var tracks = (await _tracks.ListForUserAsync(userId, ct))
-            .Where(t => t.Status != CardioTrackStatus.Completed && t.Id != skipTrack)
+            .Where(t => t.Status != CardioTrackStatus.Completed && !skipTracks.Contains(t.Id))
             .ToList();
 
         var recorded = 0;

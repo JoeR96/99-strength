@@ -243,7 +243,7 @@ public sealed class DoubleProgressionStrategy : ICardioStageStrategy
         return state;
     }
 
-    internal static string FormatIntensity(IntensityUnit unit, decimal value) => unit switch
+    public static string FormatIntensity(IntensityUnit unit, decimal value) => unit switch
     {
         IntensityUnit.Level => $"level {Number(value)}",
         IntensityUnit.InclinePercent => $"{Number(value)}% incline",
@@ -254,7 +254,7 @@ public sealed class DoubleProgressionStrategy : ICardioStageStrategy
     private static string Seconds(int seconds) =>
         seconds % 60 == 0 ? $"{seconds / 60} min" : $"{seconds} s";
 
-    internal static string Number(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+    public static string Number(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 }
 
 /// <summary>

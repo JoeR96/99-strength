@@ -86,10 +86,11 @@ public sealed class SessionCompletion : Entity<SessionCompletionId>
     }
 
     /// <summary>Whether this completion is for the same scheduled slot as the given one.</summary>
-    internal bool MatchesSlot(DateOnly date, SessionKind kind, DayNumber? liftDay, CardioProtocolId? cardio, MobilityRoutineId? mobility) =>
+    internal bool MatchesSlot(DateOnly date, SessionKind kind, DayNumber? liftDay, CardioProtocolId? cardio, MobilityRoutineId? mobility, CardioTrackId? track = null) =>
         Date == date
         && Kind == kind
         && LiftDay == liftDay
         && CardioProtocolId == cardio
-        && MobilityRoutineId == mobility;
+        && MobilityRoutineId == mobility
+        && CardioTrackId == track;
 }

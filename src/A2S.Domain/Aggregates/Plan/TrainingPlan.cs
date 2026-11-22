@@ -191,7 +191,7 @@ public sealed class TrainingPlan : AggregateRoot<TrainingPlanId>
 
         if (source == CompletionSource.Manual)
         {
-            var sameSlot = _completions.FirstOrDefault(c => c.MatchesSlot(date, kind, liftDay, cardio, mobility));
+            var sameSlot = _completions.FirstOrDefault(c => c.MatchesSlot(date, kind, liftDay, cardio, mobility, cardioTrack));
             if (sameSlot is not null)
             {
                 return sameSlot;

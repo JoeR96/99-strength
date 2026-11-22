@@ -1,6 +1,7 @@
 using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
+using A2S.Application.Hevy;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Common;
@@ -26,7 +27,8 @@ public sealed record CompleteSessionCommand(
     IReadOnlyList<bool>? DrillTicks = null,
     string? HevyWorkoutId = null,
     Guid? CardioTrackId = null,
-    bool CompletedAsPrescribed = true) : ICommand<Result<SessionCompletionDto>>;
+    bool CompletedAsPrescribed = true,
+    bool PostToHevy = true) : ICommand<Result<SessionCompletionDto>>;
 
 public sealed class CompleteSessionCommandValidator : AbstractValidator<CompleteSessionCommand>
 {
@@ -55,6 +57,7 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
     private readonly ILocalClock _clock;
     private readonly ICardioProtocolRepository _protocols;
     private readonly CardioTrackSessionRecorder? _trackRecorder;
+    private readonly SessionHevyPoster? _hevyPoster;
 
     public CompleteSessionCommandHandler(
         ITrainingPlanRepository plans,
@@ -62,8 +65,10 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
         ICurrentUserService currentUser,
         ILocalClock clock,
         ICardioProtocolRepository protocols,
-        CardioTrackSessionRecorder? trackRecorder = null)
+        CardioTrackSessionRecorder? trackRecorder = null,
+        SessionHevyPoster? hevyPoster = null)
     {
+        _hevyPoster = hevyPoster;
         _trackRecorder = trackRecorder;
         _protocols = protocols ?? throw new ArgumentNullException(nameof(protocols));
         _plans = plans ?? throw new ArgumentNullException(nameof(plans));
@@ -97,6 +102,7 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
 
         var trackId = request.Kind == SessionKind.Cardio ? ResolveTrack(load.Value, request) : null;
 
+        var existingIds = load.Value.Completions.Select(c => c.Id).ToHashSet();
         try
         {
             var completion = load.Value.CompleteSession(
@@ -119,8 +125,18 @@ public sealed class CompleteSessionCommandHandler : IRequestHandler<CompleteSess
                     request.CompletedAsPrescribed, _clock.NowUtc(), cancellationToken, load.Value);
             }
 
+            // Walks, runs and home routines done in the app go to Hevy from the server (brief § 3a).
+            var post = _hevyPoster is not null && request.PostToHevy && !existingIds.Contains(completion.Id)
+                ? await _hevyPoster.StageForCompletionAsync(load.Value, completion, cancellationToken)
+                : null;
+
             _plans.Update(load.Value);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (_hevyPoster is not null)
+            {
+                await _hevyPoster.TryPostAsync(post, cancellationToken);
+            }
+
             return Result.Success(completion.ToDto());
         }
         catch (DomainException ex)

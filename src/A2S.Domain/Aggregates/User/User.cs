@@ -34,6 +34,11 @@ public sealed class User : AggregateRoot<UserId>
     /// </summary>
     public string? HevyApiKeyProtected { get; private set; }
 
+    /// <summary>Whether the app pushes planned routines into Hevy (on by default). Finished sessions are posted either way.</summary>
+    public bool PushRoutinesToHevy { get; private set; } = true;
+
+    public void SetPushRoutinesToHevy(bool push) => PushRoutinesToHevy = push;
+
     /// <summary>Max heart rate in bpm, entered by hand (or from WHOOP later). Null until set.</summary>
     public int? MaxHeartRate { get; private set; }
 

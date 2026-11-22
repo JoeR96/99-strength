@@ -40,6 +40,7 @@ public class TestDbContext : DbContext
             builder.HasIndex(u => u.Email).IsUnique();
             // Cardio heart-rate settings are mapped (as jsonb) by A2SDbContext only; this minimal context skips them.
             builder.Ignore(u => u.MaxHeartRate);
+            builder.Ignore(u => u.PushRoutinesToHevy);
             builder.Ignore(u => u.HeartRateZonePercents);
             builder.Ignore(u => u.HeartRateZones);
         });

@@ -60,6 +60,8 @@ public sealed class HevyTemplateCatalogue
     public const string Walking = "33EDD7DB";            // distance_duration
     public const string Treadmill = "243710DE";          // distance_duration
     public const string Running = "AC1BB830";            // distance_duration
+    public const string Stretching = "527DA061";         // duration
+    public const string Yoga = "8C9D2928";               // duration
 
     /// <summary>The built-in template a cardio track is pushed as: stairs → Stair Machine (Floors), treadmill walks → Treadmill.</summary>
     public static string BuiltInTemplateFor(CardioTrack track)

@@ -80,10 +80,38 @@ public sealed class HevySessionCompleter
             return PlanAccess.Fail<SessionCompletionId>(completion);
         }
 
-        // Finishers, walks and runs inside the workout evaluate their tracks (the slot's own track already was).
+        // Finishers, walks and runs inside the workout: a lift's finisher track (or another cardio slot's track that
+        // day) completes that slot, so Today shows it done and the track is evaluated once on its completion; any
+        // other built-in cardio exercise just evaluates the person's track of that kind.
         if (_cardioTracks is not null)
         {
-            await _cardioTracks.LogAsync(plan.UserId, workout, date, session.CardioTrackId, ct);
+            var handled = new List<CardioTrackId>();
+            if (session.CardioTrackId is { } own)
+            {
+                handled.Add(own);
+            }
+
+            var slotTracks = new List<CardioTrackId>();
+            if (session.Finisher?.CardioTrackId is { } finisherTrack)
+            {
+                slotTracks.Add(finisherTrack);
+            }
+
+            slotTracks.AddRange(plan.SessionsOn(date)
+                .Where(s => s.Kind == SessionKind.Cardio && s.CardioTrackId is not null && s.CardioTrackId != session.CardioTrackId)
+                .Select(s => s.CardioTrackId!.Value));
+
+            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, ct))
+            {
+                var slot = await _sender.Send(new CompleteSessionCommand(plan.Id.Value, date, SessionKind.Cardio,
+                    Cardio: log.ToDto(), CardioTrackId: track.Value, PostToHevy: false), ct);
+                if (slot.IsSuccess)
+                {
+                    handled.Add(track);
+                }
+            }
+
+            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, ct);
         }
 
         return Result.Success(new SessionCompletionId(completion.Value.Id));

@@ -123,6 +123,7 @@ public class CardioTrackRepositoryTests : IAsyncLifetime
         var loaded = await fresh.Users.SingleAsync(u => u.Id == Owner);
 
         loaded.MaxHeartRate.Should().Be(188);
+        loaded.PushRoutinesToHevy.Should().BeTrue("on by default");
         loaded.HeartRateZones!.LowerPercents.Should().Equal(52, 62, 72, 82, 91);
     }
 
@@ -130,7 +131,9 @@ public class CardioTrackRepositoryTests : IAsyncLifetime
     public async Task SessionCompletion_OldCardioJsonWithoutNewFields_StillLoads_AndNewFieldsRoundTrip()
     {
         var trackId = new CardioTrackId(new Guid("bbbbbbbb-0000-0000-0000-000000000001"));
-        var plan = TrainingPlan.Create(Owner, "Plan", Start, [ScheduledSession.Cardio(DayOfWeek.Monday, null, "Stairs", trackId)],
+        var plan = TrainingPlan.Create(Owner, "Plan", Start,
+            [ScheduledSession.Cardio(DayOfWeek.Monday, null, "Stairs", trackId),
+             ScheduledSession.Lift(DayOfWeek.Tuesday, DayNumber.Day1, "Upper A", finisher: SessionFinisher.ForTrack(trackId))],
             95m, new WeeklyAllowances(1, 1));
         plan.CompleteSession(Start, SessionKind.Cardio, CompletionSource.Manual, log: new CardioLog(600, 150, null, null, null, 6,
             effort: EffortRating.Brutal, intensityUnit: IntensityUnit.Level, intensityValue: 8, floors: 55, zone5Minutes: 2,
@@ -153,7 +156,8 @@ public class CardioTrackRepositoryTests : IAsyncLifetime
         tracked.Cardio.Pain.Should().Be(PainFlag.Niggle);
         tracked.Cardio.Effort.Should().Be(EffortRating.Brutal);
         tracked.Cardio.Source.Should().Be(CardioLogSource.Hevy);
-        loaded.Schedule.Single().CardioTrackId.Should().Be(trackId);
+        loaded.Schedule.Single(s => s.Kind == SessionKind.Cardio).CardioTrackId.Should().Be(trackId);
+        loaded.Schedule.Single(s => s.Kind == SessionKind.Lift).Finisher!.CardioTrackId.Should().Be(trackId);
 
         var old = loaded.Completions.Single(c => c.Date == Start.AddDays(1));
         old.Cardio!.Rpe.Should().Be(5);
@@ -167,7 +171,7 @@ public class CardioTrackRepositoryTests : IAsyncLifetime
     {
         var migrator = _db.GetService<IMigrator>();
 
-        await migrator.MigrateAsync("20261109102614_AddApiTokens");
+        await migrator.MigrateAsync("20261122152206_AddHevyWorkoutPosts");
         (await TableExists("CardioTracks")).Should().BeFalse();
         (await ColumnExists("SessionCompletions", "CardioTrackId")).Should().BeFalse();
         (await ColumnExists("Users", "MaxHeartRate")).Should().BeFalse();
@@ -175,6 +179,8 @@ public class CardioTrackRepositoryTests : IAsyncLifetime
         await migrator.MigrateAsync();
         (await TableExists("CardioTracks")).Should().BeTrue();
         (await ColumnExists("Users", "HeartRateZonePercents")).Should().BeTrue();
+        (await ColumnExists("Users", "PushRoutinesToHevy")).Should().BeTrue();
+        (await TableExists("HevyWorkoutPosts")).Should().BeTrue("the gym-mode migration below this one is untouched");
     }
 
     private async Task<bool> TableExists(string table) =>

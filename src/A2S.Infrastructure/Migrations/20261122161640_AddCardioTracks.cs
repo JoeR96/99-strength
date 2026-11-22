@@ -23,6 +23,13 @@ namespace A2S.Infrastructure.Migrations
                 type: "integer",
                 nullable: true);
 
+            migrationBuilder.AddColumn<bool>(
+                name: "PushRoutinesToHevy",
+                table: "Users",
+                type: "boolean",
+                nullable: false,
+                defaultValue: true);
+
             migrationBuilder.AddColumn<Guid>(
                 name: "CardioTrackId",
                 table: "SessionCompletions",
@@ -73,6 +80,10 @@ namespace A2S.Infrastructure.Migrations
 
             migrationBuilder.DropColumn(
                 name: "MaxHeartRate",
+                table: "Users");
+
+            migrationBuilder.DropColumn(
+                name: "PushRoutinesToHevy",
                 table: "Users");
 
             migrationBuilder.DropColumn(

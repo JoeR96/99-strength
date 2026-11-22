@@ -42,6 +42,7 @@ public sealed class HevyRoutinePusher
     private readonly ILocalClock _clock;
     private readonly ILogger<HevyRoutinePusher> _logger;
     private readonly ICardioTrackRepository? _tracks;
+    private readonly IUserRepository? _users;
 
     public HevyRoutinePusher(
         IHevyClient hevy,
@@ -54,8 +55,10 @@ public sealed class HevyRoutinePusher
         IUnitOfWork unitOfWork,
         ILocalClock clock,
         ILogger<HevyRoutinePusher> logger,
-        ICardioTrackRepository? tracks = null)
+        ICardioTrackRepository? tracks = null,
+        IUserRepository? users = null)
     {
+        _users = users;
         _tracks = tracks;
         _hevy = hevy ?? throw new ArgumentNullException(nameof(hevy));
         _links = links ?? throw new ArgumentNullException(nameof(links));
@@ -73,6 +76,12 @@ public sealed class HevyRoutinePusher
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(session);
+
+        // Settings → "Push routines into Hevy" (default on). Finished sessions are still posted.
+        if (_users is not null && await _users.GetByIdAsync(plan.UserId, ct) is { PushRoutinesToHevy: false })
+        {
+            return Result.Failure<PushRoutineResult>("Pushing routines into Hevy is turned off in Settings.", ErrorCode.ValidationFailed);
+        }
 
         if (session.Kind == SessionKind.Rest)
         {
@@ -293,26 +302,16 @@ public sealed class HevyRoutinePusher
         return Result.Success(RoutineBuilder.WithFinishers(draft, await FinishersForAsync(plan, session, ct)));
     }
 
-    /// <summary>Active stair-climber tracks that a cardio slot on the lift's weekday points at.</summary>
+    /// <summary>The lift slot's finisher track, when it has one and it is active (brief § 4e: appended last).</summary>
     private async Task<IReadOnlyList<CardioTrack>> FinishersForAsync(TrainingPlan plan, ScheduledSession lift, CancellationToken ct)
     {
-        if (_tracks is null)
+        if (_tracks is null || lift.Finisher?.CardioTrackId is not { } trackId)
         {
             return [];
         }
 
-        var finishers = new List<CardioTrack>();
-        foreach (var slot in plan.Schedule.Where(s => s.Kind == SessionKind.Cardio && s.Day == lift.Day && s.CardioTrackId is not null))
-        {
-            var track = await _tracks.GetByIdAsync(slot.CardioTrackId!.Value, ct);
-            if (track is not null && track.UserId == plan.UserId && track.Status == CardioTrackStatus.Active
-                && track.Modality == CardioModality.StairClimber)
-            {
-                finishers.Add(track);
-            }
-        }
-
-        return finishers;
+        var track = await _tracks.GetByIdAsync(trackId, ct);
+        return track is not null && track.UserId == plan.UserId && track.Status == CardioTrackStatus.Active ? [track] : [];
     }
 
     private async Task<Result<HevyRoutineDraft>> BuildCardioAsync(string apiKey, TrainingPlan plan, ScheduledSession session, int? folderId, CancellationToken ct)

@@ -108,4 +108,19 @@ public class CardioTracksControllerTests
 
         ((int)response.StatusCode).Should().BeOneOf(400, 422);
     }
+
+    [Fact]
+    public async Task Preferences_PushRoutinesToHevy_DefaultsOn_AndCanBeTurnedOff()
+    {
+        var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
+        await client.GetAsync("/api/v1/users/me");
+
+        var before = await client.GetFromJsonAsync<A2S.Application.Commands.Users.UserPreferencesDto>("/api/v1/users/me/preferences");
+        var put = await client.PutAsJsonAsync("/api/v1/users/me/preferences", new A2S.Application.Commands.Users.SetUserPreferencesCommand(false));
+        var after = await client.GetFromJsonAsync<A2S.Application.Commands.Users.UserPreferencesDto>("/api/v1/users/me/preferences");
+
+        before!.PushRoutinesToHevy.Should().BeTrue();
+        put.StatusCode.Should().Be(HttpStatusCode.OK);
+        after!.PushRoutinesToHevy.Should().BeFalse();
+    }
 }

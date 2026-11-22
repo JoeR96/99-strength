@@ -46,6 +46,7 @@ public sealed class HevyWorkoutPoster
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILocalClock _clock;
     private readonly ILogger<HevyWorkoutPoster> _logger;
+    private readonly ICardioTrackRepository? _tracks;
 
     public HevyWorkoutPoster(
         IHevyClient hevy,
@@ -59,8 +60,10 @@ public sealed class HevyWorkoutPoster
         HevyTemplateCatalogue catalogue,
         IUnitOfWork unitOfWork,
         ILocalClock clock,
-        ILogger<HevyWorkoutPoster> logger)
+        ILogger<HevyWorkoutPoster> logger,
+        ICardioTrackRepository? tracks = null)
     {
+        _tracks = tracks;
         _hevy = hevy ?? throw new ArgumentNullException(nameof(hevy));
         _keys = keys ?? throw new ArgumentNullException(nameof(keys));
         _posts = posts ?? throw new ArgumentNullException(nameof(posts));
@@ -194,6 +197,25 @@ public sealed class HevyWorkoutPoster
             ?? new GymSessionPayload();
         var exercises = new List<HevyWorkoutExerciseDraft>();
 
+        // A walk, run or cardio session, or a home routine, logged outside gym mode: one exercise.
+        if (payload.Cardio is { } cardio)
+        {
+            var built = await CardioExerciseAsync(apiKey, post.UserId, cardio, ct);
+            if (!built.Ok)
+            {
+                return HevyResult<HevyWorkoutDraft>.Failure(built.Error!);
+            }
+
+            exercises.Add(built.Value!);
+            return HevyResult<HevyWorkoutDraft>.Success(Draft(post, exercises));
+        }
+
+        if (payload.Routine is { } routineSession)
+        {
+            exercises.Add(await RoutineExerciseAsync(routineSession, ct));
+            return HevyResult<HevyWorkoutDraft>.Success(Draft(post, exercises));
+        }
+
         // 1. Warm-up drills that were ticked, as warm-up sets.
         if (payload.WarmUpRoutineId is { } routineId)
         {
@@ -252,9 +274,16 @@ public sealed class HevyWorkoutPoster
         if (payload.Finisher is { } finisher)
         {
             var protocol = payload.FinisherProtocolId is { } protocolId ? await _protocols.GetByIdAsync(new CardioProtocolId(protocolId), ct) : null;
-            var stairs = finisher.Floors is not null || protocol is null || protocol.Name.Contains("stair", StringComparison.OrdinalIgnoreCase);
+            var track = payload.FinisherTrackId is { } trackId && _tracks is not null ? await _tracks.GetByIdAsync(new CardioTrackId(trackId), ct) : null;
+            var stairs = track is not null
+                ? track.Modality == CardioModality.StairClimber
+                : finisher.Floors is not null || protocol is null || protocol.Name.Contains("stair", StringComparison.OrdinalIgnoreCase);
             string templateId;
-            if (stairs)
+            if (track is not null && !stairs)
+            {
+                templateId = HevyTemplateCatalogue.BuiltInTemplateFor(track);
+            }
+            else if (stairs)
             {
                 templateId = StairMachineFloorsTemplateId;
             }
@@ -272,7 +301,8 @@ public sealed class HevyWorkoutPoster
             exercises.Add(new HevyWorkoutExerciseDraft
             {
                 ExerciseTemplateId = templateId,
-                Notes = finisher.Level is { } level ? $"Level {level} · {finisher.Effort}" : finisher.Effort.ToString(),
+                Notes = (track is null ? string.Empty : $"{track.Name} · ")
+                    + (finisher.Level is { } level ? $"Level {level} · {finisher.Effort}" : finisher.Effort.ToString()),
                 Sets =
                 [
                     new HevyWorkoutSetDraft
@@ -285,14 +315,90 @@ public sealed class HevyWorkoutPoster
             });
         }
 
-        return HevyResult<HevyWorkoutDraft>.Success(new HevyWorkoutDraft
+        return HevyResult<HevyWorkoutDraft>.Success(Draft(post, exercises));
+    }
+
+    private static HevyWorkoutDraft Draft(HevyWorkoutPost post, List<HevyWorkoutExerciseDraft> exercises) => new()
+    {
+        Title = post.Title,
+        Description = "Logged in 99 Strength",
+        StartTime = post.StartedAtUtc,
+        EndTime = post.EndedAtUtc,
+        Exercises = exercises
+    };
+
+    /// <summary>Walks and runs on Hevy's Walking / Treadmill / Running, stairs on Stair Machine (Floors), protocols on their kind's template.</summary>
+    private async Task<HevyResult<HevyWorkoutExerciseDraft>> CardioExerciseAsync(string apiKey, UserId userId, CardioSessionPost cardio, CancellationToken ct)
+    {
+        var track = cardio.CardioTrackId is { } trackId && _tracks is not null ? await _tracks.GetByIdAsync(new CardioTrackId(trackId), ct) : null;
+        string templateId;
+        if (track is not null)
         {
-            Title = post.Title,
-            Description = "Logged in 99 Strength",
-            StartTime = post.StartedAtUtc,
-            EndTime = post.EndedAtUtc,
-            Exercises = exercises
+            templateId = HevyTemplateCatalogue.BuiltInTemplateFor(track);
+        }
+        else
+        {
+            var protocol = cardio.CardioProtocolId is { } protocolId ? await _protocols.GetByIdAsync(new CardioProtocolId(protocolId), ct) : null;
+            if (protocol is null)
+            {
+                templateId = HevyTemplateCatalogue.Walking;
+            }
+            else
+            {
+                var template = await _catalogue.ForCardioAsync(apiKey, userId, protocol.Kind, ct);
+                if (!template.Ok)
+                {
+                    return HevyResult<HevyWorkoutExerciseDraft>.Failure(template.Error!);
+                }
+
+                templateId = template.Value!;
+            }
+        }
+
+        var stairs = templateId == HevyTemplateCatalogue.StairMachineFloors;
+        var notes = new List<string>();
+        if (!string.IsNullOrWhiteSpace(cardio.Prescription))
+        {
+            notes.Add(cardio.Prescription!);
+        }
+
+        if (cardio.IntensityValue is { } intensity && track is not null)
+        {
+            notes.Add(DoubleProgressionStrategy.FormatIntensity(track.CurrentStage.DoubleProgression?.IntensityUnit ?? IntensityUnit.Level, intensity));
+        }
+
+        return HevyResult<HevyWorkoutExerciseDraft>.Success(new HevyWorkoutExerciseDraft
+        {
+            ExerciseTemplateId = templateId,
+            Notes = notes.Count == 0 ? null : string.Join(" · ", notes),
+            Sets =
+            [
+                new HevyWorkoutSetDraft
+                {
+                    DurationSeconds = cardio.DurationSeconds,
+                    DistanceMeters = stairs ? null : cardio.DistanceMeters,
+                    CustomMetric = stairs ? cardio.Floors ?? 0 : null,
+                    Rpe = cardio.Rpe
+                }
+            ]
         });
+    }
+
+    /// <summary>A home routine as one Stretching (or Yoga, when the routine says so) block, the drills done in the notes.</summary>
+    private async Task<HevyWorkoutExerciseDraft> RoutineExerciseAsync(RoutineSessionPost routineSession, CancellationToken ct)
+    {
+        var routine = await _routines.GetByIdAsync(new MobilityRoutineId(routineSession.MobilityRoutineId), ct);
+        var drills = routine?.Drills
+            .Where((_, i) => routineSession.DrillTicks is null || (i < routineSession.DrillTicks.Count && routineSession.DrillTicks[i]))
+            .Select(d => d.Name)
+            .ToList() ?? [];
+        var yoga = routineSession.Name.Contains("yoga", StringComparison.OrdinalIgnoreCase);
+        return new HevyWorkoutExerciseDraft
+        {
+            ExerciseTemplateId = yoga ? HevyTemplateCatalogue.Yoga : HevyTemplateCatalogue.Stretching,
+            Notes = drills.Count == 0 ? routineSession.Name : $"{routineSession.Name}: {string.Join(", ", drills)}",
+            Sets = [new HevyWorkoutSetDraft { DurationSeconds = Math.Max(60, routineSession.DurationSeconds) }]
+        };
     }
 
     private static List<HevyWorkoutSetDraft> DrillSets(MobilityDrill drill)

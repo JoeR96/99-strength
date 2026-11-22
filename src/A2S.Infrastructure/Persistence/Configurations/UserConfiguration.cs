@@ -44,6 +44,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Ignore(u => u.HasHevyApiKey);
 
+        builder.Property(u => u.PushRoutinesToHevy).HasDefaultValue(true).IsRequired();
         builder.Property(u => u.MaxHeartRate);
         builder.Property(u => u.HeartRateZonePercents)
             .HasColumnType("jsonb")
