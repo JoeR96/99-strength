@@ -38,6 +38,8 @@ export interface ScheduledSessionDto {
   warmUpRoutineId?: string | null;
   /** Lift slots only: the cardio protocol done as a finisher straight after the lifts. */
   finisherCardioProtocolId?: string | null;
+  /** A lift finisher that is a cardio track (stair finisher). */
+  finisherCardioTrackId?: string | null;
 }
 
 export interface PlanPhaseDto {
@@ -133,6 +135,8 @@ export interface TodaySessionDto {
   warmUpRoutineId?: string | null;
   /** Lift slots only: the attached finisher's cardio protocol. */
   finisherCardioProtocolId?: string | null;
+  /** A lift finisher that is a cardio track (stair finisher). */
+  finisherCardioTrackId?: string | null;
 }
 
 /** A gym session's Hevy post: Skipped means no Hevy key is stored. */

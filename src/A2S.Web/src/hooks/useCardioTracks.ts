@@ -10,8 +10,8 @@ export const cardioTrackKeys = {
   detail: (id: string) => [...cardioTrackKeys.all, 'detail', id] as const,
 };
 
-export function useCardioTracks() {
-  return useQuery({ queryKey: cardioTrackKeys.list(), queryFn: () => cardioTracksApi.list() });
+export function useCardioTracks(enabled = true) {
+  return useQuery({ queryKey: cardioTrackKeys.list(), queryFn: () => cardioTracksApi.list(), enabled });
 }
 
 export function useCardioTrackTemplates() {

@@ -23,7 +23,7 @@ export interface GymChecklistProps {
   /** Confirms (or undoes) a set; `reps` is given for the AMRAP set. */
   onToggleSet: (lift: number, set: number, reps?: number) => void;
   onEditSet: (lift: number, set: number, change: { weight?: number; reps?: number }) => void;
-  onFinisherChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort'>>) => void;
+  onFinisherChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
   onFinish: () => void;
   /** Stories and tests: open with the AMRAP prompt or the Finish early dialog showing. */
   initialPrompt?: { lift: number; set: number } | null;

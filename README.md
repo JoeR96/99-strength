@@ -91,15 +91,24 @@ shows a chart for each track, with every change and the reason for it, and the s
 table.
 
 Walks also tick your **Walks** habit, if you have one, so you don't have to log them twice.
-Your max heart rate and zones (WHOOP-style 50/60/70/80/90 % of max, editable) are stored on your
-profile through `PUT /api/v1/cardio-tracks/heart-rate-zones`. There is no Settings screen for them yet.
+Set your max heart rate and zones in **Settings → Heart rate**. The zones start as WHOOP's
+50/60/70/80/90 % of max, and you can change them. Without a max heart rate, tracks go by your
+effort alone.
 
-**With Hevy:** if a cardio slot in your plan points at a track, pushing to Hevy sends the track's
-session. A stair finisher on the same day as a lift is added as the last exercise of that lift's
-routine, as Hevy's "Stair Machine (Floors)", with the time and level in the notes. When you
-finish in Hevy, the pull reads the time, floors, distance and RPE from Stair Machine, Walking,
-Treadmill or Running and moves the track on. A workout pulled twice, or edited in Hevy after it
-was matched, never counts twice.
+**Weeks of Couch to 5K follow your plan.** If your plan has two runs a week for the track, you
+still need three good sessions before the next week. A run that was planned and missed counts
+against the week, so the app suggests repeating it.
+
+**Stair finisher in gym mode:** in **Settings → Gym sessions**, pick the stair finisher track as a
+lifting day's finisher. The gym checklist then shows today's stair session, how many more good
+sessions you need before it steps up, and a pain flag. When you tap Finish, the track moves on
+once, and the session goes to Hevy as "Stair Machine (Floors)" with your floors and level.
+
+**With Hevy:**
+- Walks, runs and home routines you finish in the app are sent to Hevy from the server, just like gym sessions: Walking, Treadmill or Running for cardio, Stretching or Yoga for routines. If Hevy is down, they are retried, and never sent twice.
+- If you finish a workout in Hevy instead, the pull reads the time, floors, distance and RPE and moves the track on. A finisher done inside a lifting workout also marks the finisher done in the app.
+- A workout pulled twice, or edited in Hevy after it was matched, never counts twice.
+- **Settings → Hevy routines → Push routines into Hevy** (on by default) controls whether planned routines are pushed into Hevy. Finished sessions are always sent.
 
 ## Install on your phone
 

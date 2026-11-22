@@ -214,6 +214,20 @@ export interface TrackEvaluationDto {
   track: CardioTrackDto;
 }
 
+export interface HeartRateZoneBandDto {
+  zone: number;
+  lowerPercent: number;
+  upperPercent: number;
+  lowerBpm: number | null;
+  upperBpm: number | null;
+}
+
+export interface HeartRateZonesDto {
+  maxHeartRate: number | null;
+  lowerPercents: number[];
+  bands: HeartRateZoneBandDto[];
+}
+
 export interface CardioGuardrailDto {
   code: string;
   message: string;

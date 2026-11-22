@@ -1,3 +1,4 @@
+import { stairTrack } from '@/mocks/fixtures/cardioTracks';
 /** Deterministic gym-mode data for tests and stories: Upper A with a bench AMRAP, a seal row, Mobility A and a stair finisher. */
 
 import type { WeekPlanDto } from '@/api/workouts';
@@ -83,4 +84,17 @@ export function midGymSession(): GymSessionState {
   state = tickDrill(tickDrill(state, 0), 1);
   state = toggleSet(toggleSet(state, 0, 0), 0, 1);
   return state;
+}
+
+/** The same session with the stair finisher track (prescription and "N more sessions to step up") as the finisher. */
+export function trackFinisherGymSession(): GymSessionState {
+  return createGymSession({
+    clientSessionId: GYM_CLIENT_SESSION,
+    startedAt: GYM_STARTED_AT,
+    title: 'Cut to 85 · W3 Upper A',
+    plan: upperAPlan,
+    warmUp: mobilityA,
+    finisher: null,
+    finisherTrack: stairTrack,
+  });
 }

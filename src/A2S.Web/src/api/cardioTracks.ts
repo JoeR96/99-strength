@@ -4,6 +4,7 @@ import type {
   CardioTrackDetailDto,
   CardioTrackDto,
   CardioTrackTemplateDto,
+  HeartRateZonesDto,
   LogTrackSessionRequest,
   TodayCardioDto,
   TrackEvaluationDto,
@@ -38,6 +39,11 @@ export const cardioTracksApi = {
   pause: async (id: string): Promise<CardioTrackDto> => (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/pause`)).data,
 
   resume: async (id: string): Promise<CardioTrackDto> => (await apiClient.post<CardioTrackDto>(`/cardio-tracks/${id}/resume`)).data,
+
+  getZones: async (): Promise<HeartRateZonesDto> => (await apiClient.get<HeartRateZonesDto>('/cardio-tracks/heart-rate-zones')).data,
+
+  setZones: async (maxHeartRate: number | null, lowerPercents: number[] | null): Promise<HeartRateZonesDto> =>
+    (await apiClient.put<HeartRateZonesDto>('/cardio-tracks/heart-rate-zones', { maxHeartRate, lowerPercents })).data,
 
   recordBenchmark: async (id: string, value: number, notes?: string): Promise<BenchmarkResultDto> =>
     (await apiClient.post<BenchmarkResultDto>(`/cardio-tracks/${id}/benchmarks`, { value, notes: notes ?? null })).data,

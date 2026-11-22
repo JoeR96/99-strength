@@ -5,7 +5,7 @@ import { CompletionSummary } from '@/features/workout/CompletionSummary';
 import type { CompleteDayResult, WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import { GymChecklist } from './GymChecklist';
 import { GymHevyStatus } from './GymSections';
-import { freshGymSession, midGymSession } from './gymFixtures';
+import { freshGymSession, midGymSession, trackFinisherGymSession } from './gymFixtures';
 import { allDrillsDone, editSet, tickDrill, toggleSet, updateFinisher, type GymSessionState } from './gymSession';
 
 /** The checklist with working taps (state kept in the story), so each state can be poked at. */
@@ -76,6 +76,9 @@ export const RestTimer: Story = { args: { initial: midGymSession(), rest: { rema
 export const Finisher: Story = {
   args: { initial: updateFinisher(allLiftsDone(), { minutes: 10, level: 8, floors: 42, effort: 'Solid' }) },
 };
+
+/** The finisher is the stair track: today's prescription, how far to the next step, and a pain flag. */
+export const TrackFinisher: Story = { args: { initial: trackFinisherGymSession() } };
 
 /** No signal at the gym: sets keep saving on the phone and Finish waits for the connection. */
 export const Offline: Story = { args: { initial: midGymSession(), online: false } };

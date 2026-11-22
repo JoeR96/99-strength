@@ -6,6 +6,8 @@
  * sets that were confirmed are sent, and a lift with none is left out (its progression waits).
  */
 
+import type { CardioTrackDto } from '@/types/cardioTracks';
+import { stepUpText } from '@/features/cardio/trackText';
 import type { WeekPlanDto } from '@/api/workouts';
 import type { MobilityRoutineDto } from '@/types/mobility';
 import { DoseUnit } from '@/types/mobility';
@@ -38,12 +40,16 @@ export interface GymDrill {
 
 export interface GymFinisher {
   protocolId: string;
+  /** Set when the finisher is a cardio track: its prescription and "N more sessions to step up" are shown. */
+  trackId?: string | null;
+  stepUp?: string | null;
   name: string;
   prescription: string;
   minutes: number | null;
   level: number | null;
   floors: number | null;
   effort: Effort | null;
+  pain?: 'None' | 'Niggle' | 'Stop';
 }
 
 export interface GymSessionState {
@@ -65,6 +71,8 @@ export interface CreateGymSessionInput {
   plan: WeekPlanDto;
   warmUp: MobilityRoutineDto | null;
   finisher: CardioProtocolDto | null;
+  /** A track finisher (takes precedence over a protocol). */
+  finisherTrack?: CardioTrackDto | null;
 }
 
 /** Main lifts rest 180 s, everything else 90 s, when the server did not say. */
@@ -105,7 +113,20 @@ export function createGymSession(input: CreateGymSessionInput): GymSessionState 
           }),
         };
       }),
-    finisher: input.finisher
+    finisher: input.finisherTrack
+      ? {
+          protocolId: '',
+          trackId: input.finisherTrack.id,
+          stepUp: stepUpText(input.finisherTrack),
+          name: input.finisherTrack.name,
+          prescription: input.finisherTrack.prescription.title,
+          minutes: input.finisherTrack.prescription.minutes || null,
+          level: input.finisherTrack.prescription.intensity ?? null,
+          floors: null,
+          effort: null,
+          pain: 'None',
+        }
+      : input.finisher
       ? {
           protocolId: input.finisher.id,
           name: input.finisher.name,
@@ -150,7 +171,7 @@ export function editSet(state: GymSessionState, lift: number, set: number, chang
   }));
 }
 
-export function updateFinisher(state: GymSessionState, change: Partial<Omit<GymFinisher, 'protocolId' | 'name' | 'prescription'>>): GymSessionState {
+export function updateFinisher(state: GymSessionState, change: Partial<Omit<GymFinisher, 'protocolId' | 'trackId' | 'stepUp' | 'name' | 'prescription'>>): GymSessionState {
   return state.finisher ? { ...state, finisher: { ...state.finisher, ...change } } : state;
 }
 
@@ -204,7 +225,13 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
       }))
       .filter((p) => p.completedSets.length > 0),
     finisher: finisher
-      ? { durationSeconds: Math.round(finisher.minutes! * 60), effort: finisher.effort!, level: finisher.level, floors: finisher.floors }
+      ? {
+          durationSeconds: Math.round(finisher.minutes! * 60),
+          effort: finisher.effort!,
+          level: finisher.level,
+          floors: finisher.floors,
+          ...(finisher.pain && finisher.pain !== 'None' ? { pain: finisher.pain } : {}),
+        }
       : null,
   };
 }

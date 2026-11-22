@@ -7,6 +7,8 @@ import { PushSettings } from './PushSettings';
 import { HevySyncSettings } from './HevySyncSettings';
 import { ApiTokensSettings } from './ApiTokensSettings';
 import { GymSessionSettings } from './GymSessionSettings';
+import { HeartRateSettings } from './HeartRateSettings';
+import { RoutinePushSetting } from './RoutinePushSetting';
 import toast from 'react-hot-toast';
 import type { WorkoutDto, ExerciseDto } from '@/types/workout';
 
@@ -98,8 +100,10 @@ export function SettingsPage() {
           <HevySettings />
 
           <HevySyncSettings />
+          <RoutinePushSetting />
 
           <GymSessionSettings />
+          <HeartRateSettings />
 
           <ApiTokensSettings />
 
