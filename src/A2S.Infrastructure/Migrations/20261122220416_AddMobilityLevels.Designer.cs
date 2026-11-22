@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace A2S.Infrastructure.Migrations
 {
     [DbContext(typeof(A2SDbContext))]
-    [Migration("20261122205514_AddMobilityLevels")]
+    [Migration("20261122220416_AddMobilityLevels")]
     partial class AddMobilityLevels
     {
         /// <inheritdoc />
@@ -220,6 +220,13 @@ namespace A2S.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
                         .HasColumnName("Stages")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("_startGate")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("StartGate")
                         .HasDefaultValueSql("'[]'::jsonb");
 
                     b.Property<uint>("xmin")
@@ -870,6 +877,38 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("PushSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.Readiness.ReadinessEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Colour")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("KeepFinisher")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("ReadinessEntries", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.User.User", b =>
                 {
                     b.Property<string>("Id")
@@ -934,12 +973,22 @@ namespace A2S.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("HevyExerciseTemplateId");
 
+                    b.Property<string>("ExtraSetSide")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("None");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.Property<int>("OrderInDay")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SupersetGroup")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("WorkoutId")
@@ -1174,6 +1223,12 @@ namespace A2S.Infrastructure.Migrations
                     b.Property<int>("BaseSetsPerExercise")
                         .HasColumnType("integer")
                         .HasColumnName("BaseSetsPerExercise");
+
+                    b.Property<bool>("IsTrainingMaxPending")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsTrainingMaxPending");
 
                     b.Property<int>("Tier")
                         .HasColumnType("integer");

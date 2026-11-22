@@ -238,7 +238,8 @@ public sealed class PlanTemplateApplier
             var routine = existing.FirstOrDefault(r => string.Equals(r.Name, routineSpec.Name, StringComparison.OrdinalIgnoreCase));
             if (routine is null)
             {
-                routine = MobilityRoutine.Create(userId, routineSpec.Name, routineSpec.TargetMinutes, routineSpec.Drills.Select(d => d.ToDomain()));
+                routine = MobilityRoutine.Create(userId, routineSpec.Name, routineSpec.TargetMinutes, routineSpec.Drills.Select(d => d.ToDomain()),
+                    routineSpec.Kind ?? MobilityRoutine.DefaultKindFor(routineSpec.Name));
                 await _routines.AddAsync(routine, ct);
             }
 
