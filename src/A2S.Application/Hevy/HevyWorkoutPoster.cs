@@ -16,7 +16,7 @@ namespace A2S.Application.Hevy;
 
 /// <summary>
 /// Writes a finished gym session to Hevy as a completed workout (<c>POST /v1/workouts</c>) from the server,
-/// so the key never reaches the browser. Order in the workout: the ticked warm-up drills (warm-up sets), the
+/// so the key never reaches the browser. Order in the workout (warm-up drills are not sent): the
 /// lifts as logged (normal sets, the AMRAP set as <c>failure</c>), then the finisher (Stair Machine (Floors)
 /// for a stair finisher, otherwise the cardio kind's template). Real start and end times.
 /// <para>
@@ -216,33 +216,9 @@ public sealed class HevyWorkoutPoster
             return HevyResult<HevyWorkoutDraft>.Success(Draft(post, exercises));
         }
 
-        // 1. Warm-up drills that were ticked, as warm-up sets.
-        if (payload.WarmUpRoutineId is { } routineId)
-        {
-            var routine = await _routines.GetByIdAsync(new MobilityRoutineId(routineId), ct);
-            if (routine is not null)
-            {
-                for (var i = 0; i < routine.Drills.Count; i++)
-                {
-                    var ticked = payload.WarmUpTicks is null || (i < payload.WarmUpTicks.Count && payload.WarmUpTicks[i]);
-                    if (!ticked)
-                    {
-                        continue;
-                    }
+        // Warm-up drills are not sent to Hevy: the workout is the lifts and the finisher only.
 
-                    var drill = routine.Drills[i];
-                    var template = await _catalogue.ForDrillAsync(apiKey, post.UserId, drill, ct);
-                    if (!template.Ok)
-                    {
-                        return HevyResult<HevyWorkoutDraft>.Failure(template.Error!);
-                    }
-
-                    exercises.Add(new HevyWorkoutExerciseDraft { ExerciseTemplateId = template.Value!, Sets = DrillSets(drill) });
-                }
-            }
-        }
-
-        // 2. The lifts as logged.
+        // 1. The lifts as logged.
         var program = await _workouts.GetByIdAsync(new WorkoutId(payload.WorkoutId), ct);
         foreach (var performance in payload.Performances.Where(p => p.CompletedSets.Count > 0))
         {

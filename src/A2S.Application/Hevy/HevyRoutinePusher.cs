@@ -273,16 +273,9 @@ public sealed class HevyRoutinePusher
             return Result.Failure<HevyRoutineDraft>($"No exercises are assigned to {day}.", ErrorCode.ValidationFailed);
         }
 
-        var warmUp = await WarmUpRoutineAsync(plan.UserId, ct);
+        // Warm-up drills are not sent to Hevy: lift routines are the lifts and the finisher only.
+        MobilityRoutine? warmUp = null;
         var drillTemplates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (warmUp is not null)
-        {
-            var drills = await DrillTemplatesAsync(apiKey, plan.UserId, warmUp, drillTemplates, ct);
-            if (drills.IsFailure)
-            {
-                return PlanAccess.Fail<HevyRoutineDraft>(drills);
-            }
-        }
 
         var fromBrief = CutTo85Nov2026.IsNamed(plan.Name);
         var title = RoutineBuilder.LiftTitle(plan.Name, workout.CurrentWeek, session.Label);
