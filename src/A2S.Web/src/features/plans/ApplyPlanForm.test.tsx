@@ -22,7 +22,7 @@ describe('ApplyPlanForm when the template is already the active plan', () => {
     const spy = vi.spyOn(planTemplatesApi, 'apply');
     const onApplied = renderForm();
 
-    fireEvent.click(screen.getByRole('button', { name: /^start plan v3/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^start falador fat furnace/i }));
     expect(await screen.findByTestId('fresh-copy-confirm')).toHaveTextContent(/already your plan/i);
     expect(onApplied).not.toHaveBeenCalled();
 
@@ -36,7 +36,7 @@ describe('ApplyPlanForm when the template is already the active plan', () => {
     const spy = vi.spyOn(planTemplatesApi, 'apply');
     const onApplied = renderForm();
 
-    fireEvent.click(screen.getByRole('button', { name: /^start plan v3/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^start falador fat furnace/i }));
     fireEvent.click(await screen.findByRole('button', { name: 'Keep current' }));
 
     expect(onApplied).toHaveBeenCalledWith(expect.objectContaining({ alreadyStarted: true }));

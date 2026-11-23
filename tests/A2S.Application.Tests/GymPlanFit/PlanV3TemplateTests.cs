@@ -240,6 +240,20 @@ public class PlanTemplateApplierTests
     }
 
     [Fact]
+    public async Task A_plan_started_under_the_old_Plan_v3_name_still_counts_as_already_started()
+    {
+        PlanV3BaseBuildTransition.TemplateName.Should().Be("Falador Fat Furnace");
+        PlanTemplates.IsSamePlan("Plan v3 — Base/Build/Transition", PlanV3BaseBuildTransition.TemplateName).Should().BeTrue();
+        var active = TrainingPlan.Create(Joe, "Plan v3 — Base/Build/Transition", new DateOnly(2026, 11, 30), [ScheduledSession.Mobility(DayOfWeek.Sunday, null, "Stretch")], 95m, new WeeklyAllowances(1, 1));
+        _plans.GetActiveForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns(active);
+
+        var result = await _handler.Handle(Apply(), CancellationToken.None);
+
+        result.Value.AlreadyStarted.Should().BeTrue();
+        _added.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Applying_the_active_template_again_with_confirm_replace_starts_a_fresh_copy_and_keeps_the_old_one()
     {
         var active = TrainingPlan.Create(Joe, PlanV3BaseBuildTransition.TemplateName, new DateOnly(2026, 11, 30), [ScheduledSession.Mobility(DayOfWeek.Sunday, null, "Stretch")], 95m, new WeeklyAllowances(1, 1));

@@ -314,7 +314,7 @@ Personal API tokens (`[AllowApiToken]`) may read `GET /plans/today?date=`, `GET 
 | `GetTodayCardio` | Active tracks' prescriptions, this week's zone 4–5 minutes and guardrail warnings |
 | `GetHeartRateZones` | Max HR and zones |
 | `GetPlanTemplates` | Every template previewed from a start date: phases with dates, schedule slots, sessions with 2a/2b slots and prescriptions, warm-ups, home routines, cardio tracks, `toFillIn` — `GET /api/v1/plans/templates[?startDate=]`, `GET /api/v1/plans/templates/{key}` |
-| `GetSuggestedPlans` | Previews every plan template (Lumbridge Lard Shed, Plan v3) for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
+| `GetSuggestedPlans` | Previews every plan template (Lumbridge Lard Shed, Falador Fat Furnace) for today (start Monday, week, lifting-day time estimates, inputs needed, already started) — `GET /api/v1/plans/suggested` |
 
 ## Gym mode
 

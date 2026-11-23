@@ -80,7 +80,7 @@ public class PlanTemplatesControllerTests
         ladder.Levels!.Should().HaveCount(3);
         ladder.CurrentLevel.Should().Be(0);
         routines.Single(r => r.Name == "Hips & lower back").Drills.Single(d => d.Name == "Side plank").Levels![1].Range.Should().Be(new DoseRangeDto(20, 30, 5));
-        plan.Name.Should().Be("Plan v3 — Base/Build/Transition");
+        plan.Name.Should().Be("Falador Fat Furnace");
         plan.Schedule.Single(s => s.Label == "Lower A").FinisherFixed.Should().Be(new FixedActivityDto("Treadmill", 10, "Easy incline"));
         plan.Schedule.Single(s => s.Label == "Upper A").FinisherCardioTrackId.Should().NotBeNull();
 
@@ -173,7 +173,7 @@ public class PlanTemplatesControllerTests
 
         var confirmed = await client.PostAsJsonAsync("/api/v1/plans/templates/plan-v3/apply", PlanV3(confirm: true));
         confirmed.StatusCode.Should().Be(HttpStatusCode.Created);
-        (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Name.Should().Be("Plan v3 — Base/Build/Transition");
+        (await client.GetFromJsonAsync<TrainingPlanDto>("/api/v1/plans/active"))!.Name.Should().Be("Falador Fat Furnace");
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
