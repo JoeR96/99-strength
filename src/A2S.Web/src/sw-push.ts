@@ -43,6 +43,8 @@ export function notificationOptions(payload: PushPayload): NotificationOptions &
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     data: { url: payload.url ?? DEFAULT_URL },
+    // Finisher phase changes share one tag per session; renotify makes each one buzz instead of silently replacing.
+    ...(payload.tag?.startsWith('finisher-') ? ({ renotify: true } as NotificationOptions) : {}),
   };
 }
 

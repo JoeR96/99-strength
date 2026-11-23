@@ -85,9 +85,14 @@ function numberOrNull(text: string): number | null {
 export function FinisherCard({
   finisher,
   onChange,
+  onStart,
+  startLabel = 'Start finisher',
 }: {
   finisher: GymFinisher;
   onChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'workMinutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
+  /** The live guided wizard (stair finisher only); absent: no button. */
+  onStart?: () => void;
+  startLabel?: string;
 }) {
   const segmented = hasSegments(finisher.warmUp, finisher.coolDown);
   return (
@@ -103,6 +108,13 @@ export function FinisherCard({
         <p className="mt-1 text-sm text-muted-foreground" data-testid="finisher-prescription">{finisher.prescription}</p>
       )}
       {finisher.stepUp && <p className="text-sm text-foreground">{finisher.stepUp}</p>}
+
+      {onStart && (
+        <Button type="button" size="lg" className="mt-3 h-12 w-full" onClick={onStart} data-testid="finisher-start">
+          <Timer aria-hidden="true" />
+          {startLabel}
+        </Button>
+      )}
 
       {segmented && (
         <div className="mt-3">
