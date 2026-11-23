@@ -58,6 +58,7 @@ public class A2SDbContext : DbContext, IDataProtectionKeyContext
     // Web push (Phase 4 PR 7b): one subscription per device, one nudge-log row per user/day/kind.
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<PushNudgeLog> PushNudgeLogs => Set<PushNudgeLog>();
+    public DbSet<FinisherSchedule> FinisherSchedules => Set<FinisherSchedule>();
     // Hevy push/pull (Phase 6): idempotent push links, pulled workout snapshots and the per-user pull cursor.
     public DbSet<HevyLink> HevyLinks => Set<HevyLink>();
     public DbSet<HevyWorkoutSnapshot> HevyWorkoutSnapshots => Set<HevyWorkoutSnapshot>();

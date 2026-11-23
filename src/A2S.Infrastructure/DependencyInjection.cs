@@ -89,6 +89,10 @@ public static class DependencyInjection
         services.AddScoped<PushNudgeService>();
         services.AddHttpClient<IPushSender, WebPushSender>();
         services.AddHostedService<PushNudgeHostedService>();
+        // Live finisher wizard: phase-change nudges, checked every few seconds.
+        services.AddScoped<IFinisherScheduleRepository, FinisherScheduleRepository>();
+        services.AddScoped<FinisherNudgeService>();
+        services.AddHostedService<FinisherNudgeHostedService>();
 
         // Hevy push/pull (Phase 6): links, snapshots and the pull cursor.
         services.AddScoped<IHevyLinkRepository, HevyLinkRepository>();
