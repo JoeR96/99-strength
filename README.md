@@ -87,7 +87,12 @@ and finisher under **Settings → Gym sessions** (a stair track, a cardio protoc
 Supersets show as one block (2a/2b): do a set of A, then a set of B, then rest. One-side exercises list the
 left side first. If a main lift has no training max yet, it shows reps and % only and asks you to **Set
 your training max**: type it in, or enter a recent set (weight × reps) and the app works it out (about 90 %
-of your estimated one-rep max).
+of your estimated one-rep max). If Hevy has your history, the app suggests one and shows why ("Suggested
+77.5 kg — from 75 kg × 5 on 14 Nov (est. 1RM 87.5 kg)"; "older history — estimated" when your last session was
+more than 90 days ago). Tap **Use suggestion** or type your own number; yours always wins. The Current workout
+card has **Use all suggestions** to set every pending main lift at once after a quick review. Accessories
+waiting for a starting weight get the same suggestion when you confirm it. No Hevy history (or Hevy down):
+type it in as before.
 
 ## Plan templates
 

@@ -2,6 +2,9 @@ import { useState } from "react";
 import { ReviewModal } from "@/components/shared/ReviewModal";
 import { Input } from "@/components/ui/input";
 import type { PendingWeightExerciseDto } from "@/types/workout";
+import type { StartingNumbersSuggestions } from "@/api/workouts";
+import { itemFor } from "@/features/suggestions/startingNumbers";
+import { SuggestionEvidence } from "@/features/suggestions/SuggestionEvidence";
 
 interface WeightConfirmationModalProps {
   exercises: PendingWeightExerciseDto[];
@@ -13,9 +16,11 @@ interface WeightConfirmationModalProps {
    */
   onConfirm: (confirmedWeights: { exerciseId: string; weight: number; unit: 1 | 2 }[]) => Promise<void>;
   onSkip: () => void;
+  /** Hevy-based starting weights; each one can be taken with "Use suggestion", the typed weight wins. */
+  suggestions?: StartingNumbersSuggestions;
 }
 
-export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: WeightConfirmationModalProps) {
+export function WeightConfirmationModal({ exercises, onConfirm, onSkip, suggestions }: WeightConfirmationModalProps) {
   const [weights, setWeights] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     for (const ex of exercises) {
@@ -67,8 +72,10 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
     >
       {exercises.map((ex) => {
         const unitLabel = ex.weightUnit === "Pounds" ? "lbs" : "kg";
+        const hevy = ex.weightUnit === "Pounds" ? null : (itemFor(suggestions, ex.exerciseId)?.suggestion ?? null);
         return (
-          <div key={ex.exerciseId} className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card">
+          <div key={ex.exerciseId} className="space-y-2">
+          <div className="flex items-center justify-between gap-4 p-3 rounded-lg border bg-card">
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{ex.exerciseName}</p>
               <p className="text-xs text-muted-foreground">
@@ -88,10 +95,18 @@ export function WeightConfirmationModal({ exercises, onConfirm, onSkip }: Weight
                     [ex.exerciseId]: parseFloat(e.target.value) || 0,
                   }))
                 }
-                className="w-24 text-right"
+                className="h-11 w-24 text-right"
               />
               <span className="text-sm text-muted-foreground w-6">{unitLabel}</span>
             </div>
+          </div>
+          {hevy && (
+            <SuggestionEvidence
+              suggestion={hevy}
+              label={ex.exerciseName}
+              onUse={() => setWeights((prev) => ({ ...prev, [ex.exerciseId]: hevy.valueKg }))}
+            />
+          )}
           </div>
         );
       })}

@@ -1,6 +1,7 @@
 /**
  * "Set your training max" for an A2S2 lift created without one: either a recent set (weight × reps,
- * the server estimates the TM) or the TM itself. Used by gym mode and Today.
+ * the server estimates the TM) or the TM itself. Used by gym mode and Today. When Hevy history gives a
+ * suggestion it is prefilled as the TM with its evidence; editing the field overrides it.
  */
 
 import { useState } from 'react';
@@ -9,8 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { useSetTrainingMax } from '@/hooks/useWorkouts';
-import type { SetTrainingMaxResult } from '@/api/workouts';
+import { useSetTrainingMax, useStartingNumberSuggestions } from '@/hooks/useWorkouts';
+import type { SetTrainingMaxResult, StartingNumberSuggestion } from '@/api/workouts';
+import { hevyFallbackNote, itemFor } from '@/features/suggestions/startingNumbers';
+import { SuggestionEvidence } from '@/features/suggestions/SuggestionEvidence';
 
 const SHEET = 'bottom-0 top-auto max-h-[92dvh] translate-y-0 overflow-y-auto rounded-t-lg p-6 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2';
 
@@ -21,6 +24,10 @@ export interface SetTrainingMaxDialogProps {
   exerciseName: string;
   onClose: () => void;
   onSaved?: (result: SetTrainingMaxResult) => void;
+  /** Given (stories, callers that already loaded it): skip the fetch. Null = no suggestion. */
+  suggestion?: StartingNumberSuggestion | null;
+  /** Given with `suggestion`: why there is none (Hevy unavailable / not connected). */
+  fallbackNote?: string | null;
 }
 
 type Mode = 'recent' | 'direct';
@@ -35,11 +42,28 @@ function serverMessage(error: unknown): string {
   return data?.detail ?? data?.title ?? 'Could not save the training max. Try again.';
 }
 
-export function SetTrainingMaxDialog({ open, workoutId, exerciseId, exerciseName, onClose, onSaved }: SetTrainingMaxDialogProps) {
-  const [mode, setMode] = useState<Mode>('recent');
+export function SetTrainingMaxDialog({
+  open,
+  workoutId,
+  exerciseId,
+  exerciseName,
+  onClose,
+  onSaved,
+  suggestion: givenSuggestion,
+  fallbackNote: givenNote,
+}: SetTrainingMaxDialogProps) {
+  const given = givenSuggestion !== undefined;
+  const query = useStartingNumberSuggestions(workoutId, open && !given);
+  const suggestion = given ? givenSuggestion : (itemFor(query.data, exerciseId)?.suggestion ?? null);
+  const note = given ? (givenNote ?? null) : hevyFallbackNote(query.data, query.isError);
+
+  // Untouched fields follow the suggestion; anything typed wins.
+  const [chosenMode, setMode] = useState<Mode | null>(null);
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
-  const [tm, setTm] = useState('');
+  const [typedTm, setTm] = useState<string | null>(null);
+  const mode: Mode = chosenMode ?? (suggestion ? 'direct' : 'recent');
+  const tm = typedTm ?? (suggestion ? String(suggestion.valueKg) : '');
   const [invalid, setInvalid] = useState(false);
   const save = useSetTrainingMax();
 
@@ -85,6 +109,23 @@ export function SetTrainingMaxDialog({ open, workoutId, exerciseId, exerciseName
               {exerciseName} needs a training max before its first session. Give a recent set and we work it out, or enter it.
             </DialogDescription>
           </DialogHeader>
+
+          {suggestion ? (
+            <SuggestionEvidence
+              suggestion={suggestion}
+              onUse={() => {
+                setMode('direct');
+                setTm(String(suggestion.valueKg));
+                setInvalid(false);
+              }}
+            />
+          ) : (
+            note && (
+              <p className="text-sm text-muted-foreground" data-testid="suggestion-fallback">
+                {note}
+              </p>
+            )
+          )}
 
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="How to set it">
             {(

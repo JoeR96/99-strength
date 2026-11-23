@@ -10,6 +10,7 @@ import { CompletionSummary } from "./CompletionSummary";
 import { WeightDiscrepancyModal } from "./WeightDiscrepancyModal";
 import { MissingExercisesModal } from "./MissingExercisesModal";
 import { WeightConfirmationModal } from "./WeightConfirmationModal";
+import { useStartingNumberSuggestions } from "@/hooks/useWorkouts";
 import { PulledSubstitutionsModal } from "./PulledSubstitutionsModal";
 import { SessionRecoveryModal } from "./SessionRecoveryModal";
 import { WorkoutHeader } from "./WorkoutHeader";
@@ -18,6 +19,7 @@ import type { LinearProgressionDto } from "./workoutSessionTypes";
 
 export function WorkoutSession() {
   const session = useWorkoutSession();
+  const startingNumbers = useStartingNumberSuggestions(session.workout?.id, session.showWeightConfirmationModal);
 
   if (session.isLoading) {
     return (
@@ -178,6 +180,7 @@ export function WorkoutSession() {
           exercises={session.pendingWeightExercises}
           onConfirm={session.handleConfirmWeights}
           onSkip={session.handleSkipWeightConfirmation}
+          suggestions={startingNumbers.data}
         />
       )}
 
