@@ -5,6 +5,7 @@ import type {
   WorkoutSummaryDto,
   ExerciseLibrary,
   CreateWorkoutRequest,
+  CreateExerciseRequest,
   CompleteDayRequest,
   CompleteDayResult,
   DayNumber,
@@ -14,6 +15,13 @@ import type {
   SubstituteExerciseResult,
   WorkoutHistoryResponse,
 } from "../types/workout";
+
+export interface AddExerciseResult {
+  exerciseId: string;
+  name: string;
+  assignedDay: number;
+  orderInDay: number;
+}
 
 export interface UndoCompletionResult {
   day: number;
@@ -140,6 +148,18 @@ export const workoutsApi = {
       `/workouts/${workoutId}/exercises/${request.exerciseId}/substitute`,
       request
     );
+    return response.data;
+  },
+
+  /**
+   * Add an exercise to a running plan at its order in the day (later exercises move down one).
+   * It is part of the plan from then on: every week, with its own progression.
+   */
+  addExercise: async (
+    workoutId: string,
+    request: CreateExerciseRequest
+  ): Promise<AddExerciseResult> => {
+    const response = await apiClient.post<AddExerciseResult>(`/workouts/${workoutId}/exercises`, request);
     return response.data;
   },
 

@@ -1,6 +1,8 @@
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
+using A2S.Application.Commands.AddExercise;
 using A2S.Application.Commands.ConfirmStartingWeight;
+using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.ConfirmWorkingWeight;
 using A2S.Application.Commands.RemoveExercise;
 using A2S.Application.Commands.RetrofixLinearTm;
@@ -82,6 +84,29 @@ public class ExercisesController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Adds an exercise to a running plan at its order in the day (later exercises move down one).
+    /// The new exercise is part of the plan from now on: it shows up every week and progresses.
+    /// </summary>
+    [HttpPost("{id:guid}/exercises")]
+    [ProducesResponseType(typeof(AddExerciseResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AddExercise(
+        [FromRoute] Guid id,
+        [FromBody] CreateExerciseRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new AddExerciseCommand(id, request), cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return result.ToProblemResult();
+        }
+
+        return StatusCode(StatusCodes.Status201Created, result.Value);
     }
 
     /// <summary>

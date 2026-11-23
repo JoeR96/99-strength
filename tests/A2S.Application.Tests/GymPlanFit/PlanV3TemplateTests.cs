@@ -102,7 +102,8 @@ public class PlanV3TemplateTests
             "3 Single Arm Lateral Raise (Cable) 2 × 12–15 each side, left first",
             "4 Single Arm Cable Row 2 × 10–12 each side, left first",
             "5 Skullcrusher (Dumbbell) 2 × 10–12",
-            "6 Cable Core Palloff Press 2 × 10 each side, left first");
+            "6 Bicep Curl (Dumbbell) 2 × 10–12",
+            "7 Cable Core Palloff Press 2 × 10 each side, left first");
         preview.Sessions.Single(s => s.Label == "Lower A").Exercises[0].Should().BeEquivalentTo(new
         {
             Slot = "1", Name = "Pause Squat (Barbell)", Prescription = "4 × 5–8", Progression = "Reps per set"
@@ -113,7 +114,7 @@ public class PlanV3TemplateTests
         preview.Sessions.Single(s => s.Label == "Upper B").Exercises[0].Progression.Should().Be("A2S2 auxiliary scheme");
         preview.Routines.Select(r => r.Name).Should().Equal("Warm-up (upper)", "Warm-up (lower)", "Hips & lower back", "Upper back & chest", "Full-body flow");
         preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
-        preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 18 accessories"));
+        preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 19 accessories"));
         preview.ProgramWeeks.Should().Be(26);
         preview.Slots.Should().HaveCount(11);
     }

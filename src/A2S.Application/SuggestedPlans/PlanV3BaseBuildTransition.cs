@@ -140,7 +140,8 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Accessory("Single Arm Lateral Raise (Cable)", "DE68C825", DayNumber.Day1, 3, 2, 12, 15, perSide: true),
         Accessory("Single Arm Cable Row", "D0C4A899", DayNumber.Day1, 4, 2, 10, 12, perSide: true),
         Accessory("Skullcrusher (Dumbbell)", "68F8A292", DayNumber.Day1, 5, 2, 10, 12),
-        Accessory("Cable Core Palloff Press", "CC55119B", DayNumber.Day1, 6, 2, 10, 10, perSide: true),
+        Accessory("Bicep Curl (Dumbbell)", "37FCC2BB", DayNumber.Day1, 6, 2, 10, 12),
+        Accessory("Cable Core Palloff Press", "CC55119B", DayNumber.Day1, 7, 2, 10, 10, perSide: true),
 
         // Lower A: squat pattern. The pause squat is reps per set (4 × 5–8, weight confirmed after the first session), not A2S2.
         RepsPerSetMainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, sets: 4, repMin: 5, repMax: 8),

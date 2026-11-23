@@ -3,7 +3,7 @@
  * Shows historical weight/reps/sets/volume charts for a specific exercise
  */
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/apiClient';
 import {
@@ -48,6 +48,8 @@ interface HevyExerciseModalProps {
   exerciseTemplateId: string;
   exerciseTitle: string;
   onClose: () => void;
+  /** Extra content under the header, e.g. the library's "Add to plan" panel. */
+  children?: ReactNode;
 }
 
 function useExerciseHistory(templateId: string) {
@@ -68,6 +70,7 @@ export function HevyExerciseModal({
   exerciseTemplateId,
   exerciseTitle,
   onClose,
+  children,
 }: HevyExerciseModalProps) {
   const { data, isLoading, error } = useExerciseHistory(exerciseTemplateId);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('ALL');
@@ -167,6 +170,8 @@ export function HevyExerciseModal({
             </svg>
           </button>
         </div>
+
+        {children}
 
         {isLoading && (
           <div className="flex items-center justify-center py-12">
