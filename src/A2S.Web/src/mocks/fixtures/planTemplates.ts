@@ -7,7 +7,7 @@ const tm = (key: string, label: string) => ({ key, label, unit: 'kg', default: n
 
 export const planV3Preview: PlanTemplatePreview = {
   key: 'plan-v3',
-  name: 'Plan v3 — Base/Build/Transition',
+  name: 'Falador Fat Furnace',
   description: 'Four lifting days in straight sets, A2S2 on bench, incline and front squat, pause squat 4 × 5–8; a stair finisher, walk → run behind its gate and evening mobility.',
   startDate: '2026-11-23',
   inputs: [

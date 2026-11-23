@@ -9,7 +9,7 @@ using A2S.Domain.Services;
 namespace A2S.Application.SuggestedPlans;
 
 /// <summary>
-/// "Plan v3 — Base/Build/Transition": 26 weeks of cut, cardio and mobility (Base weeks 1–8 and Build
+/// "Falador Fat Furnace" (key "plan-v3", first shipped as "Plan v3 — Base/Build/Transition"): 26 weeks of cut, cardio and mobility (Base weeks 1–8 and Build
 /// 9–16 cutting, Transition 17–26 at maintenance). Four ~60-minute gym sessions (warm-up → main lift →
 /// straight-set accessories at normal rest, no supersets → core → stair finisher or a 10-minute treadmill
 /// cool-down) and three home routines in evening slots. Walking is a habit, not a track; Walk → run waits
@@ -22,7 +22,10 @@ namespace A2S.Application.SuggestedPlans;
 public sealed class PlanV3BaseBuildTransition : IPlanTemplate
 {
     public const string TemplateKey = "plan-v3";
-    public const string TemplateName = "Plan v3 — Base/Build/Transition";
+    public const string TemplateName = "Falador Fat Furnace";
+
+    /// <summary>Names this plan was started under before; plans with these names are still this plan.</summary>
+    public static IReadOnlyList<string> FormerNames { get; } = ["Plan v3 — Base/Build/Transition"];
 
     public const string WarmUpUpper = "Warm-up (upper)";
     public const string WarmUpLower = "Warm-up (lower)";
@@ -34,6 +37,8 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
 
     public string Key => TemplateKey;
     public string Name => TemplateName;
+
+    public IReadOnlyList<string> PreviousNames => FormerNames;
     public string Description =>
         "26 weeks: Base (1–8) and Build (9–16) cutting, Transition (17–26) at maintenance. Four gym sessions " +
         "(bench, incline Smith and front squat on A2S2; pause squat 4 × 5–8) in straight sets, stair finishers and " +
