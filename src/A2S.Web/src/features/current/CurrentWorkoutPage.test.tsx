@@ -58,7 +58,7 @@ describe('CurrentWorkoutPage', () => {
     expect(within(hero).getByRole('heading', { name: 'Upper A' })).toBeInTheDocument();
     expect(hero).toHaveTextContent('Bench Press (Barbell)');
     expect(hero).toHaveTextContent('4 × 5, 1 × 10+ · 75 kg');
-    expect(within(hero).getByTestId('planned-cardio')).toHaveTextContent('Stair finisher5 min continuous @ level 6');
+    expect(within(hero).getByTestId('planned-cardio')).toHaveTextContent('Stair finisher3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3) · 11 min');
     expect(hero).toHaveTextContent('2 more sessions to step up');
     expect(screen.getByTestId('start-workout')).toHaveAttribute('href', '/gym/1');
     expect(screen.queryByText(/rest day/i)).not.toBeInTheDocument();

@@ -151,6 +151,10 @@ export const runTrack: CardioTrackDto = {
   safetyNote: SAFETY,
 };
 
+/** The stair finisher's fixed easy minutes either side of the work (the template defaults). */
+export const STAIR_WARM_UP = { minutes: 3, level: 3, zone: 'Z2' };
+export const STAIR_COOL_DOWN = { minutes: 3, level: 3, zone: 'Z1–2' };
+
 export const stairTrack: CardioTrackDto = {
   id: STAIR_TRACK_ID,
   name: 'Stair finisher',
@@ -161,19 +165,35 @@ export const stairTrack: CardioTrackDto = {
   startedOn: '2026-11-02',
   isHard: true,
   stages: [
-    minutesStage('Continuous', TrackEffortTarget.Hard, 5, 10, 1, IntensityUnit.Level, 6, 9),
     {
-      ...minutesStage('Intervals', TrackEffortTarget.Hard, 4, 8, 1, IntensityUnit.Level, 10, null),
+      ...minutesStage('Continuous', TrackEffortTarget.Hard, 5, 15, 1, IntensityUnit.Level, 6, 9),
+      doubleProgression: { ...minutesStage('Continuous', TrackEffortTarget.Hard, 5, 15, 1, IntensityUnit.Level, 6, 9).doubleProgression!, volumeResetTo: 10 },
+      warmUp: STAIR_WARM_UP,
+      coolDown: STAIR_COOL_DOWN,
+    },
+    {
+      ...minutesStage('Intervals', TrackEffortTarget.Hard, 6, 10, 1, IntensityUnit.Level, 10, null),
       doubleProgression: {
-        ...minutesStage('Intervals', TrackEffortTarget.Hard, 4, 8, 1, IntensityUnit.Level, 10, null).doubleProgression!,
+        ...minutesStage('Intervals', TrackEffortTarget.Hard, 6, 10, 1, IntensityUnit.Level, 10, null).doubleProgression!,
         volumeUnit: VolumeUnit.Rounds,
         workSeconds: 60,
         restSeconds: 60,
+        volumeResetTo: 8,
       },
+      warmUp: STAIR_WARM_UP,
+      coolDown: STAIR_COOL_DOWN,
     },
   ],
   state: state({ volume: 7, intensity: 6, qualifying: 0, step: 2 }),
-  prescription: prescription('7 min continuous @ level 6', 7, 'Continuous', { intensityUnit: IntensityUnit.Level, intensity: 6 }),
+  prescription: prescription('7 min continuous @ level 6', 13, 'Continuous', {
+    intensityUnit: IntensityUnit.Level,
+    intensity: 6,
+    workMinutes: 7,
+    volume: 7,
+    warmUp: STAIR_WARM_UP,
+    coolDown: STAIR_COOL_DOWN,
+    text: '3 min easy (L3) → 7 min continuous @ level 6 → 3 min easy (L3)',
+  }),
   sessionsToStepUp: 2,
   suggestion: TrackSuggestion.None,
   suggestionText: null,
@@ -188,7 +208,7 @@ export const cardioTracksFixture: CardioTrackDto[] = [walkTrack, runTrack, stair
 export const cardioTemplatesFixture: CardioTrackTemplateDto[] = [
   { key: 'walk-builder', name: 'Walk builder', modality: CardioModality.Walk, description: 'Easy zone 2 walking: 20 → 45 min, then incline.' },
   { key: 'walk-to-run', name: 'Walk → run', modality: CardioModality.Run, description: 'Couch to 5K, then a 5 K builder up to 35 min.' },
-  { key: 'stair-finisher', name: 'Stair finisher', modality: CardioModality.StairClimber, description: 'After lifting: 5 → 10 min, then 1:1 intervals.' },
+  { key: 'stair-finisher', name: 'Stair finisher', modality: CardioModality.StairClimber, description: 'After lifting: 3 min easy, 5 → 15 min hard (then 1:1 intervals), 3 min easy.' },
 ];
 
 export const todayCardioFixture: TodayCardioDto = {

@@ -117,11 +117,15 @@ describe('toFinishRequest', () => {
       name: 'Stair finisher',
       prescription: '7 min continuous @ level 6',
       stepUp: '2 more sessions to step up',
-      minutes: 7,
+      // Total (3 easy + 7 work + 3 easy), with the work block prefilled beside it.
+      minutes: 13,
+      workMinutes: 7,
+      warmUp: { minutes: 3, level: 3, zone: 'Z2' },
+      coolDown: { minutes: 3, level: 3, zone: 'Z1–2' },
       level: 6,
     });
     const logged = updateFinisher(state, { floors: 30, effort: 'Brutal', pain: 'Niggle' });
-    expect(toFinishRequest(logged, ENDED_AT).finisher).toEqual({ durationSeconds: 420, effort: 'Brutal', level: 6, floors: 30, pain: 'Niggle' });
+    expect(toFinishRequest(logged, ENDED_AT).finisher).toEqual({ durationSeconds: 780, effort: 'Brutal', level: 6, floors: 30, workMinutes: 7, pain: 'Niggle' });
   });
 
   it('never ends before it started', () => {

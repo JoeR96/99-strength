@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import type { TrackSegmentDto } from "@/types/cardioTracks";
 import type {
   WorkoutDto,
   WorkoutSummaryDto,
@@ -278,6 +279,13 @@ export interface PlannedCardioDto {
   note?: string | null;
   cardioTrackId?: string | null;
   cardioProtocolId?: string | null;
+  /** A track's fixed easy warm-up / cool-down around the work block; `minutes` then includes them. */
+  warmUp?: TrackSegmentDto | null;
+  coolDown?: TrackSegmentDto | null;
+  /** Minutes of the work block alone. */
+  workMinutes?: number | null;
+  /** The whole session in one line. */
+  text?: string | null;
 }
 
 /** One session of the training cycle (`GET /workouts/current/cycle`). */

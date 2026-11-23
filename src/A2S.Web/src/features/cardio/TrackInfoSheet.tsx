@@ -1,6 +1,6 @@
 /**
  * A track's info sheet: what each stage does, the one-line safety note, and the editable
- * parameters (name, notes, sessions per step, ranges and steps). Saving re-evaluates nothing;
+ * parameters (name, notes, sessions per step, ranges, steps, where volume resets to after a level, and the easy\n * warm-up / cool-down minutes and level; 0 minutes turns one off). Saving re-evaluates nothing;
  * the track keeps its place inside the new ranges and the edit can be undone.
  */
 
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { IntensityUnit, intensityLabel, type CardioTrackDto, type TrackStageDto, type UpdateCardioTrackRequest } from '@/types/cardioTracks';
+import { IntensityUnit, intensityLabel, type CardioTrackDto, type TrackSegmentDto, type TrackStageDto, type UpdateCardioTrackRequest } from '@/types/cardioTracks';
 import { describeStage } from './trackText';
 import { optionalNumber } from './TrackLogSheet';
 import { useFormDraft } from '@/hooks/useFormDraft';
@@ -39,7 +39,17 @@ interface StageForm {
   intensityStart: string;
   intensityStep: string;
   intensityMax: string;
+  /** Where volume goes back to after an intensity step ('' = the bottom of the range). */
+  reset: string;
+  /** Warm-up / cool-down minutes ('0' or '' = off) and easy level. */
+  warmMinutes: string;
+  warmLevel: string;
+  coolMinutes: string;
+  coolLevel: string;
 }
+
+const DEFAULT_WARM_ZONE = 'Z2';
+const DEFAULT_COOL_ZONE = 'Z1–2';
 
 function toForm(stage: TrackStageDto): StageForm {
   const d = stage.doubleProgression;
@@ -48,26 +58,48 @@ function toForm(stage: TrackStageDto): StageForm {
     min: d ? String(d.volumeMin) : '',
     max: d ? String(d.volumeMax) : '',
     step: d ? String(d.volumeStepPercent ?? d.volumeStep) : '',
+    reset: d?.volumeResetTo?.toString() ?? '',
+    warmMinutes: String(stage.warmUp?.minutes ?? 0),
+    warmLevel: stage.warmUp?.level?.toString() ?? '',
+    coolMinutes: String(stage.coolDown?.minutes ?? 0),
+    coolLevel: stage.coolDown?.level?.toString() ?? '',
     intensityStart: d?.intensityStart?.toString() ?? '',
     intensityStep: d?.intensityStep?.toString() ?? '',
     intensityMax: d?.intensityMax?.toString() ?? '',
   };
 }
 
-function fromForm(stage: TrackStageDto, form: StageForm): TrackStageDto {
+/** A warm-up or cool-down from the form: 0 or blank minutes turns it off; the zone note is kept. */
+export function segmentFromForm(minutes: string, level: string, existing: TrackSegmentDto | null | undefined, zone: string): TrackSegmentDto | null {
+  const m = Math.round(optionalNumber(minutes) ?? 0);
+  if (m <= 0) return null;
+  return { minutes: Math.min(30, m), level: optionalNumber(level), zone: existing?.zone ?? zone };
+}
+
+export function fromForm(stage: TrackStageDto, form: StageForm): TrackStageDto {
   const sessions = Math.max(1, Math.round(optionalNumber(form.sessions) ?? 2));
+  const segments = {
+    warmUp: segmentFromForm(form.warmMinutes ?? '0', form.warmLevel ?? '', stage.warmUp, DEFAULT_WARM_ZONE),
+    coolDown: segmentFromForm(form.coolMinutes ?? '0', form.coolLevel ?? '', stage.coolDown, DEFAULT_COOL_ZONE),
+  };
   if (stage.weekProgram) {
-    return { ...stage, weekProgram: { ...stage.weekProgram, sessionsToAdvance: sessions } };
+    return { ...stage, ...segments, weekProgram: { ...stage.weekProgram, sessionsToAdvance: sessions } };
   }
   const d = stage.doubleProgression!;
   const step = optionalNumber(form.step) ?? d.volumeStep;
+  const volumeMin = optionalNumber(form.min) ?? d.volumeMin;
+  const volumeMax = optionalNumber(form.max) ?? d.volumeMax;
+  const reset = optionalNumber(form.reset ?? '');
   return {
     ...stage,
+    ...segments,
     doubleProgression: {
       ...d,
       sessionsToAdvance: sessions,
-      volumeMin: optionalNumber(form.min) ?? d.volumeMin,
-      volumeMax: optionalNumber(form.max) ?? d.volumeMax,
+      volumeMin,
+      volumeMax,
+      // Outside the range (or blank) means "back to the bottom", the original rule.
+      volumeResetTo: reset !== null && reset >= volumeMin && reset <= volumeMax ? reset : null,
       volumeStep: d.volumeStepPercent ? d.volumeStep : step,
       volumeStepPercent: d.volumeStepPercent ? step : null,
       intensityStart: d.intensityUnit === IntensityUnit.None ? null : optionalNumber(form.intensityStart) ?? d.intensityStart,
@@ -159,6 +191,14 @@ export function TrackInfoSheet({ track, onClose, onSave, saving = false }: Track
                         value={form.step}
                         onChange={(v) => setField(index, 'step', v)}
                       />
+                      {d.intensityUnit !== IntensityUnit.None && (
+                        <NumberField
+                          id={`stage-${index}-reset`}
+                          label="Back to (after a level)"
+                          value={form.reset}
+                          onChange={(v) => setField(index, 'reset', v)}
+                        />
+                      )}
                     </>
                   )}
                   {d && d.intensityUnit !== IntensityUnit.None && (
@@ -173,6 +213,12 @@ export function TrackInfoSheet({ track, onClose, onSave, saving = false }: Track
                       <NumberField id={`stage-${index}-imax`} label={`${intensityLabel[d.intensityUnit]} top`} value={form.intensityMax} onChange={(v) => setField(index, 'intensityMax', v)} />
                     </>
                   )}
+                </div>
+                <div className="grid grid-cols-2 gap-3" data-testid={`stage-${index}-segments`}>
+                  <NumberField id={`stage-${index}-warm-min`} label="Warm-up min (0 = off)" value={form.warmMinutes} onChange={(v) => setField(index, 'warmMinutes', v)} />
+                  <NumberField id={`stage-${index}-warm-level`} label="Warm-up level" value={form.warmLevel} onChange={(v) => setField(index, 'warmLevel', v)} />
+                  <NumberField id={`stage-${index}-cool-min`} label="Cool-down min (0 = off)" value={form.coolMinutes} onChange={(v) => setField(index, 'coolMinutes', v)} />
+                  <NumberField id={`stage-${index}-cool-level`} label="Cool-down level" value={form.coolLevel} onChange={(v) => setField(index, 'coolLevel', v)} />
                 </div>
               </fieldset>
             );
