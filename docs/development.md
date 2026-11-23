@@ -177,6 +177,15 @@ snapshot's stages; a migration rather than an on-read default so a segment the u
 Down reverts (tested in `StairFinisherBackfillTests`). Gym mode sends `finisher.workMinutes` beside the total
 `durationSeconds`; the Hevy post's duration is the total and its notes list the parts.
 
+Live finisher wizard: the frontend builds phases from the gym finisher (`features/gym/finisher/`; intervals
+come from the prescription's `workSeconds`/`restSeconds` and rounds) and runs a wall-clock engine persisted in
+localStorage (`a2s.finisher.{clientSessionId}`). Phase-change notifications: `POST|DELETE
+/api/v1/finisher-sessions/{clientSessionId}/schedule` (body `{ day, title?, nudges: [{ at, body }] }`, replaces
+the whole schedule; nudges more than 6 h ahead are rejected, past ones dropped). Table `FinisherSchedules`
+(migration `AddFinisherSchedules`, additive; Down drops the table, tested in `FinisherSchedulePersistenceTests`).
+`FinisherNudgeHostedService` ticks every 5 seconds and, like the daily nudges, stays idle in `Testing` and
+without VAPID keys. The service worker sets `renotify` for `finisher-*` tags so each phase change buzzes.
+
 ## Keeping clients in sync
 
 Contract for Terran CC and the web app (details in `AGENTS.md` "Keeping clients in sync"):

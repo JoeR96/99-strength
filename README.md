@@ -167,6 +167,15 @@ summary shows what the finisher did next to the lift changes, for example "Stair
 @ level 6 → 6 min continuous @ level 6" or "Hold: 1 more qualifying session to step up", and the next
 prescription.
 
+**Live finisher guide:** tap **Start finisher** on the stair finisher card and the phone walks you
+through it full screen: warm-up, the work block (or each hard and easy minute of the intervals, with
+"Round 4 of 7"), then the cool-down. You get the level and zone, a big countdown, progress bars, what
+comes next, beeps at 3-2-1 and at each change, and an optional spoken cue. Pause, skip, go back or add
+or take off 30 seconds at any time. You can switch to YouTube between phases: the timer runs on the
+clock, so it is right the moment you come back, and with notifications on you get a buzz at each phase
+change ("Hard: level 6 for 1 min") that opens the guide again. When it ends, the finisher log is filled
+in with the minutes and level; add your floors and how it felt. Stop part way and nothing is logged.
+
 **With Hevy:**
 - Walks, runs and home routines you finish in the app are sent to Hevy from the server, just like gym sessions: Walking, Treadmill or Running for cardio, Stretching or Yoga for routines. If Hevy is down, they are retried, and never sent twice.
 - If you finish a workout in Hevy instead, the pull reads the time, floors, distance and RPE and moves the track on. A finisher done inside a lifting workout also marks the finisher done in the app.
@@ -195,7 +204,7 @@ A .NET 10 API (Clean Architecture, CQRS, PostgreSQL) and a React 19 PWA. Its sea
 - **Domain**: the A2S2 workout and its progression strategies, the training plan, cardio protocols, mobility
   routines, habits, body weight and meals. No framework dependencies.
 - **Hevy anti-corruption layer**: every call to Hevy goes through the server, with retries and rate-limit handling.
-- **Push sender**: a background job that sends each nudge at most once per person per local day.
+- **Push sender**: a background job that sends each nudge at most once per person per local day, and a second one that sends the live finisher's phase changes on time.
 - **Local time**: all dates are Europe/London local dates, so streaks and week rollover stay correct across clock changes.
 
 Developer and agent documentation: [`AGENTS.md`](AGENTS.md) for architecture and conventions, and

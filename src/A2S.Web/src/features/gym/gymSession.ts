@@ -6,7 +6,8 @@
  * sets that were confirmed are sent, and a lift with none is left out (its progression waits).
  */
 
-import type { CardioTrackDto, TrackSegmentDto } from '@/types/cardioTracks';
+import { VolumeUnit, type CardioTrackDto, type TrackSegmentDto } from '@/types/cardioTracks';
+import type { FinisherIntervals } from './finisher/finisherPlan';
 import { stepUpText } from '@/features/cardio/trackText';
 import type { WeekPlanDto } from '@/api/workouts';
 import type { MobilityRoutineDto } from '@/types/mobility';
@@ -78,6 +79,8 @@ export interface GymFinisher {
   workMinutes?: number | null;
   warmUp?: TrackSegmentDto | null;
   coolDown?: TrackSegmentDto | null;
+  /** A 1:1 interval stage: rounds of hard / easy (the live wizard expands them). */
+  intervals?: FinisherIntervals | null;
 }
 
 /** Bump when GymSessionState changes shape, and teach `migrateGymSession` to upgrade the old one. */
@@ -111,6 +114,15 @@ export interface CreateGymSessionInput {
 }
 
 /** "Treadmill · easy incline · 10 min". */
+/** A track prescription's interval block (work/rest seconds and rounds), or null when it is continuous. */
+export function trackIntervals(track: CardioTrackDto): FinisherIntervals | null {
+  const p = track.prescription;
+  if (!p.workSeconds || p.workSeconds <= 0) return null;
+  const rest = p.restSeconds ?? 0;
+  const rounds = p.volumeUnit === VolumeUnit.Rounds && p.volume ? p.volume : Math.floor(((p.workMinutes || 0) * 60) / (p.workSeconds + rest));
+  return rounds > 0 ? { rounds, workSeconds: p.workSeconds, restSeconds: rest } : null;
+}
+
 export function fixedFinisherText(fixed: FixedFinisherDto): string {
   const notes = fixed.notes?.trim();
   return [fixed.kind, notes ? notes.charAt(0).toLowerCase() + notes.slice(1) : null, `${fixed.minutes} min`].filter(Boolean).join(' · ');
@@ -188,6 +200,7 @@ export function createGymSession(input: CreateGymSessionInput): GymSessionState 
                 coolDown: input.finisherTrack.prescription.coolDown ?? null,
               }
             : {}),
+          ...(trackIntervals(input.finisherTrack) ? { intervals: trackIntervals(input.finisherTrack) } : {}),
           level: input.finisherTrack.prescription.intensity ?? null,
           floors: null,
           effort: null,

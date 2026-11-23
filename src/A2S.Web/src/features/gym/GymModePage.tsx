@@ -61,6 +61,10 @@ import {
 } from './gymSession';
 import { SetTrainingMaxDialog } from './SetTrainingMaxDialog';
 import { useRestTimer } from './useRestTimer';
+import { FinisherWizard } from './finisher/FinisherWizard';
+import { finisherLogFromSummary, finisherPhases } from './finisher/gymFinisherPlan';
+import { clearEngine, loadEngine, saveEngine, scheduleOf, startEngine, type FinisherSummary, type ScheduledNudge } from './finisher/finisherEngine';
+import { finisherSessionsApi } from '@/api/finisherSessions';
 
 const MOBILITY_A = 'mobility a';
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -210,6 +214,44 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
   });
   useWakeLock(outcome === null);
 
+  // The live finisher wizard (stair finisher only). `?finisher=1` (the phase notification's deep link)
+  // or a wizard this phone left running reopens it.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const finisherPlan = useMemo(() => finisherPhases(state.finisher), [state.finisher]);
+  const [wizardOpen, setWizardOpen] = useState(
+    () => finisherPhases(state.finisher).length > 0 && (searchParams.get('finisher') === '1' || loadEngine(state.clientSessionId) !== null)
+  );
+  const postSchedule = useCallback(
+    (nudges: ScheduledNudge[]) => {
+      void finisherSessionsApi.replace(state.clientSessionId, { day: state.day, title: state.finisher?.name ?? null, nudges }).catch(() => undefined);
+    },
+    [state.clientSessionId, state.day, state.finisher?.name]
+  );
+  const closeWizard = () => {
+    clearEngine(state.clientSessionId);
+    void finisherSessionsApi.remove(state.clientSessionId).catch(() => undefined);
+    setWizardOpen(false);
+    if (searchParams.has('finisher')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('finisher');
+      setSearchParams(next, { replace: true });
+    }
+  };
+  const startFinisher = () => {
+    primeAudio();
+    if (!loadEngine(state.clientSessionId)) {
+      const now = Date.now();
+      const engine = startEngine(state.clientSessionId, finisherPlan, now);
+      saveEngine(engine);
+      postSchedule(scheduleOf(engine, now));
+    }
+    setWizardOpen(true);
+  };
+  const onFinisherDone = (summary: FinisherSummary) => {
+    update((s) => (s.finisher ? updateFinisher(s, finisherLogFromSummary(s.finisher, summary)) : s));
+    closeWizard();
+  };
+
   const update = useCallback((next: (s: GymSessionState) => GymSessionState) => {
     setState((current) => {
       const updated = next(current);
@@ -308,9 +350,21 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         onFinish={onFinish}
         onToggleExtraSet={(l, change) => update((s) => toggleExtraSet(s, l, change))}
         onToggleFixedFinisher={() => update(toggleFixedFinisher)}
+        onStartFinisher={finisherPlan.length > 0 ? startFinisher : undefined}
+        finisherStartLabel={loadEngine(state.clientSessionId) ? 'Resume finisher' : 'Start finisher'}
         onSetTrainingMax={setTmLift}
         onToggleLeft={(l, set) => update((s) => toggleSide(s, l, set, 'Left'))}
       />
+      {wizardOpen && state.finisher && (
+        <FinisherWizard
+          name={state.finisher.name}
+          clientSessionId={state.clientSessionId}
+          phases={finisherPlan}
+          onSchedule={postSchedule}
+          onDone={onFinisherDone}
+          onAbandon={closeWizard}
+        />
+      )}
       {tmLift !== null && state.lifts[tmLift] && (
         <SetTrainingMaxDialog
           open

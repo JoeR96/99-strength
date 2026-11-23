@@ -29,6 +29,9 @@ export interface GymChecklistProps {
   onToggleExtraSet?: (lift: number, change?: { weight?: number; reps?: number }) => void;
   /** Ticks the fixed cool-down. */
   onToggleFixedFinisher?: () => void;
+  /** Opens the live finisher wizard (stair finisher only). */
+  onStartFinisher?: () => void;
+  finisherStartLabel?: string;
   /** Opens "Set your training max" for a lift without one. */
   onSetTrainingMax?: (lift: number) => void;
   /** Unilateral lifts: ticks a set's left side (done first). */
@@ -51,6 +54,8 @@ export function GymChecklist({
   onFinish,
   onToggleExtraSet,
   onToggleFixedFinisher,
+  onStartFinisher,
+  finisherStartLabel,
   onSetTrainingMax,
   onToggleLeft,
   initialPrompt = null,
@@ -102,7 +107,7 @@ export function GymChecklist({
         {state.finisher?.fixed ? (
           <FixedFinisherCard finisher={state.finisher} onToggle={() => onToggleFixedFinisher?.()} />
         ) : (
-          state.finisher && <FinisherCard finisher={state.finisher} onChange={onFinisherChange} />
+          state.finisher && <FinisherCard finisher={state.finisher} onChange={onFinisherChange} onStart={onStartFinisher} startLabel={finisherStartLabel} />
         )}
 
         <div className="space-y-2 pb-8 pt-2">

@@ -808,6 +808,55 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("TrainingPlans", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Domain.Aggregates.Push.FinisherSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ClientSessionId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("NextDueAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("_nudges")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("Nudges")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NextDueAtUtc");
+
+                    b.HasIndex("UserId", "ClientSessionId")
+                        .IsUnique();
+
+                    b.ToTable("FinisherSchedules", (string)null);
+                });
+
             modelBuilder.Entity("A2S.Domain.Aggregates.Push.PushNudgeLog", b =>
                 {
                     b.Property<Guid>("Id")
