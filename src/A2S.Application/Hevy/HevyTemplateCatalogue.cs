@@ -110,6 +110,13 @@ public sealed class HevyTemplateCatalogue
         {
             Title = exercise.Name,
             ExerciseType = exercise.Equipment == EquipmentType.Bodyweight ? HevyExerciseTypes.BodyweightReps : HevyExerciseTypes.WeightReps,
+            EquipmentCategory = exercise.Equipment switch
+            {
+                EquipmentType.Barbell => "barbell",
+                EquipmentType.Dumbbell => "dumbbell",
+                EquipmentType.Cable or EquipmentType.Machine or EquipmentType.SmithMachine or EquipmentType.PlateLoadedMachine => "machine",
+                _ => "none"
+            },
             PrimaryMuscleGroup = HevyMuscleGroups.Contains(muscleGroup ?? string.Empty) ? muscleGroup!.ToLowerInvariant() : FallbackMuscleGroup
         };
 
