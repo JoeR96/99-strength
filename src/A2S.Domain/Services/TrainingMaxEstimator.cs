@@ -14,6 +14,10 @@ public static class TrainingMaxEstimator
     public const decimal TrainingMaxFraction = 0.90m;
     public const int MaximumReps = 12;
 
+    /// <summary>Epley e1RM: weight × (1 + reps / 30); a single is taken at face value.</summary>
+    public static decimal EstimateOneRepMax(decimal weight, int reps) =>
+        reps == 1 ? weight : weight * (1 + reps / 30m);
+
     public static TrainingMax FromRecentSet(Weight weight, int reps)
     {
         ArgumentNullException.ThrowIfNull(weight);
@@ -27,7 +31,7 @@ public static class TrainingMaxEstimator
             throw new BusinessRuleViolationException($"Use a recent set of 1 to {MaximumReps} reps to estimate a training max");
         }
 
-        var oneRepMax = reps == 1 ? weight.Value : weight.Value * (1 + reps / 30m);
+        var oneRepMax = EstimateOneRepMax(weight.Value, reps);
         var increment = weight.Unit == WeightUnit.Kilograms ? 2.5m : 5m;
         var rounded = Math.Round(oneRepMax * TrainingMaxFraction / increment, MidpointRounding.AwayFromZero) * increment;
         return TrainingMax.Create(Math.Max(increment, rounded), weight.Unit);

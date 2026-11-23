@@ -8,6 +8,7 @@ using A2S.Application.Commands.SetTrainingMax;
 using A2S.Application.Commands.SubstituteExercise;
 using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.Commands.UpdateWorkingWeight;
+using A2S.Application.Queries.Suggestions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -129,6 +130,19 @@ public class ExercisesController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Suggested training maxes / starting weights for the workout's pending exercises, estimated from the
+    /// person's Hevy history (Clerk session only). <c>hevyStatus</c> says when Hevy could not be read.
+    /// </summary>
+    [HttpGet("{id:guid}/suggestions/starting-numbers")]
+    [ProducesResponseType(typeof(StartingNumbersSuggestionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStartingNumbersSuggestions([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetStartingNumbersSuggestionsQuery(id), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 
     /// <summary>
