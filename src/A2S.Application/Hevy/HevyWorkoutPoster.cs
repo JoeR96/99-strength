@@ -321,6 +321,8 @@ public sealed class HevyWorkoutPoster
             {
                 ExerciseTemplateId = templateId,
                 Notes = (track is null ? string.Empty : $"{track.Name} · ")
+                    + (payload.FinisherPrescription is { } parts && parts.Contains(" → ", StringComparison.Ordinal) ? $"{parts} · " : string.Empty)
+                    + (finisher.WorkMinutes is { } work ? $"Work {DoubleProgressionStrategy.Number(work)} min · " : string.Empty)
                     + (finisher.Level is { } level ? $"Level {level} · {finisher.Effort}" : finisher.Effort.ToString()),
                 Sets =
                 [

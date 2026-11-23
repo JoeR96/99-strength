@@ -37,6 +37,12 @@ public sealed record CardioLog
     public string? PainArea { get; init; }
     public CardioLogSource Source { get; init; }
 
+    /// <summary>
+    /// Minutes of the work block alone when the session had a warm-up or cool-down around it (then
+    /// <see cref="DurationSeconds"/> is the whole session). Null: the whole session was the work.
+    /// </summary>
+    public decimal? WorkMinutes { get; init; }
+
     public CardioLog(
         int durationSeconds,
         int? avgHeartRate,

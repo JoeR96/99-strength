@@ -28,10 +28,13 @@ import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
 import { GymModePage } from './features/gym/GymModePage';
 import { PlanTemplatesPage } from './features/plans/PlanTemplatesPage';
+import { useSyncEvents } from './sync/useSyncEvents';
 
 function AppContent() {
   // Initialize API client with Clerk auth
   useInitializeApiClient();
+  // Live refetches when another client (Terran CC, another tab or phone) changes something.
+  useSyncEvents();
 
   return (
     <ErrorBoundary>

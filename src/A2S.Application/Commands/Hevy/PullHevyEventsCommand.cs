@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.Hevy;
 using MediatR;
@@ -8,6 +10,7 @@ namespace A2S.Application.Commands.Hevy;
 /// Pulls the current user's Hevy workout events since their cursor and completes matched sessions.
 /// <paramref name="Force"/> re-walks everything from the plan start.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan | SyncArea.Cardio)]
 public sealed record PullHevyEventsCommand(bool Force = false) : ICommand<Result<PullSummary>>;
 
 public sealed class PullHevyEventsCommandHandler : IRequestHandler<PullHevyEventsCommand, Result<PullSummary>>

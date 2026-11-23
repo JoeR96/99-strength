@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -9,6 +11,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Adds a dated phase (cut, maintenance, pause, deload) to the plan. Phases may not overlap.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record AddPhaseCommand(Guid PlanId, PhaseType Type, DateOnly From, DateOnly To, string? Note) : ICommand<Result<TrainingPlanDto>>;
 
 public sealed class AddPhaseCommandValidator : AbstractValidator<AddPhaseCommand>

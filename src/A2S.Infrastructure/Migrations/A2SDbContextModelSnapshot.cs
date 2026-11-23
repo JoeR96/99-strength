@@ -1198,6 +1198,38 @@ namespace A2S.Infrastructure.Migrations
                     b.ToTable("IdempotencyRecords", (string)null);
                 });
 
+            modelBuilder.Entity("A2S.Infrastructure.Services.UserChangeLogRecord", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("Cardio")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Habits")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Mobility")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Plan")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Workout")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserChangeLogs", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")
@@ -1379,6 +1411,9 @@ namespace A2S.Infrastructure.Migrations
 
                             b1.Property<int?>("Steps")
                                 .HasColumnType("integer");
+
+                            b1.Property<decimal?>("WorkMinutes")
+                                .HasColumnType("numeric");
 
                             b1.Property<int?>("Zone5Minutes")
                                 .HasColumnType("integer");

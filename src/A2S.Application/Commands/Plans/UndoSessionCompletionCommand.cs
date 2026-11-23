@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -6,6 +8,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Removes a recorded session completion.</summary>
+[ChangesSyncArea(SyncArea.Plan | SyncArea.Cardio | SyncArea.Mobility)]
 public sealed record UndoSessionCompletionCommand(Guid PlanId, Guid CompletionId) : ICommand<Result<bool>>;
 
 public sealed class UndoSessionCompletionCommandHandler : IRequestHandler<UndoSessionCompletionCommand, Result<bool>>

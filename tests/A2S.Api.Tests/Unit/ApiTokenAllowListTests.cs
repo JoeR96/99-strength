@@ -35,6 +35,8 @@ public class ApiTokenAllowListTests
         "GET api/v1/plans/today",
         "GET api/v1/plans/upcoming",
         "GET api/v1/readiness",
+        "GET api/v1/sync/events",
+        "GET api/v1/sync/version",
         "GET api/v1/users/me/api-tokens/whoami"
     ];
 
@@ -74,7 +76,7 @@ public class ApiTokenAllowListTests
     }
 
     [Fact]
-    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayUpcomingReadinessAndWhoAmIBesides()
+    public void EveryHabitAndBodyWeightAction_IsOnTheList_AndOnlyPlansTodayUpcomingReadinessSyncAndWhoAmIBesides()
     {
         var reachable = ControllerEndpoints(isProduction: true)
             .Where(endpoint => endpoint.Metadata.GetMetadata<AllowApiTokenAttribute>() is not null)
@@ -97,6 +99,8 @@ public class ApiTokenAllowListTests
                 $"{nameof(PlansController)}.{nameof(PlansController.GetToday)}",
                 $"{nameof(PlansController)}.{nameof(PlansController.GetUpcoming)}",
                 $"{nameof(ReadinessController)}.{nameof(ReadinessController.Get)}",
+                $"{nameof(SyncController)}.{nameof(SyncController.GetVersion)}",
+                $"{nameof(SyncController)}.{nameof(SyncController.Events)}",
                 $"{nameof(ApiTokensController)}.{nameof(ApiTokensController.WhoAmI)}");
     }
 

@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Repositories;
 using MediatR;
@@ -5,6 +7,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Removes the checkpoint on the given date.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record RemoveCheckpointCommand(Guid PlanId, DateOnly Date) : ICommand<Result<bool>>;
 
 public sealed class RemoveCheckpointCommandHandler : IRequestHandler<RemoveCheckpointCommand, Result<bool>>

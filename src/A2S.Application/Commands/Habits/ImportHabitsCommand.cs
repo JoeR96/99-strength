@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using System.Text.Json.Serialization;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Habits;
@@ -25,6 +27,7 @@ public sealed record ImportResult(int HabitsCreated, int HabitsMatched, int Logs
 /// Idempotent import: habits are matched by <see cref="ImportHabitDto.ExternalKey"/> and created when missing;
 /// logs are written only when the stored value differs.
 /// </summary>
+[ChangesSyncArea(SyncArea.Habits)]
 public sealed record ImportHabitsCommand(IReadOnlyList<ImportHabitDto> Habits) : ICommand<Result<ImportResult>>;
 
 public sealed class ImportHabitsCommandValidator : AbstractValidator<ImportHabitsCommand>

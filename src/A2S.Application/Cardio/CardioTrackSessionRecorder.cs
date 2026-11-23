@@ -35,6 +35,13 @@ public sealed class CardioTrackSessionRecorder
         return track is null || track.UserId != userId ? null : track.Prescription.Title;
     }
 
+    /// <summary>The whole prescription as one line, warm-up and cool-down included (null when not the user's track).</summary>
+    public async Task<string?> PrescriptionTextAsync(UserId userId, CardioTrackId trackId, CancellationToken ct)
+    {
+        var track = await _tracks.GetByIdAsync(trackId, ct);
+        return track is null || track.UserId != userId ? null : track.Prescription.Text;
+    }
+
     /// <summary>Null when the track does not exist or is not the user's.</summary>
     public async Task<(CardioTrack Track, TrackEvaluationResult Result)?> RecordAsync(
         UserId userId,
@@ -54,7 +61,12 @@ public sealed class CardioTrackSessionRecorder
         }
 
         // "Mark done" with nothing logged: the prescription, done as written.
-        log ??= new CardioLog(Math.Max(1, track.Prescription.Minutes) * 60, null, null, null, null);
+        // Minutes is the whole session (warm-up and cool-down included); the work block is kept beside it.
+        var prescription = track.Prescription;
+        log ??= new CardioLog(Math.Max(1, prescription.Minutes) * 60, null, null, null, null)
+        {
+            WorkMinutes = prescription.HasSegments ? prescription.WorkMinutes : null
+        };
 
         var user = await _users.GetByIdAsync(userId, ct);
         // The plan's schedule sets a week program's gate (planned and missed sessions this week).

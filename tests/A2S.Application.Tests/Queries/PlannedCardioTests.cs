@@ -76,7 +76,11 @@ public class PlannedCardioTests
         cardio.Prescription.Should().Be("5 min continuous @ level 6");
         cardio.ProgressionType.Should().Be("Cardio track: double progression");
         cardio.OrderInDay.Should().Be(plan.Exercises.Count + 1);
-        cardio.Minutes.Should().Be(5);
+        cardio.Minutes.Should().Be(11, "3 min easy, 5 min work, 3 min easy");
+        cardio.WorkMinutes.Should().Be(5);
+        cardio.WarmUp!.Minutes.Should().Be(3);
+        cardio.CoolDown!.Zone.Should().Be("Z1–2");
+        cardio.Text.Should().Be("3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)");
         cardio.IntensityUnit.Should().Be("Level");
         cardio.Intensity.Should().Be(6);
         cardio.SessionsToStepUp.Should().Be(2);

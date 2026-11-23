@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -9,6 +11,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Sets the label, the free-text changes and the exercise swaps of the phase starting on <see cref="From"/>.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record SetPhaseChangesCommand(
     Guid PlanId,
     DateOnly From,

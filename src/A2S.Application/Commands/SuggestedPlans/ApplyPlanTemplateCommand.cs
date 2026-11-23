@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.Services;
 using A2S.Application.SuggestedPlans;
@@ -14,6 +16,7 @@ namespace A2S.Application.Commands.SuggestedPlans;
 /// needs <see cref="ConfirmReplace"/>; applying the active template again returns it (idempotent) unless
 /// <see cref="ConfirmReplace"/> is true, which replaces it with a fresh copy (the old plan is kept, inactive, and its workout paused).
 /// </summary>
+[ChangesSyncArea(SyncArea.All)]
 public sealed record ApplyPlanTemplateCommand(
     string Key,
     DateOnly? StartDate,

@@ -17,6 +17,8 @@ export interface FinisherLogRequest {
   level?: number | null;
   floors?: number | null;
   pain?: 'None' | 'Niggle' | 'Stop';
+  /** A track finisher with a warm-up/cool-down: the work block's minutes (durationSeconds is the whole session). */
+  workMinutes?: number | null;
   /** A fixed cool-down ticked as done (treadmill 10 min): logged as prescribed. */
   completedAsPrescribed?: boolean;
 }

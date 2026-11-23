@@ -6,7 +6,7 @@
  * sets that were confirmed are sent, and a lift with none is left out (its progression waits).
  */
 
-import type { CardioTrackDto } from '@/types/cardioTracks';
+import type { CardioTrackDto, TrackSegmentDto } from '@/types/cardioTracks';
 import { stepUpText } from '@/features/cardio/trackText';
 import type { WeekPlanDto } from '@/api/workouts';
 import type { MobilityRoutineDto } from '@/types/mobility';
@@ -74,6 +74,10 @@ export interface GymFinisher {
   floors: number | null;
   effort: Effort | null;
   pain?: 'None' | 'Niggle' | 'Stop';
+  /** A track with a warm-up or cool-down: `minutes` is the whole session, this the work block (prefilled). */
+  workMinutes?: number | null;
+  warmUp?: TrackSegmentDto | null;
+  coolDown?: TrackSegmentDto | null;
 }
 
 /** Bump when GymSessionState changes shape, and teach `migrateGymSession` to upgrade the old one. */
@@ -177,6 +181,13 @@ export function createGymSession(input: CreateGymSessionInput): GymSessionState 
           name: input.finisherTrack.name,
           prescription: input.finisherTrack.prescription.title,
           minutes: input.finisherTrack.prescription.minutes || null,
+          ...(input.finisherTrack.prescription.warmUp || input.finisherTrack.prescription.coolDown
+            ? {
+                workMinutes: input.finisherTrack.prescription.workMinutes,
+                warmUp: input.finisherTrack.prescription.warmUp ?? null,
+                coolDown: input.finisherTrack.prescription.coolDown ?? null,
+              }
+            : {}),
           level: input.finisherTrack.prescription.intensity ?? null,
           floors: null,
           effort: null,
@@ -415,6 +426,7 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
           effort: finisher.effort!,
           level: finisher.level,
           floors: finisher.floors,
+          ...(finisher.workMinutes != null && finisher.workMinutes > 0 ? { workMinutes: finisher.workMinutes } : {}),
           ...(finisher.pain && finisher.pain !== 'None' ? { pain: finisher.pain } : {}),
         }
       : null,

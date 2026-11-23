@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Repositories;
@@ -7,6 +9,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Takes back one allowance use recorded on a date.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record RemoveAllowanceUseCommand(Guid PlanId, DateOnly Date, AllowanceKind Kind) : ICommand<Result<bool>>;
 
 public sealed class RemoveAllowanceUseCommandValidator : AbstractValidator<RemoveAllowanceUseCommand>

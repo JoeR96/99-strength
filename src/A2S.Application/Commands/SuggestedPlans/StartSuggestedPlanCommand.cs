@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Application.SuggestedPlans;
@@ -12,6 +14,7 @@ namespace A2S.Application.Commands.SuggestedPlans;
 /// links them, in one unit of work. Idempotent per user: while that plan is the active one, starting
 /// again returns it instead of creating a second plan and workout.
 /// </summary>
+[ChangesSyncArea(SyncArea.All)]
 public sealed record StartSuggestedPlanCommand(
     decimal BenchTm,
     decimal SquatTm,

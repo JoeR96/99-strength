@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Cardio;
@@ -12,6 +14,7 @@ namespace A2S.Application.Commands.Cardio;
 /// Creates a cardio protocol for the current user: Norwegian 4×4 (no parameters), a Couch to 5K
 /// week (<paramref name="WeekIndex"/> 1–9, optional repeat) or LISS (<paramref name="Minutes"/> 30–40, optional note).
 /// </summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record CreateCardioProtocolCommand(
     CardioProtocolKind Kind,
     int? WeekIndex = null,

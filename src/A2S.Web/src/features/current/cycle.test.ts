@@ -14,8 +14,8 @@ describe('cycle helpers', () => {
   });
 
   it('estimates the session from sets, rest, the finisher and the warm-up', () => {
-    // Bench 5 × (180 + 40) s + row 3 × (90 + 40) s = 1490 s ≈ 24.8 min, + 5 min stairs + 10 min warm-up.
-    expect(estimateMinutes(sessionPlan(1, 1), 10)).toBe(40);
+    // Bench 5 × (180 + 40) s + row 3 × (90 + 40) s = 1490 s ≈ 24.8 min, + 11 min stairs (3 easy, 5 hard, 3 easy) + 10 min warm-up.
+    expect(estimateMinutes(sessionPlan(1, 1), 10)).toBe(46);
   });
 
   it('splits the cycle into current, the rest of this week and next week', () => {

@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using FluentValidation;
@@ -9,6 +11,7 @@ namespace A2S.Application.Commands.Habits;
 /// timestamp (an offline device syncing late) does not overwrite a newer value. The stored log is returned
 /// either way so the client can reconcile.
 /// </summary>
+[ChangesSyncArea(SyncArea.Habits)]
 public sealed record UpsertHabitLogCommand(
     Guid HabitId,
     DateOnly Date,

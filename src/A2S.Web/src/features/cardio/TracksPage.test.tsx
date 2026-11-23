@@ -130,7 +130,8 @@ describe('TrackLogSheet', () => {
     renderWithProviders(<TrackLogSheet track={stairTrack} onClose={vi.fn()} onSubmit={onSubmit} initiallyExpanded />);
 
     fireEvent.click(screen.getByRole('button', { name: /^Brutal/ }));
-    fireEvent.change(screen.getByLabelText('Minutes'), { target: { value: '7' } });
+    fireEvent.change(screen.getByLabelText('Total minutes'), { target: { value: '13' } });
+    fireEvent.change(screen.getByLabelText('Work minutes'), { target: { value: '7' } });
     fireEvent.change(screen.getByLabelText('Level'), { target: { value: '7' } });
     fireEvent.change(screen.getByLabelText('Floors'), { target: { value: '40' } });
     fireEvent.change(screen.getByLabelText('Zone 4–5 min'), { target: { value: '5' } });
@@ -141,7 +142,8 @@ describe('TrackLogSheet', () => {
     const request = onSubmit.mock.calls[0][1];
     expect(request.completedAsPrescribed).toBe(false);
     expect(request.log).toMatchObject({
-      durationSeconds: 420,
+      durationSeconds: 780,
+      workMinutes: 7,
       effort: EffortRating.Brutal,
       intensityUnit: IntensityUnit.Level,
       intensityValue: 7,

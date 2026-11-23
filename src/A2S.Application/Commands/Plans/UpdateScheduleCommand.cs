@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Common;
@@ -12,6 +14,7 @@ namespace A2S.Application.Commands.Plans;
 /// Replaces the plan's weekly schedule template. Soft rules (brief § 5: no 4×4 the day before Lower A/B)
 /// come back as warnings on the result; they never block the change.
 /// </summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record UpdateScheduleCommand(Guid PlanId, IReadOnlyList<ScheduledSessionDto> Schedule) : ICommand<Result<UpdateScheduleResult>>;
 
 public sealed class UpdateScheduleCommandValidator : AbstractValidator<UpdateScheduleCommand>

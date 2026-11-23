@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Enums;
 
@@ -7,6 +9,7 @@ namespace A2S.Application.Commands.UndoCompletion;
 /// Command to undo the last completed workout day.
 /// Restores progression state and makes the day available for re-submission.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan)]
 public sealed record UndoCompletionCommand(Guid WorkoutId)
     : ICommand<Result<UndoCompletionResult>>;
 

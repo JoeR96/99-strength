@@ -105,6 +105,11 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        // Keeping clients in sync: per-user change stamps and the in-process fan-out to connected clients (SSE).
+        services.AddScoped<A2S.Application.Sync.IUserChangeLog, UserChangeLogStore>();
+        services.AddSingleton<InProcessSyncNotifier>();
+        services.AddSingleton<A2S.Application.Sync.ISyncNotifier>(sp => sp.GetRequiredService<InProcessSyncNotifier>());
+
         services.AddSingleton<IA2SProgramProvider, A2SProgramProvider>();
 
         // Every human-facing date is a Europe/London DateOnly produced through ILocalClock.

@@ -74,6 +74,15 @@ export interface DoubleProgressionSettingsDto {
   sessionsToAdvance: number;
   workSeconds: number | null;
   restSeconds: number | null;
+  /** Where volume goes back to when the intensity steps up; null/absent: the range minimum. */
+  volumeResetTo?: number | null;
+}
+
+/** A fixed easy warm-up or cool-down around a stage's work block (0 minutes or null: off). */
+export interface TrackSegmentDto {
+  minutes: number;
+  level: number | null;
+  zone: string | null;
 }
 
 export interface TrackStageDto {
@@ -85,6 +94,8 @@ export interface TrackStageDto {
   hrCeilingZone: number | null;
   zoneTargetFraction: number | null;
   note: string | null;
+  warmUp?: TrackSegmentDto | null;
+  coolDown?: TrackSegmentDto | null;
 }
 
 export interface TrackBenchmarkDto {
@@ -107,6 +118,10 @@ export interface CardioPrescriptionDto {
   restSeconds: number | null;
   week: number | null;
   note: string | null;
+  warmUp?: TrackSegmentDto | null;
+  coolDown?: TrackSegmentDto | null;
+  /** The whole session in one line: "3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)". */
+  text?: string | null;
 }
 
 export interface CardioTrackStateDto {
@@ -293,6 +308,8 @@ export interface TrackLogDto {
   pain?: PainFlag;
   painArea?: string | null;
   source?: CardioLogSource;
+  /** With a warm-up/cool-down: the work block's minutes (`durationSeconds` is the whole session). */
+  workMinutes?: number | null;
 }
 
 export interface LogTrackSessionRequest {

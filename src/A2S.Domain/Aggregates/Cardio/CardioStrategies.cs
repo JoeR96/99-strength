@@ -17,7 +17,23 @@ public sealed record CardioPrescription(
     int? WorkSeconds,
     int? RestSeconds,
     int? Week,
-    string? Note);
+    string? Note,
+    TrackSegment? WarmUp = null,
+    TrackSegment? CoolDown = null)
+{
+    /// <summary>
+    /// The whole session as one line: "3 min easy (L3) → 5 min continuous @ level 6 → 3 min easy (L3)".
+    /// Without a warm-up or cool-down it is just <see cref="Title"/>.
+    /// </summary>
+    public string Text => string.Join(" → ",
+        new[] { WarmUp?.Describe(), Title, CoolDown?.Describe() }.Where(part => part is not null));
+
+    /// <summary>
+    /// Whether a warm-up or cool-down surrounds the work block. Then <see cref="Minutes"/> is the whole session
+    /// and <see cref="WorkMinutes"/> the work block alone, which is what progression judges.
+    /// </summary>
+    public bool HasSegments => WarmUp is not null || CoolDown is not null;
+}
 
 /// <summary>The facts about one logged session a strategy needs to judge it.</summary>
 public sealed record SessionCheck(
@@ -189,7 +205,7 @@ public sealed class DoubleProgressionStrategy : ICardioStageStrategy
                 intensity = Math.Min(intensity, max);
             }
 
-            var next = cleared with { Intensity = intensity, Volume = s.VolumeMin, Qualifying = 0, Step = state.Step + 1 };
+            var next = cleared with { Intensity = intensity, Volume = s.ResetVolume(), Qualifying = 0, Step = state.Step + 1 };
             return new StageEvaluation(next, TrackOutcome.SteppedUp, $"{reason}: top of the range, intensity up and volume reset");
         }
 
@@ -410,7 +426,23 @@ public sealed class StageStrategy
 
     public TrackStage Current(CardioTrackState state) => _stages[Math.Clamp(state.StageIndex, 0, _stages.Count - 1)];
 
-    public CardioPrescription Prescribe(CardioTrackState state) => Current(state).Strategy.Prescribe(Current(state), state);
+    /// <summary>
+    /// The stage strategy's prescription for the work block, with the stage's fixed warm-up and cool-down
+    /// around it: <see cref="CardioPrescription.Minutes"/> becomes the total, <see cref="CardioPrescription.WorkMinutes"/>
+    /// stays the work block (the only part progression and the zone 4–5 share look at).
+    /// </summary>
+    public CardioPrescription Prescribe(CardioTrackState state)
+    {
+        var stage = Current(state);
+        var work = stage.Strategy.Prescribe(stage, state);
+        if (stage.WarmUp is null && stage.CoolDown is null)
+        {
+            return work;
+        }
+
+        var total = work.Minutes + (stage.WarmUp?.Minutes ?? 0) + (stage.CoolDown?.Minutes ?? 0);
+        return work with { Minutes = total, WarmUp = stage.WarmUp, CoolDown = stage.CoolDown };
+    }
 
     public int SessionsToStepUp(CardioTrackState state, WeekContext? context = null) =>
         Current(state).Strategy.SessionsToStepUp(Current(state), state, context);

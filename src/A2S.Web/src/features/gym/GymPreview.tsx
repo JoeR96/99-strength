@@ -5,6 +5,7 @@
  * Start appears only when the previewed day is today.
  */
 
+import { FinisherParts } from '@/features/cardio/FinisherParts';
 import { Link } from 'react-router-dom';
 import { Eye, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,7 +126,13 @@ export function GymPreview({ state, dayLabel, startHref, cardio }: GymPreviewPro
           <h2 id="preview-finisher" className="text-lg font-semibold text-foreground">
             Finisher: {state.finisher.name}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{state.finisher.prescription}</p>
+          <FinisherParts
+            className="mt-1 text-sm"
+            work={state.finisher.prescription}
+            warmUp={state.finisher.warmUp}
+            coolDown={state.finisher.coolDown}
+            totalMinutes={state.finisher.minutes}
+          />
           {state.finisher.stepUp && (
             <p className="text-sm text-foreground">{state.finisher.stepUp}</p>
           )}

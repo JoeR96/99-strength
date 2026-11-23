@@ -9,6 +9,7 @@ import type { Effort } from '@/types/gym';
 import type { HevyPostStatus } from '@/types/plan';
 import type { GymDrill, GymFinisher } from './gymSession';
 import { formatClock } from './useRestTimer';
+import { FinisherParts, hasSegments } from '@/features/cardio/FinisherParts';
 
 export function WarmUpSection({
   drills,
@@ -86,19 +87,41 @@ export function FinisherCard({
   onChange,
 }: {
   finisher: GymFinisher;
-  onChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
+  onChange: (change: Partial<Pick<GymFinisher, 'minutes' | 'workMinutes' | 'level' | 'floors' | 'effort' | 'pain'>>) => void;
 }) {
+  const segmented = hasSegments(finisher.warmUp, finisher.coolDown);
   return (
     <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
       <h2 id="finisher-heading" className="text-lg font-semibold text-foreground">
         Finisher: {finisher.name}
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground" data-testid="finisher-prescription">{finisher.prescription}</p>
+      {segmented ? (
+        <div className="mt-1" data-testid="finisher-prescription">
+          <FinisherParts work={finisher.prescription} warmUp={finisher.warmUp} coolDown={finisher.coolDown} totalMinutes={finisher.minutes} />
+        </div>
+      ) : (
+        <p className="mt-1 text-sm text-muted-foreground" data-testid="finisher-prescription">{finisher.prescription}</p>
+      )}
       {finisher.stepUp && <p className="text-sm text-foreground">{finisher.stepUp}</p>}
+
+      {segmented && (
+        <div className="mt-3">
+          <Label htmlFor="finisher-work-minutes">Work minutes (hard part)</Label>
+          <Input
+            id="finisher-work-minutes"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            className="mt-1 h-12 px-3"
+            value={finisher.workMinutes ?? ''}
+            onChange={(e) => onChange({ workMinutes: numberOrNull(e.target.value) })}
+          />
+        </div>
+      )}
 
       <div className="mt-3 grid grid-cols-3 gap-2">
         <div>
-          <Label htmlFor="finisher-minutes">Minutes</Label>
+          <Label htmlFor="finisher-minutes">{segmented ? 'Total min' : 'Minutes'}</Label>
           <Input id="finisher-minutes" type="number" inputMode="decimal" min={0} className="mt-1 h-12 px-3" value={finisher.minutes ?? ''} onChange={(e) => onChange({ minutes: numberOrNull(e.target.value) })} />
         </div>
         <div>

@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.Hevy;
 using A2S.Domain.Repositories;
@@ -6,6 +8,7 @@ using MediatR;
 namespace A2S.Application.Commands.GymSessions;
 
 /// <summary>"Retry" on Today's "Not in Hevy yet": makes a gym session's Hevy post due now and tries it once.</summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan)]
 public sealed record RetryHevyPostCommand(Guid ClientSessionId) : ICommand<Result<HevyPostStatusDto>>;
 
 public sealed record HevyPostStatusDto(Guid ClientSessionId, string Status, string? HevyWorkoutId, int Attempts, string? LastError);

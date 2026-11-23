@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using FluentValidation;
@@ -5,6 +7,7 @@ using FluentValidation;
 namespace A2S.Application.Commands.Habits;
 
 /// <summary>Changes a habit's name, targets, unit, order, icon and (when given) step. The type never changes.</summary>
+[ChangesSyncArea(SyncArea.Habits)]
 public sealed record UpdateHabitCommand(
     Guid HabitId,
     string Name,

@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Sync;
 using A2S.Api.Infrastructure;
 using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
@@ -30,6 +31,7 @@ public class HabitsController : ControllerBase
 
     /// <summary>Lists the current user's habits in display order.</summary>
     [HttpGet]
+    [SyncETag(SyncArea.Habits)]
     [ProducesResponseType(typeof(IReadOnlyList<HabitDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> List([FromQuery] bool includeArchived = false, CancellationToken cancellationToken = default)
     {
@@ -89,6 +91,7 @@ public class HabitsController : ControllerBase
 
     /// <summary>The habit screen for a date (today when omitted): values, minimum/target flags and the streak.</summary>
     [HttpGet("today")]
+    [SyncETag(SyncArea.Habits)]
     [ProducesResponseType(typeof(HabitsTodayDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Today([FromQuery] DateOnly? date, CancellationToken cancellationToken)
     {

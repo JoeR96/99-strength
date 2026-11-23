@@ -43,6 +43,8 @@ export function useHabitsToday(date: LocalDate) {
     queryKey: habitKeys.today(date),
     queryFn: async () => overlayHabitOps(await habitsApi.getToday(date), await sync.queue.all()),
     staleTime: 60 * 1000,
+    // Off app-wide by default; habits change from Terran CC and other devices, so coming back refetches.
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -50,6 +52,7 @@ export function useHabits(includeArchived = false) {
   return useQuery({
     queryKey: habitKeys.list(includeArchived),
     queryFn: () => habitsApi.list(includeArchived),
+    refetchOnWindowFocus: true,
   });
 }
 

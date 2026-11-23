@@ -81,7 +81,11 @@ public static class PlannedCardioBuilder
             SessionsToStepUp = toStep,
             StepUpNote = StepUpNote(toStep),
             Note = prescription.Note,
-            CardioTrackId = track.Id.Value
+            CardioTrackId = track.Id.Value,
+            WarmUp = prescription.WarmUp?.ToDto(),
+            CoolDown = prescription.CoolDown?.ToDto(),
+            WorkMinutes = prescription.WorkMinutes,
+            Text = prescription.Text
         };
     }
 

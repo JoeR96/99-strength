@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Mobility;
@@ -10,6 +12,7 @@ namespace A2S.Application.Commands.Mobility;
 
 /// <summary>Renames a mobility routine and changes its target minutes. Drills are left as they are.</summary>
 /// <remarks>With a kind, the kind (and follow-along link) change too; without one they stay.</remarks>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record UpdateMobilityRoutineCommand(
     Guid RoutineId,
     string Name,

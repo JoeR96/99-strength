@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using System.Text.Json.Serialization;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
@@ -7,6 +9,7 @@ using FluentValidation;
 namespace A2S.Application.Commands.Habits;
 
 /// <summary>Creates a habit for the current user.</summary>
+[ChangesSyncArea(SyncArea.Habits)]
 public sealed record CreateHabitCommand(
     string Name,
     [property: JsonConverter(typeof(JsonStringEnumConverter<HabitType>))] HabitType Type,

@@ -152,6 +152,37 @@ through `SessionHevyPoster` on the gym-mode `HevyWorkoutPost` queue; the pull us
 `src/mocks/{fixtures,handlers}/cardioTracks.ts`; any story that renders `CardioThisWeek` (the Cardio page) or
 `CardioTrackProgress` must install `cardioTracksHandlers`.
 
+Finisher warm-up and cool-down: `TrackStage.WarmUp` / `CoolDown` (`TrackSegment`, inside the `Stages` jsonb, so no
+schema change) and `DoubleProgressionSettings.VolumeResetTo` (null = range minimum). Data migration
+`BackfillStairFinisherSegments` moves existing `stair-finisher` tracks onto the new defaults (3 min L3 either side,
+5 → 15 reset 10, 6 → 10 rounds reset 8), clamping only the volume into the new range and patching the undo
+snapshot's stages; a migration rather than an on-read default so a segment the user later turns off stays off.
+Down reverts (tested in `StairFinisherBackfillTests`). Gym mode sends `finisher.workMinutes` beside the total
+`durationSeconds`; the Hevy post's duration is the total and its notes list the parts.
+
+## Keeping clients in sync
+
+Contract for Terran CC and the web app (details in `AGENTS.md` "Keeping clients in sync"):
+
+- `GET /api/v1/sync/version` → `{ "version": 123, "areas": { "habits": 40, "plan": 12, "workout": 70, "cardio": 3, "mobility": 5 } }`,
+  `ETag: "123"`; `If-None-Match: "123"` → 304. Token-readable.
+- ETag / 304 on `GET /habits`, `/habits/today`, `/plans/today`, `/plans/upcoming` (area versions + hash of the query
+  string and today's Europe/London date, so "today" changes at midnight).
+- `GET /api/v1/sync/events`: SSE, `hello` on connect, `changed` per bump, `:keepalive` every 25 s
+  (`Sync:KeepAliveSeconds`), `Last-Event-ID` resume.
+
+Bumps run right after the command's handler committed, as one atomic upsert (`UserChangeLogStore`). The fan-out is
+in-process (`InProcessSyncNotifier`, singleton), which is correct only while there is **one API instance**. With
+several, a bump on one instance would not reach streams held by another. Upgrade path: after the bump, run
+`SELECT pg_notify('a2s_sync', '{userId}:{version}:{areas}')` in the store; each instance holds one dedicated
+`NpgsqlConnection` with `LISTEN a2s_sync` (a hosted service) whose `Notification` handler calls the same
+`InProcessSyncNotifier.Publish`. Nothing else changes, because streams already resume from `Last-Event-ID`.
+
+Reverse proxy: the stream sends `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, and the action
+disables response buffering. Proxies with an idle timeout under 25 s need `Sync:KeepAliveSeconds` lowered.
+The web app reads it with `fetch` streaming (not `EventSource`, which cannot send the Clerk `Authorization` header;
+this also keeps the token out of URLs and needs no ticket endpoint) and falls back silently with backoff.
+
 ## Coach signals
 
 Readiness (`ReadinessEntries`), cardio start gates (`CardioTracks.StartGate` jsonb) and phase changes (inside the `Phases` jsonb) arrive with migration `AddCoachSignals` (additive; Down tested in `CoachSignalsPersistenceTests`). Story mocks: `src/mocks/handlers/readiness.ts` (`installPlansHandlers` also resets readiness to "not set" and the phase heads-up to null, so install readiness/heads-up stubs **after** it), `src/mocks/fixtures/gates.ts` and `phaseHeadsUp.ts`. The `PhaseChange` push is the one nudge logged against a date other than today (the phase start), which is what makes it once per phase.
@@ -222,6 +253,7 @@ A token can:
 - read `GET /api/v1/plans/today` (optionally `?date=yyyy-MM-dd`);
 - read `GET /api/v1/plans/upcoming?from=yyyy-MM-dd&days=14` (the coming days, with each lift's planned sets);
 - read `GET /api/v1/readiness?date=yyyy-MM-dd` (the day's recovery colour and what it suggests);
+- read `GET /api/v1/sync/version` and listen on `GET /api/v1/sync/events` (know when to refetch);
 - call `GET /api/v1/users/me/api-tokens/whoami` to check that it works.
 
 A token cannot do anything else. It cannot read or change the Hevy key, workouts, plans, meals or

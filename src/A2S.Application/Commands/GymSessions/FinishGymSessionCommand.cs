@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Cardio;
@@ -15,6 +17,7 @@ namespace A2S.Application.Commands.GymSessions;
 /// Hevy. <paramref name="ClientSessionId"/> is generated on the phone when the session starts and is the
 /// idempotency key: finishing the same session again returns the first result and changes nothing.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan | SyncArea.Cardio)]
 public sealed record FinishGymSessionCommand(
     Guid ClientSessionId,
     Guid WorkoutId,
@@ -33,7 +36,8 @@ public sealed record FinisherLogRequest(
     int? Floors = null,
     [property: JsonConverter(typeof(JsonStringEnumConverter<PainFlag>))] PainFlag Pain = PainFlag.None,
     string? PainArea = null,
-    bool CompletedAsPrescribed = true);
+    bool CompletedAsPrescribed = true,
+    decimal? WorkMinutes = null);
 
 /// <summary>The answer to a finish (or to its replay).</summary>
 public sealed record FinishGymSessionResult
@@ -82,6 +86,7 @@ public sealed class FinishGymSessionCommandValidator : AbstractValidator<FinishG
             RuleFor(x => x.Finisher!.Effort).IsInEnum();
             RuleFor(x => x.Finisher!.Level).InclusiveBetween(1, 100).When(x => x.Finisher!.Level.HasValue);
             RuleFor(x => x.Finisher!.Floors).InclusiveBetween(0, 2000).When(x => x.Finisher!.Floors.HasValue);
+            RuleFor(x => x.Finisher!.WorkMinutes).InclusiveBetween(0m, 240m).When(x => x.Finisher!.WorkMinutes.HasValue);
         });
     }
 }
@@ -100,6 +105,9 @@ public sealed record GymSessionPayload
     /// <summary>A fixed cool-down finisher ("Treadmill · 10 min · Easy incline"): posted as-is, nothing evaluated.</summary>
     public string? FinisherFixedKind { get; init; }
     public string? FinisherFixedNotes { get; init; }
+
+    /// <summary>The track finisher's whole prescription as it was ("3 min easy (L3) → 5 min … → 3 min easy (L3)"), for the Hevy notes.</summary>
+    public string? FinisherPrescription { get; init; }
 
     /// <summary>A walk, run or cardio protocol session finished outside gym mode (posted to Hevy on its own).</summary>
     public CardioSessionPost? Cardio { get; init; }

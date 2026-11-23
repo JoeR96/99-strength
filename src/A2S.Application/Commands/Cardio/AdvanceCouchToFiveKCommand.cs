@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Common;
@@ -7,6 +9,7 @@ using MediatR;
 namespace A2S.Application.Commands.Cardio;
 
 /// <summary>Moves a Couch to 5K protocol to its next week (honouring a pending repeat; capped at week 9).</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record AdvanceCouchToFiveKCommand(Guid ProtocolId) : ICommand<Result<CardioProtocolDto>>;
 
 public sealed class AdvanceCouchToFiveKCommandHandler : IRequestHandler<AdvanceCouchToFiveKCommand, Result<CardioProtocolDto>>

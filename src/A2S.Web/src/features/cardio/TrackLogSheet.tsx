@@ -54,6 +54,7 @@ export function TrackLogSheet({ track, onClose, onSubmit, saving = false, initia
   const [effort, setEffort] = useState<EffortRating | null>(null);
   const [expanded, setExpanded] = useState(initiallyExpanded);
   const [minutes, setMinutes] = useState('');
+  const [workMinutes, setWorkMinutes] = useState('');
   const [completed, setCompleted] = useState(true);
   const [intensity, setIntensity] = useState('');
   const [floors, setFloors] = useState('');
@@ -67,6 +68,9 @@ export function TrackLogSheet({ track, onClose, onSubmit, saving = false, initia
   const [clientKey] = useState(newClientKey);
 
   const prescribed = track?.prescription.minutes ?? 0;
+  // With a warm-up/cool-down, minutes are the whole session and the work block is logged beside it.
+  const segmented = !!(track?.prescription.warmUp || track?.prescription.coolDown);
+  const prescribedWork = track?.prescription.workMinutes ?? 0;
   const unit = track?.prescription.intensityUnit ?? IntensityUnit.None;
 
   const submit = (event: FormEvent) => {
@@ -107,6 +111,7 @@ export function TrackLogSheet({ track, onClose, onSubmit, saving = false, initia
         intensityUnit: level === null || unit === IntensityUnit.None ? null : unit,
         intensityValue: unit === IntensityUnit.None ? null : level,
         floors: optionalNumber(floors),
+        workMinutes: segmented ? optionalNumber(workMinutes) ?? prescribedWork : null,
         pain,
         painArea: pain === PainFlag.None || painArea.trim() === '' ? null : painArea.trim(),
       },
@@ -119,7 +124,9 @@ export function TrackLogSheet({ track, onClose, onSubmit, saving = false, initia
         <form onSubmit={submit} className="space-y-4" aria-label={`Log ${track?.name ?? 'cardio'}`}>
           <DialogHeader>
             <DialogTitle>{track?.name ?? 'Cardio'}</DialogTitle>
-            <DialogDescription>{track ? `Today: ${track.prescription.title}` : ''}</DialogDescription>
+            <DialogDescription>
+              {track ? `Today: ${track.prescription.text ?? track.prescription.title}${segmented ? ` · ${prescribed} min total` : ''}` : ''}
+            </DialogDescription>
           </DialogHeader>
 
           <fieldset>
@@ -155,9 +162,15 @@ export function TrackLogSheet({ track, onClose, onSubmit, saving = false, initia
           {expanded && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="track-minutes">Minutes</Label>
+                <Label htmlFor="track-minutes">{segmented ? 'Total minutes' : 'Minutes'}</Label>
                 <Input id="track-minutes" inputMode="decimal" value={minutes} onChange={(e) => setMinutes(e.target.value)} placeholder={String(prescribed)} className="mt-1 h-12" />
               </div>
+              {segmented && (
+                <div>
+                  <Label htmlFor="track-work-minutes">Work minutes</Label>
+                  <Input id="track-work-minutes" inputMode="decimal" value={workMinutes} onChange={(e) => setWorkMinutes(e.target.value)} placeholder={String(prescribedWork)} className="mt-1 h-12" />
+                </div>
+              )}
               {unit !== IntensityUnit.None && (
                 <div>
                   <Label htmlFor="track-intensity">{intensityLabel[unit]}</Label>

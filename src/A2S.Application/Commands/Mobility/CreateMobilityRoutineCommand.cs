@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Mobility;
@@ -10,6 +12,7 @@ namespace A2S.Application.Commands.Mobility;
 
 /// <summary>Creates a mobility routine (ordered drills with a target duration) for the current user.</summary>
 /// <remarks>Kind defaults to a stretch. A follow-along needs a link and may have no drills.</remarks>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record CreateMobilityRoutineCommand(
     string Name,
     int TargetMinutes,
