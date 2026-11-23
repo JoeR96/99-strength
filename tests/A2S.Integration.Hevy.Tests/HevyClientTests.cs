@@ -169,6 +169,27 @@ public class HevyClientTests
         template.TryGetProperty("primary_muscle_group", out _).Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData("d3f1a2b4")]
+    [InlineData("9c2e7f10-1b2c-4d5e-8f90-123456789abc\n")]
+    public async Task CreateExerciseTemplate_AcceptsABarePlainTextIdResponse(string responseBody)
+    {
+        // Hevy answers POST exercise_templates with the new id as plain text. Treating that as a failure
+        // made every retry create another duplicate template.
+        _handler.Enqueue(HttpStatusCode.OK, responseBody);
+
+        var result = await _client.CreateExerciseTemplateAsync(FakeHevyHandler.TestApiKey, new HevyExerciseTemplateDraft
+        {
+            Title = "Stair finisher",
+            ExerciseType = HevyExerciseTypes.Duration,
+            PrimaryMuscleGroup = "cardio"
+        });
+
+        result.Ok.Should().BeTrue();
+        result.Value!.Id.Should().Be(responseBody.Trim());
+        result.Value.Title.Should().Be("Stair finisher");
+    }
+
     [Fact]
     public async Task UpsertBodyMeasurement_On409_FallsBackToPutForThatDate()
     {
