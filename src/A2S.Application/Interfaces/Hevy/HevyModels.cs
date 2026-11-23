@@ -92,12 +92,19 @@ public sealed record HevyRoutineFolder
 
 // --- Exercise templates ---
 
+/// <summary>
+/// Body of <c>POST /v1/exercise_templates</c>, sent wrapped as <c>{"exercise": {...}}</c>. The create endpoint uses
+/// different field names from the read model (<c>muscle_group</c> / <c>other_muscles</c>, not
+/// <c>primary_muscle_group</c> / <c>secondary_muscle_groups</c>) and requires <c>equipment_category</c>; anything
+/// else is a 400.
+/// </summary>
 public sealed record HevyExerciseTemplateDraft
 {
     [JsonPropertyName("title")] public required string Title { get; init; }
     [JsonPropertyName("exercise_type")] public required string ExerciseType { get; init; }
-    [JsonPropertyName("primary_muscle_group")] public required string PrimaryMuscleGroup { get; init; }
-    [JsonPropertyName("secondary_muscle_groups")] public IReadOnlyList<string> SecondaryMuscleGroups { get; init; } = [];
+    [JsonPropertyName("equipment_category")] public string EquipmentCategory { get; init; } = "none";
+    [JsonPropertyName("muscle_group")] public required string PrimaryMuscleGroup { get; init; }
+    [JsonPropertyName("other_muscles")] public IReadOnlyList<string> SecondaryMuscleGroups { get; init; } = [];
 }
 
 public sealed record HevyExerciseTemplate

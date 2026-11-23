@@ -76,7 +76,7 @@ public sealed class HevyClient : IHevyClient
         SendAsync(apiKey, HttpMethod.Get, $"exercise_templates?page={Math.Max(page, 1)}&pageSize=10", null, root => ReadPage<HevyExerciseTemplate>(root, "exercise_templates"), ct);
 
     public Task<HevyResult<HevyExerciseTemplate>> CreateExerciseTemplateAsync(string apiKey, HevyExerciseTemplateDraft template, CancellationToken ct = default) =>
-        SendAsync(apiKey, HttpMethod.Post, "exercise_templates", new Dictionary<string, object> { ["exercise_template"] = template }, root => ReadObject<HevyExerciseTemplate>(root, "exercise_template"), ct);
+        SendAsync(apiKey, HttpMethod.Post, "exercise_templates", new Dictionary<string, object> { ["exercise"] = template }, root => ReadObject<HevyExerciseTemplate>(root, "exercise_template"), ct);
 
     public async Task<HevyResult<HevyBodyMeasurement>> UpsertBodyMeasurementAsync(string apiKey, DateOnly date, decimal weightKg, CancellationToken ct = default)
     {

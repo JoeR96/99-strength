@@ -157,9 +157,16 @@ public class HevyClientTests
         result.Ok.Should().BeTrue();
         result.Value!.Id.Should().Be("C0FFEE01");
         using var body = JsonDocument.Parse(_handler.Requests[0].Body!);
-        var template = body.RootElement.GetProperty("exercise_template");
+        // Hevy's create endpoint wants {"exercise": {title, exercise_type, equipment_category, muscle_group, other_muscles}};
+        // the read-side names (primary_muscle_group, exercise_template) get a 400.
+        body.RootElement.TryGetProperty("exercise_template", out _).Should().BeFalse();
+        var template = body.RootElement.GetProperty("exercise");
+        template.GetProperty("title").GetString().Should().Be("90/90 Hip Switch");
         template.GetProperty("exercise_type").GetString().Should().Be("reps_only");
-        template.GetProperty("primary_muscle_group").GetString().Should().Be("glutes");
+        template.GetProperty("equipment_category").GetString().Should().Be("none");
+        template.GetProperty("muscle_group").GetString().Should().Be("glutes");
+        template.GetProperty("other_muscles").GetArrayLength().Should().Be(0);
+        template.TryGetProperty("primary_muscle_group", out _).Should().BeFalse();
     }
 
     [Fact]
