@@ -9,13 +9,14 @@ const svg = fs.readFileSync(path.join(web, 'public/favicon.svg'), 'utf8');
 const out = path.join(web, 'public/icons');
 fs.mkdirSync(out, { recursive: true });
 
-const BG = '#09090b'; // --color-background hsl(240 10% 4%)
+const BG = '#4f4434'; // the icon's stone panel, so padding blends in
 
+// The icon is full-bleed (iOS and Android round the corners themselves); only the maskable one is padded.
 const targets = [
-  { file: 'icon-192.png', size: 192, pad: 0.1, bg: BG },
-  { file: 'icon-512.png', size: 512, pad: 0.1, bg: BG },
-  { file: 'icon-maskable-512.png', size: 512, pad: 0.22, bg: BG }, // safe zone: inner 80%
-  { file: 'apple-touch-icon.png', size: 180, pad: 0.12, bg: BG },
+  { file: 'icon-192.png', size: 192, pad: 0, bg: BG },
+  { file: 'icon-512.png', size: 512, pad: 0, bg: BG },
+  { file: 'icon-maskable-512.png', size: 512, pad: 0.1, bg: BG }, // safe zone: inner 80%
+  { file: 'apple-touch-icon.png', size: 180, pad: 0, bg: BG },
 ];
 
 const browser = await chromium.launch();
