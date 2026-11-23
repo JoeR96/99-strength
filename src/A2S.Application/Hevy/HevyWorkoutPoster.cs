@@ -287,7 +287,7 @@ public sealed class HevyWorkoutPoster
             {
                 ExerciseTemplateId = treadmill ? HevyTemplateCatalogue.Treadmill : HevyTemplateCatalogue.Walking,
                 Notes = payload.FinisherFixedNotes is { } fixedNotes ? $"Cool-down · {fixedNotes}" : "Cool-down",
-                Sets = [new HevyWorkoutSetDraft { DurationSeconds = cooldown.DurationSeconds, Rpe = cooldown.Effort.ToRpe() }]
+                Sets = [new HevyWorkoutSetDraft { DurationSeconds = cooldown.DurationSeconds, Rpe = HevyRpe.ForHevy(cooldown.Effort.ToRpe()) }]
             });
         }
         else if (payload.Finisher is { } finisher)
@@ -330,7 +330,7 @@ public sealed class HevyWorkoutPoster
                     {
                         DurationSeconds = finisher.DurationSeconds,
                         CustomMetric = stairs ? finisher.Floors ?? 0 : null,
-                        Rpe = finisher.Effort.ToRpe()
+                        Rpe = HevyRpe.ForHevy(finisher.Effort.ToRpe())
                     }
                 ]
             });
@@ -399,7 +399,7 @@ public sealed class HevyWorkoutPoster
                     DurationSeconds = cardio.DurationSeconds,
                     DistanceMeters = stairs ? null : cardio.DistanceMeters,
                     CustomMetric = stairs ? cardio.Floors ?? 0 : null,
-                    Rpe = cardio.Rpe
+                    Rpe = HevyRpe.ForHevy(cardio.Rpe)
                 }
             ]
         });
