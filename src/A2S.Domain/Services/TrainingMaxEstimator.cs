@@ -14,7 +14,7 @@ public static class TrainingMaxEstimator
     public const decimal TrainingMaxFraction = 0.90m;
     public const int MaximumReps = 12;
 
-    /// <summary>Epley e1RM: weight × (1 + reps / 30); a single is taken at face value.</summary>
+    /// <summary>Epley e1RM: weight Ã— (1 + reps / 30); a single is taken at face value.</summary>
     public static decimal EstimateOneRepMax(decimal weight, int reps) =>
         reps == 1 ? weight : weight * (1 + reps / 30m);
 

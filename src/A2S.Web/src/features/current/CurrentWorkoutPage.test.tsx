@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -12,6 +12,7 @@ import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/h
 import { installMobilityRoutinesHandlers } from '@/mocks/handlers/mobilityRoutines';
 import { HevyStatusStub } from '@/mocks/HevyStatusStub';
 import { todayDoneNotInHevy } from '@/mocks/fixtures/plan';
+import { BENCH_ID, startingNumbers } from '@/mocks/fixtures/startingNumbers';
 
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: { firstName: 'Joe' } }),
@@ -94,6 +95,28 @@ describe('CurrentWorkoutPage', () => {
 
     expect(await screen.findByRole('button', { name: 'Set TM for Bench Press (Barbell)' })).toBeInTheDocument();
     expect(screen.getByTestId('current-session')).not.toHaveTextContent('75 kg');
+  });
+
+  it('shows the Hevy suggestion for a pending lift and Use all suggestions sets it after review', async () => {
+    const setTrainingMax = vi.fn(async (_w: string, exerciseId: string) => ({ exerciseId, trainingMax: 77.5, unit: 'Kilograms', estimated: false }));
+    installWorkoutsHandlers({ ...workoutsHandlers.cycle({ pendingTm: true, suggestions: startingNumbers.fresh() }), setTrainingMax });
+    renderPage();
+
+    expect(await screen.findByTestId('tm-suggestion')).toHaveTextContent('Suggested 77.5 kg — from 75 kg × 5 on 14 Nov');
+    fireEvent.click(screen.getByTestId('use-all-suggestions'));
+    expect(screen.getByTestId('suggestions-review')).toHaveTextContent('Bench Press (Barbell)77.5 kg');
+    expect(setTrainingMax).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('confirm-all-suggestions'));
+
+    await waitFor(() => expect(setTrainingMax).toHaveBeenCalledWith('w-1', BENCH_ID, { trainingMax: 77.5, unit: 'Kilograms' }));
+  });
+
+  it('no suggestion: no Use all suggestions', async () => {
+    installWorkoutsHandlers(workoutsHandlers.cycle({ pendingTm: true }));
+    renderPage();
+
+    expect(await screen.findByRole('button', { name: 'Set TM for Bench Press (Barbell)' })).toBeInTheDocument();
+    expect(screen.queryByTestId('use-all-suggestions')).not.toBeInTheDocument();
   });
 
   it('just finished: the last session says Not in Hevy yet with Retry, and the next session is already shown', async () => {

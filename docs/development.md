@@ -131,6 +131,23 @@ The finisher's progression after Finish is `FinishGymSessionResult.finisherOutco
 outcome, before/next prescription, `summary`, `nextTime`), built by `PlannedCardioBuilder` from the track's
 own evaluation; `CompletionSummary` shows it next to the lift changes.
 
+## Starting-number suggestions (training maxes from Hevy)
+
+`GET /api/v1/workouts/{id}/suggestions/starting-numbers` (`GetStartingNumbersSuggestionsQuery`, Clerk only)
+lists the workout's pending exercises with a suggestion or null. The maths is the pure domain service
+`TrainingMaxSuggester` (unit tests in `A2S.Domain.Tests/Services/TrainingMaxSuggesterTests.cs`); the data is
+`Application/Hevy/HevyStrengthHistory` (Hevy `GET /v1/workouts` pages + stored snapshots, 5-minute per-user
+cache, no new table). Tests use a fake `IHevyClient` (`A2S.Application.Tests/Queries/Suggestions`): warm-ups,
+old-only history, none, template id vs title vs catalogue name, Hevy failure, no key, paging and caching.
+Never call the real Hevy API from tests.
+
+UI: `features/suggestions/` (`suggestionLine`, `SuggestionEvidence` with **Use suggestion**) is used by
+`SetTrainingMaxDialog` (gym mode and the Current workout card; it fetches with `useStartingNumberSuggestions`
+unless given `suggestion`), the Current workout card (inline line + **Use all suggestions** → review → sets each
+TM) and `WeightConfirmationModal` (accessory starting weights). Untouched fields follow the suggestion; typing
+overrides it. Story/test data: `src/mocks/fixtures/startingNumbers.ts`, `workoutsHandlers.cycle({ pendingTm,
+suggestions })`; stories `Features/Gym/SetTrainingMaxDialog` and `CurrentWorkoutPage` `TrainingMax*`.
+
 ## Looking ahead (Up next and previews)
 
 `GET /api/v1/plans/upcoming` (`GetUpcomingDays`) returns `days` (1–31) `UpcomingDayDto`s from `from`. Each

@@ -296,6 +296,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetWorkout` | Full workout with exercises + progressions |
 | `GetWeekPlan` | Planned sets for a week/day, plus the plan slot's label, warm-up, paired routine and the finisher as a `PlannedCardioDto` (`cardio`) |
 | `GetCycle` (`GET /workouts/current/cycle`, `/workouts/{id}/cycle`) | The training cycle from the current session: current week/day, rest of this week, all of next week, each with its `WeekPlanDto` (Current workout page) |
+| `GetStartingNumbersSuggestions` (`GET /workouts/{id}/suggestions/starting-numbers`, Clerk only) | For each pending exercise (Linear `IsTrainingMaxPending`, RPS `IsWeightPending`) a suggestion or null with evidence (set date/weight/reps, e1RM, 90-day window, stale flag, one-line reason). History = `HevyStrengthHistory`: up to 20 pages of `GET /v1/workouts` (stops a year back) merged with `HevyWorkoutSnapshot` rows, cached per user 5 min (`IMemoryCache`, successes only). Match by Hevy template id, then exact title, then the `custom:` catalogue name. `hevyStatus` `ok`/`noKey`/`unavailable` — the UI falls back to manual input; never a 5xx for a Hevy failure |
 | `GetExerciseLibrary` | Paginated exercise definitions (search, filter) |
 | `GetExerciseHistory` | Historical performance for an exercise |
 | `GetWorkoutHistory` | Completed day history for a workout |
@@ -354,6 +355,13 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
 - **Pending training max** (`LinearProgressionStrategy.IsTrainingMaxPending`): planned sets keep A2S2 sets,
   reps and AMRAP but weigh 0 (`metadata.isTrainingMaxPending`, `intensityPercentage`, `tier`); completing
   the exercise is refused ("Set your training max for … before finishing it.") until a TM is set.
+- **Starting-number suggestions** (`Domain/Services/TrainingMaxSuggester`, pure): best Epley e1RM
+  (`TrainingMaxEstimator.EstimateOneRepMax`; working sets of 1–12 reps, warm-ups ignored) dated within 90 days
+  of today (Europe/London). TM = 90 % e1RM rounded **down** to 2.5 kg; RPS starting weight = e1RM ÷ (1 + mid-reps/30)
+  rounded down to the equipment (2.5 kg; dumbbells 1 kg below 10 kg, even sizes from 10). Nothing in 90 days but
+  older history: best set of the most recent session, −5 % per full 90 days since (cap −20 %), `stale`. No history:
+  no suggestion. Suggestions are only prefilled — the typed value always wins, and nothing is saved until the
+  person saves (`SetTrainingMax` / `ConfirmStartingWeight`, unchanged). A2S2/RPS/MinimalSets maths untouched.
 - **Two devices.** `FinishGymSession` refuses (`ErrorCode.Conflict`, 409, "This day was already finished on
   another device") when the workout's current week already has the day recorded under a different client
   session id; nothing is staged and progression is untouched. The same client session id still replays.

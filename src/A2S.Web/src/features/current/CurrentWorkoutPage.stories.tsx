@@ -10,6 +10,8 @@ import { installSuggestedPlansHandlers, suggestedPlansHandlers } from '@/mocks/h
 import { hevySyncHandlers, installHevySyncHandlers } from '@/mocks/handlers/hevySync';
 import { OfflineStoryHarness } from '@/mocks/offlineStoryHarness';
 import type { CycleOptions } from '@/mocks/fixtures/cycle';
+import type { StartingNumbersSuggestions } from '@/api/workouts';
+import { startingNumbers } from '@/mocks/fixtures/startingNumbers';
 
 const meta = {
   title: 'Features/Current/CurrentWorkoutPage',
@@ -21,7 +23,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function mocks(cycle: CycleOptions, extra?: () => void): Decorator {
+function mocks(cycle: CycleOptions & { suggestions?: StartingNumbersSuggestions }, extra?: () => void): Decorator {
   return withApiMocks(() => {
     installPlansHandlers(plansHandlers.default());
     installHabitsHandlers(habitsHandlers.default());
@@ -37,6 +39,10 @@ export const FirstSession: Story = { decorators: [mocks({})] };
 
 /** A fresh program: bench has no training max yet, so it shows Set TM instead of kilos. */
 export const TrainingMaxNeeded: Story = { decorators: [mocks({ pendingTm: true })] };
+/** A pending lift with a Hevy-based suggestion and the Use all suggestions action. */
+export const TrainingMaxSuggested: Story = { decorators: [mocks({ pendingTm: true, suggestions: startingNumbers.fresh() })] };
+export const TrainingMaxOlderHistory: Story = { decorators: [mocks({ pendingTm: true, suggestions: startingNumbers.stale() })] };
+export const TrainingMaxHevyUnavailable: Story = { decorators: [mocks({ pendingTm: true, suggestions: startingNumbers.unavailable() })] };
 
 /** Mid-cycle: week 3, session 2 (Lower A, treadmill cool-down), two sessions left this week. */
 export const MidCycle: Story = { decorators: [mocks({ week: 3, day: 2 })] };

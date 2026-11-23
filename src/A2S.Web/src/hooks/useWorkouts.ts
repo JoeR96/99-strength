@@ -12,6 +12,7 @@ export const workoutKeys = {
   exerciseLibrary: () => ["exerciseLibrary"] as const,
   history: (workoutId?: string) => [...workoutKeys.all, "history", workoutId] as const,
   cycle: () => [...workoutKeys.all, "cycle"] as const,
+  startingNumbers: (workoutId: string) => [...workoutKeys.all, "starting-numbers", workoutId] as const,
   weekPlan: (workoutId: string, week: number, day: number) => [...workoutKeys.all, "week-plan", workoutId, week, day] as const,
 };
 
@@ -223,5 +224,16 @@ export function useSetTrainingMax() {
       queryClient.invalidateQueries({ queryKey: workoutKeys.all });
       queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
+  });
+}
+
+/** Hevy-based suggestions for the workout's pending TMs / starting weights. Cached a few minutes; a failure means "type it in". */
+export function useStartingNumberSuggestions(workoutId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: workoutKeys.startingNumbers(workoutId ?? ""),
+    queryFn: () => workoutsApi.getStartingNumberSuggestions(workoutId!),
+    enabled: !!workoutId && enabled,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }

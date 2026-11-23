@@ -103,6 +103,12 @@ export const workoutsApi = {
     return response.data;
   },
 
+  /** Suggested TMs / starting weights for the workout's pending exercises, from the person's Hevy history. */
+  getStartingNumberSuggestions: async (workoutId: string): Promise<StartingNumbersSuggestions> => {
+    const response = await apiClient.get<StartingNumbersSuggestions>(`/workouts/${workoutId}/suggestions/starting-numbers`);
+    return response.data;
+  },
+
   /** Sets a pending (or any) A2S2 lift's training max, directly or estimated from a recent set. */
   setTrainingMax: async (workoutId: string, exerciseId: string, request: SetTrainingMaxRequest): Promise<SetTrainingMaxResult> => {
     const response = await apiClient.post<SetTrainingMaxResult>(`/workouts/${workoutId}/exercises/${exerciseId}/training-max`, request);
@@ -366,4 +372,33 @@ export interface SetTrainingMaxResult {
   trainingMax: number;
   unit: string;
   estimated: boolean;
+}
+
+/** A suggested starting number with the set it came from (`GET /workouts/{id}/suggestions/starting-numbers`). */
+export interface StartingNumberSuggestion {
+  valueKg: number;
+  estimatedOneRepMaxKg: number;
+  setDate: string;
+  setWeightKg: number;
+  setReps: number;
+  windowStart: string;
+  windowEnd: string;
+  stale: boolean;
+  stalePenaltyPercent: number;
+  reason: string;
+}
+
+export interface StartingNumberItem {
+  exerciseId: string;
+  exerciseName: string;
+  kind: 'TrainingMax' | 'StartingWeight';
+  matchedBy: 'templateId' | 'title' | 'catalogueName' | null;
+  suggestion: StartingNumberSuggestion | null;
+}
+
+/** `hevyStatus` other than `ok` means Hevy could not be read; the UI falls back to manual input. */
+export interface StartingNumbersSuggestions {
+  hevyStatus: 'ok' | 'noKey' | 'unavailable';
+  hevyMessage: string | null;
+  items: StartingNumberItem[];
 }

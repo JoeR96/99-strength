@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { WeightConfirmationModal } from './WeightConfirmationModal';
 import type { PendingWeightExerciseDto } from '@/types/workout';
+import { freshSuggestion } from '@/mocks/fixtures/startingNumbers';
 
 const mockExercises: PendingWeightExerciseDto[] = [
   { exerciseId: 'ex-1', exerciseName: 'Lat Pulldown', suggestedWeight: 40, weightUnit: 'Kilograms', confirmationType: 'StartingWeight' },
@@ -110,5 +111,30 @@ describe('WeightConfirmationModal', () => {
     });
 
     resolveConfirm!();
+  });
+
+  it('offers the Hevy starting weight with its evidence; Use suggestion fills it in', async () => {
+    const onConfirm = vi.fn(async () => {});
+    render(
+      <WeightConfirmationModal
+        exercises={mockExercises}
+        onConfirm={onConfirm}
+        onSkip={vi.fn()}
+        suggestions={{
+          hevyStatus: 'ok',
+          hevyMessage: null,
+          items: [{ exerciseId: 'ex-1', exerciseName: 'Lat Pulldown', kind: 'StartingWeight', matchedBy: 'title', suggestion: { ...freshSuggestion, valueKg: 45 } }],
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('suggestion-evidence')).toHaveTextContent('Suggested 45 kg — from 75 kg × 5 on 14 Nov');
+    fireEvent.click(screen.getByRole('button', { name: 'Use suggestion for Lat Pulldown' }));
+    fireEvent.click(screen.getByText('Confirm & Complete Workout'));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith([
+      { exerciseId: 'ex-1', weight: 45, unit: 1 },
+      { exerciseId: 'ex-2', weight: 15, unit: 2 },
+    ]));
   });
 });
