@@ -76,7 +76,11 @@ public sealed class HevyClient : IHevyClient
         SendAsync(apiKey, HttpMethod.Get, $"exercise_templates?page={Math.Max(page, 1)}&pageSize=10", null, root => ReadPage<HevyExerciseTemplate>(root, "exercise_templates"), ct);
 
     public Task<HevyResult<HevyExerciseTemplate>> CreateExerciseTemplateAsync(string apiKey, HevyExerciseTemplateDraft template, CancellationToken ct = default) =>
-        SendAsync(apiKey, HttpMethod.Post, "exercise_templates", new Dictionary<string, object> { ["exercise"] = template }, root => ReadObject<HevyExerciseTemplate>(root, "exercise_template"), ct);
+        SendAsync(apiKey, HttpMethod.Post, "exercise_templates", new Dictionary<string, object> { ["exercise"] = template },
+            root => root.ValueKind == JsonValueKind.String
+                ? new HevyExerciseTemplate { Id = root.GetString()!, Title = template.Title, ExerciseType = template.ExerciseType, PrimaryMuscleGroup = template.PrimaryMuscleGroup }
+                : ReadObject<HevyExerciseTemplate>(root, "exercise_template"),
+            ct);
 
     public async Task<HevyResult<HevyBodyMeasurement>> UpsertBodyMeasurementAsync(string apiKey, DateOnly date, decimal weightKg, CancellationToken ct = default)
     {
@@ -167,13 +171,20 @@ public sealed class HevyClient : IHevyClient
             {
                 try
                 {
-                    await using var stream = await response.Content.ReadAsStreamAsync(ct);
-                    if (stream.CanSeek && stream.Length == 0)
+                    var text = (await response.Content.ReadAsStringAsync(ct)).Trim();
+                    if (text.Length == 0)
                     {
                         return HevyResult<T>.Success(read(default));
                     }
 
-                    using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+                    // Some endpoints (POST exercise_templates) answer with the new id as bare text, not JSON.
+                    // Hand that to the reader as a JSON string so the request isn't treated as failed and retried.
+                    if (IsBareId(text))
+                    {
+                        return HevyResult<T>.Success(read(JsonSerializer.SerializeToElement(text)));
+                    }
+
+                    using var document = JsonDocument.Parse(text);
                     return HevyResult<T>.Success(read(document.RootElement.Clone()));
                 }
                 catch (JsonException ex)
@@ -188,6 +199,9 @@ public sealed class HevyClient : IHevyClient
             return HevyResult<T>.Failure(error);
         }
     }
+
+    private static bool IsBareId(string text) =>
+        text[0] is not ('{' or '[' or '"') && text.All(c => char.IsAsciiLetterOrDigit(c) || c == '-');
 
     private IAsyncPolicy<HttpResponseMessage> PolicyFor(string apiKey, HttpMethod method)
     {
