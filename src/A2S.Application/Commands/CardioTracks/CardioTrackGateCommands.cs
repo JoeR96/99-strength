@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
@@ -13,6 +15,7 @@ namespace A2S.Application.Commands.CardioTracks;
 /// Sets a track's start gate. <see cref="UseDefault"/> applies the template's gate (Walk → run: the running gate);
 /// otherwise <see cref="Conditions"/> is used, and an empty list removes the gate.
 /// </summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record SetCardioTrackGateCommand(Guid Id, IReadOnlyList<GateConditionDto>? Conditions, bool UseDefault = false)
     : ICommand<Result<CardioTrackDto>>;
 
@@ -54,6 +57,7 @@ public sealed class SetCardioTrackGateCommandHandler : IRequestHandler<SetCardio
 /// Accepts the "Start" suggestion of a gated track. The person decides: the suggestion appears once every
 /// condition is met, and starting early is their call.
 /// </summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record StartGatedCardioTrackCommand(Guid Id) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class StartGatedCardioTrackCommandHandler : IRequestHandler<StartGatedCardioTrackCommand, Result<CardioTrackDto>>

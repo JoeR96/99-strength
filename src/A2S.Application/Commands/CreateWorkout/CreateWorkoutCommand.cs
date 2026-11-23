@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using System.Text.Json.Serialization;
 using A2S.Application.Common;
 using A2S.Domain.Enums;
@@ -7,6 +9,7 @@ namespace A2S.Application.Commands.CreateWorkout;
 /// <summary>
 /// Command to create a new workout program.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout)]
 public sealed record CreateWorkoutCommand(
     string Name,
     ProgramVariant Variant,

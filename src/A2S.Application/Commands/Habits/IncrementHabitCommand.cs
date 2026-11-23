@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using FluentValidation;
@@ -13,6 +15,7 @@ namespace A2S.Application.Commands.Habits;
 /// Clients must therefore stamp a tap once and resend that stamp unchanged. A missing timestamp is never
 /// treated as a duplicate.
 /// </summary>
+[ChangesSyncArea(SyncArea.Habits)]
 public sealed record IncrementHabitCommand(
     Guid HabitId,
     DateOnly Date,

@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Common;
@@ -8,6 +10,7 @@ using MediatR;
 namespace A2S.Application.Commands.Mobility;
 
 /// <summary>Replaces every drill in a mobility routine, in the given order.</summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record ReplaceDrillsCommand(Guid RoutineId, IReadOnlyList<MobilityDrillDto> Drills) : ICommand<Result<MobilityRoutineDto>>;
 
 public sealed class ReplaceDrillsCommandValidator : AbstractValidator<ReplaceDrillsCommand>

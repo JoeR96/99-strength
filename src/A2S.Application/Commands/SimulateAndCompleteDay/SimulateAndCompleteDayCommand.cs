@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
 
@@ -10,6 +12,7 @@ namespace A2S.Application.Commands.SimulateAndCompleteDay;
 ///
 /// Outcome probabilities are tunable. An optional seed makes runs reproducible.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout)]
 public sealed record SimulateAndCompleteDayCommand(
     Guid WorkoutId,
     double SuccessRate = 0.65,

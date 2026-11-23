@@ -33,6 +33,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHevyIntegration(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<A2S.Api.Controllers.SyncOptions>(builder.Configuration.GetSection(A2S.Api.Controllers.SyncOptions.SectionName));
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddHttpClient();

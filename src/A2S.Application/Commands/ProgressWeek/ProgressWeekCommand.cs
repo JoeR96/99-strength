@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 
 namespace A2S.Application.Commands.ProgressWeek;
@@ -7,6 +9,7 @@ namespace A2S.Application.Commands.ProgressWeek;
 /// This advances the current week, updates the block if necessary,
 /// and handles deload week transitions.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout)]
 public sealed record ProgressWeekCommand(Guid WorkoutId) : ICommand<Result<ProgressWeekResult>>;
 
 /// <summary>

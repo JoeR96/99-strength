@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -9,6 +11,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Renames one of the signed-in user's plans. Another user's plan is not found.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record RenamePlanCommand(Guid PlanId, string Name) : ICommand<Result<TrainingPlanDto>>;
 
 public sealed class RenamePlanCommandValidator : AbstractValidator<RenamePlanCommand>

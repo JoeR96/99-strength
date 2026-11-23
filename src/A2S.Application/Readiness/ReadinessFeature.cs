@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using System.Text.Json.Serialization;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Readiness;
@@ -61,6 +63,7 @@ public sealed class GetReadinessQueryHandler : IRequestHandler<GetReadinessQuery
 }
 
 /// <summary>Sets a day's readiness colour (one tap on Today). Creates the entry the first time.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record SetReadinessCommand(
     DateOnly Date,
     [property: JsonConverter(typeof(JsonStringEnumConverter<ReadinessColour>))] ReadinessColour Colour) : ICommand<Result<ReadinessDto>>;
@@ -121,6 +124,7 @@ public sealed class SetReadinessCommandHandler : IRequestHandler<SetReadinessCom
 }
 
 /// <summary>On a red day: keep the finisher (true, the one-tap undo) or skip it again (false).</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record SetReadinessFinisherCommand(DateOnly Date, bool Keep) : ICommand<Result<ReadinessDto>>;
 
 public sealed class SetReadinessFinisherCommandHandler : IRequestHandler<SetReadinessFinisherCommand, Result<ReadinessDto>>

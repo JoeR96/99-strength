@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Mobility;
@@ -15,16 +17,20 @@ public sealed record DrillFeedbackDto(string DrillName, DrillOutcome Outcome);
 /// Records a finished session's per-drill feedback (clean / strained / stopped / skipped) and runs the light
 /// progression rule. Idempotent on <see cref="SessionKey"/> (the client's session id), so the offline queue can replay it.
 /// </summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record RecordDrillFeedbackCommand(Guid RoutineId, string SessionKey, IReadOnlyList<DrillFeedbackDto> Feedback)
     : ICommand<Result<DrillFeedbackResultDto>>;
 
 /// <summary>Accepts or declines a drill's pending "move up a level" suggestion.</summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record RespondToDrillSuggestionCommand(Guid RoutineId, string DrillName, bool Accept) : ICommand<Result<MobilityRoutineDto>>;
 
 /// <summary>Reverts the routine's most recent progression change.</summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record UndoDrillProgressionCommand(Guid RoutineId) : ICommand<Result<MobilityRoutineDto>>;
 
 /// <summary>Phase bump: adds seconds to every timed hold in the routine (e.g. phase 2: +15 s).</summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record ApplyHoldIncreaseCommand(Guid RoutineId, int Seconds) : ICommand<Result<MobilityRoutineDto>>;
 
 public sealed class RecordDrillFeedbackCommandValidator : AbstractValidator<RecordDrillFeedbackCommand>

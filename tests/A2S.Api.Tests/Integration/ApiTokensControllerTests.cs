@@ -405,4 +405,23 @@ public class ApiTokensControllerTests
         sink.AllText().Should().NotContain(t => t.Contains(secret, StringComparison.Ordinal));
         sink.AllText().Should().NotContain(t => t.Contains(garbage, StringComparison.Ordinal));
     }
+
+    [Fact]
+    public async Task Token_ReadsTheSyncVersion_AndOpensTheChangeStream()
+    {
+        var clerk = ClerkSession();
+        var token = await CreateToken(clerk.Client);
+        await CreateWater(clerk.Client);
+        var widget = TokenClient(token.Token);
+
+        var version = await widget.GetAsync("/api/v1/sync/version");
+        version.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await version.Content.ReadAsStringAsync()).Should().Contain("\"habits\":1");
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var stream = await widget.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/api/v1/sync/events"),
+            HttpCompletionOption.ResponseHeadersRead, cts.Token);
+        stream.StatusCode.Should().Be(HttpStatusCode.OK);
+        stream.Content.Headers.ContentType!.MediaType.Should().Be("text/event-stream");
+    }
 }

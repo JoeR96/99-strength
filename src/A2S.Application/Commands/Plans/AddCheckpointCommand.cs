@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -9,6 +11,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Adds a trend-weight checkpoint. Dates are unique within a plan.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record AddCheckpointCommand(Guid PlanId, DateOnly Date, decimal TargetKg, string? Note) : ICommand<Result<TrainingPlanDto>>;
 
 public sealed class AddCheckpointCommandValidator : AbstractValidator<AddCheckpointCommand>

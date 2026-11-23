@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using System.Text.Json;
 using A2S.Application.Common;
 using A2S.Application.Hevy;
@@ -17,6 +19,7 @@ namespace A2S.Application.Commands.Hevy;
 /// the pull would have. <paramref name="Extra"/> records the plan completion only, leaving A2S2
 /// progression alone (an additional session, not the programmed one).
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan | SyncArea.Cardio | SyncArea.Mobility)]
 public sealed record AssignHevyWorkoutCommand(string HevyWorkoutId, DateOnly Date, SessionKind Kind, DayNumber? LiftDay = null, bool Extra = false)
     : ICommand<Result<AssignHevyWorkoutResult>>;
 

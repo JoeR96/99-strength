@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
@@ -15,6 +17,7 @@ namespace A2S.Application.Commands.SetTrainingMax;
 /// that <see cref="TrainingMaxEstimator"/> turns into one. Clears a pending TM. TM adjustment maths are
 /// untouched: this is the same manual set as UpdateExercises.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout)]
 public sealed record SetTrainingMaxCommand(
     Guid WorkoutId,
     Guid ExerciseId,

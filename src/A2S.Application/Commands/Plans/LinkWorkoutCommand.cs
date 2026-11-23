@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -6,6 +8,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Links the A2S2 workout whose completed days count as the plan's lifts.</summary>
+[ChangesSyncArea(SyncArea.Plan | SyncArea.Workout)]
 public sealed record LinkWorkoutCommand(Guid PlanId, Guid WorkoutId) : ICommand<Result<bool>>;
 
 public sealed class LinkWorkoutCommandHandler : IRequestHandler<LinkWorkoutCommand, Result<bool>>

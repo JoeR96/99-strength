@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 
@@ -7,6 +9,7 @@ namespace A2S.Application.Commands.Plans;
 /// Creates a training plan for the current user and makes it the active one. The start snaps to the
 /// coming Monday. Optionally links the A2S2 workout whose completed days count as lifts.
 /// </summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record CreateTrainingPlanCommand(
     string Name,
     DateOnly RequestedStart,

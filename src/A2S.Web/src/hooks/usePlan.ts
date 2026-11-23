@@ -33,6 +33,7 @@ export function useToday(date: LocalDate) {
     queryKey: planKeys.today(date),
     queryFn: async () => overlayPlanOps(await plansApi.getToday(date), await sync.queue.all()),
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 }
 

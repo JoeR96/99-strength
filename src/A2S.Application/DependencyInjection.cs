@@ -25,6 +25,8 @@ public static class DependencyInjection
         {
             config.RegisterServicesFromAssembly(assembly);
 
+            // Outermost, so it sees the final answer (a validation or authorisation failure never bumps).
+            config.AddOpenBehavior(typeof(ChangeVersionBehavior<,>));
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
             config.AddOpenBehavior(typeof(AuthorizedWorkoutBehavior<,>));
         });

@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Domain.Common;
 using A2S.Domain.Repositories;
@@ -11,6 +13,7 @@ namespace A2S.Application.Commands.Mobility;
 /// (take it out of the week first), so no slot is left pointing at nothing. Past completions keep
 /// their routine id as history.
 /// </summary>
+[ChangesSyncArea(SyncArea.Mobility)]
 public sealed record DeleteMobilityRoutineCommand(Guid RoutineId) : ICommand<Result>;
 
 public sealed class DeleteMobilityRoutineCommandValidator : AbstractValidator<DeleteMobilityRoutineCommand>

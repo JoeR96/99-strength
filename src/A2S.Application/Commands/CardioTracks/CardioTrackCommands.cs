@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
@@ -58,6 +60,7 @@ internal static class TrackAccess
 }
 
 /// <summary>Starts a new track from a shipped template (an editable copy).</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record CreateCardioTrackCommand(string TemplateKey, string? Name = null, bool WithGate = false) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class CreateCardioTrackCommandValidator : AbstractValidator<CreateCardioTrackCommand>
@@ -113,6 +116,7 @@ public sealed class CreateCardioTrackCommandHandler : IRequestHandler<CreateCard
 }
 
 /// <summary>Edits a track's name, notes, stages (ranges, steps, sessions to advance) and benchmark.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record UpdateCardioTrackCommand(
     Guid Id,
     string Name,
@@ -161,6 +165,7 @@ public sealed class UpdateCardioTrackCommandHandler : IRequestHandler<UpdateCard
 /// Logs a session against a track and evaluates it. <see cref="ClientKey"/> makes offline retries
 /// idempotent; without one every call is a new session.
 /// </summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record LogCardioTrackSessionCommand(
     Guid Id,
     CardioLogDto Log,
@@ -255,6 +260,7 @@ public sealed class LogCardioTrackSessionCommandHandler : IRequestHandler<LogCar
 }
 
 /// <summary>Accepts or declines the track's pending suggestion (repeat week, drop back, next stage).</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record DecideCardioTrackSuggestionCommand(Guid Id, bool Accept) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class DecideCardioTrackSuggestionCommandHandler : IRequestHandler<DecideCardioTrackSuggestionCommand, Result<CardioTrackDto>>
@@ -287,6 +293,7 @@ public sealed class DecideCardioTrackSuggestionCommandHandler : IRequestHandler<
 }
 
 /// <summary>Restores the exact state before the track's last evaluation, decision or edit.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record UndoCardioTrackCommand(Guid Id) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class UndoCardioTrackCommandHandler : IRequestHandler<UndoCardioTrackCommand, Result<CardioTrackDto>>
@@ -309,6 +316,7 @@ public sealed class UndoCardioTrackCommandHandler : IRequestHandler<UndoCardioTr
 }
 
 /// <summary>Pauses (true) or resumes (false) a track. Paused tracks record sessions without progressing.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record SetCardioTrackPausedCommand(Guid Id, bool Paused) : ICommand<Result<CardioTrackDto>>;
 
 public sealed class SetCardioTrackPausedCommandHandler : IRequestHandler<SetCardioTrackPausedCommand, Result<CardioTrackDto>>
@@ -341,6 +349,7 @@ public sealed class SetCardioTrackPausedCommandHandler : IRequestHandler<SetCard
 }
 
 /// <summary>Records a benchmark result (PR history). Never changes progression.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record RecordCardioBenchmarkCommand(Guid Id, decimal Value, DateOnly? Date = null, string? Notes = null) : ICommand<Result<BenchmarkResultDto>>;
 
 public sealed class RecordCardioBenchmarkCommandValidator : AbstractValidator<RecordCardioBenchmarkCommand>
@@ -391,6 +400,7 @@ public sealed class RecordCardioBenchmarkCommandHandler : IRequestHandler<Record
 }
 
 /// <summary>Sets the user's max heart rate and (optionally) custom zone boundaries.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record SetHeartRateZonesCommand(int? MaxHeartRate, IReadOnlyList<int>? LowerPercents) : ICommand<Result<HeartRateZonesDto>>;
 
 public sealed class SetHeartRateZonesCommandHandler : IRequestHandler<SetHeartRateZonesCommand, Result<HeartRateZonesDto>>

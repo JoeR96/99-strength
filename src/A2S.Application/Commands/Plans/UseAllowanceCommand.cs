@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -8,6 +10,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Spends a weekly allowance (flexible meal, alcohol) on a local date. Going over is allowed and reported.</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record UseAllowanceCommand(Guid PlanId, DateOnly Date, AllowanceKind Kind) : ICommand<Result<AllowanceUseDto>>;
 
 public sealed class UseAllowanceCommandValidator : AbstractValidator<UseAllowanceCommand>

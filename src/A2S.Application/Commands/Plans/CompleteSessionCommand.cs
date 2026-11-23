@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
@@ -16,6 +18,7 @@ namespace A2S.Application.Commands.Plans;
 /// Records a session as done on a local date. With a Hevy workout id the source is Hevy and the
 /// call is idempotent on that id; otherwise it is a manual completion, idempotent on the slot.
 /// </summary>
+[ChangesSyncArea(SyncArea.Plan | SyncArea.Cardio | SyncArea.Mobility | SyncArea.Workout)]
 public sealed record CompleteSessionCommand(
     Guid PlanId,
     DateOnly Date,

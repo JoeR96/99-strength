@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Plan;
@@ -9,6 +11,7 @@ using MediatR;
 namespace A2S.Application.Commands.Plans;
 
 /// <summary>Sets the weekly zone 4–5 minutes band the plan aims for (default 15–30).</summary>
+[ChangesSyncArea(SyncArea.Plan)]
 public sealed record SetHighIntensityTargetCommand(Guid PlanId, int MinMinutes, int MaxMinutes) : ICommand<Result<HighIntensityTargetDto>>;
 
 public sealed class SetHighIntensityTargetCommandValidator : AbstractValidator<SetHighIntensityTargetCommand>

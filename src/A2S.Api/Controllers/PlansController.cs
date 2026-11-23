@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Sync;
 using A2S.Api.Infrastructure;
 using A2S.Api.Authentication;
 using A2S.Api.Contracts.Requests;
@@ -293,6 +294,7 @@ public class PlansController : ControllerBase
     /// personal API token may call (read-only, for the desktop habit widget).
     /// </summary>
     [HttpGet("today")]
+    [SyncETag(SyncArea.Plan | SyncArea.Workout | SyncArea.Cardio | SyncArea.Mobility)]
     [AllowApiToken]
     [ProducesResponseType(typeof(TodayDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -307,6 +309,7 @@ public class PlansController : ControllerBase
     /// <remarks>
     /// Read-only, so a personal API token (Terran CC) may call it.</remarks>
     [HttpGet("upcoming")]
+    [SyncETag(SyncArea.Plan | SyncArea.Workout | SyncArea.Cardio | SyncArea.Mobility)]
     [AllowApiToken]
     [ProducesResponseType(typeof(IReadOnlyList<UpcomingDayDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

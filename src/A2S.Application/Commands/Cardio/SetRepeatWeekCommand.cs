@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Common;
@@ -7,6 +9,7 @@ using MediatR;
 namespace A2S.Application.Commands.Cardio;
 
 /// <summary>Marks (or unmarks) the current Couch to 5K week to be repeated on the next advance.</summary>
+[ChangesSyncArea(SyncArea.Cardio)]
 public sealed record SetRepeatWeekCommand(Guid ProtocolId, bool Repeat) : ICommand<Result<CardioProtocolDto>>;
 
 public sealed class SetRepeatWeekCommandHandler : IRequestHandler<SetRepeatWeekCommand, Result<CardioProtocolDto>>

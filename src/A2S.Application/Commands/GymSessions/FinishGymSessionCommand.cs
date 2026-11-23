@@ -1,3 +1,5 @@
+using A2S.Domain.Aggregates.Sync;
+using A2S.Application.Sync;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
 using A2S.Domain.Aggregates.Cardio;
@@ -15,6 +17,7 @@ namespace A2S.Application.Commands.GymSessions;
 /// Hevy. <paramref name="ClientSessionId"/> is generated on the phone when the session starts and is the
 /// idempotency key: finishing the same session again returns the first result and changes nothing.
 /// </summary>
+[ChangesSyncArea(SyncArea.Workout | SyncArea.Plan | SyncArea.Cardio)]
 public sealed record FinishGymSessionCommand(
     Guid ClientSessionId,
     Guid WorkoutId,
