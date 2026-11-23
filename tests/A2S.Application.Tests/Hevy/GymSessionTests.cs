@@ -420,6 +420,18 @@ public class GymSessionTests
     }
 
     [Fact]
+    public async Task EasyFinisher_IsPostedWithoutRpe_BecauseHevyOnlyAcceptsSixToTen()
+    {
+        await _finish.Handle(Finish(finisher: new FinisherLogRequest(600, Effort.Easy, Level: 6, Floors: 30)), CancellationToken.None);
+
+        _plan.Completions.Single(c => c.Kind == SessionKind.Cardio).Cardio!.Rpe.Should().Be(4);
+        _posts.All.Single().Status.Should().Be(HevyPostStatus.Posted);
+        var stair = _posted.Single().Exercises[^1];
+        stair.Sets.Single().Rpe.Should().BeNull();
+        stair.Notes.Should().Be("Level 6 · Easy");
+    }
+
+    [Fact]
     public async Task TrackFinisher_IsCompletedAndEvaluatedOnce_AndPostedAsStairMachineFloors()
     {
         var thursday = new DateTimeOffset(2026, 11, 19, 18, 0, 0, TimeSpan.Zero);

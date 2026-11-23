@@ -7,6 +7,25 @@ namespace A2S.Application.Interfaces.Hevy;
 // nulls are left out on write. Anything the app does not use is ignored on read.
 
 /// <summary>Hevy set types. Routine and workout sets carry one of these.</summary>
+/// <summary>
+/// Hevy only accepts RPE 6, 7, 7.5, 8, 8.5, 9, 9.5 or 10 on a set; anything else makes <c>POST /v1/workouts</c>
+/// answer 400. The app's own scale goes lower (Easy = RPE 4), so below 6 is sent as no RPE (the effort is
+/// already in the exercise notes), 6.5 goes up to 7 and anything else rounds to the nearest half and caps at 10.
+/// </summary>
+public static class HevyRpe
+{
+    public static decimal? ForHevy(decimal? rpe)
+    {
+        if (rpe is not { } value || value < 6m)
+        {
+            return null;
+        }
+
+        var half = Math.Min(10m, Math.Round(value * 2m, MidpointRounding.AwayFromZero) / 2m);
+        return half == 6.5m ? 7m : half;
+    }
+}
+
 public static class HevySetTypes
 {
     public const string Warmup = "warmup";
