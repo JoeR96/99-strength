@@ -249,12 +249,12 @@ public class GymSessionTests
         draft.Title.Should().Be(Title);
         draft.StartTime.Should().Be(Started);
         draft.EndTime.Should().Be(Ended);
-        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("T-open-books", "79D0BB3A", "T-seal-row");
-        draft.Exercises[0].Sets.Should().HaveCount(2, "one set per side; the unticked drill is left out").And.AllSatisfy(s => s.Type.Should().Be(HevySetTypes.Warmup));
-        draft.Exercises[1].Sets.SkipLast(1).Should().AllSatisfy(s => s.Type.Should().Be(HevySetTypes.Normal));
-        draft.Exercises[1].Sets[^1].Type.Should().Be(HevySetTypes.Failure);
-        draft.Exercises[1].Sets[^1].Reps.Should().Be(14);
-        draft.Exercises[2].Sets.Should().AllSatisfy(s => s.Type.Should().Be(HevySetTypes.Normal));
+        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal(["79D0BB3A", "T-seal-row"], "ticked warm-up drills are not sent to Hevy");
+        draft.Exercises.SelectMany(e => e.Sets).Should().NotContain(s => s.Type == HevySetTypes.Warmup);
+        draft.Exercises[0].Sets.SkipLast(1).Should().AllSatisfy(s => s.Type.Should().Be(HevySetTypes.Normal));
+        draft.Exercises[0].Sets[^1].Type.Should().Be(HevySetTypes.Failure);
+        draft.Exercises[0].Sets[^1].Reps.Should().Be(14);
+        draft.Exercises[1].Sets.Should().AllSatisfy(s => s.Type.Should().Be(HevySetTypes.Normal));
 
         var post = _posts.All.Should().ContainSingle().Subject;
         post.Status.Should().Be(HevyPostStatus.Posted);

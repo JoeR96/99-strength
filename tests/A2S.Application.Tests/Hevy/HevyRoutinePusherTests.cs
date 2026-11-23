@@ -113,11 +113,12 @@ public class HevyRoutinePusherTests
 
         var draft = _posted.Should().ContainSingle().Subject;
         draft.FolderId.Should().Be(42);
-        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("T-Open books", "79D0BB3A", "T-Seal Row (Barbell)");
-        draft.Exercises[1].Sets[^1].Type.Should().Be(HevySetTypes.Failure);
+        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal(["79D0BB3A", "T-Seal Row (Barbell)"], "warm-up drills are not sent to Hevy");
+        draft.Exercises.SelectMany(e => e.Sets).Should().NotContain(s => s.Type == HevySetTypes.Warmup);
+        draft.Exercises[0].Sets[^1].Type.Should().Be(HevySetTypes.Failure);
 
         _links.All.Should().ContainSingle(l => l.Kind == HevyLinkKind.Folder && l.HevyId == "42");
-        _links.All.Should().ContainSingle(l => l.Kind == HevyLinkKind.Template && l.LocalKey == "drill:open-books");
+        _links.All.Should().NotContain(l => l.Kind == HevyLinkKind.Template && l.LocalKey == "drill:open-books");
         _links.All.Should().ContainSingle(l => l.Kind == HevyLinkKind.Template && l.LocalKey == "exercise:seal-row-barbell");
         _links.All.Should().ContainSingle(l => l.Kind == HevyLinkKind.Routine && l.LocalKey == HevyLocalKeys.LiftRoutine(_plan.Id, Mon16Nov, DayNumber.Day1) && l.HevyId == "R-1");
         await _hevy.DidNotReceive().CreateRoutineFolderAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
