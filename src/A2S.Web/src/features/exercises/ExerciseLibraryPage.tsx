@@ -13,6 +13,7 @@ import {
 } from './ExerciseLibraryComponents';
 import { muscleGroupStyle } from '@/lib/muscleGroupStyles';
 import { HevyExerciseModal } from '@/features/hevy/HevyExerciseModal';
+import { AddToPlanPanel } from './AddToPlanPanel';
 
 export function ExerciseLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -405,7 +406,9 @@ export function ExerciseLibraryPage() {
           exerciseTemplateId={selectedExerciseForHistory.id}
           exerciseTitle={selectedExerciseForHistory.title}
           onClose={() => setSelectedExerciseForHistory(null)}
-        />
+        >
+          <AddToPlanPanel templateName={selectedExerciseForHistory.title} hevyTemplateId={selectedExerciseForHistory.id} />
+        </HevyExerciseModal>
       )}
     </div>
   );

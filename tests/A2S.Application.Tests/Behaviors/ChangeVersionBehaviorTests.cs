@@ -142,7 +142,7 @@ public class ChangeVersionBehaviorTests
     public void EveryCommandOfTheSyncedFeatures_IsMarked()
     {
         var synced = new[] { "Habits", "Plans", "CardioTracks", "Cardio", "Mobility", "GymSessions", "SuggestedPlans", "CompleteDay",
-            "SetTrainingMax", "UpdateExercises", "SubstituteExercise", "UndoCompletion", "ProgressWeek", "RemoveExercise" };
+            "SetTrainingMax", "UpdateExercises", "SubstituteExercise", "UndoCompletion", "ProgressWeek", "RemoveExercise", "AddExercise" };
         var commands = typeof(ICommand<>).Assembly.GetTypes()
             .Where(t => t.Name.EndsWith("Command", StringComparison.Ordinal) && !t.IsAbstract
                 && t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>))

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workoutsApi, type SetTrainingMaxRequest } from "../api/workouts";
-import type { CreateWorkoutRequest, UpdateExercisesRequest, SubstituteExerciseRequest } from "../types/workout";
+import type { CreateWorkoutRequest, CreateExerciseRequest, UpdateExercisesRequest, SubstituteExerciseRequest } from "../types/workout";
 
 /**
  * Query key factory for workouts
@@ -122,6 +122,21 @@ export function useSubstituteExercise() {
       workoutsApi.substituteExercise(workoutId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutKeys.current() });
+    },
+  });
+}
+
+/**
+ * Hook to add an exercise to a running plan
+ */
+export function useAddExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workoutId, request }: { workoutId: string; request: CreateExerciseRequest }) =>
+      workoutsApi.addExercise(workoutId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.all });
     },
   });
 }

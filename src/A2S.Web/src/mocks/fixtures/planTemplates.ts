@@ -49,7 +49,8 @@ export const planV3Preview: PlanTemplatePreview = {
         { slot: '3', name: 'Single Arm Lateral Raise (Cable)', prescription: '2 × 12–15 each side', progression: 'Reps per set', note: 'Left side first' },
         { slot: '4', name: 'Single Arm Cable Row', prescription: '2 × 10–12 each side', progression: 'Reps per set', note: 'Left side first' },
         { slot: '5', name: 'Skullcrusher (Dumbbell)', prescription: '2 × 10–12', progression: 'Reps per set', note: null },
-        { slot: '6', name: 'Cable Core Palloff Press', prescription: '2 × 10 each side', progression: 'Reps per set', note: null },
+        { slot: '6', name: 'Bicep Curl (Dumbbell)', prescription: '2 × 10–12', progression: 'Reps per set', note: null },
+        { slot: '7', name: 'Cable Core Palloff Press', prescription: '2 × 10 each side', progression: 'Reps per set', note: null },
       ],
     },
     {

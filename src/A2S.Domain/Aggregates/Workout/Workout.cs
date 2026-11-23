@@ -589,6 +589,36 @@ public sealed class Workout : AggregateRoot<WorkoutId>
     }
 
     /// <summary>
+    /// Inserts a new exercise into a running plan at its <see cref="Exercise.OrderInDay"/>: exercises
+    /// already at or after that slot on the same day move down one, so the day stays contiguous
+    /// (1, 2, 3, ...). An order past the end of the day is placed last. History and progression of the
+    /// existing exercises are untouched.
+    /// </summary>
+    public void InsertExercise(Exercise exercise)
+    {
+        ArgumentNullException.ThrowIfNull(exercise);
+        CheckRule(Status == WorkoutStatus.NotStarted || Status == WorkoutStatus.Active,
+            "Cannot add exercises to a completed or paused workout");
+        CheckRule(_exercises.All(e => e.Id != exercise.Id), $"Exercise {exercise.Id} is already in this workout");
+
+        var day = exercise.AssignedDay;
+        var sameDay = _exercises.Where(e => e.AssignedDay == day).OrderByDescending(e => e.OrderInDay).ToList();
+        var slot = Math.Clamp(exercise.OrderInDay, 1, sameDay.Count + 1);
+
+        foreach (var later in sameDay.Where(e => e.OrderInDay >= slot))
+        {
+            later.ChangeAssignedDay(day, later.OrderInDay + 1);
+        }
+
+        if (exercise.OrderInDay != slot)
+        {
+            exercise.ChangeAssignedDay(day, slot);
+        }
+
+        _exercises.Add(exercise);
+    }
+
+    /// <summary>
     /// Removes an exercise from the workout.
     /// </summary>
     public void RemoveExercise(ExerciseId exerciseId)
