@@ -56,6 +56,11 @@ public sealed class ProgressionAuditEntry : ValueObject
         ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string reason)
         => new(AuditEntryType.ProgressionSkipped, exerciseId, exerciseName, weekNumber, dayNumber, null, null, reason);
 
+    /// <summary>A cardio exercise's level/incline or speed was set or changed: the prescription before and after.</summary>
+    public static ProgressionAuditEntry CardioSettingsChanged(
+        ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string oldText, string newText)
+        => new(AuditEntryType.CardioSettingsChanged, exerciseId, exerciseName, weekNumber, dayNumber, oldText, newText, "Cardio settings changed");
+
     public static ProgressionAuditEntry UndoCompletion(int weekNumber, int dayNumber, string? reason = null)
         => new(AuditEntryType.UndoCompletion, null, "N/A", weekNumber, dayNumber, null, null, reason ?? "User initiated undo");
 

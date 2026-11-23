@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Events;
@@ -237,6 +238,35 @@ public sealed class Exercise : Entity<ExerciseId>
     }
 
     /// <summary>
+    /// Creates a cardio exercise on a lane's ladder: the stair climber (hard) or the incline walk (easy).
+    /// Category <see cref="ExerciseCategory.Cardio"/>, equipment <see cref="EquipmentType.Machine"/>.
+    /// </summary>
+    public static Exercise CreateWithCardioStageProgression(
+        string name,
+        DayNumber assignedDay,
+        int orderInDay,
+        string externalTemplateId,
+        CardioLane lane)
+    {
+        var preset = lane switch
+        {
+            CardioLane.Hard => CardioLanes.StairClimber(),
+            CardioLane.Easy => CardioLanes.InclineWalk(),
+            _ => throw new ArgumentOutOfRangeException(nameof(lane), lane, "Unknown cardio lane")
+        };
+
+        return new Exercise(
+            new ExerciseId(Guid.NewGuid()),
+            name,
+            ExerciseCategory.Cardio,
+            EquipmentType.Machine,
+            assignedDay,
+            orderInDay,
+            externalTemplateId,
+            CardioStageStrategy.Create(preset));
+    }
+
+    /// <summary>
     /// Calculates planned sets for a given week and block.
     /// Delegates to the progression strategy.
     /// </summary>
@@ -254,6 +284,9 @@ public sealed class Exercise : Entity<ExerciseId>
         CheckRule(performance.ExerciseId == Id,
             "Performance data must be for this exercise");
         CheckRule(!IsTrainingMaxPending, $"Set your training max for {Name} before finishing it.");
+        CheckRule(performance.Cardio is null || Progression is CardioStageStrategy,
+            "Only a cardio exercise can take a cardio result.");
+        CheckRule(!IsCardioSettingsPending, $"Set the {Name} settings before finishing it.");
 
         var previousTm = Progression.GetTrainingMax();
 
@@ -360,6 +393,19 @@ public sealed class Exercise : Entity<ExerciseId>
             "An extra set on one side needs a unilateral reps-per-set exercise");
         ExtraSetSide = side;
     }
+
+    /// <summary>
+    /// Sets a cardio exercise's level/incline and/or speed (null leaves a value as it is).
+    /// Returns the prescription text before and after, for the progression history.
+    /// </summary>
+    internal CardioSettingsChange SetCardioSettings(decimal? intensity, decimal? speed)
+    {
+        CheckRule(Progression is CardioStageStrategy, $"{Name} is not a cardio exercise");
+        return ((CardioStageStrategy)Progression).SetSettings(intensity, speed);
+    }
+
+    /// <summary>True for a cardio exercise whose level/incline (or the walk's speed) is not set yet.</summary>
+    public bool IsCardioSettingsPending => Progression.IsCardioSettingsPending;
 
     /// <summary>True for an A2S2 exercise still waiting for its training max.</summary>
     public bool IsTrainingMaxPending => Progression is LinearProgressionStrategy { IsTrainingMaxPending: true };

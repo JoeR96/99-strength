@@ -68,8 +68,8 @@ public sealed class CardioStageStrategy : ExerciseProgression
         }
 
         var decision = CardioLaneRules.Decide(Lane, result, State.SolidsBanked, State.MissStreak, out var solids, out var misses);
-        var current = CalculateCardioBlock().Text;
-        var next = BlockFor(Next(result)).Text;
+        var current = CalculateCardioBlock().Title;
+        var next = BlockFor(Next(result)).Title;
 
         return decision switch
         {

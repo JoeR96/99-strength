@@ -33,6 +33,9 @@ public sealed class PlannedCardioBlock : ValueObject
     public int TotalMinutes { get; private init; }
     public string Text { get; private set; } = string.Empty;
 
+    /// <summary>The work part only, without warm-up or cool-down: "7 min @ level 6", "4 × 2 min @ L8 / 2 min @ L3".</summary>
+    public string Title { get; private set; } = string.Empty;
+
     private PlannedCardioBlock()
     {
     }
@@ -73,6 +76,7 @@ public sealed class PlannedCardioBlock : ValueObject
             TotalMinutes = (warmUp?.Minutes ?? 0) + workMinutes + (coolDown?.Minutes ?? 0)
         };
 
+        block.Title = block.BuildTitle();
         block.Text = block.BuildText();
         return block;
     }
@@ -85,7 +89,7 @@ public sealed class PlannedCardioBlock : ValueObject
             parts.Add(Easy(WarmUp));
         }
 
-        parts.Add(Intervals is null ? Continuous() : Rounds(Intervals));
+        parts.Add(Title);
 
         if (CoolDown is not null)
         {
@@ -94,6 +98,8 @@ public sealed class PlannedCardioBlock : ValueObject
 
         return string.Join(" → ", parts);
     }
+
+    private string BuildTitle() => Intervals is null ? Continuous() : Rounds(Intervals);
 
     private static string Easy(CardioSegment segment) => $"{segment.Minutes} min easy (L{Format(segment.Level)})";
 
@@ -137,5 +143,6 @@ public sealed class PlannedCardioBlock : ValueObject
         yield return IsSettingsPending;
         yield return TotalMinutes;
         yield return Text;
+        yield return Title;
     }
 }

@@ -115,6 +115,46 @@ public class ExercisePerformanceTests
     }
 
     [Fact]
+    public void CardioResult_NegativeWorkMinutes_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, workMinutes: -1m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Work minutes cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeIntensity_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, intensity: -1m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Intensity cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeSpeed_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, speed: -0.5m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Speed cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeFloors_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, floors: -1);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Floors cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_ZeroValues_AreAllowed()
+    {
+        var result = new CardioResult(true, EffortRating.Easy, workMinutes: 0m, intensity: 0m, speed: 0m, floors: 0);
+
+        result.Floors.Should().Be(0);
+    }
+
+    [Fact]
     public void GetAmrapDelta_WhenAmrapSetExists_ShouldReturnCorrectDelta()
     {
         var planned = new[]

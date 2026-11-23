@@ -9,5 +9,6 @@ public enum AuditEntryType
     PermanentSubstitution,
     ProgressionSkipped,
     UndoCompletion,
-    ManualAdjustment
+    ManualAdjustment,
+    CardioSettingsChanged
 }

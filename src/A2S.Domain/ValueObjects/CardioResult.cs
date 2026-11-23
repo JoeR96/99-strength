@@ -39,6 +39,10 @@ public sealed class CardioResult : ValueObject
         int? floors = null)
     {
         CheckRule(totalSeconds >= 0, "Total seconds cannot be negative");
+        CheckRule(workMinutes is null or >= 0, "Work minutes cannot be negative");
+        CheckRule(intensity is null or >= 0, "Intensity cannot be negative");
+        CheckRule(speed is null or >= 0, "Speed cannot be negative");
+        CheckRule(floors is null or >= 0, "Floors cannot be negative");
 
         Finished = finished;
         Effort = effort;

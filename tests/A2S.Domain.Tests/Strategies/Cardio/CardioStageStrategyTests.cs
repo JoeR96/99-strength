@@ -194,7 +194,7 @@ public class CardioStageStrategyTests
     public void Description_HardLane_Easy_NamesTheNextBlock()
     {
         Stairs().GetProgressionChangeDescription(Performance(new CardioResult(true, EffortRating.Easy)))
-            .Should().Be("Step up: 3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)");
+            .Should().Be("Step up: 7 min @ level 6");
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class CardioStageStrategyTests
         strategy.ApplyPerformanceResult(Performance(new CardioResult(true, EffortRating.Solid)));
 
         strategy.GetProgressionChangeDescription(Performance(new CardioResult(true, EffortRating.Solid)))
-            .Should().Be("Step up: 3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)");
+            .Should().Be("Step up: 7 min @ level 6");
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class CardioStageStrategyTests
         strategy.ApplyPerformanceResult(Performance(new CardioResult(false, EffortRating.Solid)));
 
         strategy.GetProgressionChangeDescription(Performance(new CardioResult(true, EffortRating.Solid, PainFlag.Stop)))
-            .Should().Be("Step back: 3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+            .Should().Be("Step back: 6 min @ level 6");
     }
 
     [Fact]

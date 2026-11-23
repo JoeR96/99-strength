@@ -1,4 +1,5 @@
 using A2S.Domain.Aggregates.Cardio;
+using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.ValueObjects;
 using FluentAssertions;
@@ -48,6 +49,42 @@ public class PlannedCardioBlockTests
         block.Speed.Should().BeNull();
         block.IsSettingsPending.Should().BeFalse();
         block.Text.Should().Be("3 min easy (L3) → 4 × 2 min @ L8.5 / 2 min @ L3 → 2 min easy (L3)");
+    }
+
+    [Fact]
+    public void Title_Intervals_IsTheWorkWithoutWarmUpOrCoolDown()
+    {
+        var stages = new[] { IntervalStage(new IntervalFormat(4, 2, 2)) };
+
+        var block = PlannedCardioBlock.From(CardioLane.Hard, stages, WarmUp, CoolDown, false, StateAt(0, 8m));
+
+        block.Title.Should().Be("4 × 2 min @ L8 / 2 min @ L3");
+    }
+
+    [Fact]
+    public void Title_StairContinuous_IsTheWorkOnly()
+    {
+        var block = CardioStageStrategy.Create(CardioLanes.StairClimber()).CalculateCardioBlock();
+
+        block.Title.Should().Be("6 min @ level 6");
+    }
+
+    [Fact]
+    public void Title_Walk_IncludesInclineAndSpeed()
+    {
+        var walk = CardioStageStrategy.Create(CardioLanes.InclineWalk());
+        walk.RestoreFromState(walk.State with { Minutes = 30, Intensity = 8m, Speed = 5.9m });
+
+        walk.CalculateCardioBlock().Title.Should().Be("30 min @ 8 % incline, 5.9 km/h");
+    }
+
+    [Fact]
+    public void Title_WalkWithoutSpeed_IsMinutesAndIncline()
+    {
+        var walk = CardioStageStrategy.Create(CardioLanes.InclineWalk());
+        walk.RestoreFromState(walk.State with { Minutes = 12, Intensity = 5m });
+
+        walk.CalculateCardioBlock().Title.Should().Be("12 min @ 5 % incline");
     }
 
     [Fact]

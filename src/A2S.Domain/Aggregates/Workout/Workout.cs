@@ -158,6 +158,11 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
         ApplyPerformancesToExercises(day, performancesList);
 
+        foreach (var exercise in exercisesForDay.Where(e => performancesList.Any(p => p.ExerciseId == e.Id && !p.SkipProgression)))
+        {
+            SyncCardioLane(exercise);
+        }
+
         RecordSkippedProgressionAuditEntries(day, performancesList, exercisesForDay);
 
         RecordActivity(day, performancesList, snapshots);
@@ -181,11 +186,42 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         return exercisesForDay;
     }
 
+    /// <summary>
+    /// Snapshots the day's exercises and the lane siblings of its cardio exercises (which the completion
+    /// also moves), so <see cref="UndoLastCompletion"/> restores both.
+    /// </summary>
     private List<ProgressionSnapshot> CapturePreProgressionSnapshots(List<Exercise> exercisesForDay)
     {
+        var siblings = exercisesForDay
+            .SelectMany(CardioLaneSiblings)
+            .Where(s => !exercisesForDay.Contains(s))
+            .Distinct();
+
         return exercisesForDay
+            .Concat(siblings)
             .Select(e => e.CaptureProgressionSnapshot())
             .ToList();
+    }
+
+    /// <summary>The other cardio exercises on the same lane as <paramref name="exercise"/> (none for a lift).</summary>
+    private IEnumerable<Exercise> CardioLaneSiblings(Exercise exercise) =>
+        exercise.Progression is CardioStageStrategy source
+            ? _exercises.Where(e => e.Id != exercise.Id && e.Progression is CardioStageStrategy other && other.Lane == source.Lane)
+            : [];
+
+    /// <summary>A lane progresses once across all its days: copies this cardio exercise's state to its lane siblings.</summary>
+    private void SyncCardioLane(Exercise exercise)
+    {
+        if (exercise.Progression is not CardioStageStrategy source)
+        {
+            return;
+        }
+
+        var state = source.CaptureState();
+        foreach (var sibling in CardioLaneSiblings(exercise))
+        {
+            ((CardioStageStrategy)sibling.Progression).RestoreFromState(state);
+        }
     }
 
     private void ApplyPerformancesToExercises(DayNumber day, List<ExercisePerformance> performancesList)
@@ -325,6 +361,24 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
         exercise.UpdateTrainingMax(newTm, reason);
+    }
+
+    /// <summary>
+    /// Sets a cardio exercise's level/incline and/or speed (null leaves a value as it is), records the
+    /// change in the progression history and copies it to the other exercises on the same lane.
+    /// </summary>
+    public void SetCardioSettings(ExerciseId exerciseId, decimal? intensity, decimal? speed)
+    {
+        CheckRule(Status == WorkoutStatus.NotStarted || Status == WorkoutStatus.Active,
+            "Cannot change cardio settings on a completed or paused workout");
+        var exercise = _exercises.FirstOrDefault(e => e.Id == exerciseId);
+        CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
+
+        var change = exercise!.SetCardioSettings(intensity, speed);
+
+        _auditEntries.Add(ProgressionAuditEntry.CardioSettingsChanged(
+            exercise.Id, exercise.Name, CurrentWeek, (int)exercise.AssignedDay, change.OldText, change.NewText));
+        SyncCardioLane(exercise);
     }
 
     /// <summary>
