@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Events;
@@ -44,6 +45,16 @@ public abstract class ExerciseProgression : Entity<ExerciseProgressionId>
     /// Gets a summary of the current progression state for display purposes.
     /// </summary>
     public abstract ProgressionSummary GetSummary();
+
+    /// <summary>
+    /// Today's cardio prescription for a cardio exercise. Null for lifting strategies.
+    /// </summary>
+    public virtual PlannedCardioBlock? CalculateCardioBlock() => null;
+
+    /// <summary>
+    /// Whether a cardio exercise still needs its level/incline (or speed) set before it can be completed.
+    /// </summary>
+    public virtual bool IsCardioSettingsPending => false;
 
     // --- Weight & Training Max accessors ---
 
@@ -268,8 +279,14 @@ public abstract class ExerciseProgression : Entity<ExerciseProgressionId>
                 config.MinimumSets ?? 2,
                 config.MaximumSets ?? 10),
 
+            "cardiostage" => CardioStageStrategy.Create(
+                (config.CardioLane ?? throw new ArgumentException("CardioStage progression requires a cardio lane.", nameof(config)))
+                    == CardioLane.Hard
+                    ? CardioLanes.StairClimber()
+                    : CardioLanes.InclineWalk()),
+
             _ => throw new ArgumentException(
-                $"Unknown progression type: {config.ProgressionType}. Valid types are: Linear, RepsPerSet, MinimalSets",
+                $"Unknown progression type: {config.ProgressionType}. Valid types are: Linear, RepsPerSet, MinimalSets, CardioStage",
                 nameof(config))
         };
     }
@@ -342,4 +359,9 @@ public sealed record ProgressionData
     public int? TargetTotalReps { get; init; }
     public int? MinimumSets { get; init; }
     public int? MaximumSets { get; init; }
+
+    public CardioLane? CardioLane { get; init; }
+    public int? CardioStageNumber { get; init; }
+    public string? CardioStageName { get; init; }
+    public string? CardioPrescription { get; init; }
 }

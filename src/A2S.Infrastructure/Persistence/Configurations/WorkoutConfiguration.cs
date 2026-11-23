@@ -119,6 +119,9 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                         id => id.Value,
                         value => new ExerciseId(value));
                 perf.Property(p => p.CompletedAt);
+                // Stopgap until the cardio performance columns are mapped (cardio-as-exercises Task 4).
+                perf.Ignore(p => p.PlannedCardio);
+                perf.Ignore(p => p.Cardio);
                 perf.OwnsMany(p => p.CompletedSets, set =>
                 {
                     set.Property(s => s.SetNumber);
@@ -174,6 +177,9 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                         id => id.Value,
                         value => new ExerciseId(value));
                 perf.Property(p => p.CompletedAt);
+                // Stopgap until the cardio performance columns are mapped (cardio-as-exercises Task 4).
+                perf.Ignore(p => p.PlannedCardio);
+                perf.Ignore(p => p.Cardio);
                 perf.OwnsMany(p => p.CompletedSets, set =>
                 {
                     set.Property(s => s.SetNumber);

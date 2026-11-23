@@ -1,4 +1,5 @@
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.ValueObjects;
@@ -157,5 +158,27 @@ public class ProgressionSnapshotTests
         var s2 = ProgressionSnapshot.FromState(TestExerciseId, "A", rpsState);
 
         s1.Should().NotBe(s2);
+    }
+
+    [Fact]
+    public void FromState_WhenCardioStageState_ShouldRoundTrip()
+    {
+        var stages = CardioLanes.StairClimber().Stages;
+        var state = CardioLadder.Choose(CardioLadder.StepUp(stages, CardioStageState.Start(stages)), 7m, null)
+            with { SolidsBanked = 1 };
+
+        var snapshot = ProgressionSnapshot.FromState(TestExerciseId, "Stair Machine (Floors)", state);
+
+        snapshot.ProgressionType.Should().Be("CardioStage");
+        snapshot.GetCardioStageState().Should().BeEquivalentTo(state);
+        snapshot.GetLinearState().Should().BeNull();
+    }
+
+    [Fact]
+    public void GetCardioStageState_WhenTypeIsNotCardioStage_ShouldReturnNull()
+    {
+        var snapshot = ProgressionSnapshot.FromState(TestExerciseId, "Bench", new LinearProgressionState(100m, 1, true, 4));
+
+        snapshot.GetCardioStageState().Should().BeNull();
     }
 }
