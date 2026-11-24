@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Events;
@@ -384,6 +385,50 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         _auditEntries.Add(ProgressionAuditEntry.CardioSettingsChanged(
             exercise.Id, exercise.Name, CurrentWeek, (int)exercise.AssignedDay, change.OldText, change.NewText));
         SyncCardioLane(exercise);
+    }
+
+    /// <summary>
+    /// Seeds the hard lane (stair climber) at <paramref name="minutes"/> of its first stage, at the stage's level, for
+    /// every exercise on the lane, with one progression history entry. Used once, when a running plan moves from the
+    /// old stair finisher track onto cardio exercises.
+    /// </summary>
+    public void SeedCardioLane(CardioLane lane, int minutes)
+    {
+        CheckRule(lane == CardioLane.Hard, "Only the hard lane is seeded");
+        CheckRule(Status == WorkoutStatus.NotStarted || Status == WorkoutStatus.Active,
+            "Cannot change cardio on a completed or paused workout");
+        var exercise = _exercises
+            .Where(e => e.Progression is CardioStageStrategy strategy && strategy.Lane == lane)
+            .OrderBy(e => e.AssignedDay).ThenBy(e => e.OrderInDay)
+            .FirstOrDefault();
+        CheckRule(exercise != null, $"No {lane.ToString().ToLowerInvariant()} lane cardio exercise in this workout");
+
+        var change = ((CardioStageStrategy)exercise!.Progression).Seed(minutes);
+        _auditEntries.Add(ProgressionAuditEntry.ManualAdjustment(
+            exercise.Id, exercise.Name, CurrentWeek, (int)exercise.AssignedDay, change.OldText, change.NewText,
+            "Seeded from the stair finisher track"));
+        SyncCardioLane(exercise);
+    }
+
+    /// <summary>
+    /// Adds a cardio performance to a day already completed (history only: no progression is applied). Refuses a
+    /// day that was not completed that week, a non-cardio exercise or one from another day, and a second performance
+    /// for the same exercise.
+    /// </summary>
+    public void AttachCardioPerformance(DayNumber day, int weekNumber, ExercisePerformance performance)
+    {
+        ArgumentNullException.ThrowIfNull(performance);
+        var activity = _completedActivities.FirstOrDefault(a => a.Day == day && a.WeekNumber == weekNumber);
+        CheckRule(activity != null, $"{day} of week {weekNumber} has not been completed");
+        var exercise = _exercises.FirstOrDefault(e => e.Id == performance.ExerciseId);
+        CheckRule(exercise != null, $"Exercise {performance.ExerciseId} not found in this workout");
+        CheckRule(exercise!.Progression is CardioStageStrategy && performance.Cardio is not null,
+            $"{exercise.Name} is not a cardio exercise");
+        CheckRule(exercise.AssignedDay == day, $"Exercise {exercise.Name} is not assigned to {day}");
+        CheckRule(activity!.Performances.All(p => p.ExerciseId != performance.ExerciseId),
+            $"{exercise.Name} is already recorded on {day} of week {weekNumber}");
+
+        activity.AddPerformance(performance);
     }
 
     /// <summary>

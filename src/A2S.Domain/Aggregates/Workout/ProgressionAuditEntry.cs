@@ -61,6 +61,11 @@ public sealed class ProgressionAuditEntry : ValueObject
         ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string oldText, string newText)
         => new(AuditEntryType.CardioSettingsChanged, exerciseId, exerciseName, weekNumber, dayNumber, oldText, newText, "Cardio settings changed");
 
+    /// <summary>A progression set by hand or by a one-off move (e.g. seeded from an old track): the prescription before and after.</summary>
+    public static ProgressionAuditEntry ManualAdjustment(
+        ExerciseId exerciseId, string exerciseName, int weekNumber, int dayNumber, string oldText, string newText, string reason)
+        => new(AuditEntryType.ManualAdjustment, exerciseId, exerciseName, weekNumber, dayNumber, oldText, newText, reason);
+
     public static ProgressionAuditEntry UndoCompletion(int weekNumber, int dayNumber, string? reason = null)
         => new(AuditEntryType.UndoCompletion, null, "N/A", weekNumber, dayNumber, null, null, reason ?? "User initiated undo");
 

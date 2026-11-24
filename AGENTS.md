@@ -340,6 +340,11 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
   may have reached Hevy, the poster first lists recent Hevy workouts and adopts one with the same title and
   a start within a minute. The pull does the same for a pending post before matching, so a pull that sees
   the workout before the post recorded its id never completes the session twice.
+  A posted session whose payload changed later (`HevyWorkoutPost.RequestUpdate`, status `UpdatePending`) is sent by
+  the same retry as `PUT /v1/workouts/{id}` to its stored Hevy id, never posted or adopted; giving up leaves it Posted.
+  `CardioExerciseBackfill` (startup, after `MuscleGroupBackfill`) moved a running Falador Fat Furnace onto cardio
+  exercises this way: seeded the stair climber from the old stair track, retro-logged this week's stair finisher /
+  fixed cool-down into history, queued the Hevy update, cleared those finishers and paused the stair track.
 - The browser never writes workouts to Hevy: the v1 Send to Hevy on the completion summary is gone and the
   `/hevy/workouts` proxy refuses POST (GET stays for Pull from Hevy).
 - Settings → Gym sessions sets each lift slot's warm-up and finisher (protocol, track, or a fixed cool-down).

@@ -225,4 +225,92 @@ public class CardioExerciseTests
             .Select(e => $"{e.OrderInDay} {e.Name}")
             .Should().Equal("1 Bench", "2 Row", "3 Stair Machine (Floors)");
     }
+
+    private static ExercisePerformance BenchSession(Workout workout) =>
+        new(workout.Exercises.Single(e => e.Name == "Bench").Id, [new PlannedSet(1, TestWeight, 10)], [new CompletedSet(1, TestWeight, 10)], FixedDate);
+
+    private static ExercisePerformance RetroStairs(Exercise stairs) =>
+        new(stairs.Id, [], [], FixedDate,
+            plannedCardio: stairs.Progression.CalculateCardioBlock(),
+            cardio: new CardioResult(true, EffortRating.Easy, totalSeconds: 660, workMinutes: 5m, intensity: 6m, floors: 33));
+
+    [Fact]
+    public void SeedCardioLane_SetsStageOneMinutes_AndAudits()
+    {
+        var workout = Week();
+
+        workout.SeedCardioLane(CardioLane.Hard, 8);
+
+        BlockText(workout, DayNumber.Day1).Should().Be("3 min easy (L3) → 8 min @ level 6 → 2 min easy (L3)");
+        BlockText(workout, DayNumber.Day3).Should().Be("3 min easy (L3) → 8 min @ level 6 → 2 min easy (L3)");
+        var entry = workout.AuditEntries.Should().ContainSingle().Subject;
+        entry.Type.Should().Be(AuditEntryType.ManualAdjustment);
+        entry.ExerciseName.Should().Be(Cardio(workout, DayNumber.Day1).Name);
+        entry.DayNumber.Should().Be(1);
+        entry.OldValue.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+        entry.NewValue.Should().Be("3 min easy (L3) → 8 min @ level 6 → 2 min easy (L3)");
+        entry.Reason.Should().Be("Seeded from the stair finisher track");
+        BlockText(workout, DayNumber.Day2).Should().Be("10 min @ ? % incline", "the walk is not seeded");
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(13)]
+    public void SeedCardioLane_OutsideStageOne_Throws(int minutes)
+    {
+        var workout = Week();
+
+        var act = () => workout.SeedCardioLane(CardioLane.Hard, minutes);
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
+    public void SeedCardioLane_EasyLane_Throws()
+    {
+        var act = () => Week().SeedCardioLane(CardioLane.Easy, 12);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Only the hard lane is seeded");
+    }
+
+    [Fact]
+    public void AttachCardioPerformance_AddsHistoryToTheCompletedDay_WithoutProgressing()
+    {
+        var workout = Week();
+        workout.CompleteDay(DayNumber.Day1, [BenchSession(workout)]);
+        var stairs = Cardio(workout, DayNumber.Day1);
+
+        workout.AttachCardioPerformance(DayNumber.Day1, 1, RetroStairs(stairs));
+
+        var activity = workout.CompletedActivities.Single();
+        activity.Performances.Should().HaveCount(2);
+        activity.Performances[^1].Cardio!.Floors.Should().Be(33);
+        BlockText(workout, DayNumber.Day1).Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+    }
+
+    [Fact]
+    public void AttachCardioPerformance_Twice_Throws()
+    {
+        var workout = Week();
+        workout.CompleteDay(DayNumber.Day1, [BenchSession(workout)]);
+        var stairs = Cardio(workout, DayNumber.Day1);
+        workout.AttachCardioPerformance(DayNumber.Day1, 1, RetroStairs(stairs));
+
+        var act = () => workout.AttachCardioPerformance(DayNumber.Day1, 1, RetroStairs(stairs));
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
+    public void AttachCardioPerformance_ToALiftOrAnUncompletedDay_Throws()
+    {
+        var workout = Week();
+        workout.CompleteDay(DayNumber.Day1, [BenchSession(workout)]);
+
+        var onLift = () => workout.AttachCardioPerformance(DayNumber.Day1, 1, BenchSession(workout));
+        var notDone = () => workout.AttachCardioPerformance(DayNumber.Day3, 1, RetroStairs(Cardio(workout, DayNumber.Day3)));
+
+        onLift.Should().Throw<BusinessRuleViolationException>().WithMessage("Bench is not a cardio exercise");
+        notDone.Should().Throw<BusinessRuleViolationException>();
+    }
 }

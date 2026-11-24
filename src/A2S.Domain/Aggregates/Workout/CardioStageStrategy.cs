@@ -103,6 +103,21 @@ public sealed class CardioStageStrategy : ExerciseProgression
         return new CardioSettingsChange(oldText, newText);
     }
 
+    /// <summary>
+    /// Puts the lane at the start of its first stage with <paramref name="minutes"/> of work (inside that stage's range)
+    /// and the stage's entry intensity, counters and history cleared. Returns the block text before and after.
+    /// </summary>
+    internal CardioSettingsChange Seed(int minutes)
+    {
+        var first = Stages[0];
+        CheckRule(first.MinMinutes is not null && first.MaxMinutes is not null && minutes >= first.MinMinutes && minutes <= first.MaxMinutes,
+            $"The first stage runs {first.MinMinutes} to {first.MaxMinutes} min");
+
+        var oldText = CalculateCardioBlock().Text;
+        State = CardioStageState.Start(Stages) with { Minutes = minutes };
+        return new CardioSettingsChange(oldText, CalculateCardioBlock().Text);
+    }
+
     public override ProgressionSummary GetSummary()
     {
         var block = CalculateCardioBlock();
