@@ -6,6 +6,7 @@ using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Services;
+using A2S.Domain.ValueObjects;
 
 namespace A2S.Application.Hevy;
 
@@ -14,6 +15,7 @@ namespace A2S.Application.Hevy;
 /// template id is resolved beforehand (<see cref="HevyTemplateCatalogue"/>) and passed in.
 /// Lifting: Mobility A drills first, then the day's exercises with their planned sets (AMRAP set as
 /// <c>failure</c>), rest from <see cref="RestDefaults"/>, superset ids for paired accessories.
+/// A cardio exercise on the day: warm-up, work and cool-down duration sets (<see cref="CardioBlockExercise"/>).
 /// Cardio: one exercise, one set per interval (LISS: one distance/duration set). Mobility: the drills.
 /// </summary>
 public static class RoutineBuilder
@@ -56,6 +58,13 @@ public static class RoutineBuilder
             if (!exerciseTemplates.TryGetValue(exercise.Id, out var templateId))
             {
                 throw new InvalidOperationException($"No Hevy template resolved for exercise '{exercise.Name}'");
+            }
+
+            // A cardio exercise: the same shape as a cardio track (warm-up, work, cool-down), its block text in the notes.
+            if (exercise.Progression.CalculateCardioBlock() is { } block)
+            {
+                exercises.Add(CardioBlockExercise(templateId, block));
+                continue;
             }
 
             var planned = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
@@ -134,34 +143,18 @@ public static class RoutineBuilder
     {
         ArgumentNullException.ThrowIfNull(track);
         var p = track.Prescription;
-        List<HevySetDraft> sets;
-        if (p.WorkSeconds is { } work && p.RestSeconds is { } rest && p.Volume is { } rounds)
+        IEnumerable<int> work;
+        if (p.WorkSeconds is { } workSeconds && p.RestSeconds is { } rest && p.Volume is { } rounds)
         {
-            sets = Enumerable.Range(0, (int)rounds)
-                .SelectMany(_ => new[]
-                {
-                    new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = work },
-                    new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = rest }
-                })
-                .Where(set => set.DurationSeconds > 0)
-                .ToList();
+            work = Enumerable.Range(0, (int)rounds).SelectMany(_ => new[] { workSeconds, rest }).Where(seconds => seconds > 0);
         }
         else
         {
-            var workSeconds = p.HasSegments ? (int)Math.Ceiling(p.WorkMinutes) * 60 : p.Minutes * 60;
-            sets = [new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = Math.Max(60, workSeconds) }];
+            var continuous = p.HasSegments ? (int)Math.Ceiling(p.WorkMinutes) * 60 : p.Minutes * 60;
+            work = [Math.Max(60, continuous)];
         }
 
-        // A fixed warm-up and cool-down are their own sets either side of the work.
-        if (p.WarmUp is { } warmUp)
-        {
-            sets.Insert(0, new HevySetDraft { Type = HevySetTypes.Warmup, DurationSeconds = warmUp.Minutes * 60 });
-        }
-
-        if (p.CoolDown is { } coolDown)
-        {
-            sets.Add(new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = coolDown.Minutes * 60 });
-        }
+        var sets = CardioSets(p.WarmUp?.Minutes, work, p.CoolDown?.Minutes);
 
         var notes = new List<string> { $"{track.Name}: {p.Text}" };
         if (!string.IsNullOrWhiteSpace(p.Note))
@@ -181,6 +174,46 @@ public static class RoutineBuilder
             Notes = string.Join(" | ", notes),
             Sets = sets
         };
+    }
+
+    /// <summary>
+    /// A cardio exercise's block as one routine exercise: warm-up, one set per hard round (or one work set), cool-down;
+    /// no rest. The levels and recoveries are in the notes because a Hevy set cannot carry them.
+    /// </summary>
+    private static HevyRoutineExerciseDraft CardioBlockExercise(string templateId, PlannedCardioBlock block)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(templateId);
+        ArgumentNullException.ThrowIfNull(block);
+        IEnumerable<int> work = block.Intervals is { } intervals
+            ? Enumerable.Repeat(intervals.HardMinutes * 60, intervals.Rounds)
+            : [Math.Max(60, block.WorkMinutes * 60)];
+
+        return new HevyRoutineExerciseDraft
+        {
+            ExerciseTemplateId = templateId,
+            RestSeconds = 0,
+            Notes = block.Text,
+            Sets = CardioSets(block.WarmUp?.Minutes, work, block.CoolDown?.Minutes)
+        };
+    }
+
+    /// <summary>The shape every cardio routine exercise shares: a fixed warm-up set, the work sets, then a cool-down set.</summary>
+    private static List<HevySetDraft> CardioSets(int? warmUpMinutes, IEnumerable<int> workSeconds, int? coolDownMinutes)
+    {
+        var sets = new List<HevySetDraft>();
+        if (warmUpMinutes is { } warmUp)
+        {
+            sets.Add(new HevySetDraft { Type = HevySetTypes.Warmup, DurationSeconds = warmUp * 60 });
+        }
+
+        sets.AddRange(workSeconds.Select(seconds => new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = seconds }));
+
+        if (coolDownMinutes is { } coolDown)
+        {
+            sets.Add(new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = coolDown * 60 });
+        }
+
+        return sets;
     }
 
     /// <summary>A cardio slot that points at a track: one exercise, the track's prescription.</summary>

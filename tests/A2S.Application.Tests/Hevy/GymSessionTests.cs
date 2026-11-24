@@ -149,15 +149,17 @@ public class GymSessionTests
         var sealRow = Exercise.CreateWithRepsPerSetProgression("Seal Row (Barbell)", ExerciseCategory.Accessory, EquipmentType.Barbell,
             DayNumber.Day1, 2, "custom:seal-row-barbell", RepRange.Create(10, 10), 3, 5, false, Weight.Create(40m, WeightUnit.Kilograms));
         var stairs = Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 3, "4377A52B", CardioLane.Hard);
+        var walk = Exercise.CreateWithCardioStageProgression("Treadmill", DayNumber.Day1, 4, "243710DE", CardioLane.Easy);
         var workout = new WorkoutBuilder().WithUserId(Joe).WithName(CutTo85Nov2026.Name).WithVariant(ProgramVariant.FourDay)
-            .WithExercise(bench).WithExercise(sealRow).WithExercise(stairs).Build();
+            .WithExercise(bench).WithExercise(sealRow).WithExercise(stairs).WithExercise(walk).Build();
         workout.Start();
         return workout;
     }
 
     private Exercise Bench => _workout.Exercises.Single(e => e.Name.StartsWith("Bench", StringComparison.Ordinal));
     private Exercise SealRow => _workout.Exercises.Single(e => e.Name.StartsWith("Seal", StringComparison.Ordinal));
-    private Exercise Stairs => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
+    private Exercise Stairs => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio && e.Name.StartsWith("Stair", StringComparison.Ordinal));
+    private Exercise Walk => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio && e.Name == "Treadmill");
     private decimal BenchTm => ((LinearProgressionStrategy)Bench.Progression).TrainingMax.Value;
 
     private Queue<Func<HevyWorkoutDraft, HevyResult<HevyWorkout>>> CreateScript { get; } = new();
@@ -537,6 +539,50 @@ public class GymSessionTests
         var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
         payload.Performances.Single(p => p.ExerciseId == Stairs.Id.Value).Cardio
             .Should().Be(new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40));
+    }
+
+    [Fact]
+    public async Task Post_StairCardioExercise_IsOneDurationExerciseInTheWorkout()
+    {
+        var performances = AsPlanned(amrapReps: 14);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Stairs.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40)
+        });
+
+        var result = await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        result.Value.HevyStatus.Should().Be("Posted");
+        _posts.All.Should().ContainSingle("the cardio exercise is not a separate post");
+        var draft = _posted.Should().ContainSingle().Subject;
+        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("79D0BB3A", "T-seal-row", "4377A52B");
+        var stairs = draft.Exercises[^1];
+        stairs.Notes.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3) · Solid");
+        stairs.Sets.Should().Equal(
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Warmup, DurationSeconds = 180, CustomMetric = 0 },
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Normal, DurationSeconds = 360, CustomMetric = 40, Rpe = 7 },
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Warmup, DurationSeconds = 120, CustomMetric = 0 });
+    }
+
+    [Fact]
+    public async Task Post_WalkCardioExercise_UsesTreadmill()
+    {
+        _workout.SetCardioSettings(Walk.Id, 5m, 5.5m);
+        var performances = AsPlanned(amrapReps: 14);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Walk.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 615, Intensity: 5m, Speed: 5.5m)
+        });
+
+        await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        Walk.Progression.CalculateCardioBlock()!.Text.Should().Be("12 min @ 5 % incline, 5.5 km/h", "the walk stepped up before the post");
+        var walk = _posted.Should().ContainSingle().Subject.Exercises[^1];
+        walk.ExerciseTemplateId.Should().Be("243710DE");
+        walk.Notes.Should().Be("10 min @ 5 % incline, 5.5 km/h · Easy", "the note is the block as it was done");
+        walk.Sets.Should().Equal(new HevyWorkoutSetDraft { Type = HevySetTypes.Normal, DurationSeconds = 615 });
     }
 
     [Fact]

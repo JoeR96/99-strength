@@ -13,6 +13,7 @@ using A2S.Domain.Aggregates.Habits;
 using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -183,5 +184,68 @@ public class CardioTrackHevyPullTests
         session.DistanceMeters.Should().Be(1900);
         _walk.State.Qualifying.Should().Be(1);
         await _habits.Received(1).AddLogAsync(Arg.Is<HabitLog>(l => l.HabitId == _walksHabit.Id), Arg.Any<CancellationToken>());
+    }
+
+    private Exercise AddStairsToUpperA()
+    {
+        var stairs = Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 2, "4377A52B", CardioLane.Hard);
+        _workout.AddExercise(stairs);
+        return stairs;
+    }
+
+    /// <summary>The recorded stair-finisher workout with the stair machine's RPE replaced.</summary>
+    private static HevyWorkoutEvent WithStairRpe(decimal? rpe)
+    {
+        var recorded = Fixture("events-upper-a-stair-finisher.json")[0];
+        var workout = recorded.Workout!;
+        return recorded with
+        {
+            Workout = workout with
+            {
+                Exercises = workout.Exercises
+                    .Select(e => e.ExerciseTemplateId == "4377A52B" ? e with { Sets = e.Sets.Select(set => set with { Rpe = rpe }).ToList() } : e)
+                    .ToList()
+            }
+        };
+    }
+
+    [Fact]
+    public async Task Pull_CardioWithRpe_CompletesTheLane()
+    {
+        var stairs = AddStairsToUpperA();
+        HevyReturns(WithStairRpe(5m));
+
+        var result = await _service.PullAsync(Joe, force: false);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        var performance = _workout.CompletedActivities.Should().ContainSingle().Subject.Performances.Single(p => p.ExerciseId == stairs.Id);
+        performance.Cardio.Should().Be(new CardioResult(true, EffortRating.Easy, PainFlag.None, null, totalSeconds: 300, floors: 32));
+        stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)", "RPE 5 is Easy, which steps up");
+    }
+
+    [Fact]
+    public async Task Pull_CardioWithoutRpe_LeavesProgressionUnchanged()
+    {
+        var stairs = AddStairsToUpperA();
+        HevyReturns(WithStairRpe(null));
+
+        var result = await _service.PullAsync(Joe, force: false);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        _workout.CompletedActivities.Should().ContainSingle().Subject.Performances.Should().NotContain(p => p.ExerciseId == stairs.Id);
+        stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+    }
+
+    [Fact]
+    public async Task Pull_StairExerciseOnLiftDay_IsNotLoggedToTheOldTrack()
+    {
+        AddStairsToUpperA();
+        HevyReturns(Fixture("events-upper-a-stair-finisher.json"));
+
+        var result = await _service.PullAsync(Joe, force: false);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        _workout.CompletedActivities.Should().ContainSingle();
+        _stairs.Sessions.Should().BeEmpty("the stair machine belongs to the lift day's cardio exercise now");
     }
 }

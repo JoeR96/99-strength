@@ -29,4 +29,13 @@ public static class EffortScale
         Effort.Brutal => EffortRating.Brutal,
         _ => throw new ArgumentOutOfRangeException(nameof(effort), effort, "Unknown effort")
     };
+
+    /// <summary>The button for a rating: <see cref="EffortRating"/> Easy / Solid / Brutal → Easy / Solid / Brutal.</summary>
+    public static Effort ToEffort(this EffortRating rating) => rating switch
+    {
+        EffortRating.Easy => Effort.Easy,
+        EffortRating.Solid => Effort.Solid,
+        EffortRating.Brutal => Effort.Brutal,
+        _ => throw new ArgumentOutOfRangeException(nameof(rating), rating, "Unknown effort rating")
+    };
 }

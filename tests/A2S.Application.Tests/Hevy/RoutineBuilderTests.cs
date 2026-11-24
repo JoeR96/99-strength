@@ -4,6 +4,7 @@ using A2S.Application.SuggestedPlans;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Services;
@@ -104,6 +105,34 @@ public class RoutineBuilderTests
         draft.Exercises.Should().HaveCount(4);
         draft.Exercises.Should().AllSatisfy(e => e.SupersetId.Should().BeNull());
         draft.Exercises[1].RestSeconds.Should().Be(RestDefaults.AccessorySeconds);
+    }
+
+    [Fact]
+    public void Routine_StairIntervals_HaveOneSetPerHardRound()
+    {
+        var workout = UpperA();
+        workout.AddExercise(Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 5, "4377A52B", CardioLane.Hard));
+        var stairs = workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
+        var strategy = (CardioStageStrategy)stairs.Progression;
+        for (var session = 0; session < 7; session++)
+        {
+            strategy.ApplyPerformanceResult(new ExercisePerformance(stairs.Id, [], [], new DateTime(2026, 11, 23, 18, 0, 0, DateTimeKind.Utc),
+                plannedCardio: strategy.CalculateCardioBlock(), cardio: new CardioResult(true, EffortRating.Easy)));
+        }
+
+        workout.SetCardioSettings(stairs.Id, 8m, null);
+        var templates = workout.Exercises.ToDictionary(e => e.Id, e => e.ExternalTemplateId);
+
+        var draft = RoutineBuilder.Lift("Plan · W1 Upper A", null, workout, DayNumber.Day1, Program.GetWeekParameters(1),
+            null, new Dictionary<string, string>(), templates, [], new Dictionary<string, string>());
+
+        var exercise = draft.Exercises[^1];
+        exercise.ExerciseTemplateId.Should().Be("4377A52B");
+        exercise.RestSeconds.Should().Be(0);
+        exercise.Notes.Should().Be("3 min easy (L3) → 4 × 2 min @ L8 / 2 min @ L3 → 2 min easy (L3)");
+        exercise.Sets.Select(s => s.Type).Should().Equal(
+            HevySetTypes.Warmup, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal);
+        exercise.Sets.Select(s => s.DurationSeconds).Should().Equal(180, 120, 120, 120, 120, 120);
     }
 
     [Fact]

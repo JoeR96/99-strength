@@ -3,6 +3,7 @@ using A2S.Application.Commands.Plans;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Application.Interfaces.Hevy;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
@@ -82,7 +83,8 @@ public sealed class HevySessionCompleter
 
         // Finishers, walks and runs inside the workout: a lift's finisher track (or another cardio slot's track that
         // day) completes that slot, so Today shows it done and the track is evaluated once on its completion; any
-        // other built-in cardio exercise just evaluates the person's track of that kind.
+        // other built-in cardio exercise just evaluates the person's track of that kind. A lift day's own cardio
+        // exercises (stair machine, treadmill) belong to the day and never go to a track as well.
         if (_cardioTracks is not null)
         {
             var handled = new List<CardioTrackId>();
@@ -101,7 +103,8 @@ public sealed class HevySessionCompleter
                 .Where(s => s.Kind == SessionKind.Cardio && s.CardioTrackId is not null && s.CardioTrackId != session.CardioTrackId)
                 .Select(s => s.CardioTrackId!.Value));
 
-            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, ct))
+            var liftDayCardio = CardioExerciseTemplates(program, session, templateLinks);
+            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, ct, liftDayCardio))
             {
                 var slot = await _sender.Send(new CompleteSessionCommand(plan.Id.Value, date, SessionKind.Cardio,
                     Cardio: log.ToDto(), CardioTrackId: track.Value, PostToHevy: false), ct);
@@ -111,7 +114,7 @@ public sealed class HevySessionCompleter
                 }
             }
 
-            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, ct);
+            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, ct, liftDayCardio);
         }
 
         return Result.Success(new SessionCompletionId(completion.Value.Id));
@@ -177,6 +180,16 @@ public sealed class HevySessionCompleter
                 continue;
             }
 
+            if (exercise.Category == ExerciseCategory.Cardio)
+            {
+                if (CardioPerformance(exercise, templateId, workout) is { } cardio)
+                {
+                    performances.Add(cardio);
+                }
+
+                continue;
+            }
+
             var sets = workout.Exercises
                 .Where(e => string.Equals(e.ExerciseTemplateId, templateId, StringComparison.Ordinal))
                 .SelectMany(e => e.Sets.OrderBy(s => s.Index))
@@ -203,6 +216,58 @@ public sealed class HevySessionCompleter
         }
 
         return performances;
+    }
+
+    /// <summary>
+    /// A cardio exercise done in Hevy: completed only when a set carries an RPE (the hardest one gives the effort:
+    /// 5 or less Easy, 6 to 8 Solid, 9 or more Brutal), finished, no pain, time = all its sets, floors from the stair
+    /// machine's custom metric. No RPE, no time, or settings still blank: left out, so its progression is unchanged.
+    /// </summary>
+    private static ExercisePerformanceRequest? CardioPerformance(Exercise exercise, string templateId, HevyWorkout workout)
+    {
+        if (exercise.IsCardioSettingsPending)
+        {
+            return null;
+        }
+
+        var sets = workout.Exercises
+            .Where(e => string.Equals(e.ExerciseTemplateId, templateId, StringComparison.Ordinal))
+            .SelectMany(e => e.Sets)
+            .ToList();
+        var rpe = sets.Where(s => s.Rpe.HasValue).Select(s => (int)Math.Round(s.Rpe!.Value)).DefaultIfEmpty(0).Max();
+        var seconds = sets.Sum(s => s.DurationSeconds ?? 0);
+        if (rpe <= 0 || seconds <= 0)
+        {
+            return null;
+        }
+
+        var floors = templateId == HevyTemplateCatalogue.StairMachineFloors ? (int)sets.Sum(s => s.CustomMetric ?? 0m) : 0;
+        return new ExercisePerformanceRequest
+        {
+            ExerciseId = exercise.Id.Value,
+            Cardio = new CardioResultRequest(
+                Finished: true,
+                Effort: EffortRatings.FromRpe(rpe).ToEffort(),
+                Pain: PainFlag.None,
+                TotalSeconds: seconds,
+                Floors: floors > 0 ? floors : null)
+        };
+    }
+
+    /// <summary>The Hevy templates of the lift day's cardio exercises: those sets are the lift day's, never an old track's.</summary>
+    public static IReadOnlyCollection<string> CardioExerciseTemplates(Workout? program, ScheduledSession session, IReadOnlyDictionary<string, string> templateLinks)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (program is null || session.Kind != SessionKind.Lift || session.LiftDay is not { } liftDay)
+        {
+            return [];
+        }
+
+        return program.GetExercisesForDay(liftDay)
+            .Where(e => e.Category == ExerciseCategory.Cardio)
+            .Select(e => WorkoutMatcher.HevyTemplateIdFor(e, templateLinks))
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>Duration from the sets (or the wall clock), total distance, and the hardest RPE Hevy recorded.</summary>
