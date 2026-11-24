@@ -407,6 +407,10 @@ public sealed class Exercise : Entity<ExerciseId>
     /// <summary>True for a cardio exercise whose level/incline (or the walk's speed) is not set yet.</summary>
     public bool IsCardioSettingsPending => Progression.IsCardioSettingsPending;
 
+    /// <summary>True for a cardio exercise whose blank settings would all be set by these values (null keeps a value).</summary>
+    public bool CardioSettingsCompleteWith(decimal? intensity, decimal? speed) =>
+        Progression is CardioStageStrategy cardio && !cardio.IsSettingsPendingWith(intensity, speed);
+
     /// <summary>True for an A2S2 exercise still waiting for its training max.</summary>
     public bool IsTrainingMaxPending => Progression is LinearProgressionStrategy { IsTrainingMaxPending: true };
 

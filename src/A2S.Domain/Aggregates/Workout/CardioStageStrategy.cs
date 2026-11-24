@@ -47,6 +47,10 @@ public sealed class CardioStageStrategy : ExerciseProgression
 
     public override bool IsCardioSettingsPending => CalculateCardioBlock().IsSettingsPending;
 
+    /// <summary>Whether the settings would still be blank after <see cref="SetSettings"/> with these values (null keeps a value).</summary>
+    public bool IsSettingsPendingWith(decimal? intensity, decimal? speed) =>
+        BlockFor(CardioLadder.Choose(State, intensity, speed)).IsSettingsPending;
+
     public override IEnumerable<PlannedSet> CalculatePlannedSets(int weekNumber, int blockNumber) => [];
 
     /// <summary>Applies the lane rule to the session's result. No cardio result, or settings still blank: no change.</summary>

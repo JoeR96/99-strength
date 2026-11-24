@@ -467,6 +467,46 @@ public class CompleteDayCommandHandlerTests
     }
 
     [Fact]
+    public async Task CompleteDay_PendingWalkWithSpeedAndInclineInTheResult_AppliesThemFirstThenProgresses()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = CreateActiveWorkoutWithCardio(TestUserId, CardioLane.Easy);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var walk = CardioExercise(workout);
+
+        var result = await _handler.Handle(CardioDayCommand(workout, walk.Id.Value,
+            new CardioResultRequest(true, Effort.Easy, TotalSeconds: 600, Intensity: 5m, Speed: 5.5m)), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        workout.AuditEntries.Should().ContainSingle(a => a.Type == AuditEntryType.CardioSettingsChanged && a.ExerciseId == walk.Id);
+        var performance = workout.CompletedActivities.Single().Performances.Single(p => p.ExerciseId == walk.Id);
+        performance.PlannedCardio!.IsSettingsPending.Should().BeFalse();
+        performance.PlannedCardio.WorkMinutes.Should().Be(10);
+        var next = walk.Progression.CalculateCardioBlock()!;
+        next.WorkMinutes.Should().Be(12);
+        next.Intensity.Should().Be(5m);
+        next.Speed.Should().Be(5.5m);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CompleteDay_PendingWalkWithOnlyTheSpeed_StillAsksForTheSettings()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = CreateActiveWorkoutWithCardio(TestUserId, CardioLane.Easy);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var walk = CardioExercise(workout);
+
+        var result = await _handler.Handle(CardioDayCommand(workout, walk.Id.Value,
+            new CardioResultRequest(true, Effort.Easy, TotalSeconds: 600, Speed: 5.5m)), CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
+        workout.CompletedActivities.Should().BeEmpty();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public void Validator_CardioWithoutSets_IsValid()
     {
         var command = new CompleteDayCommand(TestWorkoutGuid, DayNumber.Day1,

@@ -68,13 +68,33 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
 
             // A cardio exercise whose level/incline (or the walk's speed) is still blank cannot be finished:
             // that is the person's input to give, so it is a validation error rather than a domain failure.
+            // Gym mode set up offline sends them with the result: then they are set first (audited), as the
+            // online settings dialog would have done.
             foreach (var performanceRequest in request.Performances)
             {
-                if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var cardioEx)
-                    && cardioEx.IsCardioSettingsPending)
+                if (!dayExercises.TryGetValue(performanceRequest.ExerciseId, out var cardioEx) || !cardioEx.IsCardioSettingsPending)
+                {
+                    continue;
+                }
+
+                var planned = cardioEx.Progression.CalculateCardioBlock()!;
+                var intensity = planned.Intensity is null ? performanceRequest.Cardio?.Intensity : null;
+                var speed = planned.Speed is null ? performanceRequest.Cardio?.Speed : null;
+                if (!cardioEx.CardioSettingsCompleteWith(intensity, speed))
                 {
                     return Result.Failure<CompleteDayResult>(
                         $"Set the {cardioEx.Name} settings before finishing it.", ErrorCode.ValidationFailed);
+                }
+            }
+
+            foreach (var performanceRequest in request.Performances)
+            {
+                if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var cardioEx) && cardioEx.IsCardioSettingsPending)
+                {
+                    var planned = cardioEx.Progression.CalculateCardioBlock()!;
+                    workout.SetCardioSettings(cardioEx.Id,
+                        planned.Intensity is null ? performanceRequest.Cardio?.Intensity : null,
+                        planned.Speed is null ? performanceRequest.Cardio?.Speed : null);
                 }
             }
 
