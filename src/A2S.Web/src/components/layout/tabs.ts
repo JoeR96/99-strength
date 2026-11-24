@@ -29,7 +29,7 @@ export const TABS: TabDefinition[] = [
     to: '/settings',
     label: 'Settings',
     icon: Settings,
-    matches: ['/settings', '/hevy', '/exercises', '/simulate'],
+    matches: ['/settings', '/progression', '/hevy', '/exercises', '/simulate'],
     excludes: ['/hevy/inbox', '/hevy/data'],
   },
 ];

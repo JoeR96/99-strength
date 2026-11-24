@@ -157,6 +157,9 @@ export function TrackInfoSheet({ track, onClose, onSave, saving = false }: Track
           <DialogHeader>
             <DialogTitle>{track?.name ?? 'Track'}</DialogTitle>
             <DialogDescription>{track?.safetyNote}</DialogDescription>
+            <a href="/progression#tracks" target="_blank" rel="noreferrer" className="text-sm text-primary underline underline-offset-2">
+              How do track stages progress?
+            </a>
           </DialogHeader>
           <UnsavedChangesGuard when={unsaved.isDirty} />
           {unsaved.pendingDraft && <DraftRestorePrompt savedAt={unsaved.pendingDraft.savedAt} onRestore={restore} onDiscard={unsaved.discard} />}

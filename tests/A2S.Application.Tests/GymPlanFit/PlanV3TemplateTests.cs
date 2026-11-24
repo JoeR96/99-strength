@@ -55,14 +55,14 @@ public class PlanV3TemplateTests
     }
 
     [Fact]
-    public void Pause_squat_is_reps_per_set_4_x_5_to_8_first_on_lower_a_with_weight_pending()
+    public void Pause_squat_is_reps_per_set_4_x_4_to_6_first_on_lower_a_with_weight_pending()
     {
         var pause = Spec().Exercises.Single(e => e.TemplateName == "Pause Squat (Barbell)");
 
         pause.ProgressionType.Should().Be("RepsPerSet");
         pause.Category.Should().Be(ExerciseCategory.MainLift);
         (pause.AssignedDay, pause.OrderInDay).Should().Be((DayNumber.Day2, 1));
-        (pause.StartingSets, pause.RepRangeMinimum, pause.RepRangeMaximum).Should().Be((4, 5, 8));
+        (pause.StartingSets, pause.RepRangeMinimum, pause.RepRangeMaximum).Should().Be((4, 4, 6));
         pause.StartingWeight.Should().BeNull();
         pause.TrainingMaxValue.Should().BeNull();
     }
@@ -147,7 +147,7 @@ public class PlanV3TemplateTests
             "8 Stair Machine (Floors) 3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
         preview.Sessions.Single(s => s.Label == "Lower A").Exercises[0].Should().BeEquivalentTo(new
         {
-            Slot = "1", Name = "Pause Squat (Barbell)", Prescription = "4 × 5–8", Progression = "Reps per set"
+            Slot = "1", Name = "Pause Squat (Barbell)", Prescription = "4 × 4–6", Progression = "Reps per set"
         });
         upperA.WarmUp.Should().Be(PlanV3BaseBuildTransition.WarmUpUpper);
         upperA.Exercises[^1].Progression.Should().Be("Cardio (hard lane)");
@@ -159,7 +159,7 @@ public class PlanV3TemplateTests
         preview.Sessions.Single(s => s.Label == "Upper B").Exercises[0].Progression.Should().Be("A2S2 auxiliary scheme");
         preview.Routines.Select(r => r.Name).Should().Equal("Warm-up (upper)", "Warm-up (lower)", "Hips & lower back", "Upper back & chest", "Full-body flow");
         preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.WalkToRun);
-        preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 19 accessories"));
+        preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 20 accessories"));
         preview.ProgramWeeks.Should().Be(26);
         preview.Slots.Should().HaveCount(11);
     }

@@ -70,6 +70,9 @@ export function SettingsPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
           <p className="text-muted-foreground mt-2">Manage your application settings and data</p>
+          <Link to="/progression" className="text-sm text-primary underline underline-offset-2 mt-2 inline-block">
+            How progression works (weights, cardio, mobility)
+          </Link>
         </div>
 
         <div className="grid gap-6">

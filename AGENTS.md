@@ -388,7 +388,7 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
 - **Unilateral work is left side first**: gym mode lists Left then Right; Hevy routine/workout notes say "Left side first".
 - **Extra set** (`Exercise.ExtraSetSide` None/Left/Right, unilateral reps-per-set only): sent as
   `ExercisePerformanceRequest.ExtraSet`, outside `CompletedSets`, so RPS evaluation never sees it (tested
-  identical with/without); Hevy gets it as one more set with the note "Extra set: left". Plan v3 doesn't use it, nor supersets (its pause squat is reps per set, 4 × 5–8; its Walk → run gate has no walk-builder condition).
+  identical with/without); Hevy gets it as one more set with the note "Extra set: left". Plan v3 doesn't use it, nor supersets (its pause squat is reps per set, 4 × 4–6; its Walk → run gate has no walk-builder condition).
 - **Fixed cool-down finisher** (`SessionFinisher.Fixed` = `FixedActivity` Walk/Treadmill, 1–60 min, notes):
   no LISS rule, no track. Gym mode ticks it; the finish logs a plain cardio completion; Hevy gets Treadmill
   `243710DE` (or Walking) with the duration.

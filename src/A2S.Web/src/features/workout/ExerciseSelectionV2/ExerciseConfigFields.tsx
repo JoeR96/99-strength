@@ -5,6 +5,12 @@ import { UnilateralToggle } from "@/components/shared/UnilateralToggle";
 // Extended type to include MinimalSets
 type ProgressionType = 'Linear' | 'RepsPerSet' | 'MinimalSets';
 
+const GUIDE_ANCHOR: Record<ProgressionType, string> = {
+  Linear: 'linear',
+  RepsPerSet: 'reps-per-set',
+  MinimalSets: 'minimal-sets',
+};
+
 interface ExerciseConfigFieldsProps {
   progressionType: ProgressionType;
 
@@ -73,6 +79,14 @@ export function ExerciseConfigFields({
 }: ExerciseConfigFieldsProps) {
   return (
     <>
+      <a
+        href={`/progression#${GUIDE_ANCHOR[progressionType]}`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-sm text-primary underline underline-offset-2"
+      >
+        How does this progression work?
+      </a>
       {progressionType === 'Linear' && (
         <div className="space-y-5 p-5 bg-muted/20 rounded-xl border border-border/50">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
