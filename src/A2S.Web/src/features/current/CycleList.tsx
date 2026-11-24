@@ -24,7 +24,7 @@ function Row({ session }: { session: CycleSessionDto }) {
         <span className="w-14 shrink-0 text-xs text-muted-foreground">W{session.week} · {session.position}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium text-foreground">{session.label}</span>
-          {main && <span className="block truncate text-xs text-muted-foreground">{[main, ...cardio].filter(Boolean).join(' · ')}</span>}
+          {(main || cardio.length > 0) && <span className="block truncate text-xs text-muted-foreground">{[main, ...cardio].filter(Boolean).join(' · ')}</span>}
         </span>
         {session.isDeloadWeek && <span className="text-xs text-muted-foreground">Deload</span>}
         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 import { blockColors, getBlockColor } from '@/lib/blockColors';
-import { CardioSessionList } from '@/features/workout/CardioSessionList';
+import { CardioSessionList, CardioSettingsChanges } from '@/features/workout/CardioSessionList';
 
 export interface CompletedSetDto {
   setNumber: number;
@@ -50,6 +50,7 @@ export interface ExerciseHistoryDto {
   targetSets: number;
   trainingMax: number | null;
   weeklyHistory: WeeklyPerformanceDto[];
+  settingsChanges?: { occurredAt: string; oldText: string; newText: string }[];
 }
 
 export interface ExercisePerformanceHistoryDto {
@@ -331,6 +332,7 @@ function CardioExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto }
         <h3 className="text-xl font-semibold text-foreground">{exercise.name}</h3>
         <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {exercise.category} · {exercise.equipment}</p>
       </div>
+      <CardioSettingsChanges changes={exercise.settingsChanges ?? []} />
       <CardioSessionList sessions={exercise.weeklyHistory} />
     </div>
   );

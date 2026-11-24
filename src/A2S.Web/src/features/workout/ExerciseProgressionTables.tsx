@@ -434,7 +434,7 @@ export function CurrentStateSummary({ exercise }: { exercise: ExerciseDto }) {
         </div>
         <div>
           <span className="text-muted-foreground">Today: </span>
-          <span className="font-medium">{cp.isSettingsPending ? "Settings to set" : cp.prescription}</span>
+          <span className="font-medium">{cp.isSettingsPending ? "Set in gym mode first" : cp.prescription}</span>
         </div>
       </div>
     );

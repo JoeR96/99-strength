@@ -107,6 +107,24 @@ public sealed record ExerciseHistoryDto
     /// Audit entries for progression type changes on this exercise.
     /// </summary>
     public IReadOnlyList<ProgressionChangeDto> ProgressionChanges { get; init; } = Array.Empty<ProgressionChangeDto>();
+
+    /// <summary>
+    /// For a cardio exercise: its level/incline/speed edits (audit entries), oldest first.
+    /// </summary>
+    public IReadOnlyList<CardioSettingsChangeDto> SettingsChanges { get; init; } = Array.Empty<CardioSettingsChangeDto>();
+}
+
+/// <summary>
+/// A cardio exercise's settings edit: the prescription text before and after.
+/// </summary>
+public sealed record CardioSettingsChangeDto
+{
+    public DateTime OccurredAt { get; init; }
+    public int WeekNumber { get; init; }
+    public int DayNumber { get; init; }
+    public string OldText { get; init; } = string.Empty;
+    public string NewText { get; init; } = string.Empty;
+    public string? Reason { get; init; }
 }
 
 /// <summary>

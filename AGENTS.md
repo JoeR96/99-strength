@@ -319,7 +319,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `GetStartingNumbersSuggestions` (`GET /workouts/{id}/suggestions/starting-numbers`, Clerk only) | For each pending exercise (Linear `IsTrainingMaxPending`, RPS `IsWeightPending`) a suggestion or null with evidence (set date/weight/reps, e1RM, 90-day window, stale flag, one-line reason). History = `HevyStrengthHistory`: up to 20 pages of `GET /v1/workouts` (stops a year back) merged with `HevyWorkoutSnapshot` rows, cached per user 5 min (`IMemoryCache`, successes only). Match by Hevy template id, then exact title, then the `custom:` catalogue name. `hevyStatus` `ok`/`noKey`/`unavailable` — the UI falls back to manual input; never a 5xx for a Hevy failure |
 | `GetExerciseLibrary` | Paginated exercise definitions (search, filter) |
 | `GetExerciseHistory` | Historical performance for an exercise |
-| `GetWorkoutHistory` | Completed day history for a workout; a cardio performance carries `cardioSummary` ("7 min @ level 6 · Easy") instead of sets (also on `GetExerciseHistory` sessions) |
+| `GetWorkoutHistory` | Completed day history for a workout; a cardio performance carries `cardioSummary` ("7 min @ level 6 · Easy") instead of sets (also on `GetExerciseHistory` sessions); a cardio exercise's `settingsChanges` lists its settings edits |
 | `GetCurrentUser` / `GetUser` | User profile |
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
 | `GetUpcomingDays` (`GET /plans/upcoming?from=&days=`, 1–31, default 14) | The next days' sessions, each lift with its planned sets from the current A2S2 week, its finisher and (additive) `cardio` planned item; Terran CC |
@@ -370,8 +370,8 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
   early, pain), sent as `cardio` on the exercise performance; only items with an effort chosen are sent, so an untouched
   one keeps its progression. They replace the stair/fixed finisher on Plan v3 (earlier plans keep finishers and the live
   finisher wizard). The read-only preview (`GymPreview`), the cycle list and the Workout page's full plan list them with
-  their block text; history rows and the progression modal show `cardioSummary` / the session list (settings edits are
-  audit entries and are not yet exposed to the web). Frontend: `features/gym/gymCardio.ts` (`cardioBlockLine`),
+  their block text; history rows and the progression modal show `cardioSummary` / the session list, and the modal lists the
+  exercise's settings edits (`ExerciseHistoryDto.SettingsChanges`, from `CardioSettingsChanged` audit entries: date, old → new text). Frontend: `features/gym/gymCardio.ts` (`cardioBlockLine`),
   `GymCardioCard`, `CardioSettingsDialog`.
 - Settings → Gym sessions sets each lift slot's warm-up and finisher (protocol, track, or a fixed cool-down).
 - **Supersets.** `Exercise.SupersetGroup` (per day, max two exercises; set by plan specs, editable via

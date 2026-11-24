@@ -23,3 +23,26 @@ export function CardioSessionList({ sessions }: { sessions: CardioSession[] }) {
     </ul>
   );
 }
+
+export interface CardioSettingsChange {
+  occurredAt: string;
+  oldText: string;
+  newText: string;
+}
+
+/** The level/incline/speed edits on a cardio exercise (its progression history), oldest first: "24 Nov · settings: old → new". */
+export function CardioSettingsChanges({ changes }: { changes: CardioSettingsChange[] }) {
+  if (changes.length === 0) return null;
+  return (
+    <ul className="divide-y divide-border/50 text-sm" aria-label="Settings changes" data-testid="cardio-settings-changes">
+      {changes.map((c, i) => (
+        <li key={i} className="py-2 text-foreground">
+          <span className="text-muted-foreground">
+            {new Date(c.occurredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ·{' '}
+          </span>
+          settings: {c.oldText} → {c.newText}
+        </li>
+      ))}
+    </ul>
+  );
+}

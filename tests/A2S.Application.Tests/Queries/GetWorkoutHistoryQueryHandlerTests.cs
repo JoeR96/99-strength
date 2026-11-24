@@ -133,6 +133,33 @@ public class GetWorkoutHistoryQueryHandlerTests
         result.Value.CompletedActivities.Single().Performances.Single().CardioSummary.Should().Be("7 min @ level 6 · Easy");
     }
 
+    [Fact]
+    public async Task History_ListsCardioSettingsChangesWithBeforeAndAfterText()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).WithVariant(ProgramVariant.FourDay)
+            .WithExercise(e => e.WithName("Bench").WithDay(DayNumber.Day1).WithOrder(1).AsLinear())
+            .WithExercise(e => e.WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(CardioLane.Easy))
+            .Build();
+        workout.Start();
+        var walk = workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
+        workout.SetCardioSettings(walk.Id, 5m, 5.6m);
+        var audit = workout.AuditEntries.Single(a => a.Type == AuditEntryType.CardioSettingsChanged);
+        _workoutRepository.GetActiveWorkoutAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>()).Returns(workout);
+
+        var result = await _handler.Handle(new GetWorkoutHistoryQuery(), CancellationToken.None);
+
+        var history = result.Value!.ExerciseHistories.Single(h => h.ExerciseId == walk.Id.Value);
+        var change = history.SettingsChanges.Should().ContainSingle().Subject;
+        change.OldText.Should().Be(audit.OldValue);
+        change.NewText.Should().Be(audit.NewValue);
+        change.NewText.Should().Contain("5.6 km/h");
+        change.WeekNumber.Should().Be(1);
+        change.DayNumber.Should().Be(1);
+        history.ProgressionChanges.Should().BeEmpty();
+        result.Value.ExerciseHistories.Single(h => h.Name == "Bench").SettingsChanges.Should().BeEmpty();
+    }
+
     private void SetupAuthenticatedUser(UserId userId)
     {
         _currentUserService.UserId.Returns(userId.Value.ToString());

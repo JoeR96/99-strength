@@ -150,11 +150,31 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
                 TargetSets = data.TargetSets ?? data.BaseSetsPerExercise ?? data.MinimumSets ?? 0,
                 TrainingMax = tm?.Value,
                 WeeklyHistory = weeklyHistory,
-                ProgressionChanges = progressionChanges
+                ProgressionChanges = progressionChanges,
+                SettingsChanges = BuildSettingsChanges(exercise, workout.AuditEntries)
             });
         }
 
         return histories;
+    }
+
+    private static List<CardioSettingsChangeDto> BuildSettingsChanges(
+        Exercise exercise,
+        IReadOnlyCollection<ProgressionAuditEntry> auditEntries)
+    {
+        return auditEntries
+            .Where(a => a.ExerciseId == exercise.Id && a.Type == AuditEntryType.CardioSettingsChanged)
+            .OrderBy(a => a.OccurredAt)
+            .Select(a => new CardioSettingsChangeDto
+            {
+                OccurredAt = a.OccurredAt,
+                WeekNumber = a.WeekNumber,
+                DayNumber = a.DayNumber,
+                OldText = a.OldValue ?? string.Empty,
+                NewText = a.NewValue ?? string.Empty,
+                Reason = a.Reason
+            })
+            .ToList();
     }
 
     private static List<ProgressionChangeDto> BuildProgressionChanges(

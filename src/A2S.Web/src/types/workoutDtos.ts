@@ -432,6 +432,15 @@ export interface CompletedSetHistoryDto {
   wasAmrap: boolean;
 }
 
+export interface CardioSettingsChangeDto {
+  occurredAt: string;
+  weekNumber: number;
+  dayNumber: number;
+  oldText: string;
+  newText: string;
+  reason?: string | null;
+}
+
 export interface ExerciseHistoryDto {
   exerciseId: string;
   name: string;
@@ -446,6 +455,8 @@ export interface ExerciseHistoryDto {
   trainingMax?: number;
   weeklyHistory: WeeklyPerformanceDto[];
   progressionChanges?: ProgressionChangeDto[]; // History of progression type changes with timestamps
+  /** Cardio exercises: level/incline/speed edits (old and new prescription text), oldest first. */
+  settingsChanges?: CardioSettingsChangeDto[];
 }
 
 export interface WeeklyPerformanceDto {

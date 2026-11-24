@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { ExerciseProgressionModal } from './ExerciseProgressionModal';
 import type { ExerciseDto, WorkoutHistoryResponse } from '@/types/workout';
 
@@ -9,6 +9,9 @@ const history = {
       exerciseId: 'stairs',
       name: 'Stair Machine (Floors)',
       progressionType: 'CardioStage',
+      settingsChanges: [
+        { occurredAt: '2026-11-24T09:00:00Z', weekNumber: 1, dayNumber: 1, oldText: '10 min @ ? % incline', newText: '10 min @ 5 % incline, 5.6 km/h', reason: 'Cardio settings changed' },
+      ],
       weeklyHistory: [
         { weekNumber: 1, blockNumber: 1, isDeloadWeek: false, cardioSummary: '5 min @ level 6 · Easy', sets: [] },
         { weekNumber: 2, blockNumber: 1, isDeloadWeek: false, cardioSummary: '6 min @ level 6 · Solid', sets: [] },
@@ -29,7 +32,7 @@ const exercise = {
 } as unknown as ExerciseDto;
 
 describe('ExerciseProgressionModal cardio', () => {
-  it('lists the cardio sessions newest first with the stage, and offers no progression-type change', () => {
+  it('progression modal for a cardio exercise lists sessions and settings changes, and offers no progression-type change', () => {
     render(
       <ExerciseProgressionModal
         exercise={exercise}
@@ -42,7 +45,9 @@ describe('ExerciseProgressionModal cardio', () => {
       />,
     );
 
-    const rows = screen.getAllByRole('listitem').map((li) => li.textContent);
+    const changes = screen.getByTestId('cardio-settings-changes');
+    expect(changes).toHaveTextContent('settings: 10 min @ ? % incline → 10 min @ 5 % incline, 5.6 km/h');
+    const rows = within(screen.getByTestId('cardio-sessions')).getAllByRole('listitem').map((li) => li.textContent);
     expect(rows[0]).toContain('6 min @ level 6 · Solid');
     expect(rows[1]).toContain('5 min @ level 6 · Easy');
     expect(screen.getByText('Cardio stage')).toBeInTheDocument();

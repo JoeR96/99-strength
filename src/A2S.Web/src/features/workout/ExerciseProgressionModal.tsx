@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CardioSessionList } from "./CardioSessionList";
+import { CardioSessionList, CardioSettingsChanges } from "./CardioSessionList";
 import { useWorkoutHistory } from "@/hooks/useWorkouts";
 import { EditExerciseConfigModal, type ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import {
@@ -91,6 +91,12 @@ export function ExerciseProgressionModal({
             </div>
           ) : isCardio ? (
             <>
+              {(exerciseHistory?.settingsChanges?.length ?? 0) > 0 && (
+                <>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Settings changes</h3>
+                  <div className="mb-4"><CardioSettingsChanges changes={exerciseHistory?.settingsChanges ?? []} /></div>
+                </>
+              )}
               <h3 className="text-sm font-semibold text-muted-foreground mb-3">Sessions</h3>
               <CardioSessionList sessions={weeklyHistory} />
             </>
