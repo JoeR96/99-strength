@@ -244,6 +244,19 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
         NextAttemptAtUtc = now.ToUniversalTime();
     }
 
+    /// <summary>
+    /// The logged session changed before it reached Hevy: stores the new payload, which the next attempt posts. Status,
+    /// attempts and schedule stay as they are. A session already in Hevy uses <see cref="RequestUpdate"/>.
+    /// </summary>
+    public void ReplacePayload(string payloadJson)
+    {
+        CheckRule(Status is not (HevyPostStatus.Posted or HevyPostStatus.UpdatePending) && HevyWorkoutId is null,
+            "A session already in Hevy is updated there, not posted again");
+        CheckRule(!string.IsNullOrWhiteSpace(payloadJson), "A Hevy post needs a payload");
+
+        PayloadJson = payloadJson;
+    }
+
     /// <summary>Hevy accepted the update: posted again, as the same workout.</summary>
     public void MarkUpdated()
     {

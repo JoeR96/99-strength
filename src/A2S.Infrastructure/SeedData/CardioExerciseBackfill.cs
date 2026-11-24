@@ -25,8 +25,9 @@ namespace A2S.Infrastructure.SeedData;
 /// more when that session would step up: Easy, finished, no pain; kept inside 6–12 min, level 6);</item>
 /// <item>adds this week's stair finisher sessions, and fixed treadmill cool-downs, to the completed lift days' history
 /// (no progression is applied);</item>
-/// <item>rewrites those days' posted Hevy workouts (finisher out, cardio exercise in) and queues an in-place update,
-/// which the Hevy retry service sends later, never here;</item>
+/// <item>rewrites those days' Hevy posts (finisher out, cardio exercise in): one already in Hevy queues an in-place
+/// update, one not sent yet (pending, failed, skipped) just carries the new payload; the Hevy retry service sends
+/// either later, never here;</item>
 /// <item>clears the stair and fixed cool-down finishers from the lift slots and pauses the stair track (history kept).</item>
 /// </list>
 /// One save per plan. Idempotent: a workout that already has a cardio exercise is left alone.
@@ -153,11 +154,11 @@ public static class CardioExerciseBackfill
             retroLogged.Add((activity.Day, lift.Date, activity.WeekNumber, found.Request));
         }
 
-        // 4. Those days' Hevy workouts are rewritten and queued for an in-place update.
+        // 4. Those days' Hevy posts are rewritten: an in-place update once in Hevy, the next post otherwise.
         foreach (var (day, date, week, request) in retroLogged)
         {
             var posts = await db.HevyWorkoutPosts
-                .Where(p => p.UserId == plan.UserId && p.LocalDate == date && p.Status == HevyPostStatus.Posted && p.HevyWorkoutId != null)
+                .Where(p => p.UserId == plan.UserId && p.LocalDate == date)
                 .ToListAsync(ct);
             foreach (var post in posts)
             {
@@ -178,7 +179,16 @@ public static class CardioExerciseBackfill
                     FinisherFixedNotes = null,
                     FinisherPrescription = null
                 };
-                post.RequestUpdate(JsonSerializer.Serialize(rewritten, Json), now);
+                var json = JsonSerializer.Serialize(rewritten, Json);
+                if (post.HevyWorkoutId is not null && post.Status is (HevyPostStatus.Posted or HevyPostStatus.UpdatePending))
+                {
+                    post.RequestUpdate(json, now);
+                }
+                else
+                {
+                    // Not in Hevy yet (pending, failed or skipped): its next attempt posts the new payload as a new workout.
+                    post.ReplacePayload(json);
+                }
             }
         }
 

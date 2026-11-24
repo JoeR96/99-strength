@@ -159,6 +159,29 @@ public class HevyWorkoutPostTests
     }
 
     [Fact]
+    public void ReplacePayload_BeforeThePostReachedHevy_KeepsItsStatusAndSchedule()
+    {
+        var post = Create();
+        post.RecordFailure("Hevy unavailable", permanent: false, End);
+
+        post.ReplacePayload("{\"y\":2}");
+
+        post.PayloadJson.Should().Be("{\"y\":2}");
+        post.Status.Should().Be(HevyPostStatus.Pending);
+        post.Attempts.Should().Be(1);
+        post.NextAttemptAtUtc.Should().Be(End.AddMinutes(2));
+        post.HevyWorkoutId.Should().BeNull();
+    }
+
+    [Fact]
+    public void ReplacePayload_OnceInHevy_Throws()
+    {
+        var act = () => Posted().ReplacePayload("{}");
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
     public void UpdateFailure_BacksOffAndStaysAnUpdate_AndGivingUpLeavesItPosted()
     {
         var post = Posted();

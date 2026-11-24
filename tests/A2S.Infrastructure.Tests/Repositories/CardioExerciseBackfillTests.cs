@@ -74,7 +74,7 @@ public class CardioExerciseBackfillTests : IAsyncLifetime
         };
 
     /// <summary>The production data: plan, workout at W1 Day 2, stair track with one session, the Posted Hevy post.</summary>
-    private async Task<Seeded> ProductionShapeAsync(string planName = "Falador Fat Furnace", UserId? user = null)
+    private async Task<Seeded> ProductionShapeAsync(string planName = "Falador Fat Furnace", UserId? user = null, HevyPostStatus postStatus = HevyPostStatus.Posted)
     {
         var owner = user ?? Owner;
         var lifts = new[]
@@ -122,7 +122,14 @@ public class CardioExerciseBackfillTests : IAsyncLifetime
         };
         var post = HevyWorkoutPost.Create(owner, ClientSession, plan.Id, lift.Id, Mon23Nov, $"{planName} · W1 Upper A",
             At.AddMinutes(-65), At, JsonSerializer.Serialize(payload, Json), "{}", At);
-        post.MarkPosted("b632f498", At);
+        if (postStatus == HevyPostStatus.Posted)
+        {
+            post.MarkPosted("b632f498", At);
+        }
+        else if (postStatus == HevyPostStatus.Failed)
+        {
+            post.RecordFailure("Hevy unavailable", permanent: true, At);
+        }
 
         await new WorkoutRepository(_db).AddAsync(workout);
         await new TrainingPlanRepository(_db).AddAsync(plan);
@@ -233,6 +240,25 @@ public class CardioExerciseBackfillTests : IAsyncLifetime
         var stairs = payload.Performances.Single(p => p.Cardio != null);
         stairs.ExerciseId.Should().Be(CardioOn(workout, DayNumber.Day1).Id.Value);
         stairs.Cardio.Should().Be(new CardioResultRequest(true, Effort.Easy, PainFlag.None, null, 660, 5m, 6m, null, 33));
+    }
+
+    [Theory]
+    [InlineData(HevyPostStatus.Pending)]
+    [InlineData(HevyPostStatus.Failed)]
+    public async Task Backfill_RewritesThatDaysUnsentHevyPost_WithoutAskingForAnUpdate(HevyPostStatus status)
+    {
+        var seeded = await ProductionShapeAsync(postStatus: status);
+
+        await BackfillAsync();
+
+        await using var fresh = MigratedDatabase.Reopen(_db);
+        var post = await fresh.HevyWorkoutPosts.SingleAsync(p => p.Id == seeded.PostId);
+        post.Status.Should().Be(status, "it was never in Hevy, so it is still posted (not updated) when it goes");
+        post.HevyWorkoutId.Should().BeNull();
+        var payload = JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, Json)!;
+        (payload.Finisher, payload.FinisherTrackId, payload.FinisherPrescription, payload.FinisherFixedKind).Should().Be((null, null, null, null));
+        payload.Week.Should().Be(1);
+        payload.Performances.Should().HaveCount(2).And.ContainSingle(p => p.Cardio != null);
     }
 
     [Fact]
