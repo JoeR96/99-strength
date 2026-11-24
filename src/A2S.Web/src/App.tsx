@@ -28,6 +28,7 @@ import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { ShoppingListPage } from './features/meals/ShoppingListPage';
 import { GymModePage } from './features/gym/GymModePage';
 import { PlanTemplatesPage } from './features/plans/PlanTemplatesPage';
+import { ProgressionGuidePage } from './features/guide/ProgressionGuidePage';
 import { useSyncEvents } from './sync/useSyncEvents';
 
 function AppContent() {
@@ -103,6 +104,7 @@ function AppContent() {
         <Route path="/hevy" element={<ProtectedRoute><HevyManagementPage /></ProtectedRoute>} />
         <Route path="/hevy/data" element={<ProtectedRoute><HevyDataPage /></ProtectedRoute>} />
         <Route path="/hevy/inbox" element={<ProtectedRoute><HevyInboxPage /></ProtectedRoute>} />
+        <Route path="/progression" element={<ProtectedRoute><ProgressionGuidePage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><WorkoutHistoryPage /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><SimulationPage /></ProtectedRoute>} />
