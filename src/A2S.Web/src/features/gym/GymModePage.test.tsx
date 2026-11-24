@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -14,7 +14,9 @@ import { createQueue, type OfflineQueue } from '@/offline/queue';
 import { createSyncManager, type SyncManager } from '@/offline/syncManager';
 import type { WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import type { FinishGymSessionResult } from '@/types/gym';
-import { mobilityA, planV3WithCardio, stairFinisher, upperAPlan } from './gymFixtures';
+import { mobilityA, planV3GymSession, planV3UpperA, planV3WithCardio, stairFinisher, stairStage1Block, upperAPlan, walkExercise, walkPendingBlock } from './gymFixtures';
+import { finisherSessionsApi } from '@/api/finisherSessions';
+import type { WeekPlanDto } from '@/api/workouts';
 import { stairCardioItem } from '@/mocks/fixtures/cycle';
 import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
 import { rejectWith } from '@/mocks/handlers/install';
@@ -180,6 +182,114 @@ describe('GymModePage', () => {
 
     await waitFor(() => expect(finish).toHaveBeenCalledTimes(1));
     expect(finish.mock.calls[0][0].performances.map((p) => p.exerciseId)).toEqual(['v3-stairs']);
+    store.clear();
+  });
+
+  let lastStore: Map<string, string> | null = null;
+  afterEach(() => lastStore?.clear());
+
+  function memoryStore(): Map<string, string> {
+    const store = new Map<string, string>();
+    lastStore = store;
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
+    vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
+    vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+    vi.mocked(localStorage.key).mockImplementation((i: number) => [...store.keys()][i] ?? null);
+    Object.defineProperty(localStorage, 'length', { configurable: true, get: () => store.size });
+    return store;
+  }
+
+  function setNavigatorOnline(value: boolean) {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => value });
+  }
+
+  const lowerAWithWalk = (walk = walkExercise()): WeekPlanDto => ({ ...planV3UpperA, workoutId: 'w-1', weekNumber: 3, exercises: [...planV3UpperA.exercises, walk] });
+
+  async function finishEarly() {
+    fireEvent.click(screen.getByTestId('gym-finish-early'));
+    fireEvent.click(within(screen.getByRole('dialog')).getByTestId('confirm-finish-early'));
+  }
+
+  it('deploy day: a draft from the old app shows the walk, drops the cool-down finisher the slot lost, and sends no finisher', async () => {
+    const store = memoryStore();
+    const old = { ...planV3GymSession(), workoutId: 'w-1', week: 3, day: 1, startedAt: new Date().toISOString() } as Record<string, unknown>;
+    old.finisher = { ...(old.finisher as object), done: true };
+    delete old.version;
+    delete old.cardio;
+    store.set('a2s-gym-session:w-1:3:1', JSON.stringify(old));
+    vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue(lowerAWithWalk());
+    installReadinessHandlers(readinessHandlers.default());
+    const finish = vi.spyOn(gymSessionsApi, 'finish').mockResolvedValue(finished);
+    renderPage();
+
+    const walk = await screen.findByTestId('cardio-v3-walk');
+    expect(screen.queryByText(/Easy incline/i)).not.toBeInTheDocument();
+    fireEvent.click(within(walk).getByTestId('cardio-tick-v3-walk'));
+    fireEvent.click(within(walk).getByRole('button', { name: /Easy/ }));
+    await finishEarly();
+
+    await waitFor(() => expect(finish).toHaveBeenCalledTimes(1));
+    const request = finish.mock.calls[0][0];
+    expect(request.clientSessionId).toBe(old.clientSessionId);
+    expect(request.finisher).toBeNull();
+    expect(request.performances.map((p) => p.exerciseId)).toContain('v3-walk');
+    store.clear();
+  });
+
+  it('first walk with no signal: speed and incline are kept on the phone and sent with the finish', async () => {
+    const store = memoryStore();
+    online = false;
+    setNavigatorOnline(false);
+    vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue(lowerAWithWalk(walkExercise(walkPendingBlock)));
+    installReadinessHandlers(readinessHandlers.default());
+    const saveSettings = vi.spyOn(workoutsApi, 'setCardioSettings');
+    try {
+      renderPage();
+
+      fireEvent.click(await screen.findByTestId('cardio-tick-v3-walk'));
+      const dialog = await screen.findByRole('dialog');
+      fireEvent.change(within(dialog).getByLabelText('Speed (km/h)'), { target: { value: '5.5' } });
+      fireEvent.click(within(dialog).getByTestId('cardio-settings-save'));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(saveSettings).not.toHaveBeenCalled();
+
+      const walk = screen.getByTestId('cardio-v3-walk');
+      expect(walk).toHaveTextContent('10 min @ 5 % incline, 5.5 km/h');
+      fireEvent.click(within(walk).getByTestId('cardio-tick-v3-walk'));
+      fireEvent.click(within(walk).getByRole('button', { name: /Easy/ }));
+      await finishEarly();
+
+      expect(await screen.findByText(/Saved on this phone/)).toBeInTheDocument();
+      const ops = await queue.all();
+      const payload = ops[0].payload as { performances: { exerciseId: string; cardio?: { intensity?: number; speed?: number } }[] };
+      expect(payload.performances.find((p) => p.exerciseId === 'v3-walk')?.cardio).toMatchObject({ effort: 'Easy', intensity: 5, speed: 5.5 });
+    } finally {
+      setNavigatorOnline(true);
+      store.clear();
+    }
+  });
+
+  it('a stair wizard whose card is then skipped (red readiness) stops its phase pushes and forgets its clock', async () => {
+    const store = memoryStore();
+    vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue({ ...planV3WithCardio(stairStage1Block), workoutId: 'w-1', weekNumber: 3 });
+    const replace = vi.spyOn(finisherSessionsApi, 'replace').mockResolvedValue();
+    const remove = vi.spyOn(finisherSessionsApi, 'remove').mockResolvedValue();
+    installReadinessHandlers(readinessHandlers.default());
+    const first = renderPage();
+
+    fireEvent.click(await screen.findByTestId('cardio-start-v3-stairs'));
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    const engineKey = [...store.keys()].find((k) => k.startsWith('a2s.finisher.'));
+    expect(engineKey).toBeDefined();
+    first.unmount();
+    expect(remove).not.toHaveBeenCalled();
+
+    installReadinessHandlers(readinessHandlers.red());
+    renderPage();
+
+    expect(await screen.findByTestId('cardio-v3-stairs')).toHaveTextContent('Skipped for recovery today');
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
+    expect(store.has(engineKey!)).toBe(false);
     store.clear();
   });
 

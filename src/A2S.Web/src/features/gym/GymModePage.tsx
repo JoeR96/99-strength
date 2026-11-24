@@ -63,7 +63,7 @@ import { SetTrainingMaxDialog } from './SetTrainingMaxDialog';
 import { useRestTimer } from './useRestTimer';
 import { FinisherWizard } from './finisher/FinisherWizard';
 import { cardioLogFromSummary, finisherLogFromSummary, wizardTarget } from './finisher/gymFinisherPlan';
-import { chooseCardioEffort, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
+import { chooseCardioEffort, chooseCardioSettings, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
 import { clearEngine, loadEngine, saveEngine, scheduleOf, startEngine, type FinisherSummary, type ScheduledNudge } from './finisher/finisherEngine';
 import { finisherSessionsApi } from '@/api/finisherSessions';
 
@@ -96,6 +96,8 @@ export function GymModePage() {
   const finisherId = slot?.finisherCardioProtocolId ?? scheduled?.finisherCardioProtocolId ?? null;
   const finisherTrackId = slot?.finisherCardioTrackId ?? scheduled?.finisherCardioTrackId ?? null;
   const finisherFixed = slot?.finisherFixed ?? scheduled?.finisherFixed ?? null;
+  // Known once today or the plan has loaded: a draft from an older app may still carry a finisher the slot lost.
+  const slotHasFinisher = todayQuery.data || plan ? Boolean(finisherId || finisherTrackId || finisherFixed) : undefined;
   const tracks = useCardioTracks(Boolean(finisherTrackId));
   const warmUpId = slot?.warmUpRoutineId ?? scheduled?.warmUpRoutineId ?? null;
   const protocols = useCardioProtocols(Boolean(finisherId));
@@ -177,6 +179,7 @@ export function GymModePage() {
       finisher={finisher}
       finisherTrack={finisherTrack}
       finisherFixed={finisherFixed}
+      slotHasFinisher={slotHasFinisher}
       skipHardCardio={skipFinisher}
       onKeepHardCardio={() =>
         keepFinisher.mutate({ date, keep: true }, { onError: () => toast.error('Kept on this phone. Could not tell the server; your readiness still says skip.') })
@@ -195,13 +198,15 @@ interface RunnerProps {
   finisher: CardioProtocolDto | null;
   finisherTrack: CardioTrackDto | null;
   finisherFixed: FixedFinisherDto | null;
+  /** Whether the plan slot still has a finisher (undefined: not known yet). */
+  slotHasFinisher?: boolean;
   /** Red readiness: the stair climber is skipped for recovery unless kept. */
   skipHardCardio: boolean;
   onKeepHardCardio: () => void;
 }
 
 /** Owns one session from its first render: resumes what this phone saved, or starts a new one. */
-function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, finisherTrack, finisherFixed, skipHardCardio, onKeepHardCardio }: RunnerProps) {
+function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, finisherTrack, finisherFixed, slotHasFinisher, skipHardCardio, onKeepHardCardio }: RunnerProps) {
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const [state, setState] = useState<GymSessionState>(() => {
@@ -232,6 +237,12 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
   const [wizardOpen, setWizardOpen] = useState(
     () => wizardTarget(state) !== null && (searchParams.get('finisher') === '1' || loadEngine(state.clientSessionId) !== null)
   );
+  // The target going away closes the wizard too, so it does not pop back open if the target returns ("Do it anyway").
+  const [hadWizard, setHadWizard] = useState(wizard !== null);
+  if ((wizard !== null) !== hadWizard) {
+    setHadWizard(wizard !== null);
+    if (wizard === null) setWizardOpen(false);
+  }
   const wizardName = wizard?.name ?? null;
   const postSchedule = useCallback(
     (nudges: ScheduledNudge[]) => {
@@ -279,10 +290,19 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
     });
   }, []);
 
-  // A training max or cardio settings saved mid-session bring the week plan back: fill them in.
+  // A training max or cardio settings saved mid-session bring the week plan back: fill them in. A draft started on an
+  // older app gets the plan's cardio exercises and loses a finisher its slot no longer has.
   useEffect(() => {
-    update((s) => syncCardioBlocks(syncPendingLifts(s, plan), plan));
-  }, [plan, update]);
+    update((s) => syncCardioBlocks(syncPendingLifts(s, plan), plan, { slotHasFinisher }));
+  }, [plan, slotHasFinisher, update]);
+
+  // The wizard's target went away while its clock was running (the stair climber skipped on a red day, a finisher
+  // dropped): stop its phase-change pushes and forget the clock, as closing the wizard does.
+  useEffect(() => {
+    if (wizard || !loadEngine(state.clientSessionId)) return;
+    clearEngine(state.clientSessionId);
+    void finisherSessionsApi.remove(state.clientSessionId).catch(() => undefined);
+  }, [wizard, state.clientSessionId]);
 
   useEffect(() => {
     update((s) => setHardCardioSkipped(s, skipHardCardio));
@@ -378,6 +398,7 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         onCardioChange={(i, change) => update((s) => updateCardio(s, i, change))}
         onCardioEffort={(i, effort) => update((s) => chooseCardioEffort(s, i, effort))}
         onTickCardio={(i) => update((s) => tickCardio(s, i))}
+        onCardioSettingsChosen={(i, values) => update((s) => chooseCardioSettings(s, i, values))}
         onStartCardio={wizard && wizard.cardioIndex !== null ? startFinisher : undefined}
         cardioStartLabel={loadEngine(state.clientSessionId) ? 'Resume' : 'Start'}
         onKeepHardCardio={() => {

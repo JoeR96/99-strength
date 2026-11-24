@@ -23,7 +23,7 @@ import {
   sideRows,
   toggleSide,
 } from './gymSession';
-import { chooseCardioEffort, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
+import { chooseCardioEffort, chooseCardioSettings, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
 import { cardioGymSession, planV3WithCardio, stairStage1Block, walkBlock, walkPendingBlock } from './gymFixtures';
 import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession, planV3GymSession, planV3UpperA, trackFinisherGymSession } from './gymFixtures';
 
@@ -438,6 +438,51 @@ describe('cardio exercises', () => {
 
     expect(synced.cardio[1]).toMatchObject({ block: walkBlock, intensity: 5, speed: 5.5 });
     expect(syncCardioBlocks(synced, planV3WithCardio(stairStage1Block, walkBlock))).toBe(synced);
+  });
+
+  it('adds the plan cardio exercises an old draft does not have, in plan order, keeping what was logged', () => {
+    const v1 = { ...planV3GymSession() } as Record<string, unknown>;
+    delete v1.version;
+    delete v1.cardio;
+    const draft = migrateGymSession(v1)!;
+
+    const synced = syncCardioBlocks(draft, planV3WithCardio());
+
+    expect(synced.cardio.map((c) => c.exerciseId)).toEqual(['v3-stairs', 'v3-walk']);
+    expect(synced.cardio[1]).toMatchObject({ block: walkBlock, done: false, effort: null });
+    expect(synced.lifts).toEqual(draft.lifts);
+
+    const logged = chooseCardioEffort(synced, 0, 'Solid');
+    const again = syncCardioBlocks({ ...logged, cardio: [logged.cardio[0]] }, planV3WithCardio());
+    expect(again.cardio[0]).toEqual(logged.cardio[0]);
+    expect(again.cardio.map((c) => c.exerciseId)).toEqual(['v3-stairs', 'v3-walk']);
+  });
+
+  it('drops a draft finisher once the plan slot no longer has one, and only then', () => {
+    const draft = planV3GymSession();
+
+    expect(syncCardioBlocks(draft, planV3UpperA, { slotHasFinisher: false }).finisher).toBeNull();
+    expect(syncCardioBlocks(draft, planV3UpperA, { slotHasFinisher: true }).finisher).toEqual(draft.finisher);
+    expect(syncCardioBlocks(draft, planV3UpperA)).toBe(draft);
+    expect(toFinishRequest(syncCardioBlocks(toggleFixedFinisher(draft), planV3UpperA, { slotHasFinisher: false }), ENDED_AT).finisher).toBeNull();
+  });
+
+  it('settings chosen on the phone unblock the walk, survive a plan refetch that still has them blank, and are sent', () => {
+    const state = cardioGymSession(stairStage1Block, walkPendingBlock);
+
+    const chosen = chooseCardioSettings(state, 1, { intensity: 5, speed: 5.5 });
+
+    expect(chosen.cardio[1]).toMatchObject({ intensity: 5, speed: 5.5, settingsChosen: true });
+    expect(chosen.cardio[1].block).toMatchObject({ isSettingsPending: false, intensity: 5, speed: 5.5, text: '10 min @ 5 % incline, 5.5 km/h' });
+    const refetched = syncCardioBlocks(chosen, planV3WithCardio(stairStage1Block, walkPendingBlock));
+    expect(refetched).toBe(chosen);
+    expect(syncCardioBlocks(chosen, planV3WithCardio(stairStage1Block, walkBlock)).cardio[1]).toMatchObject({ block: walkBlock, intensity: 5, speed: 5.5 });
+
+    const done = chooseCardioEffort(tickCardio(refetched, 1), 1, 'Easy');
+    expect(toFinishRequest(done, ENDED_AT).performances).toContainEqual({
+      exerciseId: 'v3-walk',
+      cardio: { finished: true, effort: 'Easy', pain: 'None', totalSeconds: 600, intensity: 5, speed: 5.5 },
+    });
   });
 
   it('migrateGymSession upgrades a v1 draft', () => {
