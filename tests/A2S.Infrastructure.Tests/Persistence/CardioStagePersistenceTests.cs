@@ -119,11 +119,11 @@ public class CardioStagePersistenceTests : IAsyncLifetime
         await migrator.MigrateAsync(migrations[migrations.IndexOf(ours) - 1]);
         (await ColumnCountAsync()).Should().Be(0L);
 
-        await migrator.MigrateAsync(ours);
+        await migrator.MigrateAsync(migrations[^1]);
         (await ColumnCountAsync()).Should().Be(6L);
     }
 
-    private async Task<object?> ColumnCountAsync()
+    private async Task<long> ColumnCountAsync()
     {
         var connection = _db.Database.GetDbConnection();
         if (connection.State != System.Data.ConnectionState.Open)
@@ -132,8 +132,8 @@ public class CardioStagePersistenceTests : IAsyncLifetime
         }
 
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT count(*) FROM information_schema.columns WHERE table_name = 'ExerciseProgressions' AND column_name LIKE 'CardioStage%'";
-        return await command.ExecuteScalarAsync();
+        command.CommandText = "SELECT count(*) FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'ExerciseProgressions' AND column_name LIKE 'CardioStage%'";
+        return (long)(await command.ExecuteScalarAsync())!;
     }
 
     private static void CompleteEveryDayUntilFinished(Workout workout)
