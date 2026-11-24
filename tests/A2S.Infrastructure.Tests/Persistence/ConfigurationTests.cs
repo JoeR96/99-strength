@@ -230,6 +230,15 @@ public class ConfigurationTests : IAsyncLifetime
         discriminatorValue.Should().Be("MinimalSets");
     }
 
+    [Fact]
+    public void ExerciseProgressionConfiguration_CardioStageStrategy_DiscriminatorValue()
+    {
+        var entityType = _dbContext.Model.FindEntityType(typeof(CardioStageStrategy))!;
+        var discriminatorValue = entityType.GetDiscriminatorValue();
+
+        discriminatorValue.Should().Be("CardioStage");
+    }
+
     #endregion
 
     #region LinearProgressionStrategy Configuration

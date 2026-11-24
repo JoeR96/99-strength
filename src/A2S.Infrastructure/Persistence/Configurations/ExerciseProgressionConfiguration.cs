@@ -33,6 +33,7 @@ public class ExerciseProgressionConfiguration : IEntityTypeConfiguration<Exercis
         builder.HasDiscriminator(p => p.ProgressionType)
             .HasValue<LinearProgressionStrategy>("Linear")
             .HasValue<RepsPerSetStrategy>("RepsPerSet")
-            .HasValue<MinimalSetsStrategy>("MinimalSets");
+            .HasValue<MinimalSetsStrategy>("MinimalSets")
+            .HasValue<CardioStageStrategy>("CardioStage");
     }
 }
