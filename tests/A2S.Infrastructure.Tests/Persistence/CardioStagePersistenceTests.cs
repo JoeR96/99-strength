@@ -7,6 +7,9 @@ using A2S.Infrastructure.Persistence;
 using A2S.Infrastructure.Repositories;
 using A2S.Tests.Shared.Builders;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Xunit;
 
 namespace A2S.Infrastructure.Tests.Persistence;
@@ -33,7 +36,7 @@ public class CardioStagePersistenceTests : IAsyncLifetime
     public async Task CardioStageWorkout_RoundTrips()
     {
         var stairs = new ExerciseBuilder().WithDay(DayNumber.Day1).WithOrder(1).AsCardioStage(CardioLane.Hard).Build();
-        var walk = new ExerciseBuilder().WithDay(DayNumber.Day2).WithOrder(1).AsCardioStage(CardioLane.Hard).Build();
+        var walk = new ExerciseBuilder().WithDay(DayNumber.Day2).WithOrder(1).AsCardioStage(CardioLane.Easy).Build();
         var workout = new WorkoutBuilder().WithUserId("user_cardiostage_1").WithVariant(ProgramVariant.FourDay)
             .WithExercise(stairs).WithExercise(walk).Build();
 
@@ -46,6 +49,11 @@ public class CardioStagePersistenceTests : IAsyncLifetime
 
         AssertSame(loaded!.Exercises.Single(e => e.Id == stairs.Id), stairs);
         AssertSame(loaded.Exercises.Single(e => e.Id == walk.Id), walk);
+        var loadedWalk = (CardioStageStrategy)loaded.Exercises.Single(e => e.Id == walk.Id).Progression;
+        loadedWalk.Lane.Should().Be(CardioLane.Easy);
+        loadedWalk.RequiresSpeed.Should().BeTrue();
+        loadedWalk.WarmUp.Should().BeNull();
+        loadedWalk.CoolDown.Should().BeNull();
     }
 
     [Fact]
@@ -99,6 +107,33 @@ public class CardioStagePersistenceTests : IAsyncLifetime
         var archived = await repository.GetByIdAsync(workout.Id);
         archived!.CompletedActivities.Should().BeEmpty();
         AssertPerformance(archived.ArchivedActivities.First().Performances.Single(), planned);
+    }
+
+    [Fact]
+    public async Task Migration_DownDropsTheCardioStageColumns()
+    {
+        var migrator = _db.GetService<IMigrator>();
+        var migrations = _db.Database.GetMigrations().ToList();
+        var ours = migrations.Single(m => m.EndsWith("_AddCardioStageProgression", StringComparison.Ordinal));
+
+        await migrator.MigrateAsync(migrations[migrations.IndexOf(ours) - 1]);
+        (await ColumnCountAsync()).Should().Be(0L);
+
+        await migrator.MigrateAsync(ours);
+        (await ColumnCountAsync()).Should().Be(6L);
+    }
+
+    private async Task<object?> ColumnCountAsync()
+    {
+        var connection = _db.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT count(*) FROM information_schema.columns WHERE table_name = 'ExerciseProgressions' AND column_name LIKE 'CardioStage%'";
+        return await command.ExecuteScalarAsync();
     }
 
     private static void CompleteEveryDayUntilFinished(Workout workout)
