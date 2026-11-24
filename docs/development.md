@@ -101,7 +101,7 @@ no Walk builder, so its Walk → run uses `StartGate.WeightAndPainRunningGate()`
 pain for 4 weeks). `CardioTrackTemplates.DefaultGate` / `StartGate.RunningGate` keep the walk-builder condition,
 because the Tracks page's "Wait for the running gate" (`SetCardioTrackGate` with `UseDefault`) still relies on it. A
 reused track that is still gated moves onto the plan's gate when it differs. Plan v3 has no supersets; its pause squat
-is a `MainLift` on reps per set (4 × 5–8, weight pending, main-lift rest, no TM).
+is a `MainLift` on reps per set (4 × 4–6, weight pending, main-lift rest, no TM).
 
 Habit counters have a `Step` (`HabitDefinition.Step`: default 1, always 1 for a checkbox, 0 < step ≤ 10000). An
 increment tap of +1/−1 moves the value by ±step, floored at 0. `step` is in `HabitDto`/`HabitTodayDto` (Terran CC

@@ -8,7 +8,7 @@ const tm = (key: string, label: string) => ({ key, label, unit: 'kg', default: n
 export const planV3Preview: PlanTemplatePreview = {
   key: 'plan-v3',
   name: 'Falador Fat Furnace',
-  description: 'Four lifting days in straight sets, A2S2 on bench, incline and front squat, pause squat 4 × 5–8; a stair finisher, walk → run behind its gate and evening mobility.',
+  description: 'Four lifting days in straight sets, A2S2 on bench, incline and front squat, pause squat 4 × 4–6; a stair finisher, walk → run behind its gate and evening mobility.',
   startDate: '2026-11-23',
   inputs: [
     tm('benchTm', 'Bench press TM'),
@@ -60,7 +60,7 @@ export const planV3Preview: PlanTemplatePreview = {
       finisher: 'Treadmill · 10 min · Easy incline',
       estimatedMinutes: 55,
       exercises: [
-        { slot: '1', name: 'Pause Squat (Barbell)', prescription: '4 × 5–8', progression: 'Reps per set', note: null },
+        { slot: '1', name: 'Pause Squat (Barbell)', prescription: '4 × 4–6', progression: 'Reps per set', note: null },
         { slot: '2', name: 'Split Squat (Dumbbell)', prescription: '2 × 8–10 each side', progression: 'Reps per set', note: 'Left side first' },
         { slot: '3', name: 'Cable Twist', prescription: '2 × 10 each side', progression: 'Reps per set', note: null },
         { slot: '4', name: 'Lying Leg Curl (Machine)', prescription: '3 × 10–12', progression: 'Reps per set', note: null },
