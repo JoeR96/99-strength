@@ -35,34 +35,52 @@ public static class CardioExerciseBackfill
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    /// <summary>Returns how many plans were moved over.</summary>
+    /// <summary>
+    /// Returns how many plans were moved over. Never throws (bar cancellation): the API must always boot, so any failure
+    /// is logged; a plan that fails is left exactly as it was.
+    /// </summary>
     public static async Task<int> RunAsync(A2SDbContext db, ILogger logger, DateTimeOffset? now = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(logger);
 
-        var candidates = await db.TrainingPlans
-            .Include(p => p.Completions)
-            .Where(p => p.IsActive && p.LinkedWorkoutId != null)
-            .ToListAsync(ct);
-        var plans = candidates.Where(p => PlanTemplates.IsSamePlan(p.Name, PlanV3BaseBuildTransition.TemplateName)).ToList();
-
         var moved = 0;
-        foreach (var plan in plans)
+        try
         {
-            try
+            // PlanTemplates.IsSamePlan for plan v3: its current name or one it was started under before.
+            var names = PlanV3BaseBuildTransition.FormerNames.Append(PlanV3BaseBuildTransition.TemplateName).ToList();
+            var planIds = await db.TrainingPlans
+                .AsNoTracking()
+                .Where(p => p.IsActive && p.LinkedWorkoutId != null && names.Contains(p.Name))
+                .Select(p => p.Id)
+                .ToListAsync(ct);
+
+            foreach (var planId in planIds)
             {
-                if (await MoveAsync(db, plan, now ?? DateTimeOffset.UtcNow, ct))
+                // Each plan starts from a clean tracker and its own fresh load, so a failure before it cannot leave it half-written.
+                db.ChangeTracker.Clear();
+                try
                 {
-                    await db.SaveChangesAsync(ct);
-                    moved++;
+                    var plan = await db.TrainingPlans.Include(p => p.Completions).FirstOrDefaultAsync(p => p.Id == planId, ct);
+                    if (plan is not null && await MoveAsync(db, plan, now ?? DateTimeOffset.UtcNow, ct))
+                    {
+                        await db.SaveChangesAsync(ct);
+                        moved++;
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "Moving a plan onto cardio exercises failed; it is left as it was");
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                db.ChangeTracker.Clear();
-                logger.LogError(ex, "Moving a plan onto cardio exercises failed; it is left as it was");
-            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "The cardio exercise backfill could not run");
+        }
+        finally
+        {
+            db.ChangeTracker.Clear();
         }
 
         if (moved > 0)

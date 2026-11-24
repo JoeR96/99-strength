@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Interfaces.Hevy;
 using A2S.Application.SuggestedPlans;
 using A2S.Domain.Aggregates.Cardio;
@@ -192,7 +193,7 @@ public static class RoutineBuilder
         {
             ExerciseTemplateId = templateId,
             RestSeconds = 0,
-            Notes = block.Text,
+            Notes = CardioHevyNote.For(block),
             Sets = CardioSets(block.WarmUp?.Minutes, work, block.CoolDown?.Minutes)
         };
     }

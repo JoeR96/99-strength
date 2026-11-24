@@ -645,6 +645,32 @@ public class GymSessionTests
     }
 
     [Fact]
+    public async Task Post_PendingWalkBlock_HasNoQuestionMarkInTheNote()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+        var post = _posts.All.Single();
+        var json = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, json)!;
+        var withWalk = payload with
+        {
+            Performances = [.. payload.Performances, new ExercisePerformanceRequest
+            {
+                ExerciseId = Walk.Id.Value,
+                Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 600)
+            }]
+        };
+        post.RequestUpdate(System.Text.Json.JsonSerializer.Serialize(withWalk, json), Now);
+        HevyAcceptsUpdates();
+
+        await _retry.RunOnceAsync();
+
+        Walk.IsCardioSettingsPending.Should().BeTrue();
+        var walk = _updated.Single().Draft.Exercises[^1];
+        walk.ExerciseTemplateId.Should().Be("243710DE");
+        walk.Notes.Should().Be("10 min incline walk · Easy");
+    }
+
+    [Fact]
     public async Task UpdatePendingPost_WhenHevyFails_BacksOffAndNeverPosts()
     {
         await _finish.Handle(Finish(), CancellationToken.None);

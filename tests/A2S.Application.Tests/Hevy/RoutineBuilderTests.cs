@@ -136,6 +136,30 @@ public class RoutineBuilderTests
     }
 
     [Fact]
+    public void Routine_PendingCardioSettings_AreLeftOutOfTheNotes_NeverAQuestionMark()
+    {
+        var workout = UpperA();
+        workout.AddExercise(Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 5, "4377A52B", CardioLane.Hard));
+        workout.AddExercise(Exercise.CreateWithCardioStageProgression("Treadmill", DayNumber.Day1, 6, "243710DE", CardioLane.Easy));
+        var stairs = workout.Exercises.Single(e => e.Name == "Stair Machine (Floors)");
+        var strategy = (CardioStageStrategy)stairs.Progression;
+        for (var session = 0; session < 7; session++)
+        {
+            strategy.ApplyPerformanceResult(new ExercisePerformance(stairs.Id, [], [], new DateTime(2026, 11, 23, 18, 0, 0, DateTimeKind.Utc),
+                plannedCardio: strategy.CalculateCardioBlock(), cardio: new CardioResult(true, EffortRating.Easy)));
+        }
+
+        var templates = workout.Exercises.ToDictionary(e => e.Id, e => e.ExternalTemplateId);
+
+        var draft = RoutineBuilder.Lift("Plan · W1 Upper A", null, workout, DayNumber.Day1, Program.GetWeekParameters(1),
+            null, new Dictionary<string, string>(), templates, [], new Dictionary<string, string>());
+
+        draft.Exercises[^2].Notes.Should().Be("3 min easy (L3) → 4 × 2 min hard / 2 min @ L3 → 2 min easy (L3)");
+        draft.Exercises[^1].Notes.Should().Be("10 min incline walk");
+        draft.Exercises.Select(e => e.Notes ?? string.Empty).Should().NotContain(n => n.Contains('?'));
+    }
+
+    [Fact]
     public void Lift_WithAMissingTemplate_Throws()
     {
         var workout = UpperA();

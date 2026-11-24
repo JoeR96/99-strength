@@ -151,8 +151,9 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
     {
         CheckRule(!string.IsNullOrWhiteSpace(hevyWorkoutId), "A Hevy workout id is required");
         var id = hevyWorkoutId.Trim();
-        if (Status == HevyPostStatus.Posted)
+        if (Status is HevyPostStatus.Posted or HevyPostStatus.UpdatePending)
         {
+            // Already this workout; a pending update stays pending.
             CheckRule(string.Equals(HevyWorkoutId, id, StringComparison.Ordinal), "This session is already in Hevy as another workout");
             return;
         }

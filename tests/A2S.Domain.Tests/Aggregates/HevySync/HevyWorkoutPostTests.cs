@@ -189,4 +189,18 @@ public class HevyWorkoutPostTests
         post.Status.Should().Be(HevyPostStatus.Posted);
         post.IsDue(End.AddDays(1)).Should().BeFalse();
     }
+
+    [Fact]
+    public void MarkPosted_OnAPendingUpdate_KeepsTheUpdate_AndRefusesAnotherWorkout()
+    {
+        var post = Posted();
+        post.RequestUpdate("{\"y\":2}", End);
+
+        post.MarkPosted("b632f498", End.AddMinutes(5));
+        var other = () => post.MarkPosted("another", End);
+
+        post.Status.Should().Be(HevyPostStatus.UpdatePending);
+        post.IsDue(End).Should().BeTrue();
+        other.Should().Throw<BusinessRuleViolationException>();
+    }
 }

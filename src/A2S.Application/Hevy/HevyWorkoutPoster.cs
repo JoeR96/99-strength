@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using System.Text.Json;
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.GymSessions;
@@ -399,7 +400,7 @@ public sealed class HevyWorkoutPoster
         return new HevyWorkoutExerciseDraft
         {
             ExerciseTemplateId = templateId,
-            Notes = block is null ? cardio.Effort.ToString() : $"{block.Text} · {cardio.Effort}",
+            Notes = block is null ? cardio.Effort.ToString() : $"{CardioHevyNote.For(block)} · {cardio.Effort}",
             Sets = sets
         };
     }

@@ -15,7 +15,9 @@ using A2S.Infrastructure.Repositories;
 using A2S.Infrastructure.SeedData;
 using A2S.Tests.Shared.Builders;
 using FluentAssertions;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -293,5 +295,86 @@ public class CardioExerciseBackfillTests : IAsyncLifetime
         (await new CardioTrackRepository(fresh).GetByIdAsync(other.StairTrackId))!.Status.Should().Be(CardioTrackStatus.Active);
         (await new TrainingPlanRepository(fresh).GetByIdAsync(other.PlanId))!.Schedule[0].Finisher.Should().NotBeNull();
         (await WorkoutAsync(formerName.WorkoutId)).Exercises.Should().Contain(e => e.Category == ExerciseCategory.Cardio);
+    }
+
+    /// <summary>Fails the first save it sees (a fault part-way through the first plan's move).</summary>
+    private sealed class FailFirstSave : SaveChangesInterceptor
+    {
+        private bool _failed;
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            if (_failed)
+            {
+                return base.SavingChangesAsync(eventData, result, cancellationToken);
+            }
+
+            _failed = true;
+            throw new InvalidOperationException("Injected save failure");
+        }
+    }
+
+    /// <summary>Fails every query on the plans table.</summary>
+    private sealed class FailPlanQueries : DbCommandInterceptor
+    {
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default) =>
+            command.CommandText.Contains("\"TrainingPlans\"", StringComparison.Ordinal)
+                ? throw new InvalidOperationException("Injected unreadable plan row")
+                : base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+    }
+
+    private A2SDbContext With(IInterceptor interceptor) =>
+        new(new DbContextOptionsBuilder<A2SDbContext>()
+            .UseNpgsql(_db.Database.GetConnectionString())
+            .AddInterceptors(interceptor)
+            .Options);
+
+    private async Task<bool> FullyMovedAsync(Seeded seeded)
+    {
+        await using var fresh = MigratedDatabase.Reopen(_db);
+        var workout = (await new WorkoutRepository(fresh).GetByIdAsync(seeded.WorkoutId))!;
+        var plan = (await new TrainingPlanRepository(fresh).GetByIdAsync(seeded.PlanId))!;
+        var track = (await new CardioTrackRepository(fresh).GetByIdAsync(seeded.StairTrackId))!;
+        var post = await fresh.HevyWorkoutPosts.SingleAsync(p => p.Id == seeded.PostId);
+        var hasCardio = workout.Exercises.Any(e => e.Category == ExerciseCategory.Cardio);
+        var finishersCleared = plan.Schedule.All(s => s.Finisher == null);
+        var paused = track.Status == CardioTrackStatus.Paused;
+        var update = post.Status == HevyPostStatus.UpdatePending;
+        (hasCardio == finishersCleared && finishersCleared == paused && paused == update)
+            .Should().BeTrue("a plan is moved all at once or not at all");
+        return hasCardio;
+    }
+
+    [Fact]
+    public async Task Backfill_AfterOnePlanFails_StillMovesTheNextOneCompletely()
+    {
+        var first = await ProductionShapeAsync();
+        var second = await ProductionShapeAsync(user: new UserId("user_cardio_backfill_02"));
+
+        await using (var faulty = With(new FailFirstSave()))
+        {
+            (await CardioExerciseBackfill.RunAsync(faulty, NullLogger.Instance, Now)).Should().Be(1);
+        }
+
+        var moved = new[] { await FullyMovedAsync(first), await FullyMovedAsync(second) };
+        moved.Should().ContainSingle(m => m, "the plan whose save failed is left as it was, the other is fully moved");
+
+        (await BackfillAsync()).Should().Be(1, "the next boot moves the plan that failed");
+        (await FullyMovedAsync(first)).Should().BeTrue();
+        (await FullyMovedAsync(second)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Backfill_WhenThePlansCannotBeRead_DoesNotThrow()
+    {
+        var seeded = await ProductionShapeAsync();
+        await using var faulty = With(new FailPlanQueries());
+
+        var act = () => CardioExerciseBackfill.RunAsync(faulty, NullLogger.Instance, Now);
+
+        (await act.Should().NotThrowAsync()).Which.Should().Be(0);
+        (await FullyMovedAsync(seeded)).Should().BeFalse();
     }
 }
