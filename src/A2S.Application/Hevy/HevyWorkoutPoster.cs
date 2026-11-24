@@ -91,6 +91,11 @@ public sealed class HevyWorkoutPoster
         }
 
         var apiKey = await _keys.ForUserAsync(post.UserId, ct);
+        if (post.Status == HevyPostStatus.UpdatePending)
+        {
+            return await UpdateAsync(apiKey, post, ct);
+        }
+
         if (string.IsNullOrEmpty(apiKey))
         {
             post.MarkSkipped("no Hevy key");
@@ -133,6 +138,35 @@ public sealed class HevyWorkoutPoster
 
         await AdoptAsync(post, created.Value.Id, ct);
         _logger.LogInformation("Gym session posted to Hevy");
+        return await SaveAsync(post, ct);
+    }
+
+    /// <summary>
+    /// Replaces the post's Hevy workout in place (<c>PUT</c> to its stored id) with a draft built from the current
+    /// payload. Never posts and never adopts: the workout already exists. A failure keeps it pending with the usual backoff.
+    /// </summary>
+    private async Task<HevyPostStatus> UpdateAsync(string? apiKey, HevyWorkoutPost post, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            post.RecordFailure("no Hevy key", permanent: false, _clock.NowUtc());
+            return await SaveAsync(post, ct);
+        }
+
+        var draft = await BuildDraftAsync(apiKey, post, ct);
+        if (!draft.Ok)
+        {
+            return await FailAsync(post, draft.Error!, ct);
+        }
+
+        var updated = await _hevy.UpdateWorkoutAsync(apiKey, post.HevyWorkoutId!, draft.Value!, ct);
+        if (!updated.Ok)
+        {
+            return await FailAsync(post, updated.Error!, ct);
+        }
+
+        post.MarkUpdated();
+        _logger.LogInformation("Gym session updated in Hevy");
         return await SaveAsync(post, ct);
     }
 
@@ -271,7 +305,7 @@ public sealed class HevyWorkoutPoster
                     return HevyResult<HevyWorkoutDraft>.Failure(template.Error!);
                 }
 
-                exercises.Add(CardioBlockExercise(template.Value!, PlannedBlock(program, payload.Day, exercise), logged!));
+                exercises.Add(CardioBlockExercise(template.Value!, PlannedBlock(program, payload.Day, payload.Week, exercise), logged!));
             }
         }
 
@@ -330,7 +364,8 @@ public sealed class HevyWorkoutPoster
     /// <summary>
     /// A cardio exercise as done: a <c>warmup</c> set for the warm-up, one <c>normal</c> work set carrying the effort
     /// (and the floors on the stair machine), a <c>warmup</c>-typed set for the cool-down. Work = the logged work
-    /// minutes, else the total less the warm-up and cool-down. Note = the block's text and the effort.
+    /// minutes, else the total less the warm-up and cool-down; stopped before any work time, one set of the total.
+    /// Note = the block's text and the effort.
     /// </summary>
     private static HevyWorkoutExerciseDraft CardioBlockExercise(string templateId, PlannedCardioBlock? block, CardioResultRequest cardio)
     {
@@ -342,15 +377,23 @@ public sealed class HevyWorkoutPoster
             : cardio.TotalSeconds - warmUpSeconds - coolDownSeconds;
 
         var sets = new List<HevyWorkoutSetDraft>();
-        if (warmUpSeconds > 0)
+        if (workSeconds <= 0)
         {
-            sets.Add(DurationSet(HevySetTypes.Warmup, warmUpSeconds, effort: null, stairs, floors: null));
+            // Stopped inside the warm-up or cool-down time: one set of what was actually done.
+            sets.Add(DurationSet(HevySetTypes.Normal, Math.Max(1, cardio.TotalSeconds), cardio.Effort, stairs, cardio.Floors));
         }
-
-        sets.Add(DurationSet(HevySetTypes.Normal, Math.Max(1, workSeconds), cardio.Effort, stairs, cardio.Floors));
-        if (coolDownSeconds > 0)
+        else
         {
-            sets.Add(DurationSet(HevySetTypes.Warmup, coolDownSeconds, effort: null, stairs, floors: null));
+            if (warmUpSeconds > 0)
+            {
+                sets.Add(DurationSet(HevySetTypes.Warmup, warmUpSeconds, effort: null, stairs, floors: null));
+            }
+
+            sets.Add(DurationSet(HevySetTypes.Normal, workSeconds, cardio.Effort, stairs, cardio.Floors));
+            if (coolDownSeconds > 0)
+            {
+                sets.Add(DurationSet(HevySetTypes.Warmup, coolDownSeconds, effort: null, stairs, floors: null));
+            }
         }
 
         return new HevyWorkoutExerciseDraft
@@ -361,10 +404,13 @@ public sealed class HevyWorkoutPoster
         };
     }
 
-    /// <summary>The block the session was done against (kept on the completed day), else the exercise's current one.</summary>
-    private static PlannedCardioBlock? PlannedBlock(Workout program, DayNumber day, Exercise exercise) =>
+    /// <summary>
+    /// The block the session was done against (kept on that week's completed day; any week when the payload has none),
+    /// else the exercise's current one.
+    /// </summary>
+    private static PlannedCardioBlock? PlannedBlock(Workout program, DayNumber day, int? week, Exercise exercise) =>
         program.CompletedActivities
-            .Where(a => a.Day == day)
+            .Where(a => a.Day == day && (week is null || a.WeekNumber == week))
             .SelectMany(a => a.Performances)
             .LastOrDefault(p => p.ExerciseId == exercise.Id && p.PlannedCardio is not null)?.PlannedCardio
         ?? exercise.Progression.CalculateCardioBlock();

@@ -104,7 +104,7 @@ public sealed class HevySessionCompleter
                 .Select(s => s.CardioTrackId!.Value));
 
             var liftDayCardio = CardioExerciseTemplates(program, session, templateLinks);
-            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, ct, liftDayCardio))
+            foreach (var (track, _, log) in await _cardioTracks.MatchSlotsAsync(workout, slotTracks, liftDayCardio, ct))
             {
                 var slot = await _sender.Send(new CompleteSessionCommand(plan.Id.Value, date, SessionKind.Cardio,
                     Cardio: log.ToDto(), CardioTrackId: track.Value, PostToHevy: false), ct);
@@ -114,7 +114,7 @@ public sealed class HevySessionCompleter
                 }
             }
 
-            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, ct, liftDayCardio);
+            await _cardioTracks.LogAsync(plan.UserId, workout, date, handled, liftDayCardio, ct);
         }
 
         return Result.Success(new SessionCompletionId(completion.Value.Id));

@@ -97,6 +97,9 @@ public sealed record GymSessionPayload
 {
     public Guid WorkoutId { get; init; }
     public DayNumber Day { get; init; }
+
+    /// <summary>The A2S2 week the day was finished in (null on payloads stored before it was kept).</summary>
+    public int? Week { get; init; }
     public Guid? WarmUpRoutineId { get; init; }
     public IReadOnlyList<bool>? WarmUpTicks { get; init; }
     public IReadOnlyList<ExercisePerformanceRequest> Performances { get; init; } = [];

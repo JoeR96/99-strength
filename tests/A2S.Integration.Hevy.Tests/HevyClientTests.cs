@@ -449,6 +449,34 @@ public class HevyClientTests
     }
 
     [Fact]
+    public async Task UpdateWorkout_PutsTheWrappedDraftToTheWorkoutId_AndIsNotRetried()
+    {
+        _handler.Enqueue(HttpStatusCode.OK, """{ "workout": [{ "id": "b632f498", "title": "Upper A", "start_time": "2026-11-23T18:00:00Z", "end_time": "2026-11-23T19:05:00Z", "exercises": [] }] }""");
+        _handler.Enqueue(HttpStatusCode.ServiceUnavailable);
+        var draft = new HevyWorkoutDraft
+        {
+            Title = "Upper A",
+            StartTime = new DateTimeOffset(2026, 11, 23, 18, 0, 0, TimeSpan.Zero),
+            EndTime = new DateTimeOffset(2026, 11, 23, 19, 5, 0, TimeSpan.Zero),
+            Exercises = [new HevyWorkoutExerciseDraft { ExerciseTemplateId = "4377A52B", Sets = [new HevyWorkoutSetDraft { DurationSeconds = 300, CustomMetric = 33m }] }]
+        };
+
+        var result = await _client.UpdateWorkoutAsync(FakeHevyHandler.TestApiKey, "b632f498", draft);
+        var failed = await _client.UpdateWorkoutAsync(FakeHevyHandler.TestApiKey, "b632f498", draft);
+
+        result.Value!.Id.Should().Be("b632f498");
+        failed.Error!.Kind.Should().Be(HevyErrorKind.Unavailable);
+        _handler.Requests.Should().HaveCount(2, "a failed update is not retried by the client");
+        var request = _handler.Requests[0];
+        request.Method.Should().Be(HttpMethod.Put);
+        request.Uri.AbsolutePath.Should().EndWith("/workouts/b632f498");
+        using var body = JsonDocument.Parse(request.Body!);
+        var workout = body.RootElement.GetProperty("workout");
+        workout.GetProperty("title").GetString().Should().Be("Upper A");
+        workout.GetProperty("exercises")[0].GetProperty("sets")[0].GetProperty("custom_metric").GetDecimal().Should().Be(33m);
+    }
+
+    [Fact]
     public async Task CreateWorkout_IsNotRetried()
     {
         _handler.Enqueue(HttpStatusCode.ServiceUnavailable);

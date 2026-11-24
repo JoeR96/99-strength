@@ -135,6 +135,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
             {
                 WorkoutId = request.WorkoutId,
                 Day = request.Day,
+                Week = week,
                 WarmUpRoutineId = warmUpRoutineId?.Value,
                 WarmUpTicks = request.WarmUpTicks,
                 Performances = request.Performances,

@@ -8,7 +8,7 @@ public interface IHevyWorkoutPostRepository : IRepository<HevyWorkoutPost, HevyW
 {
     Task<HevyWorkoutPost?> FindByClientSessionAsync(UserId userId, Guid clientSessionId, CancellationToken ct = default);
 
-    /// <summary>Pending posts whose next attempt is due, oldest first, across all users (the background retry).</summary>
+    /// <summary>Pending posts (and updates pending) whose next attempt is due, oldest first, across all users (the background retry).</summary>
     Task<IReadOnlyList<HevyWorkoutPost>> ListDueAsync(DateTimeOffset now, int take, CancellationToken ct = default);
 
     /// <summary>A user's posts for a range of local dates (Today's "Not in Hevy yet", the pull's race check).</summary>
