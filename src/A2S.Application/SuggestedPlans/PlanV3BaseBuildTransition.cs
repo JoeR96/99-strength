@@ -3,6 +3,8 @@ using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
+using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Enums;
 using A2S.Domain.Services;
 
@@ -11,8 +13,8 @@ namespace A2S.Application.SuggestedPlans;
 /// <summary>
 /// "Falador Fat Furnace" (key "plan-v3", first shipped as "Plan v3 — Base/Build/Transition"): 26 weeks of cut, cardio and mobility (Base weeks 1–8 and Build
 /// 9–16 cutting, Transition 17–26 at maintenance). Four ~60-minute gym sessions (warm-up → main lift →
-/// straight-set accessories at normal rest, no supersets → core → stair finisher or a 10-minute treadmill
-/// cool-down) and three home routines in evening slots. Walking is a habit, not a track; Walk → run waits
+/// straight-set accessories at normal rest, no supersets → core → cardio: the stair climber on upper days and the
+/// incline walk on lower days, each a cardio exercise that progresses on its own) and three home routines in evening slots. Walking is a habit, not a track; Walk → run waits
 /// behind its own gate (trend ≤ 90 kg, no knee/shin/Achilles pain for 4 weeks). A2S2 runs the standard
 /// 21-week block sequence inside the 26 weeks on bench, incline Smith and front squat; the pause squat is
 /// reps per set (4 × 5–8). Starts with weights pending: training maxes are optional and
@@ -35,14 +37,20 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
 
     public const int ProgrammeWeeks = 26;
 
+    /// <summary>The cardio exercises (exercise library names and Hevy's built-in templates).</summary>
+    public const string StairMachine = "Stair Machine (Floors)";
+    public const string StairMachineTemplateId = "4377A52B";
+    public const string Treadmill = "Treadmill";
+    public const string TreadmillTemplateId = "243710DE";
+
     public string Key => TemplateKey;
     public string Name => TemplateName;
 
     public IReadOnlyList<string> PreviousNames => FormerNames;
     public string Description =>
         "26 weeks: Base (1–8) and Build (9–16) cutting, Transition (17–26) at maintenance. Four gym sessions " +
-        "(bench, incline Smith and front squat on A2S2; pause squat 4 × 5–8) in straight sets, stair finishers and " +
-        "treadmill cool-downs, walk → run once the running gate is passed, and three home mobility routines. Weights are filled in later.";
+        "(bench, incline Smith and front squat on A2S2; pause squat 4 × 5–8) in straight sets, each ending with stairs " +
+        "or an incline walk that progresses on its own, walk → run once the running gate is passed, and three home mobility routines. Weights are filled in later.";
     public decimal DefaultStartWeightKg => 95m;
 
     public IReadOnlyList<SuggestedPlanInputSpec> Inputs =>
@@ -80,7 +88,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
             VolumeCaps.Default,
             new WeeklyAllowances(flexibleMeals: 1, alcoholOccasions: 1),
             ExtraRoutines: [HipsRoutine(), UpperBackRoutine(), FlowRoutine()],
-            CardioTracks: [CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun],
+            CardioTracks: [CardioTrackTemplates.WalkToRun],
             BlockSequence: [1, 2, 3],
             // No Walk builder in this plan, so walk → run's gate cannot wait on it.
             TrackGates: new Dictionary<string, IReadOnlyList<GateCondition>>(StringComparer.OrdinalIgnoreCase)
@@ -91,19 +99,16 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
 
     // ---- Week ------------------------------------------------------------------------------------
 
-    private static readonly FinisherSpec Stairs = new(TrackKey: CardioTrackTemplates.StairFinisher);
-    private static readonly FinisherSpec CoolDown = new(Fixed: FixedActivity.EasyInclineTreadmill(10));
-
     private static IReadOnlyList<ScheduledSessionSpec> Schedule() =>
     [
-        new(DayOfWeek.Monday, SessionKind.Lift, DayNumber.Day1, null, null, "Upper A", WarmUpUpper, Stairs),
+        new(DayOfWeek.Monday, SessionKind.Lift, DayNumber.Day1, null, null, "Upper A", WarmUpUpper),
         new(DayOfWeek.Monday, SessionKind.Mobility, null, null, HipsAndLowerBack, "Hips & lower back (15 min)"),
-        new(DayOfWeek.Tuesday, SessionKind.Lift, DayNumber.Day2, null, null, "Lower A", WarmUpLower, CoolDown),
+        new(DayOfWeek.Tuesday, SessionKind.Lift, DayNumber.Day2, null, null, "Lower A", WarmUpLower),
         new(DayOfWeek.Tuesday, SessionKind.Mobility, null, null, UpperBackAndChest, "Upper back & chest (15 min)"),
         new(DayOfWeek.Wednesday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min)"),
-        new(DayOfWeek.Thursday, SessionKind.Lift, DayNumber.Day3, null, null, "Upper B", WarmUpUpper, Stairs),
+        new(DayOfWeek.Thursday, SessionKind.Lift, DayNumber.Day3, null, null, "Upper B", WarmUpUpper),
         new(DayOfWeek.Thursday, SessionKind.Mobility, null, null, HipsAndLowerBack, "Hips & lower back (15 min)"),
-        new(DayOfWeek.Friday, SessionKind.Lift, DayNumber.Day4, null, null, "Lower B", WarmUpLower, CoolDown),
+        new(DayOfWeek.Friday, SessionKind.Lift, DayNumber.Day4, null, null, "Lower B", WarmUpLower),
         new(DayOfWeek.Friday, SessionKind.Mobility, null, null, UpperBackAndChest, "Upper back & chest (15 min)"),
         new(DayOfWeek.Saturday, SessionKind.Mobility, null, null, FullBodyFlow, "Full-body flow (20 min), or a follow-along video"),
         new(DayOfWeek.Sunday, SessionKind.Rest, null, null, null, "Rest — daily steps")
@@ -112,14 +117,14 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     private static IReadOnlyList<PlanPhaseDto> Phases(DateOnly start) =>
     [
         new(PhaseType.Cut, start, start.AddDays(8 * 7 - 1),
-            "Base: learn the sessions, pause squat for pattern confidence, continuous stair finishers, level 1 home routines.",
+            "Base: learn the sessions, pause squat for pattern confidence, level 1 home routines; stairs and incline walk progress on their own each workout.",
             Label: "Base"),
         new(PhaseType.Cut, start.AddDays(8 * 7), start.AddDays(16 * 7 - 1),
             "Build: cut to about 85 kg, stair intervals, level 2 home routines.",
             Label: "Build",
             Changes:
             [
-                "Stair finisher: move on to 1 min hard / 1 min easy intervals when the track suggests it",
+                "Stair climber moves to 4 × 4 intervals on its own once continuous work reaches 12 min",
                 "Home routines: move to the harder versions where the cues held, and add 15 s to holds"
             ]),
         new(PhaseType.Maintenance, start.AddDays(16 * 7), start.AddDays(ProgrammeWeeks * 7 - 1),
@@ -147,12 +152,14 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Accessory("Skullcrusher (Dumbbell)", "68F8A292", DayNumber.Day1, 5, 2, 10, 12),
         Accessory("Bicep Curl (Dumbbell)", "37FCC2BB", DayNumber.Day1, 6, 2, 10, 12),
         Accessory("Cable Core Palloff Press", "CC55119B", DayNumber.Day1, 7, 2, 10, 10, perSide: true),
+        Cardio(StairMachine, StairMachineTemplateId, DayNumber.Day1, 8, CardioLane.Hard),
 
         // Lower A: squat pattern. The pause squat is reps per set (4 × 5–8, weight confirmed after the first session), not A2S2.
         RepsPerSetMainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, sets: 4, repMin: 5, repMax: 8),
         Accessory("Romanian Deadlift (Dumbbell)", "72CFFAD5", DayNumber.Day2, 2, 3, 8, 10),
         Accessory("Split Squat (Dumbbell)", "20C1A3CB", DayNumber.Day2, 3, 2, 8, 10, perSide: true),
         Accessory("Hip Abduction (Machine)", "F4B4C6EE", DayNumber.Day2, 4, 2, 12, 15),
+        Cardio(Treadmill, TreadmillTemplateId, DayNumber.Day2, 5, CardioLane.Easy),
 
         // Upper B: incline (A2S2 auxiliary scheme as the main lift)
         MainLift("Incline Bench Press (Smith Machine)", "3A6FA3D1", DayNumber.Day3, ProgramTier.Auxiliary, inputs.Get("inclineSmithTm")),
@@ -161,14 +168,31 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Accessory("Rope Cable Curl", "234897AB", DayNumber.Day3, 4, 2, 10, 15),
         Accessory("Triceps Pushdown", "93A552C6", DayNumber.Day3, 5, 2, 12, 15),
         Accessory("Cable Twist (Down to up)", "92D858EA", DayNumber.Day3, 6, 2, 10, 10, perSide: true),
+        Cardio(StairMachine, StairMachineTemplateId, DayNumber.Day3, 7, CardioLane.Hard),
 
         // Lower B: front squat (A2S2 auxiliary scheme)
         MainLift("Front Squat", "5046D0A9", DayNumber.Day4, ProgramTier.Auxiliary, inputs.Get("frontSquatTm")),
         Accessory("Leg Press (Machine)", "C7973E0E", DayNumber.Day4, 2, 3, 10, 12),
         Accessory("Hip Thrust (Machine)", "68CE0B9B", DayNumber.Day4, 3, 2, 10, 12),
         Accessory("Hip Adduction (Machine)", "8BEBFED6", DayNumber.Day4, 4, 2, 12, 15),
-        Accessory("Seated Leg Curl (Machine)", "11A123F3", DayNumber.Day4, 5, 2, 10, 12)
+        Accessory("Seated Leg Curl (Machine)", "11A123F3", DayNumber.Day4, 5, 2, 10, 12),
+        Cardio(Treadmill, TreadmillTemplateId, DayNumber.Day4, 6, CardioLane.Easy)
     ];
+
+    /// <summary>
+    /// A cardio exercise on its lane's ladder (stairs = hard lane, incline walk = easy lane), last on its day. The two
+    /// days of a lane share one progression; the walk's incline and speed are asked at its first session.
+    /// </summary>
+    public static CreateExerciseRequest Cardio(string name, string templateId, DayNumber day, int order, CardioLane lane) => new()
+    {
+        TemplateName = name,
+        ExternalTemplateId = templateId,
+        Category = ExerciseCategory.Cardio,
+        ProgressionType = CardioStageStrategy.TypeName,
+        AssignedDay = day,
+        OrderInDay = order,
+        CardioLane = lane
+    };
 
     /// <summary>A2S2 main lift; no training max given = pending (set before its first session).</summary>
     private static CreateExerciseRequest MainLift(string name, string templateId, DayNumber day, ProgramTier tier, decimal? trainingMax) => new()

@@ -54,14 +54,14 @@ public class PlanTemplatesControllerTests
         preview.Sessions.Should().HaveCount(4);
         preview.Slots.Should().HaveCount(11);
         preview.Routines.Should().HaveCount(5);
-        preview.CardioTracks.Select(t => t.Key).Should().Equal("stair-finisher", "walk-to-run");
+        preview.CardioTracks.Select(t => t.Key).Should().Equal("walk-to-run");
         preview.ToFillIn.Should().Contain(i => i.Contains("Front Squat")).And.NotContain(i => i.Contains("Pause Squat (Barbell)"));
         preview.Inputs.Where(i => i.Key.EndsWith("Tm")).Should().OnlyContain(i => i.Optional);
         (await client.GetAsync("/api/v1/plans/templates/nope")).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task Apply_with_pending_tms_then_set_a_tm_and_finish_lower_b_with_the_cool_down()
+    public async Task Apply_with_pending_tms_then_set_a_tm_and_finish_lower_b_leaving_the_pending_walk_out()
     {
         var client = _factory.CreateAuthenticatedClient($"user_{Guid.NewGuid():N}");
 
@@ -81,8 +81,8 @@ public class PlanTemplatesControllerTests
         ladder.CurrentLevel.Should().Be(0);
         routines.Single(r => r.Name == "Hips & lower back").Drills.Single(d => d.Name == "Side plank").Levels![1].Range.Should().Be(new DoseRangeDto(20, 30, 5));
         plan.Name.Should().Be("Falador Fat Furnace");
-        plan.Schedule.Single(s => s.Label == "Lower A").FinisherFixed.Should().Be(new FixedActivityDto("Treadmill", 10, "Easy incline"));
-        plan.Schedule.Single(s => s.Label == "Upper A").FinisherCardioTrackId.Should().NotBeNull();
+        plan.Schedule.Where(s => s.LiftDay != null).Should().HaveCount(4)
+            .And.OnlyContain(s => s.FinisherFixed == null && s.FinisherCardioTrackId == null && s.FinisherCardioProtocolId == null);
 
         var workoutId = applied.WorkoutId!.Value;
         var lowerA = (await client.GetFromJsonAsync<WeekPlanDto>($"/api/v1/workouts/{workoutId}/weeks/1/days/2/plan"))!;
@@ -95,6 +95,8 @@ public class PlanTemplatesControllerTests
         var front = lowerB.Exercises.Single(e => e.Name == "Front Squat");
         front.Metadata.IsTrainingMaxPending.Should().BeTrue();
         front.PlannedSets.Should().OnlyContain(s => s.WeightKg == 0m);
+        lowerB.Exercises[^1].Name.Should().Be("Treadmill");
+        lowerB.Exercises[^1].CardioBlock.Should().NotBeNull();
 
         var friday = applied.StartDate.AddDays(4);
         var started = new DateTimeOffset(friday.ToDateTime(new TimeOnly(18, 0)), TimeSpan.Zero);
@@ -108,8 +110,7 @@ public class PlanTemplatesControllerTests
                         SetNumber = s.SetNumber, Weight = 80m, WeightUnit = WeightUnit.Kilograms, ActualReps = s.TargetReps, WasAmrap = s.IsAmrap
                     }).ToList()
                 }
-            ],
-            Finisher: new FinisherLogRequest(600, Effort.Easy));
+            ]);
 
         var blocked = await client.PostAsJsonAsync("/api/v1/gym-sessions", Finish(lowerB), Json);
         blocked.IsSuccessStatusCode.Should().BeFalse();
@@ -124,14 +125,12 @@ public class PlanTemplatesControllerTests
         withTm.Exercises.Single(e => e.ExerciseId == front.ExerciseId).PlannedSets.Should().OnlyContain(s => s.WeightKg > 0m);
         var finished = await client.PostAsJsonAsync("/api/v1/gym-sessions", Finish(withTm), Json);
         finished.StatusCode.Should().Be(HttpStatusCode.OK, await finished.Content.ReadAsStringAsync());
-        (await finished.Content.ReadFromJsonAsync<FinishGymSessionResult>(Json))!.FinisherCompletionId.Should().NotBeNull();
+        (await finished.Content.ReadFromJsonAsync<FinishGymSessionResult>(Json))!.FinisherCompletionId.Should().BeNull();
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<A2SDbContext>();
         var saved = await db.TrainingPlans.AsNoTracking().Include(p => p.Completions).SingleAsync(p => p.Id == new TrainingPlanId(applied.PlanId));
-        var coolDown = saved.Completions.Single(c => c.Kind == SessionKind.Cardio);
-        coolDown.Cardio!.DurationSeconds.Should().Be(600);
-        coolDown.CardioTrackId.Should().BeNull();
+        saved.Completions.Should().ContainSingle(c => c.Kind == SessionKind.Lift).And.NotContain(c => c.Kind == SessionKind.Cardio);
     }
 
     [Fact]
