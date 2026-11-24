@@ -215,4 +215,16 @@ public sealed record CardioStageProgressionDto : ExerciseProgressionDto
     public string StageName { get; init; } = string.Empty;
     public string Prescription { get; init; } = string.Empty;
     public bool IsSettingsPending { get; init; }
+
+    /// <summary>Level, InclinePercent or SpeedKmh: what <see cref="Intensity"/> is.</summary>
+    public string IntensityUnit { get; init; } = string.Empty;
+
+    /// <summary>The current level (stairs) or incline % (walk); null while not set.</summary>
+    public decimal? Intensity { get; init; }
+
+    /// <summary>The hard level suggested on entering the intervals, while it is not set.</summary>
+    public decimal? SuggestedIntensity { get; init; }
+
+    /// <summary>The walk's speed (km/h); null for the stairs or while not set.</summary>
+    public decimal? Speed { get; init; }
 }

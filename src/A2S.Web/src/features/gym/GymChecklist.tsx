@@ -13,6 +13,7 @@ import { GymBlockCard } from './GymLiftCard';
 import { AmrapPrompt, FinishEarlyDialog } from './GymDialogs';
 import { FinisherCard, FixedFinisherCard, RestTimerBar, WarmUpSection } from './GymSections';
 import { GymCardioCard } from './GymCardioCard';
+import type { CardioSettingsValues } from './CardioSettingsDialog';
 import { isCardioDone, type GymCardioChange } from './gymCardio';
 import type { Effort } from '@/types/gym';
 
@@ -43,6 +44,8 @@ export interface GymChecklistProps {
   onCardioChange?: (index: number, change: GymCardioChange) => void;
   onCardioEffort?: (index: number, effort: Effort) => void;
   onTickCardio?: (index: number) => void;
+  /** A cardio exercise's blank starting values chosen with no signal. */
+  onCardioSettingsChosen?: (index: number, values: CardioSettingsValues) => void;
   /** Opens the live wizard for the stair climber. */
   onStartCardio?: (index: number) => void;
   cardioStartLabel?: string;
@@ -73,6 +76,7 @@ export function GymChecklist({
   onCardioChange,
   onCardioEffort,
   onTickCardio,
+  onCardioSettingsChosen,
   onStartCardio,
   cardioStartLabel,
   onKeepHardCardio,
@@ -136,6 +140,7 @@ export function GymChecklist({
             onStart={onStartCardio ? () => onStartCardio(i) : undefined}
             startLabel={cardioStartLabel}
             onKeep={onKeepHardCardio}
+            onSettingsChosen={(values) => onCardioSettingsChosen?.(i, values)}
           />
         ))}
 

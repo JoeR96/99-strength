@@ -107,8 +107,12 @@ public class GetCurrentWorkoutQueryHandlerTests
             StageNumber = 1,
             StageName = "Continuous",
             Prescription = "3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)",
-            IsSettingsPending = false
-        });
+            IsSettingsPending = false,
+            IntensityUnit = "Level",
+            Intensity = 6m,
+            SuggestedIntensity = null,
+            Speed = null
+        }, "the current values prefill Change settings");
         JsonSerializer.Serialize(progression, new JsonSerializerOptions(JsonSerializerDefaults.Web))
             .Should().StartWith("""{"$type":"CardioStage",""");
     }

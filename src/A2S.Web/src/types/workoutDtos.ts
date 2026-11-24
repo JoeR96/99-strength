@@ -118,6 +118,13 @@ export interface CardioStageProgressionDto extends ExerciseProgressionDto {
   prescription: string;
   /** The level/incline (or the walk's speed) is not set yet; gym mode asks for it. */
   isSettingsPending: boolean;
+  /** What `intensity` is: the stair level or the walk's incline %. */
+  intensityUnit: "Level" | "InclinePercent";
+  intensity: number | null;
+  /** Offered for the hard level while it is not set. */
+  suggestedIntensity: number | null;
+  /** The walk's speed (km/h). */
+  speed: number | null;
 }
 
 // Hevy sync discrepancy types

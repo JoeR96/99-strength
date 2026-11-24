@@ -2,8 +2,8 @@
  * One cardio exercise in gym mode, after the lifts. The stair climber (hard lane) has Start, which opens
  * the live wizard; the walk (easy lane) is one tick. Then Easy / Solid / Brutal (choosing one makes it
  * done), "Stopped early" and a pain toggle. With its starting values not set yet, Start or the tick
- * asks for them first (`CardioSettingsDialog`). On a red day the stair climber shows as skipped, with
- * "Do it anyway".
+ * asks for them first (`CardioSettingsDialog`); once set, "Change settings" edits them. On a red day the stair
+ * climber shows as skipped, with "Do it anyway".
  */
 
 import { useState } from 'react';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import type { Effort } from '@/types/gym';
 import type { GymCardio, GymCardioChange } from './gymCardio';
 import { EFFORTS, numberOrNull } from './gymInputs';
-import { CardioSettingsDialog } from './CardioSettingsDialog';
+import { CardioSettingsDialog, type CardioSettingsValues } from './CardioSettingsDialog';
 
 export interface GymCardioCardProps {
   item: GymCardio;
@@ -29,6 +29,8 @@ export interface GymCardioCardProps {
   startLabel?: string;
   /** Skipped for recovery: keep it after all. */
   onKeep?: () => void;
+  /** Blank starting values chosen with no signal: kept in the draft and sent with the finish. */
+  onSettingsChosen?: (values: CardioSettingsValues) => void;
 }
 
 const toggleClass = (on: boolean) =>
@@ -37,7 +39,7 @@ const toggleClass = (on: boolean) =>
     on ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
   );
 
-export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onStart, startLabel = 'Start', onKeep }: GymCardioCardProps) {
+export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onStart, startLabel = 'Start', onKeep, onSettingsChosen }: GymCardioCardProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { block } = item;
   const id = item.exerciseId;
@@ -59,6 +61,11 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
         </span>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{block.text}</p>
+      {!pending && !item.skipped && (
+        <Button type="button" variant="link" className="h-auto min-h-11 px-0 text-sm" onClick={() => setSettingsOpen(true)}>
+          Change settings
+        </Button>
+      )}
 
       {item.skipped ? (
         <div className="mt-3 space-y-2">
@@ -181,7 +188,15 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
       )}
 
       {settingsOpen && (
-        <CardioSettingsDialog open workoutId={workoutId} exerciseId={id} name={item.name} block={block} onClose={() => setSettingsOpen(false)} />
+        <CardioSettingsDialog
+          open
+          workoutId={workoutId}
+          exerciseId={id}
+          name={item.name}
+          block={block}
+          onClose={() => setSettingsOpen(false)}
+          onChosen={onSettingsChosen}
+        />
       )}
     </section>
   );

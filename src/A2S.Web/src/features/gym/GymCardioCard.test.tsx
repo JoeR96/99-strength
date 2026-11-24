@@ -87,6 +87,23 @@ describe('GymCardioCard', () => {
     expect(screen.getByRole('button', { name: /Solid/ })).toBeInTheDocument();
   });
 
+  it('Change settings opens the settings dialog with the current values', () => {
+    render(<Harness initial={cardioGymSession()} index={1} />);
+
+    fireEvent.click(within(screen.getByTestId('cardio-v3-walk')).getByRole('button', { name: 'Change settings' }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('Change settings');
+    expect(within(dialog).getByLabelText('Speed (km/h)')).toHaveValue(5.5);
+    expect(within(dialog).getByLabelText('Incline (%)')).toHaveValue(5);
+  });
+
+  it('has no Change settings while the starting values are still blank', () => {
+    render(<Harness initial={cardioGymSession(stairStage1Block, walkPendingBlock)} index={1} />);
+
+    expect(within(screen.getByTestId('cardio-v3-walk')).queryByRole('button', { name: 'Change settings' })).not.toBeInTheDocument();
+  });
+
   it('shows a skipped stair climber with Do it anyway', () => {
     const onKeep = vi.fn();
     render(<Harness initial={setHardCardioSkipped(cardioGymSession(), true)} index={0} onStart={vi.fn()} onKeep={onKeep} />);

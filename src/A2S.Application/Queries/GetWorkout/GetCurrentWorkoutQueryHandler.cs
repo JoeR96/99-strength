@@ -166,7 +166,11 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 StageNumber = data.CardioStageNumber ?? 0,
                 StageName = data.CardioStageName ?? string.Empty,
                 Prescription = data.CardioPrescription ?? string.Empty,
-                IsSettingsPending = progression.IsCardioSettingsPending
+                IsSettingsPending = progression.IsCardioSettingsPending,
+                IntensityUnit = progression.CalculateCardioBlock()?.IntensityUnit.ToString() ?? string.Empty,
+                Intensity = progression.CalculateCardioBlock()?.Intensity,
+                SuggestedIntensity = progression.CalculateCardioBlock()?.SuggestedIntensity,
+                Speed = progression.CalculateCardioBlock()?.Speed
             },
             _ => new ExerciseProgressionDto { Type = progression.ProgressionType }
         };
