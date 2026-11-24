@@ -1,6 +1,9 @@
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
+using A2S.Domain.Aggregates.Cardio;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -404,6 +407,128 @@ public class CompleteDayCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue("completing a final-week day must not fail");
         result.Value.NextSessionExercises.Should().BeEmpty("there is no next session after the final week");
+    }
+
+    [Fact]
+    public async Task CompleteDay_CardioEasy_StepsUpTheLane()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = CreateActiveWorkoutWithCardio(TestUserId, CardioLane.Hard);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var stairs = CardioExercise(workout);
+
+        var result = await _handler.Handle(CardioDayCommand(workout, stairs.Id.Value,
+            new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40)), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)");
+        result.Value.ProgressionChanges.Should().ContainSingle(c => c.ExerciseId == stairs.Id.Value)
+            .Which.Change.Should().Be("Step up: 7 min @ level 6");
+        result.Value.NextSessionExercises.Should().NotContain(e => e.ExerciseId == stairs.Id.Value);
+        var performance = workout.CompletedActivities.Single().Performances.Single(p => p.ExerciseId == stairs.Id);
+        performance.CompletedSets.Should().BeEmpty();
+        performance.PlannedCardio!.Text.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+        performance.Cardio.Should().Be(new CardioResult(true, EffortRating.Easy, totalSeconds: 660, workMinutes: 6m, intensity: 6m, floors: 40));
+    }
+
+    [Fact]
+    public async Task CompleteDay_WithoutCardioPerformance_KeepsCardioProgression()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = CreateActiveWorkoutWithCardio(TestUserId, CardioLane.Hard);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var stairs = CardioExercise(workout);
+        var bench = workout.Exercises.Single(e => e.Name == "Bench Press");
+
+        var result = await _handler.Handle(CreateLinearDayCommand(workout, bench.Id.Value, DayNumber.Day1), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+        result.Value.ProgressionChanges.Should().NotContain(c => c.ExerciseId == stairs.Id.Value);
+        workout.CompletedActivities.Single().Performances.Should().NotContain(p => p.ExerciseId == stairs.Id);
+    }
+
+    [Fact]
+    public async Task CompleteDay_PendingCardioSettings_ReturnsValidationError()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = CreateActiveWorkoutWithCardio(TestUserId, CardioLane.Easy);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+        var walk = CardioExercise(workout);
+
+        var result = await _handler.Handle(CardioDayCommand(workout, walk.Id.Value,
+            new CardioResultRequest(true, Effort.Easy, TotalSeconds: 600)), CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.ErrorCode.Should().Be(ErrorCode.ValidationFailed);
+        result.Error.Should().Be("Set the Treadmill settings before finishing it.");
+        workout.CompletedActivities.Should().BeEmpty();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Validator_CardioWithoutSets_IsValid()
+    {
+        var command = new CompleteDayCommand(TestWorkoutGuid, DayNumber.Day1,
+        [
+            new ExercisePerformanceRequest
+            {
+                ExerciseId = Guid.Parse("cdc66666-6666-6666-6666-666666666666"),
+                Cardio = new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Speed: 5.5m, Floors: 40)
+            }
+        ]);
+
+        new CompleteDayCommandValidator().Validate(command).IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validator_NoSetsAndNoCardio_IsInvalid()
+    {
+        var command = new CompleteDayCommand(TestWorkoutGuid, DayNumber.Day1,
+            [new ExercisePerformanceRequest { ExerciseId = Guid.Parse("cdc66666-6666-6666-6666-666666666666") }]);
+
+        new CompleteDayCommandValidator().Validate(command).IsValid.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(0, null, null, null, null)]
+    [InlineData(4 * 3600 + 1, null, null, null, null)]
+    [InlineData(600, 241, null, null, null)]
+    [InlineData(600, null, 101, null, null)]
+    [InlineData(600, null, null, 26, null)]
+    [InlineData(600, null, null, null, 2001)]
+    public void Validator_CardioOutOfBounds_IsInvalid(int totalSeconds, int? workMinutes, int? intensity, int? speed, int? floors)
+    {
+        var command = new CompleteDayCommand(TestWorkoutGuid, DayNumber.Day1,
+        [
+            new ExercisePerformanceRequest
+            {
+                ExerciseId = Guid.Parse("cdc66666-6666-6666-6666-666666666666"),
+                Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: totalSeconds, WorkMinutes: workMinutes,
+                    Intensity: intensity, Speed: speed, Floors: floors)
+            }
+        ]);
+
+        new CompleteDayCommandValidator().Validate(command).IsValid.Should().BeFalse();
+    }
+
+    private static Exercise CardioExercise(Workout workout) =>
+        workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
+
+    private static CompleteDayCommand CardioDayCommand(Workout workout, Guid cardioExerciseId, CardioResultRequest cardio) =>
+        new(workout.Id.Value, DayNumber.Day1,
+            [new ExercisePerformanceRequest { ExerciseId = cardioExerciseId, Cardio = cardio }]);
+
+    private static Workout CreateActiveWorkoutWithCardio(UserId userId, CardioLane lane)
+    {
+        var workout = new WorkoutBuilder()
+            .WithUserId(userId)
+            .WithVariant(ProgramVariant.FourDay)
+            .WithDefaultLinearExercise("Bench Press", DayNumber.Day1, 1, 100m)
+            .WithExercise(b => b.WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(lane))
+            .Build();
+        workout.Start();
+        return workout;
     }
 
     private static CompleteDayCommand CreateLinearDayCommand(Workout workout, Guid exerciseId, DayNumber day)

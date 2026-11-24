@@ -1,4 +1,8 @@
+using System.Text.Json.Serialization;
+using A2S.Domain.Aggregates.Cardio;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Enums;
+using A2S.Domain.ValueObjects;
 
 namespace A2S.Application.Commands.CompleteDay;
 
@@ -13,9 +17,12 @@ public sealed record ExercisePerformanceRequest
     public required Guid ExerciseId { get; init; }
 
     /// <summary>
-    /// The sets completed for this exercise.
+    /// The sets completed for this exercise. Empty for a cardio exercise, which sends <see cref="Cardio"/> instead.
     /// </summary>
-    public required IReadOnlyList<CompletedSetRequest> CompletedSets { get; init; }
+    public IReadOnlyList<CompletedSetRequest> CompletedSets { get; init; } = [];
+
+    /// <summary>How a cardio exercise went (cardio exercises only; no sets needed).</summary>
+    public CardioResultRequest? Cardio { get; init; }
 
     /// <summary>
     /// Whether this exercise was temporarily substituted for this session only.
@@ -41,4 +48,24 @@ public sealed record CompletedSetRequest
     public required WeightUnit WeightUnit { get; init; }
     public required int ActualReps { get; init; }
     public bool WasAmrap { get; init; }
+}
+
+/// <summary>
+/// A cardio exercise's session: finished or stopped early, the Easy / Solid / Brutal button, any pain, and what was
+/// done (total seconds, work minutes, level or incline, speed, floors).
+/// </summary>
+public sealed record CardioResultRequest(
+    bool Finished,
+    [property: JsonConverter(typeof(JsonStringEnumConverter<Effort>))] Effort Effort,
+    [property: JsonConverter(typeof(JsonStringEnumConverter<PainFlag>))] PainFlag Pain = PainFlag.None,
+    string? PainArea = null,
+    int TotalSeconds = 0,
+    decimal? WorkMinutes = null,
+    decimal? Intensity = null,
+    decimal? Speed = null,
+    int? Floors = null)
+{
+    /// <summary>The domain result the cardio lane rules read (Easy / Solid / Brutal → RPE 4 / 7 / 9).</summary>
+    public CardioResult ToCardioResult() =>
+        new(Finished, Effort.ToRating(), Pain, PainArea, TotalSeconds, WorkMinutes, Intensity, Speed, Floors);
 }

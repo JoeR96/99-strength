@@ -77,6 +77,7 @@ public sealed class FinishGymSessionCommandValidator : AbstractValidator<FinishG
                 s.RuleFor(c => c.ActualReps).InclusiveBetween(0, 200);
                 s.RuleFor(c => c.Weight).InclusiveBetween(0m, 1000m);
             });
+            p.RuleFor(e => e.Cardio!).SetValidator(new CardioResultRequestValidator()).When(e => e.Cardio is not null);
         });
         When(x => x.Finisher is not null, () =>
         {

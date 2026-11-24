@@ -83,15 +83,24 @@ public sealed class CardioStageStrategy : ExerciseProgression
         };
     }
 
-    /// <summary>Sets today's level/incline and/or speed (null leaves a value as it is). Returns the block text before and after, for the audit.</summary>
+    /// <summary>
+    /// Sets today's level/incline and/or speed (null leaves a value as it is). Returns the block text before and
+    /// after, for the audit. When the prescription would read the same, the state is left exactly as it was.
+    /// </summary>
     internal CardioSettingsChange SetSettings(decimal? intensity, decimal? speed)
     {
         CheckRule(intensity is null or > 0, "Intensity must be greater than zero");
         CheckRule(speed is null or > 0, "Speed must be greater than zero");
 
         var oldText = CalculateCardioBlock().Text;
-        State = CardioLadder.Choose(State, intensity, speed);
-        return new CardioSettingsChange(oldText, CalculateCardioBlock().Text);
+        var next = CardioLadder.Choose(State, intensity, speed);
+        var newText = BlockFor(next).Text;
+        if (newText != oldText)
+        {
+            State = next;
+        }
+
+        return new CardioSettingsChange(oldText, newText);
     }
 
     public override ProgressionSummary GetSummary()
@@ -167,4 +176,7 @@ public sealed class CardioStageStrategy : ExerciseProgression
 }
 
 /// <summary>A settings edit on a cardio exercise: the block text before and after, for the progression history.</summary>
-public sealed record CardioSettingsChange(string OldText, string NewText);
+public sealed record CardioSettingsChange(string OldText, string NewText)
+{
+    public bool IsUnchanged => OldText == NewText;
+}

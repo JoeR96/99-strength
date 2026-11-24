@@ -13,6 +13,7 @@ using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -147,14 +148,16 @@ public class GymSessionTests
             DayNumber.Day1, 1, "79D0BB3A", TrainingMax.Create(100m, WeightUnit.Kilograms));
         var sealRow = Exercise.CreateWithRepsPerSetProgression("Seal Row (Barbell)", ExerciseCategory.Accessory, EquipmentType.Barbell,
             DayNumber.Day1, 2, "custom:seal-row-barbell", RepRange.Create(10, 10), 3, 5, false, Weight.Create(40m, WeightUnit.Kilograms));
+        var stairs = Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 3, "4377A52B", CardioLane.Hard);
         var workout = new WorkoutBuilder().WithUserId(Joe).WithName(CutTo85Nov2026.Name).WithVariant(ProgramVariant.FourDay)
-            .WithExercise(bench).WithExercise(sealRow).Build();
+            .WithExercise(bench).WithExercise(sealRow).WithExercise(stairs).Build();
         workout.Start();
         return workout;
     }
 
     private Exercise Bench => _workout.Exercises.Single(e => e.Name.StartsWith("Bench", StringComparison.Ordinal));
     private Exercise SealRow => _workout.Exercises.Single(e => e.Name.StartsWith("Seal", StringComparison.Ordinal));
+    private Exercise Stairs => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
     private decimal BenchTm => ((LinearProgressionStrategy)Bench.Progression).TrainingMax.Value;
 
     private Queue<Func<HevyWorkoutDraft, HevyResult<HevyWorkout>>> CreateScript { get; } = new();
@@ -512,6 +515,41 @@ public class GymSessionTests
         _workout.CompletedActivities.Single().Performances.Should().ContainSingle();
         ((RepsPerSetStrategy)SealRow.Progression).CurrentSetCount.Should().Be(sealRowBefore);
         _posted.Single().Exercises.Select(e => e.ExerciseTemplateId).Should().NotContain("T-seal-row");
+    }
+
+    [Fact]
+    public async Task FinishGymSession_WithCardioPerformance_CompletesAndStagesPost()
+    {
+        var performances = AsPlanned(amrapReps: 10);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Stairs.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40)
+        });
+
+        var result = await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        result.Value.CompleteDay!.ProgressionChanges.Should().Contain(c => c.ExerciseId == Stairs.Id.Value && c.Change == "Step up: 7 min @ level 6");
+        Stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)");
+        _workout.CompletedActivities.Single().Performances.Should().Contain(p => p.ExerciseId == Stairs.Id && p.Cardio != null);
+        var post = _posts.All.Should().ContainSingle().Subject;
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        payload.Performances.Single(p => p.ExerciseId == Stairs.Id.Value).Cardio
+            .Should().Be(new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40));
+    }
+
+    [Fact]
+    public void FinishValidator_CardioWithoutSets_IsValid_AndOutOfBoundsIsNot()
+    {
+        var validator = new FinishGymSessionCommandValidator();
+        List<ExercisePerformanceRequest> With(CardioResultRequest cardio) =>
+            [new ExercisePerformanceRequest { ExerciseId = Stairs.Id.Value, Cardio = cardio }];
+
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Floors: 40)))).IsValid.Should().BeTrue();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 0)))).IsValid.Should().BeFalse();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Floors: 2001)))).IsValid.Should().BeFalse();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Speed: 26m)))).IsValid.Should().BeFalse();
     }
 
     [Fact]

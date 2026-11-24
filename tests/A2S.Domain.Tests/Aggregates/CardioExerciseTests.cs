@@ -161,6 +161,21 @@ public class CardioExerciseTests
     }
 
     [Fact]
+    public void SetCardioSettings_Unchanged_AddsNoAuditEntry_AndLeavesTheStateAlone()
+    {
+        var workout = Week();
+        var stairs = Cardio(workout, DayNumber.Day1);
+        var stateBefore = ((CardioStageStrategy)stairs.Progression).State;
+        var siblingBefore = ((CardioStageStrategy)Cardio(workout, DayNumber.Day3).Progression).State;
+
+        workout.SetCardioSettings(stairs.Id, 6m, null);
+
+        workout.AuditEntries.Should().BeEmpty();
+        ((CardioStageStrategy)stairs.Progression).State.Should().BeSameAs(stateBefore);
+        ((CardioStageStrategy)Cardio(workout, DayNumber.Day3).Progression).State.Should().BeSameAs(siblingBefore);
+    }
+
+    [Fact]
     public void SetCardioSettings_BeforeTheWorkoutStarts_IsAllowed()
     {
         var workout = Week(start: false);

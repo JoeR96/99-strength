@@ -365,7 +365,8 @@ public sealed class Workout : AggregateRoot<WorkoutId>
 
     /// <summary>
     /// Sets a cardio exercise's level/incline and/or speed (null leaves a value as it is), records the
-    /// change in the progression history and copies it to the other exercises on the same lane.
+    /// change in the progression history and copies it to the other exercises on the same lane. Settings that
+    /// leave the prescription as it was change nothing and add no history entry.
     /// </summary>
     public void SetCardioSettings(ExerciseId exerciseId, decimal? intensity, decimal? speed)
     {
@@ -375,6 +376,10 @@ public sealed class Workout : AggregateRoot<WorkoutId>
         CheckRule(exercise != null, $"Exercise {exerciseId} not found in this workout");
 
         var change = exercise!.SetCardioSettings(intensity, speed);
+        if (change.IsUnchanged)
+        {
+            return;
+        }
 
         _auditEntries.Add(ProgressionAuditEntry.CardioSettingsChanged(
             exercise.Id, exercise.Name, CurrentWeek, (int)exercise.AssignedDay, change.OldText, change.NewText));

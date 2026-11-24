@@ -119,6 +119,9 @@ public sealed record RetrofixLinearTmRequest
 /// <summary>Either a training max, or a recent set to estimate one from. Unit "Kilograms" (default) or "Pounds".</summary>
 public sealed record SetTrainingMaxRequest(decimal? TrainingMax, decimal? RecentWeight, int? RecentReps, string? Unit);
 
+/// <summary>A cardio exercise's level/incline and/or speed (null leaves a value as it is).</summary>
+public sealed record SetCardioSettingsRequest(decimal? Intensity, decimal? Speed);
+
 /// <summary>Apply a plan template: start date (snapped to Monday), training maxes by input key (null = pending), start weight.</summary>
 public sealed record ApplyPlanTemplateRequest(
     DateOnly? StartDate,

@@ -218,7 +218,7 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         log.Effort.ToRpe(),
         null,
         null,
-        effort: log.Effort switch { Effort.Easy => EffortRating.Easy, Effort.Brutal => EffortRating.Brutal, _ => EffortRating.Solid },
+        effort: log.Effort.ToRating(),
         intensityUnit: log.Level is null ? null : IntensityUnit.Level,
         intensityValue: log.Level,
         floors: log.Floors,

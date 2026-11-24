@@ -110,7 +110,8 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
         };
     }
 
-    private static ExerciseDto MapExerciseToDto(Exercise exercise, Workout workout)
+    /// <summary>The exercise as the workout DTO shows it (also returned by single-exercise edits).</summary>
+    internal static ExerciseDto MapExerciseToDto(Exercise exercise, Workout workout)
     {
         var progression = exercise.Progression;
         var data = progression.GetProgressionData();
