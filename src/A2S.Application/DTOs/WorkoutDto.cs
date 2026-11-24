@@ -138,6 +138,7 @@ public sealed record LastPerformanceSetDto
 [JsonDerivedType(typeof(LinearProgressionDto), typeDiscriminator: "Linear")]
 [JsonDerivedType(typeof(RepsPerSetProgressionDto), typeDiscriminator: "RepsPerSet")]
 [JsonDerivedType(typeof(MinimalSetsProgressionDto), typeDiscriminator: "MinimalSets")]
+[JsonDerivedType(typeof(CardioStageProgressionDto), typeDiscriminator: "CardioStage")]
 public record ExerciseProgressionDto
 {
     public string Type { get; init; } = string.Empty;
@@ -201,4 +202,17 @@ public sealed record MinimalSetsProgressionDto : ExerciseProgressionDto
     public int CurrentSetCount { get; init; }
     public int MinimumSets { get; init; }
     public int MaximumSets { get; init; }
+}
+
+/// <summary>
+/// Data Transfer Object for a cardio exercise's progression: its lane (Hard = stair climber, Easy = incline walk),
+/// where it sits on the stage ladder and today's prescription text.
+/// </summary>
+public sealed record CardioStageProgressionDto : ExerciseProgressionDto
+{
+    public string Lane { get; init; } = string.Empty;
+    public int StageNumber { get; init; }
+    public string StageName { get; init; } = string.Empty;
+    public string Prescription { get; init; } = string.Empty;
+    public bool IsSettingsPending { get; init; }
 }

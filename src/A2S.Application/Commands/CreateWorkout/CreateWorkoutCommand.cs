@@ -1,4 +1,5 @@
 using A2S.Domain.Aggregates.Sync;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Application.Sync;
 using System.Text.Json.Serialization;
 using A2S.Application.Common;
@@ -26,7 +27,7 @@ public sealed record CreateExerciseRequest
     public required string TemplateName { get; init; }
     public required string ExternalTemplateId { get; init; }
     public required ExerciseCategory Category { get; init; }
-    public required string ProgressionType { get; init; } // "Linear", "RepsPerSet", or "MinimalSets"
+    public required string ProgressionType { get; init; } // "Linear", "RepsPerSet", "MinimalSets" or "CardioStage"
     public required DayNumber AssignedDay { get; init; }
     public required int OrderInDay { get; init; }
 
@@ -64,4 +65,8 @@ public sealed record CreateExerciseRequest
 
     // For MinimalSets progression
     public int? TargetTotalReps { get; init; }
+
+    /// <summary>CardioStage only (required there): Hard = stair climber, Easy = incline walk.</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<CardioLane>))]
+    public CardioLane? CardioLane { get; init; }
 }

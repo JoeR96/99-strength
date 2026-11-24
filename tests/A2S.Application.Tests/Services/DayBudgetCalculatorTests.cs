@@ -2,6 +2,7 @@ using A2S.Application.Commands.SubstituteExercise;
 using A2S.Application.Common;
 using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -226,6 +227,24 @@ public class DayBudgetCalculatorTests
         dayOneToo.OverTimeBudget.Should().BeTrue();
         (await _calculator.ForDayAsync(workout, DayNumber.Day1, 1)).Time.OverBudget.Should().BeTrue();
         (await _calculator.ForDayAsync(workout, DayNumber.Day2, 1)).Time.OverBudget.Should().BeFalse();
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Cardio exercises
+    // ---------------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task DayBudget_CountsCardioMinutes()
+    {
+        var liftsOnly = await _calculator.ForDayAsync(UpperDay(), DayNumber.Day1, 1);
+        var withStairs = await _calculator.ForDayAsync(
+            UpperDay(new ExerciseBuilder().WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(CardioLane.Hard).Build()),
+            DayNumber.Day1, 1);
+
+        withStairs.Time.TotalMinutes.Should().Be(liftsOnly.Time.TotalMinutes + 11, "3 min warm-up + 6 min + 2 min cool-down");
+        withStairs.Time.PerExercise.Select(e => (e.Name, e.Minutes)).Should().Equal(
+            liftsOnly.Time.PerExercise.Select(e => (e.Name, e.Minutes)).Append(("Stair Machine (Floors)", 11)));
+        withStairs.HardSetsThisWeek.Should().BeEquivalentTo(liftsOnly.HardSetsThisWeek);
     }
 
     // ---------------------------------------------------------------------------------------

@@ -248,8 +248,10 @@ public sealed record UpcomingLiftDto(DayNumber LiftDay, string Label, int WeekNu
 /// <summary>
 /// <see cref="IsTrainingMaxPending"/>: an A2S2 lift with no training max yet; its sets weigh 0, so show reps and
 /// <see cref="IntensityPercentage"/> (0.70 = 70 %) and "Set your training max" instead of kg.
+/// <see cref="Cardio"/> (additive): a cardio exercise's whole session, e.g. "3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)";
+/// its <see cref="Sets"/> is empty. Null for lifts. Terran CC reads this record: never rename or retype a field.
 /// </summary>
-public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets, bool IsTrainingMaxPending = false, decimal? IntensityPercentage = null);
+public sealed record UpcomingExerciseDto(string Name, string Category, IReadOnlyList<UpcomingSetDto> Sets, bool IsTrainingMaxPending = false, decimal? IntensityPercentage = null, string? Cardio = null);
 
 public sealed record UpcomingSetDto(decimal WeightKg, int Reps, bool IsAmrap);
 

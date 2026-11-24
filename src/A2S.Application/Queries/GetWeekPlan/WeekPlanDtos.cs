@@ -64,7 +64,36 @@ public sealed record PlannedExerciseDto
 
     /// <summary>None, Left or Right: one bonus set on that side, logged but never part of progression.</summary>
     public string ExtraSetSide { get; init; } = "None";
+
+    /// <summary>A cardio exercise's session (warm-up, work, cool-down). Null for lifts; a cardio exercise has no planned sets.</summary>
+    public PlannedCardioBlockDto? CardioBlock { get; init; }
 }
+
+/// <summary>
+/// Today's prescription for a cardio exercise. <see cref="Text"/> is the whole session,
+/// e.g. "3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)". Warm-up and cool-down carry minutes and level (zone null).
+/// </summary>
+public sealed record PlannedCardioBlockDto(
+    string Lane,
+    string StageName,
+    int StageNumber,
+    int StageCount,
+    A2S.Application.DTOs.TrackSegmentDto? WarmUp,
+    A2S.Application.DTOs.TrackSegmentDto? CoolDown,
+    string Kind,
+    int WorkMinutes,
+    IntervalFormatDto? Intervals,
+    decimal? RecoveryLevel,
+    string IntensityUnit,
+    decimal? Intensity,
+    decimal? SuggestedIntensity,
+    decimal? Speed,
+    bool IsSettingsPending,
+    int TotalMinutes,
+    string Text);
+
+/// <summary>Interval rounds: hard minutes, then easy minutes between rounds.</summary>
+public sealed record IntervalFormatDto(int Rounds, int HardMinutes, int EasyMinutes);
 
 /// <summary>
 /// DTO representing a single planned set.
@@ -101,4 +130,7 @@ public sealed record PlannedExerciseMetadataDto
 
     /// <summary>A2S2 only: Primary or Auxiliary.</summary>
     public string? Tier { get; init; }
+
+    /// <summary>Cardio only: the level/incline (or the walk's speed) is not set yet; gym mode asks for it.</summary>
+    public bool IsCardioSettingsPending { get; init; }
 }

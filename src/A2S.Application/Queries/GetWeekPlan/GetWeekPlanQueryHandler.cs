@@ -7,6 +7,7 @@ using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
+using A2S.Domain.ValueObjects;
 using MediatR;
 
 namespace A2S.Application.Queries.GetWeekPlan;
@@ -184,9 +185,29 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             PlannedSets = setDtos,
             Metadata = metadata,
             SupersetGroup = exercise.SupersetGroup,
-            ExtraSetSide = exercise.ExtraSetSide.ToString()
+            ExtraSetSide = exercise.ExtraSetSide.ToString(),
+            CardioBlock = exercise.Progression.CalculateCardioBlock() is { } block ? ToDto(block) : null
         };
     }
+
+    private static PlannedCardioBlockDto ToDto(PlannedCardioBlock block) => new(
+        block.Lane.ToString(),
+        block.StageName,
+        block.StageNumber,
+        block.StageCount,
+        block.WarmUp is { } warmUp ? new TrackSegmentDto(warmUp.Minutes, warmUp.Level, null) : null,
+        block.CoolDown is { } coolDown ? new TrackSegmentDto(coolDown.Minutes, coolDown.Level, null) : null,
+        block.Kind.ToString(),
+        block.WorkMinutes,
+        block.Intervals is { } intervals ? new IntervalFormatDto(intervals.Rounds, intervals.HardMinutes, intervals.EasyMinutes) : null,
+        block.RecoveryLevel,
+        block.IntensityUnit.ToString(),
+        block.Intensity,
+        block.SuggestedIntensity,
+        block.Speed,
+        block.IsSettingsPending,
+        block.TotalMinutes,
+        block.Text);
 
     private static PlannedExerciseMetadataDto CreateMetadata(Exercise exercise, WeekParameters weekParams, int templateWeek)
     {
@@ -229,6 +250,11 @@ public sealed class GetWeekPlanQueryHandler : IRequestHandler<GetWeekPlanQuery, 
             {
                 TargetTotalReps = data.TargetTotalReps,
                 Notes = $"Target: {data.TargetTotalReps} total reps across {data.MinimumSets}-{data.MaximumSets} sets"
+            },
+            CardioStageStrategy.TypeName => metadata with
+            {
+                IsCardioSettingsPending = exercise.IsCardioSettingsPending,
+                Notes = data.CardioPrescription
             },
             _ => metadata
         };

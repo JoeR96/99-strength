@@ -158,6 +158,15 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 MinimumSets = data.MinimumSets ?? 2,
                 MaximumSets = data.MaximumSets ?? 10
             },
+            "CardioStage" => new CardioStageProgressionDto
+            {
+                Type = "CardioStage",
+                Lane = data.CardioLane?.ToString() ?? string.Empty,
+                StageNumber = data.CardioStageNumber ?? 0,
+                StageName = data.CardioStageName ?? string.Empty,
+                Prescription = data.CardioPrescription ?? string.Empty,
+                IsSettingsPending = progression.IsCardioSettingsPending
+            },
             _ => new ExerciseProgressionDto { Type = progression.ProgressionType }
         };
 

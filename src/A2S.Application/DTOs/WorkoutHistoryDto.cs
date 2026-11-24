@@ -56,6 +56,9 @@ public sealed record ExercisePerformanceDto
     public Guid ExerciseId { get; init; }
     public DateTime CompletedAt { get; init; }
     public IReadOnlyList<CompletedSetDto> CompletedSets { get; init; } = Array.Empty<CompletedSetDto>();
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>
@@ -170,6 +173,9 @@ public sealed record WeeklyPerformanceDto
     /// The progression type active for this exercise at this week (from ProgressionSnapshot).
     /// </summary>
     public string? ProgressionTypeAtWeek { get; init; }
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>
@@ -251,6 +257,9 @@ public sealed record ExerciseSessionDto
     /// Sets completed in this session.
     /// </summary>
     public IReadOnlyList<CompletedSetDto> Sets { get; init; } = Array.Empty<CompletedSetDto>();
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>

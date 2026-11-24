@@ -60,13 +60,25 @@ public sealed class DayBudgetCalculator
     public static int CurrentWeekOf(Workout workout) =>
         Math.Clamp(workout.CurrentWeek, 1, workout.TotalWeeks);
 
+    /// <summary>
+    /// Lifts are timed by sets and rests; a cardio exercise adds its block's <c>TotalMinutes</c>
+    /// (warm-up + work + cool-down) after them.
+    /// </summary>
     private static SessionTimeEstimate EstimateDay(Workout workout, DayNumber day, int weekNumber)
     {
         var templateWeek = workout.GetTemplateWeek(weekNumber);
         var blockType = workout.GetBlockType(weekNumber);
+        var exercises = workout.GetExercisesForDay(day)
+            .Select(exercise => (Exercise: exercise, Cardio: exercise.Progression.CalculateCardioBlock()))
+            .ToList();
+        var cardio = exercises
+            .Where(pair => pair.Cardio is not null)
+            .Select(pair => (pair.Exercise.Name, Minutes: pair.Cardio!.TotalMinutes))
+            .ToList();
 
-        var timings = workout.GetExercisesForDay(day).Select(exercise =>
+        var timings = exercises.Where(pair => pair.Cardio is null).Select(pair =>
         {
+            var exercise = pair.Exercise;
             var sets = exercise.CalculatePlannedSets(templateWeek, blockType).Count();
             if (exercise.IsUnilateral())
             {
@@ -80,7 +92,19 @@ public sealed class DayBudgetCalculator
             return new ExerciseTiming(exercise.Name, sets, rest, null);
         });
 
-        return SessionTimeEstimator.Estimate(timings);
+        var lifts = SessionTimeEstimator.Estimate(timings);
+        if (cardio.Count == 0)
+        {
+            return lifts;
+        }
+
+        var total = lifts.TotalMinutes + cardio.Sum(c => c.Minutes);
+        return lifts with
+        {
+            TotalMinutes = total,
+            PerExercise = lifts.PerExercise.Concat(cardio).ToList(),
+            OverBudget = total > lifts.BudgetMinutes
+        };
     }
 
     private async Task<Func<string, (string Primary, IReadOnlyList<string> Secondary)?>> BuildLookupAsync(CancellationToken ct)
