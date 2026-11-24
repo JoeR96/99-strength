@@ -14,6 +14,7 @@ import type {
   SubstituteExerciseRequest,
   SubstituteExerciseResult,
   WorkoutHistoryResponse,
+  ExerciseDto,
 } from "../types/workout";
 
 export interface AddExerciseResult {
@@ -120,6 +121,12 @@ export const workoutsApi = {
   /** Sets a pending (or any) A2S2 lift's training max, directly or estimated from a recent set. */
   setTrainingMax: async (workoutId: string, exerciseId: string, request: SetTrainingMaxRequest): Promise<SetTrainingMaxResult> => {
     const response = await apiClient.post<SetTrainingMaxResult>(`/workouts/${workoutId}/exercises/${exerciseId}/training-max`, request);
+    return response.data;
+  },
+
+  /** Sets a cardio exercise's level/incline and/or speed (asked before its first session; editable later). */
+  setCardioSettings: async (workoutId: string, exerciseId: string, request: CardioSettingsRequest): Promise<ExerciseDto> => {
+    const response = await apiClient.put<ExerciseDto>(`/workouts/${workoutId}/exercises/${exerciseId}/cardio-settings`, request);
     return response.data;
   },
 
@@ -354,6 +361,46 @@ export interface PlannedExerciseDto {
   extraSetSide?: 'None' | 'Left' | 'Right';
   plannedSets: PlannedSetDto[];
   metadata: PlannedExerciseMetadataDto;
+  /** A cardio exercise's session (no planned sets, category "Cardio", progressionType "CardioStage"); null for lifts. */
+  cardioBlock?: PlannedCardioBlockDto | null;
+}
+
+/** Interval rounds: hard minutes, then easy minutes between rounds (none after the last). */
+export interface IntervalFormatDto {
+  rounds: number;
+  hardMinutes: number;
+  easyMinutes: number;
+}
+
+/** Today's prescription for a cardio exercise. `text` is the whole session ("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)"). */
+export interface PlannedCardioBlockDto {
+  lane: 'Hard' | 'Easy';
+  stageName: string;
+  stageNumber: number;
+  stageCount: number;
+  warmUp: TrackSegmentDto | null;
+  coolDown: TrackSegmentDto | null;
+  kind: 'Continuous' | 'Intervals';
+  workMinutes: number;
+  intervals: IntervalFormatDto | null;
+  recoveryLevel: number | null;
+  /** Level (stairs) or InclinePercent (walk). */
+  intensityUnit: 'Level' | 'InclinePercent';
+  intensity: number | null;
+  /** Offered while `intensity` is not set (stairs Stage 2: continuous level + 2). */
+  suggestedIntensity: number | null;
+  /** km/h (walk). */
+  speed: number | null;
+  /** The level/incline (or the walk's speed) is not set yet: gym mode asks before starting. */
+  isSettingsPending: boolean;
+  totalMinutes: number;
+  text: string;
+}
+
+/** Body for `PUT /workouts/{id}/exercises/{exerciseId}/cardio-settings`: intensity > 0 (≤ 100), speed 0.5–25 km/h. */
+export interface CardioSettingsRequest {
+  intensity?: number;
+  speed?: number;
 }
 
 export interface PlannedSetDto {
@@ -380,6 +427,8 @@ export interface PlannedExerciseMetadataDto {
   /** Linear only: e.g. 0.70 for 70 %. */
   intensityPercentage?: number | null;
   tier?: 'Primary' | 'Auxiliary' | null;
+  /** Cardio only: the level/incline (or the walk's speed) is not set yet. */
+  isCardioSettingsPending?: boolean;
 }
 
 /** Body for `POST /workouts/{id}/exercises/{exerciseId}/training-max`: a TM, or a recent set to estimate it from. */

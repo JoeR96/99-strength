@@ -1,5 +1,5 @@
 /**
- * Gym mode's one scrolling checklist (brief § 3a): warm-up → each lift → finisher → Finish. Purely
+ * Gym mode's one scrolling checklist (brief § 3a): warm-up → each lift → cardio exercises → finisher → Finish. Purely
  * presentational: the page owns the session state and the rest timer and passes the steps in. Big
  * targets for one hand; the rest timer sticks to the top while it runs.
  */
@@ -12,6 +12,9 @@ import { liftBlocks, progressOf } from './gymSession';
 import { GymBlockCard } from './GymLiftCard';
 import { AmrapPrompt, FinishEarlyDialog } from './GymDialogs';
 import { FinisherCard, FixedFinisherCard, RestTimerBar, WarmUpSection } from './GymSections';
+import { GymCardioCard } from './GymCardioCard';
+import { isCardioDone, type GymCardioChange } from './gymCardio';
+import type { Effort } from '@/types/gym';
 
 export interface GymChecklistProps {
   state: GymSessionState;
@@ -36,6 +39,15 @@ export interface GymChecklistProps {
   onSetTrainingMax?: (lift: number) => void;
   /** Unilateral lifts: ticks a set's left side (done first). */
   onToggleLeft?: (lift: number, set: number) => void;
+  /** Cardio exercises (by index into `state.cardio`): log fields, Easy / Solid / Brutal, the walk's tick. */
+  onCardioChange?: (index: number, change: GymCardioChange) => void;
+  onCardioEffort?: (index: number, effort: Effort) => void;
+  onTickCardio?: (index: number) => void;
+  /** Opens the live wizard for the stair climber. */
+  onStartCardio?: (index: number) => void;
+  cardioStartLabel?: string;
+  /** Red readiness skipped the stair climber: keep it after all. */
+  onKeepHardCardio?: () => void;
   /** Stories and tests: open with the AMRAP prompt or the Finish early dialog showing. */
   initialPrompt?: { lift: number; set: number } | null;
   initialConfirmEarly?: boolean;
@@ -58,6 +70,12 @@ export function GymChecklist({
   finisherStartLabel,
   onSetTrainingMax,
   onToggleLeft,
+  onCardioChange,
+  onCardioEffort,
+  onTickCardio,
+  onStartCardio,
+  cardioStartLabel,
+  onKeepHardCardio,
   initialPrompt = null,
   initialConfirmEarly = false,
 }: GymChecklistProps) {
@@ -66,7 +84,10 @@ export function GymChecklist({
   const progress = progressOf(state);
   const promptLift = prompt ? state.lifts[prompt.lift] : null;
   const promptSet = prompt && promptLift ? promptLift.sets[prompt.set] : null;
-  const skipped = state.lifts.filter((l) => l.sets.every((s) => !s.done)).map((l) => l.name);
+  const skipped = [
+    ...state.lifts.filter((l) => l.sets.every((s) => !s.done)).map((l) => l.name),
+    ...state.cardio.filter((c) => !c.skipped && !isCardioDone(c)).map((c) => c.name),
+  ];
 
   return (
     <div>
@@ -101,6 +122,20 @@ export function GymChecklist({
             onToggleExtraSet={onToggleExtraSet}
             onSetTrainingMax={onSetTrainingMax}
             onToggleLeft={onToggleLeft}
+          />
+        ))}
+
+        {state.cardio.map((item, i) => (
+          <GymCardioCard
+            key={item.exerciseId}
+            item={item}
+            workoutId={state.workoutId}
+            onChange={(change) => onCardioChange?.(i, change)}
+            onEffort={(effort) => onCardioEffort?.(i, effort)}
+            onTick={() => onTickCardio?.(i)}
+            onStart={onStartCardio ? () => onStartCardio(i) : undefined}
+            startLabel={cardioStartLabel}
+            onKeep={onKeepHardCardio}
           />
         ))}
 

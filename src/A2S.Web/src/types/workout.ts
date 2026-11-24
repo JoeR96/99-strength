@@ -13,6 +13,7 @@ export const ExerciseCategory = {
   MainLift: 1,
   Auxiliary: 2,
   Accessory: 3,
+  Cardio: 4,
 } as const;
 export type ExerciseCategory = typeof ExerciseCategory[keyof typeof ExerciseCategory];
 

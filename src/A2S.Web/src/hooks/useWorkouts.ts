@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { workoutsApi, type SetTrainingMaxRequest } from "../api/workouts";
+import { workoutsApi, type CardioSettingsRequest, type SetTrainingMaxRequest } from "../api/workouts";
 import type { CreateWorkoutRequest, CreateExerciseRequest, UpdateExercisesRequest, SubstituteExerciseRequest } from "../types/workout";
 
 /**
@@ -235,6 +235,19 @@ export function useSetTrainingMax() {
   return useMutation({
     mutationFn: ({ workoutId, exerciseId, request }: { workoutId: string; exerciseId: string; request: SetTrainingMaxRequest }) =>
       workoutsApi.setTrainingMax(workoutId, exerciseId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workoutKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
+    },
+  });
+}
+
+/** Saves a cardio exercise's level/incline and/or speed, then refetches the workout and its week plans. */
+export function useSetCardioSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workoutId, exerciseId, request }: { workoutId: string; exerciseId: string; request: CardioSettingsRequest }) =>
+      workoutsApi.setCardioSettings(workoutId, exerciseId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutKeys.all });
       queryClient.invalidateQueries({ queryKey: ['plans'] });

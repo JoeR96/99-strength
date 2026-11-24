@@ -73,7 +73,7 @@ export interface LastPerformanceSetDto {
 }
 
 export interface ExerciseProgressionDto {
-  type: "Linear" | "RepsPerSet" | "MinimalSets";
+  type: "Linear" | "RepsPerSet" | "MinimalSets" | "CardioStage";
 }
 
 export interface LinearProgressionDto extends ExerciseProgressionDto {
@@ -107,6 +107,17 @@ export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {
   currentSetCount: number;
   minimumSets: number;
   maximumSets: number;
+}
+
+/** A cardio exercise (stair climber = Hard lane, incline walk = Easy lane): its stage and today's prescription. */
+export interface CardioStageProgressionDto extends ExerciseProgressionDto {
+  type: "CardioStage";
+  lane: "Hard" | "Easy";
+  stageNumber: number;
+  stageName: string;
+  prescription: string;
+  /** The level/incline (or the walk's speed) is not set yet; gym mode asks for it. */
+  isSettingsPending: boolean;
 }
 
 // Hevy sync discrepancy types
@@ -202,9 +213,27 @@ export interface CompletedSetRequest {
   wasAmrap: boolean;
 }
 
+/** How a cardio exercise went: Easy / Solid / Brutal (RPE 4 / 7 / 9), stopped early, pain, and what was done. */
+export interface CardioResultRequest {
+  finished: boolean;
+  effort: "Easy" | "Solid" | "Brutal";
+  pain: "None" | "Niggle" | "Stop";
+  painArea?: string | null;
+  totalSeconds: number;
+  workMinutes?: number | null;
+  /** Level (stairs) or incline % (walk). */
+  intensity?: number | null;
+  /** km/h (walk). */
+  speed?: number | null;
+  floors?: number | null;
+}
+
 export interface ExercisePerformanceRequest {
   exerciseId: string;
-  completedSets: CompletedSetRequest[];
+  /** Absent (or empty) for a cardio exercise, which sends `cardio` instead. */
+  completedSets?: CompletedSetRequest[];
+  /** Cardio exercises only. */
+  cardio?: CardioResultRequest | null;
   /** The bonus set on one side (never part of completedSets, never affects progression). */
   extraSet?: CompletedSetRequest | null;
   /** When true, progression rules are skipped for this exercise (used for temporary substitutions) */

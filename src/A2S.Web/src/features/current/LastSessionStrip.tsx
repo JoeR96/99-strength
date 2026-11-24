@@ -19,8 +19,9 @@ export function LastSessionStrip({ sessions, onRetry, retrying, hevyConfigured }
   const last = done[done.length - 1];
   if (!last) return null;
   const notInHevy = last.hevyPostStatus === 'Pending' || last.hevyPostStatus === 'Failed';
+  // UpdatePending: already in Hevy, a later change still to send — shown as Posted.
   // Posted by the server, or logged in Hevy itself and pulled (a Hevy-sourced completion has no post).
-  const inHevy = hevyConfigured && (last.hevyPostStatus === 'Posted' || last.hevyPostStatus == null);
+  const inHevy = hevyConfigured && (last.hevyPostStatus === 'Posted' || last.hevyPostStatus === 'UpdatePending' || last.hevyPostStatus == null);
 
   return (
     <section

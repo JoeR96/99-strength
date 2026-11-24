@@ -1,6 +1,7 @@
 /**
  * Gym mode's checklist state and the pure steps that change it (brief § 3a). One session, in order:
- * warm-up drills, then each lift with its planned sets pre-filled, then the attached finisher. Every
+ * warm-up drills, then each lift with its planned sets pre-filled, then the cardio exercises (`gymCardio.ts`)
+ * and the attached finisher. Every
  * step returns a new state, which the page saves to localStorage straight away, so nothing logged is
  * lost to a reload or a dead battery. `toFinishRequest` turns it into the server's finish body: only
  * sets that were confirmed are sent, and a lift with none is left out (its progression waits).
@@ -15,6 +16,7 @@ import { DoseUnit } from '@/types/mobility';
 import { WeightUnit } from '@/types/workout';
 import type { CardioProtocolDto, Effort, FinishGymSessionRequest } from '@/types/gym';
 import type { FixedFinisherDto } from '@/types/plan';
+import { cardioFromPlan, cardioPerformances, isCardioDone, type GymCardio } from './gymCardio';
 
 export interface GymSet {
   setNumber: number;
@@ -84,7 +86,7 @@ export interface GymFinisher {
 }
 
 /** Bump when GymSessionState changes shape, and teach `migrateGymSession` to upgrade the old one. */
-export const GYM_SESSION_VERSION = 1;
+export const GYM_SESSION_VERSION = 2;
 
 export interface GymSessionState {
   /** Saved-shape version; a draft saved before versioning (no field) is v1. */
@@ -97,6 +99,8 @@ export interface GymSessionState {
   startedAt: string;
   drills: GymDrill[];
   lifts: GymLift[];
+  /** v2: the day's cardio exercises, after the lifts. */
+  cardio: GymCardio[];
   finisher: GymFinisher | null;
 }
 
@@ -156,8 +160,9 @@ function liftFromPlan(e: PlannedExercise): GymLift {
   };
 }
 
-/** Main lifts rest 180 s, everything else 90 s, when the server did not say. */
+/** Main lifts rest 180 s, everything else 90 s, when the server did not say; cardio none. */
 export function restSecondsFor(category: string, restSeconds: number | undefined): number {
+  if (category === 'Cardio') return 0;
   if (restSeconds && restSeconds > 0) return restSeconds;
   return category === 'MainLift' ? 180 : 90;
 }
@@ -170,6 +175,7 @@ function doseText(drill: MobilityRoutineDto['drills'][number]): string {
 
 export function createGymSession(input: CreateGymSessionInput): GymSessionState {
   const { plan } = input;
+  const exercises = [...plan.exercises].sort((a, b) => a.orderInDay - b.orderInDay);
   return {
     version: GYM_SESSION_VERSION,
     clientSessionId: input.clientSessionId,
@@ -179,10 +185,8 @@ export function createGymSession(input: CreateGymSessionInput): GymSessionState 
     title: input.title,
     startedAt: input.startedAt,
     drills: (input.warmUp?.drills ?? []).map((d) => ({ name: d.name, dose: doseText(d), done: false })),
-    lifts: [...plan.exercises]
-      .sort((a, b) => a.orderInDay - b.orderInDay)
-      .filter((e) => e.plannedSets.length > 0)
-      .map(liftFromPlan),
+    lifts: exercises.filter((e) => !e.cardioBlock && e.plannedSets.length > 0).map(liftFromPlan),
+    cardio: exercises.flatMap((e) => (e.cardioBlock ? [cardioFromPlan({ ...e, cardioBlock: e.cardioBlock })] : [])),
     finisher: input.finisherFixed
       ? fixedFinisher(input.finisherFixed)
       : input.finisherTrack
@@ -395,13 +399,16 @@ export function progressOf(state: GymSessionState): GymProgress {
   const drillsDone = state.drills.filter((d) => d.done).length;
   const finisherLogged = isFinisherLogged(state.finisher);
   const needsTrainingMax = state.lifts.filter((l) => l.trainingMaxPending && l.sets.some((s) => s.done)).map((l) => l.name);
+  const cardio = state.cardio.filter((c) => !c.skipped);
+  const cardioDone = cardio.filter(isCardioDone).length;
   return {
     setsDone,
     setsTotal: sets.length,
     drillsDone,
     finisherLogged,
-    complete: setsDone === sets.length && drillsDone === state.drills.length && (state.finisher === null || finisherLogged),
-    canFinish: setsDone > 0 && needsTrainingMax.length === 0,
+    complete:
+      setsDone === sets.length && drillsDone === state.drills.length && cardioDone === cardio.length && (state.finisher === null || finisherLogged),
+    canFinish: (setsDone > 0 || cardioDone > 0) && needsTrainingMax.length === 0,
     needsTrainingMax,
   };
 }
@@ -417,20 +424,23 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
     startedAt: state.startedAt,
     endedAt: endedAt < state.startedAt ? state.startedAt : endedAt,
     warmUpTicks: state.drills.length > 0 ? state.drills.map((d) => d.done) : null,
-    performances: state.lifts
-      .map((lift) => {
-        const extra = lift.extraSet?.done ? lift.extraSet : null;
-        return {
-          exerciseId: lift.exerciseId,
-          completedSets: lift.sets
-            .filter((s) => s.done)
-            .map((s) => ({ setNumber: s.setNumber, weight: s.weight, weightUnit: unit(lift), actualReps: s.reps, wasAmrap: s.isAmrap })),
-          ...(extra
-            ? { extraSet: { setNumber: lift.sets.length + 1, weight: extra.weight, weightUnit: unit(lift), actualReps: extra.reps, wasAmrap: false } }
-            : {}),
-        };
-      })
-      .filter((p) => p.completedSets.length > 0),
+    performances: [
+      ...state.lifts
+        .map((lift) => {
+          const extra = lift.extraSet?.done ? lift.extraSet : null;
+          return {
+            exerciseId: lift.exerciseId,
+            completedSets: lift.sets
+              .filter((s) => s.done)
+              .map((s) => ({ setNumber: s.setNumber, weight: s.weight, weightUnit: unit(lift), actualReps: s.reps, wasAmrap: s.isAmrap })),
+            ...(extra
+              ? { extraSet: { setNumber: lift.sets.length + 1, weight: extra.weight, weightUnit: unit(lift), actualReps: extra.reps, wasAmrap: false } }
+              : {}),
+          };
+        })
+        .filter((p) => p.completedSets.length > 0),
+      ...cardioPerformances(state),
+    ],
     finisher: finisher?.fixed
       ? { durationSeconds: finisher.fixed.minutes * 60, effort: 'Easy', completedAsPrescribed: true }
       : finisher
@@ -462,7 +472,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 export function migrateGymSession(raw: unknown): GymSessionState | null {
   if (!isRecord(raw)) return null;
   const version = raw.version ?? 1;
-  if (version !== 1) return null;
+  if (version !== 1 && version !== 2) return null;
   const valid =
     typeof raw.clientSessionId === 'string' &&
     raw.clientSessionId !== '' &&
@@ -473,7 +483,14 @@ export function migrateGymSession(raw: unknown): GymSessionState | null {
     Array.isArray(raw.lifts) &&
     (raw.drills === undefined || Array.isArray(raw.drills));
   if (!valid) return null;
-  return { ...(raw as unknown as GymSessionState), drills: (raw.drills as GymDrill[] | undefined) ?? [], finisher: (raw.finisher as GymFinisher | null | undefined) ?? null, version: GYM_SESSION_VERSION };
+  return {
+    ...(raw as unknown as GymSessionState),
+    drills: (raw.drills as GymDrill[] | undefined) ?? [],
+    // v1 → v2: no cardio exercises; ticked sets are kept as they are.
+    cardio: Array.isArray(raw.cardio) ? (raw.cardio as GymCardio[]) : [],
+    finisher: (raw.finisher as GymFinisher | null | undefined) ?? null,
+    version: GYM_SESSION_VERSION,
+  };
 }
 
 export function saveGymSession(state: GymSessionState): void {

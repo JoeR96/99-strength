@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import type { Effort } from '@/types/gym';
 import type { HevyPostStatus } from '@/types/plan';
 import type { GymDrill, GymFinisher } from './gymSession';
 import { formatClock } from './useRestTimer';
+import { EFFORTS, numberOrNull } from './gymInputs';
 import { FinisherParts, hasSegments } from '@/features/cardio/FinisherParts';
 
 export function WarmUpSection({
@@ -68,18 +68,6 @@ export function WarmUpSection({
       )}
     </section>
   );
-}
-
-const EFFORTS: { value: Effort; hint: string }[] = [
-  { value: 'Easy', hint: 'could chat' },
-  { value: 'Solid', hint: 'hard but steady' },
-  { value: 'Brutal', hint: 'all out' },
-];
-
-function numberOrNull(text: string): number | null {
-  if (text.trim() === '') return null;
-  const value = Number(text);
-  return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
 export function FinisherCard({
@@ -275,7 +263,7 @@ export function GymHevyStatus({
   onRetry?: () => void;
   retrying?: boolean;
 }) {
-  if (status === 'Posted') {
+  if (status === 'Posted' || status === 'UpdatePending') {
     return (
       <div className="mb-6 flex items-center gap-2 rounded-lg border border-success/60 bg-success/10 p-4 text-foreground" data-testid="gym-hevy-status">
         <Check className="h-5 w-5 text-success" aria-hidden="true" />

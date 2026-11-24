@@ -13,7 +13,7 @@ import { createQueue, type OfflineQueue } from '@/offline/queue';
 import { createSyncManager, type SyncManager } from '@/offline/syncManager';
 import type { WorkoutDto } from '@/features/workout/workoutSessionTypes';
 import type { FinishGymSessionResult } from '@/types/gym';
-import { mobilityA, stairFinisher, upperAPlan } from './gymFixtures';
+import { mobilityA, planV3WithCardio, stairFinisher, upperAPlan } from './gymFixtures';
 import { stairCardioItem } from '@/mocks/fixtures/cycle';
 import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
 
@@ -135,6 +135,21 @@ describe('GymModePage', () => {
       expect(await screen.findByText('Open Books')).toBeInTheDocument();
       expect(screen.getByText(/Finisher: Stair finisher/)).toBeInTheDocument();
     });
+  });
+
+  it('red readiness skips the stair climber but keeps the walk; Do it anyway brings it back', async () => {
+    vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue(planV3WithCardio());
+    installReadinessHandlers(readinessHandlers.red());
+    renderPage();
+
+    const stairs = await screen.findByTestId('cardio-v3-stairs');
+    expect(stairs).toHaveTextContent('Skipped for recovery today');
+    expect(screen.getByTestId('cardio-v3-walk')).not.toHaveTextContent('Skipped for recovery today');
+    expect(screen.getByTestId('cardio-tick-v3-walk')).toBeInTheDocument();
+
+    fireEvent.click(within(stairs).getByRole('button', { name: 'Do it anyway' }));
+
+    expect(await screen.findByTestId('cardio-start-v3-stairs')).toBeInTheDocument();
   });
 
   it('queues the finish offline with the same client session id', async () => {
