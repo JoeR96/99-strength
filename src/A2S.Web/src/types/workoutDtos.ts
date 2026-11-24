@@ -420,6 +420,8 @@ export interface ExercisePerformanceHistoryDto {
   exerciseId: string;
   completedAt: string;
   completedSets: CompletedSetHistoryDto[];
+  /** A cardio exercise's session in one line ("7 min @ level 6 · Easy"); null for lifts. */
+  cardioSummary?: string | null;
 }
 
 export interface CompletedSetHistoryDto {
@@ -457,6 +459,8 @@ export interface WeeklyPerformanceDto {
   setsCompleted: number;
   amrapReps?: number;
   sets: CompletedSetHistoryDto[];
+  /** A cardio exercise's session in one line ("7 min @ level 6 · Easy"); null for lifts. */
+  cardioSummary?: string | null;
   // Progression state at this week (from ProgressionSnapshot)
   trainingMaxAtWeek?: number;
   trainingMaxUnitAtWeek?: string;

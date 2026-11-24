@@ -9,7 +9,7 @@ import { ExerciseProgressionModal } from "./ExerciseProgressionModal";
 import type { ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
-import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
+import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type CardioStageProgressionDto, type ProgressionConfigRequest } from "@/types/workout";
 import { getBlockType } from "@/utils/weekParameters";
 import { formatVariantDays } from "@/utils/formatVariant";
 import toast from "react-hot-toast";
@@ -235,6 +235,7 @@ export function WorkoutDashboard() {
                       const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
                       const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
                       const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
+                      const cardioProg = exercise.progression.type === "CardioStage" ? (exercise.progression as CardioStageProgressionDto) : null;
 
                       return (
                         <div
@@ -243,6 +244,25 @@ export function WorkoutDashboard() {
                           onClick={() => setSelectedExercise(exercise)}
                         >
                           <div className="font-semibold text-foreground mb-2">{exercise.name}</div>
+
+                          {cardioProg && (
+                            <div className="space-y-1 text-sm" data-testid="cardio-stage">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Stage:</span>
+                                <span className="font-medium text-foreground">{cardioProg.stageNumber} · {cardioProg.stageName}</span>
+                              </div>
+                              <div className="flex justify-between gap-3 text-muted-foreground">
+                                <span>Today:</span>
+                                <span className="font-medium text-foreground text-right">
+                                  {cardioProg.isSettingsPending ? "Set in gym mode first" : cardioProg.prescription}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>Progression:</span>
+                                <span className="font-medium text-foreground">Cardio stage</span>
+                              </div>
+                            </div>
+                          )}
 
                           {linearProg && (
                             <div className="space-y-1 text-sm">

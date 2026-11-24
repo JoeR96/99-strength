@@ -34,6 +34,12 @@ export interface GymCardio {
 
 export type GymCardioChange = Partial<Pick<GymCardio, 'finished' | 'pain' | 'totalSeconds' | 'workMinutes' | 'intensity' | 'speed' | 'floors'>>;
 
+/** A cardio block in one line for lists and previews: the block's text, or what to set first. */
+export function cardioBlockLine(block: PlannedCardioBlockDto): string {
+  if (!block.isSettingsPending) return block.text;
+  return block.lane === 'Hard' ? 'Set the hard level first' : 'Set speed and incline first';
+}
+
 export function cardioFromPlan(e: PlannedExerciseDto & { cardioBlock: PlannedCardioBlockDto }): GymCardio {
   const block = e.cardioBlock;
   return {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CardioSessionList } from "./CardioSessionList";
 import { useWorkoutHistory } from "@/hooks/useWorkouts";
 import { EditExerciseConfigModal, type ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import {
@@ -49,6 +50,7 @@ export function ExerciseProgressionModal({
   const weeklyHistory = exerciseHistory?.weeklyHistory ?? [];
   const progressionChanges = exerciseHistory?.progressionChanges ?? [];
 
+  const isCardio = exercise.progression.type === "CardioStage";
   const progressionLabel = getProgressionLabel(exercise.progression.type);
 
   // Group weekly history by progression type segments
@@ -87,6 +89,11 @@ export function ExerciseProgressionModal({
                 Loading history...
               </p>
             </div>
+          ) : isCardio ? (
+            <>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Sessions</h3>
+              <CardioSessionList sessions={weeklyHistory} />
+            </>
           ) : weeklyHistory.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
@@ -149,7 +156,7 @@ export function ExerciseProgressionModal({
         {/* Footer */}
         <div className="p-4 border-t flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            {onChangeProgression && (
+            {onChangeProgression && !isCardio && (
               <Button
                 variant="outline"
                 size="sm"

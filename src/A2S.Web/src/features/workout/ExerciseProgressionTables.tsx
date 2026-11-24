@@ -3,6 +3,7 @@ import type {
   LinearProgressionDto,
   RepsPerSetProgressionDto,
   MinimalSetsProgressionDto,
+  CardioStageProgressionDto,
   WeeklyPerformanceDto,
   ProgressionChangeDto,
 } from "@/types/workout";
@@ -27,7 +28,7 @@ export function getOutcome(
 }
 
 export function getProgressionLabel(type: string): string {
-  const labels: Record<string, string> = { Linear: "Linear (A2S)", RepsPerSet: "Reps Per Set", MinimalSets: "Minimal Sets" };
+  const labels: Record<string, string> = { Linear: "Linear (A2S)", RepsPerSet: "Reps Per Set", MinimalSets: "Minimal Sets", CardioStage: "Cardio stage" };
   return labels[type] ?? type;
 }
 
@@ -419,6 +420,22 @@ export function CurrentStateSummary({ exercise }: { exercise: ExerciseDto }) {
         {rp.isUnilateral && (
           <div className="text-primary font-medium">Unilateral</div>
         )}
+      </div>
+    );
+  }
+
+  if (prog.type === "CardioStage") {
+    const cp = prog as CardioStageProgressionDto;
+    return (
+      <div className="flex flex-wrap gap-4 text-sm">
+        <div>
+          <span className="text-muted-foreground">Stage: </span>
+          <span className="font-medium">{cp.stageNumber} · {cp.stageName}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Today: </span>
+          <span className="font-medium">{cp.isSettingsPending ? "Settings to set" : cp.prescription}</span>
+        </div>
       </div>
     );
   }

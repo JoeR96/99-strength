@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type CardioStageProgressionDto } from "@/types/workout";
 import { getWeekParameters, getTemplateWeek, roundToGymIncrement } from "@/utils/weekParameters";
 
 export interface DayCardProps {
@@ -23,6 +23,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
   const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
   const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
   const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
+  const cardioProg = exercise.progression.type === "CardioStage" ? (exercise.progression as CardioStageProgressionDto) : null;
 
   const templateWeek = getTemplateWeek(weekNumber, blockSequence);
   const weekParams = getWeekParameters(templateWeek);
@@ -42,6 +43,21 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
           </svg>
         </button>
       </div>
+
+      {cardioProg && (
+        <div className="text-xs text-muted-foreground mt-1 space-y-0.5" data-testid="cardio-stage">
+          <div className="flex justify-between">
+            <span>Stage:</span>
+            <span className="font-medium text-foreground">{cardioProg.stageNumber} · {cardioProg.stageName}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>Today:</span>
+            <span className="font-medium text-foreground text-right">
+              {cardioProg.isSettingsPending ? "Set in gym mode first" : cardioProg.prescription}
+            </span>
+          </div>
+        </div>
+      )}
 
       {linearProg && (() => {
         const unitLabel = linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs";

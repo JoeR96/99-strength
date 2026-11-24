@@ -11,7 +11,9 @@ import type { CycleSessionDto } from '@/api/workouts';
 import { previewHref } from './cycle';
 
 function Row({ session }: { session: CycleSessionDto }) {
-  const main = session.plan.exercises[0]?.name;
+  const main = session.plan.exercises.find((e) => !e.cardioBlock)?.name;
+  const cardio = session.plan.exercises.filter((e) => e.cardioBlock).map((e) => e.name);
+  if (session.plan.cardio) cardio.push(session.plan.cardio.name);
   return (
     <li>
       <Link
@@ -22,7 +24,7 @@ function Row({ session }: { session: CycleSessionDto }) {
         <span className="w-14 shrink-0 text-xs text-muted-foreground">W{session.week} · {session.position}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium text-foreground">{session.label}</span>
-          {main && <span className="block truncate text-xs text-muted-foreground">{main}{session.plan.cardio ? ` · ${session.plan.cardio.name}` : ''}</span>}
+          {main && <span className="block truncate text-xs text-muted-foreground">{[main, ...cardio].filter(Boolean).join(' · ')}</span>}
         </span>
         {session.isDeloadWeek && <span className="text-xs text-muted-foreground">Deload</span>}
         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

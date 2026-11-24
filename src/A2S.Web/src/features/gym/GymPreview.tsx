@@ -1,6 +1,6 @@
 /**
  * Gym mode read-only (`/gym/:day?preview=1&date=…`): the same checklist order, warm-up drills, every
- * planned set with its weight and reps and the AMRAP target, and the finisher's prescription with
+ * planned set with its weight and reps and the AMRAP target, each cardio exercise's block, and the finisher's prescription with
  * "N more sessions to step up". Nothing can be ticked; no draft is saved, no wake lock, no rest timer.
  * Start appears only when the previewed day is today.
  */
@@ -11,6 +11,7 @@ import { Eye, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { PlannedCardioDto } from '@/api/workouts';
 import { PlannedCardioItem } from './PlannedCardioItem';
+import { cardioBlockLine } from './gymCardio';
 import { liftBlocks, type GymLift, type GymSessionState, type GymSet } from './gymSession';
 
 export interface GymPreviewProps {
@@ -112,6 +113,20 @@ export function GymPreview({ state, dayLabel, startHref, cardio }: GymPreviewPro
               AMRAP target: {lift.sets.find((s) => s.isAmrap)!.plannedReps}+ reps on the last set.
             </p>
           )}
+        </section>
+      ))}
+
+      {state.cardio.map((item) => (
+        <section
+          key={item.exerciseId}
+          className="rounded-lg border border-border bg-card p-4"
+          aria-labelledby={`preview-cardio-${item.exerciseId}`}
+          data-testid={`preview-cardio-${item.exerciseId}`}
+        >
+          <h2 id={`preview-cardio-${item.exerciseId}`} className="text-lg font-semibold text-foreground">
+            {item.name}
+          </h2>
+          <p className="mt-1 text-sm text-foreground">{cardioBlockLine(item.block)}</p>
         </section>
       ))}
 

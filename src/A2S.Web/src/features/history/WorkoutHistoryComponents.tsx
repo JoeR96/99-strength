@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { chartColors, chartTooltipContentStyle } from '@/lib/chartTheme';
 import { blockColors, getBlockColor } from '@/lib/blockColors';
+import { CardioSessionList } from '@/features/workout/CardioSessionList';
 
 export interface CompletedSetDto {
   setNumber: number;
@@ -32,6 +33,8 @@ export interface WeeklyPerformanceDto {
   setsCompleted: number;
   amrapReps: number | null;
   sets: CompletedSetDto[];
+  /** A cardio exercise's session in one line ("7 min @ level 6 · Easy"); null for lifts. */
+  cardioSummary?: string | null;
 }
 
 export interface ExerciseHistoryDto {
@@ -53,6 +56,7 @@ export interface ExercisePerformanceHistoryDto {
   exerciseId: string;
   completedAt: string;
   completedSets: CompletedSetDto[];
+  cardioSummary?: string | null;
 }
 
 export interface WorkoutActivityDto {
@@ -234,6 +238,9 @@ export function WorkoutActivityDetail({
         {activity.performances.map((perf) => (
           <div key={perf.exerciseId} className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
             <h4 className="font-medium text-foreground text-sm mb-2">{getExerciseName(perf.exerciseId)}</h4>
+            {perf.cardioSummary && (
+              <p className="text-sm text-foreground" data-testid="cardio-summary">{perf.cardioSummary}</p>
+            )}
             <div className="flex flex-wrap gap-1.5">
               {perf.completedSets.map((set) => (
                 <div key={set.setNumber} className={`px-2 py-1 rounded text-xs ${set.wasAmrap ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-muted/50 text-foreground'}`}>
@@ -288,7 +295,9 @@ export function ExerciseProgressView({
                   >
                     <div className="font-medium text-sm">{exercise.name}</div>
                     <div className={`text-xs ${selectedExercise?.exerciseId === exercise.exerciseId ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                      {exercise.progressionType} · {exercise.currentWeight} {exercise.weightUnit.toLowerCase()}
+                      {exercise.progressionType === 'CardioStage'
+                        ? 'Cardio'
+                        : `${exercise.progressionType} · ${exercise.currentWeight} ${exercise.weightUnit.toLowerCase()}`}
                     </div>
                   </button>
                 ))}
@@ -315,7 +324,25 @@ export function ExerciseProgressView({
   );
 }
 
+function CardioExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+      <div>
+        <h3 className="text-xl font-semibold text-foreground">{exercise.name}</h3>
+        <p className="text-muted-foreground mt-1">Day {exercise.assignedDay} · {exercise.category} · {exercise.equipment}</p>
+      </div>
+      <CardioSessionList sessions={exercise.weeklyHistory} />
+    </div>
+  );
+}
+
 export function ExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto }) {
+  return exercise.progressionType === 'CardioStage'
+    ? <CardioExerciseDetailView exercise={exercise} />
+    : <LiftExerciseDetailView exercise={exercise} />;
+}
+
+function LiftExerciseDetailView({ exercise }: { exercise: ExerciseHistoryDto }) {
   const hasHistory = exercise.weeklyHistory.length > 0;
 
   const volumeChartData = useMemo(() => {
