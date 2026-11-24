@@ -364,9 +364,10 @@ public sealed class HevyWorkoutPoster
 
     /// <summary>
     /// A cardio exercise as done: a <c>warmup</c> set for the warm-up, one <c>normal</c> work set carrying the effort
-    /// (and the floors on the stair machine), a <c>warmup</c>-typed set for the cool-down. Work = the logged work
-    /// minutes, else the total less the warm-up and cool-down; stopped before any work time, one set of the total.
-    /// Note = the block's text and the effort.
+    /// as Hevy's RPE (<see cref="HevyRpe.CardioExerciseRpe"/>) and the floors on the stair machine, a <c>warmup</c>-typed
+    /// set for the cool-down. Work = the logged work minutes, else the total less the warm-up and cool-down; with both
+    /// logged the cool-down is what is left of the total (so the sets add up to it); stopped before any work time, one
+    /// set of the total. Note = the work as done and the effort ("5 min @ level 6 · Easy", as history shows it).
     /// </summary>
     private static HevyWorkoutExerciseDraft CardioBlockExercise(string templateId, PlannedCardioBlock? block, CardioResultRequest cardio)
     {
@@ -376,12 +377,16 @@ public sealed class HevyWorkoutPoster
         var workSeconds = cardio.WorkMinutes is { } minutes
             ? (int)Math.Round(minutes * 60m)
             : cardio.TotalSeconds - warmUpSeconds - coolDownSeconds;
+        if (cardio.WorkMinutes is not null && cardio.TotalSeconds - warmUpSeconds - workSeconds is >= 0 and var left)
+        {
+            coolDownSeconds = left;
+        }
 
         var sets = new List<HevyWorkoutSetDraft>();
         if (workSeconds <= 0)
         {
             // Stopped inside the warm-up or cool-down time: one set of what was actually done.
-            sets.Add(DurationSet(HevySetTypes.Normal, Math.Max(1, cardio.TotalSeconds), cardio.Effort, stairs, cardio.Floors));
+            sets.Add(CardioWorkSet(Math.Max(1, cardio.TotalSeconds), cardio.Effort, stairs, cardio.Floors));
         }
         else
         {
@@ -390,7 +395,7 @@ public sealed class HevyWorkoutPoster
                 sets.Add(DurationSet(HevySetTypes.Warmup, warmUpSeconds, effort: null, stairs, floors: null));
             }
 
-            sets.Add(DurationSet(HevySetTypes.Normal, workSeconds, cardio.Effort, stairs, cardio.Floors));
+            sets.Add(CardioWorkSet(workSeconds, cardio.Effort, stairs, cardio.Floors));
             if (coolDownSeconds > 0)
             {
                 sets.Add(DurationSet(HevySetTypes.Warmup, coolDownSeconds, effort: null, stairs, floors: null));
@@ -400,10 +405,17 @@ public sealed class HevyWorkoutPoster
         return new HevyWorkoutExerciseDraft
         {
             ExerciseTemplateId = templateId,
-            Notes = block is null ? cardio.Effort.ToString() : $"{CardioHevyNote.For(block)} · {cardio.Effort}",
+            Notes = block is null
+                ? cardio.Effort.ToString()
+                : block.IsSettingsPending
+                    ? $"{CardioHevyNote.For(block)} · {cardio.Effort}"
+                    : CardioSummaryFormatter.Format(block, cardio.ToCardioResult()),
             Sets = sets
         };
     }
+
+    private static HevyWorkoutSetDraft CardioWorkSet(int seconds, Effort effort, bool stairs, int? floors) =>
+        DurationSet(HevySetTypes.Normal, seconds, effort: null, stairs, floors) with { Rpe = HevyRpe.CardioExerciseRpe(effort) };
 
     /// <summary>
     /// The block the session was done against (kept on that week's completed day; any week when the payload has none),

@@ -194,12 +194,15 @@ public static class RoutineBuilder
             ExerciseTemplateId = templateId,
             RestSeconds = 0,
             Notes = CardioHevyNote.For(block),
-            Sets = CardioSets(block.WarmUp?.Minutes, work, block.CoolDown?.Minutes)
+            Sets = CardioSets(block.WarmUp?.Minutes, work, block.CoolDown?.Minutes, HevySetTypes.Warmup)
         };
     }
 
-    /// <summary>The shape every cardio routine exercise shares: a fixed warm-up set, the work sets, then a cool-down set.</summary>
-    private static List<HevySetDraft> CardioSets(int? warmUpMinutes, IEnumerable<int> workSeconds, int? coolDownMinutes)
+    /// <summary>
+    /// The shape every cardio routine exercise shares: a fixed warm-up set, the work sets, then a cool-down set (typed
+    /// <c>warmup</c> for a cardio exercise, as its posted workout is; a track keeps <c>normal</c>).
+    /// </summary>
+    private static List<HevySetDraft> CardioSets(int? warmUpMinutes, IEnumerable<int> workSeconds, int? coolDownMinutes, string coolDownType = HevySetTypes.Normal)
     {
         var sets = new List<HevySetDraft>();
         if (warmUpMinutes is { } warmUp)
@@ -211,7 +214,7 @@ public static class RoutineBuilder
 
         if (coolDownMinutes is { } coolDown)
         {
-            sets.Add(new HevySetDraft { Type = HevySetTypes.Normal, DurationSeconds = coolDown * 60 });
+            sets.Add(new HevySetDraft { Type = coolDownType, DurationSeconds = coolDown * 60 });
         }
 
         return sets;

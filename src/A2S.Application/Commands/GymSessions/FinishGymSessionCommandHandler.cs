@@ -128,6 +128,15 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                     // A fixed cool-down is a plain cardio log on the day: no protocol, no track, nothing evaluated.
                 }
 
+                // A cardio exercise done counts for the week as the finisher it replaced did: a plain cardio log on the
+                // day (no protocol, no track, nothing evaluated, no post of its own: it is inside this session's post).
+                foreach (var cardio in request.Performances.Where(p => p.Cardio is not null))
+                {
+                    var unit = workout.Exercises.FirstOrDefault(e => e.Id.Value == cardio.ExerciseId)?.Progression.CalculateCardioBlock()?.IntensityUnit;
+                    plan.CompleteSession(date, SessionKind.Cardio, CompletionSource.Manual,
+                        log: CardioExerciseLog(cardio.Cardio!, unit ?? IntensityUnit.Level), recordedAt: request.EndedAt);
+                }
+
                 _plans.Update(plan);
             }
 
@@ -146,7 +155,8 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
                 FinisherPrescription = session?.Finisher?.CardioTrackId is { } finisherTrack && _trackRecorder is not null
                     ? await _trackRecorder.PrescriptionTextAsync(userId, finisherTrack, cancellationToken)
                     : null,
-                Finisher = request.Finisher
+                // A draft from before the slot lost its finisher still sends one: it is not logged or posted.
+                Finisher = session?.Finisher is null ? null : request.Finisher
             };
 
             var post = HevyWorkoutPost.Create(userId, request.ClientSessionId, plan?.Id, lift?.Id, date, title,
@@ -225,6 +235,20 @@ public sealed class FinishGymSessionCommandHandler : IRequestHandler<FinishGymSe
         floors: log.Floors,
         pain: log.Pain,
         painArea: log.PainArea) { WorkMinutes = log.WorkMinutes is > 0 ? log.WorkMinutes : null };
+
+    /// <summary>A cardio exercise as a cardio log: duration, work minutes, effort (RPE 4/7/9), level or incline, floors, pain.</summary>
+    public static CardioLog CardioExerciseLog(CardioResultRequest cardio, IntensityUnit unit) => new(
+        cardio.TotalSeconds,
+        null,
+        cardio.Effort.ToRpe(),
+        null,
+        null,
+        effort: cardio.Effort.ToRating(),
+        intensityUnit: unit,
+        intensityValue: cardio.Intensity,
+        floors: cardio.Floors,
+        pain: cardio.Pain,
+        painArea: cardio.PainArea) { WorkMinutes = cardio.WorkMinutes is > 0 ? cardio.WorkMinutes : null };
 
     private async Task TryPostAsync(HevyWorkoutPost post, CancellationToken ct)
     {

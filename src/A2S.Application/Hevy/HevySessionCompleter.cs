@@ -219,8 +219,8 @@ public sealed class HevySessionCompleter
     }
 
     /// <summary>
-    /// A cardio exercise done in Hevy: completed only when a set carries an RPE (the hardest one gives the effort:
-    /// 5 or less Easy, 6 to 8 Solid, 9 or more Brutal), finished, no pain, time = all its sets, floors from the stair
+    /// A cardio exercise done in Hevy: completed only when a set carries an RPE (the hardest one gives the effort,
+    /// <see cref="HevyRpe.CardioExerciseEffort"/>: 6 or less Easy, 7 to 8 Solid, 9 or more Brutal), finished, no pain, time = all its sets, floors from the stair
     /// machine's custom metric. No RPE, no time, or settings still blank: left out, so its progression is unchanged.
     /// </summary>
     private static ExercisePerformanceRequest? CardioPerformance(Exercise exercise, string templateId, HevyWorkout workout)
@@ -234,9 +234,9 @@ public sealed class HevySessionCompleter
             .Where(e => string.Equals(e.ExerciseTemplateId, templateId, StringComparison.Ordinal))
             .SelectMany(e => e.Sets)
             .ToList();
-        var rpe = sets.Where(s => s.Rpe.HasValue).Select(s => (int)Math.Round(s.Rpe!.Value)).DefaultIfEmpty(0).Max();
+        var rpe = sets.Where(s => s.Rpe.HasValue).Select(s => s.Rpe!.Value).DefaultIfEmpty(0m).Max();
         var seconds = sets.Sum(s => s.DurationSeconds ?? 0);
-        if (rpe <= 0 || seconds <= 0)
+        if (rpe <= 0m || seconds <= 0)
         {
             return null;
         }
@@ -247,7 +247,7 @@ public sealed class HevySessionCompleter
             ExerciseId = exercise.Id.Value,
             Cardio = new CardioResultRequest(
                 Finished: true,
-                Effort: EffortRatings.FromRpe(rpe).ToEffort(),
+                Effort: HevyRpe.CardioExerciseEffort(rpe),
                 Pain: PainFlag.None,
                 TotalSeconds: seconds,
                 Floors: floors > 0 ? floors : null)

@@ -131,7 +131,7 @@ public class RoutineBuilderTests
         exercise.RestSeconds.Should().Be(0);
         exercise.Notes.Should().Be("3 min easy (L3) → 4 × 2 min @ L8 / 2 min @ L3 → 2 min easy (L3)");
         exercise.Sets.Select(s => s.Type).Should().Equal(
-            HevySetTypes.Warmup, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal);
+            HevySetTypes.Warmup, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Normal, HevySetTypes.Warmup);
         exercise.Sets.Select(s => s.DurationSeconds).Should().Equal(180, 120, 120, 120, 120, 120);
     }
 

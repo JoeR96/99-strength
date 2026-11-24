@@ -223,6 +223,22 @@ public class CardioTrackHevyPullTests
         stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)", "RPE 5 is Easy, which steps up");
     }
 
+    [Theory]
+    [InlineData(6, EffortRating.Easy)]
+    [InlineData(7, EffortRating.Solid)]
+    [InlineData(8, EffortRating.Solid)]
+    [InlineData(9, EffortRating.Brutal)]
+    public async Task Pull_CardioExerciseRpe_MapsBackToTheEffortItWasPostedAs(int rpe, EffortRating effort)
+    {
+        var stairs = AddStairsToUpperA();
+        HevyReturns(WithStairRpe(rpe));
+
+        await _service.PullAsync(Joe, force: false);
+
+        _workout.CompletedActivities.Should().ContainSingle().Subject.Performances.Single(p => p.ExerciseId == stairs.Id)
+            .Cardio!.Effort.Should().Be(effort);
+    }
+
     [Fact]
     public async Task Pull_CardioWithoutRpe_LeavesProgressionUnchanged()
     {
