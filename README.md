@@ -103,7 +103,7 @@ session's exercises, warm-ups, home routines, cardio tracks and what's left to f
 plan, the app asks first; your old plan and its history are kept. Applying the plan you already have offers a
 **fresh copy** (the current copy is kept, inactive, with its history) or keeping the current one. Everything it creates is yours to edit.
 
-Plan v3 runs A2S2 on bench, incline Smith press and front squat; the pause squat is reps per set (4 × 5–8, weight
+Plan v3 runs A2S2 on bench, incline Smith press and front squat; the pause squat is reps per set (4 × 4–6, weight
 set after the first session). Exercises are straight sets at normal rest (no supersets). There is no Walk builder
 track (walks stay a habit); Walk → run waits behind its own gate: trend weight at or under 90 kg and no knee, shin
 or Achilles pain for four weeks.

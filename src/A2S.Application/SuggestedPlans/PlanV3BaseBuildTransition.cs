@@ -15,7 +15,7 @@ namespace A2S.Application.SuggestedPlans;
 /// cool-down) and three home routines in evening slots. Walking is a habit, not a track; Walk → run waits
 /// behind its own gate (trend ≤ 90 kg, no knee/shin/Achilles pain for 4 weeks). A2S2 runs the standard
 /// 21-week block sequence inside the 26 weeks on bench, incline Smith and front squat; the pause squat is
-/// reps per set (4 × 5–8). Starts with weights pending: training maxes are optional and
+/// reps per set (4 × 4–6). Starts with weights pending: training maxes are optional and
 /// accessory starting weights are confirmed after the first session. Unilateral work is left side first.
 /// Pure: returns data, touches no repository.
 /// </summary>
@@ -41,7 +41,7 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
     public IReadOnlyList<string> PreviousNames => FormerNames;
     public string Description =>
         "26 weeks: Base (1–8) and Build (9–16) cutting, Transition (17–26) at maintenance. Four gym sessions " +
-        "(bench, incline Smith and front squat on A2S2; pause squat 4 × 5–8) in straight sets, stair finishers and " +
+        "(bench, incline Smith and front squat on A2S2; pause squat 4 × 4–6) in straight sets, stair finishers and " +
         "treadmill cool-downs, walk → run once the running gate is passed, and three home mobility routines. Weights are filled in later.";
     public decimal DefaultStartWeightKg => 95m;
 
@@ -148,11 +148,12 @@ public sealed class PlanV3BaseBuildTransition : IPlanTemplate
         Accessory("Bicep Curl (Dumbbell)", "37FCC2BB", DayNumber.Day1, 6, 2, 10, 12),
         Accessory("Cable Core Palloff Press", "CC55119B", DayNumber.Day1, 7, 2, 10, 10, perSide: true),
 
-        // Lower A: squat pattern. The pause squat is reps per set (4 × 5–8, weight confirmed after the first session), not A2S2.
-        RepsPerSetMainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, sets: 4, repMin: 5, repMax: 8),
+        // Lower A: squat pattern. The pause squat is reps per set (4 × 4–6, weight confirmed after the first session), not A2S2.
+        RepsPerSetMainLift("Pause Squat (Barbell)", "CE1054CE", DayNumber.Day2, sets: 4, repMin: 4, repMax: 6),
         Accessory("Romanian Deadlift (Dumbbell)", "72CFFAD5", DayNumber.Day2, 2, 3, 8, 10),
         Accessory("Split Squat (Dumbbell)", "20C1A3CB", DayNumber.Day2, 3, 2, 8, 10, perSide: true),
         Accessory("Hip Abduction (Machine)", "F4B4C6EE", DayNumber.Day2, 4, 2, 12, 15),
+        Accessory("Standing Calf Raise (Machine)", "E05C2C38", DayNumber.Day2, 5, 2, 12, 15),
 
         // Upper B: incline (A2S2 auxiliary scheme as the main lift)
         MainLift("Incline Bench Press (Smith Machine)", "3A6FA3D1", DayNumber.Day3, ProgramTier.Auxiliary, inputs.Get("inclineSmithTm")),
