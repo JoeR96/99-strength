@@ -101,6 +101,8 @@ export interface GymSessionState {
   lifts: GymLift[];
   /** v2: the day's cardio exercises, after the lifts. */
   cardio: GymCardio[];
+  /** "Do it anyway" was tapped on a red day: the stair climber stays even while readiness says skip. */
+  hardCardioKept?: boolean;
   finisher: GymFinisher | null;
 }
 

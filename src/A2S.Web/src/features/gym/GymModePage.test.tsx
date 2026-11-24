@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import toast from 'react-hot-toast';
 import { GymModePage } from './GymModePage';
 import { workoutsApi } from '@/api/workouts';
 import { mobilityRoutinesApi } from '@/api/mobilityRoutines';
@@ -16,6 +17,7 @@ import type { FinishGymSessionResult } from '@/types/gym';
 import { mobilityA, planV3WithCardio, stairFinisher, upperAPlan } from './gymFixtures';
 import { stairCardioItem } from '@/mocks/fixtures/cycle';
 import { installReadinessHandlers, readinessHandlers } from '@/mocks/handlers/readiness';
+import { rejectWith } from '@/mocks/handlers/install';
 
 vi.mock('@/components/layout/Navbar', () => ({ Navbar: () => null }));
 vi.mock('react-hot-toast', () => ({ default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }));
@@ -150,6 +152,35 @@ describe('GymModePage', () => {
     fireEvent.click(within(stairs).getByRole('button', { name: 'Do it anyway' }));
 
     expect(await screen.findByTestId('cardio-start-v3-stairs')).toBeInTheDocument();
+  });
+
+  it('Do it anyway works offline: un-skips on the phone, survives a reload and is sent on finish', async () => {
+    const store = new Map<string, string>();
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => store.get(key) ?? null);
+    vi.mocked(localStorage.setItem).mockImplementation((key: string, value: string) => void store.set(key, value));
+    vi.mocked(localStorage.removeItem).mockImplementation((key: string) => void store.delete(key));
+    vi.mocked(localStorage.key).mockImplementation((i: number) => [...store.keys()][i] ?? null);
+    Object.defineProperty(localStorage, 'length', { configurable: true, get: () => store.size });
+    vi.spyOn(workoutsApi, 'getWeekPlan').mockResolvedValue({ ...planV3WithCardio(), workoutId: 'w-1', weekNumber: 3 });
+    installReadinessHandlers({ ...readinessHandlers.red(), setFinisher: rejectWith(503) });
+    const finish = vi.spyOn(gymSessionsApi, 'finish').mockResolvedValue(finished);
+    const first = renderPage();
+
+    fireEvent.click(within(await screen.findByTestId('cardio-v3-stairs')).getByRole('button', { name: 'Do it anyway' }));
+    expect(await screen.findByTestId('cardio-start-v3-stairs')).toBeInTheDocument();
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    first.unmount();
+
+    renderPage();
+    const stairs = await screen.findByTestId('cardio-v3-stairs');
+    expect(stairs).not.toHaveTextContent('Skipped for recovery today');
+    fireEvent.click(within(stairs).getByRole('button', { name: /Solid/ }));
+    fireEvent.click(screen.getByTestId('gym-finish-early'));
+    fireEvent.click(within(screen.getByRole('dialog')).getByTestId('confirm-finish-early'));
+
+    await waitFor(() => expect(finish).toHaveBeenCalledTimes(1));
+    expect(finish.mock.calls[0][0].performances.map((p) => p.exerciseId)).toEqual(['v3-stairs']);
+    store.clear();
   });
 
   it('queues the finish offline with the same client session id', async () => {

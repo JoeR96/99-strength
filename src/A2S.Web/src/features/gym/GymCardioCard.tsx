@@ -74,16 +74,18 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
           {pending && <p className="mt-2 text-sm text-foreground">{hard ? 'Pick your hard level first.' : 'Set your speed and incline first.'}</p>}
 
           {hard ? (
-            <Button
-              type="button"
-              size="lg"
-              className="mt-3 h-12 w-full"
-              onClick={() => (pending ? setSettingsOpen(true) : onStart?.())}
-              data-testid={`cardio-start-${id}`}
-            >
-              <Timer aria-hidden="true" />
-              {startLabel}
-            </Button>
+            (pending || onStart) && (
+              <Button
+                type="button"
+                size="lg"
+                className="mt-3 h-12 w-full"
+                onClick={() => (pending ? setSettingsOpen(true) : onStart?.())}
+                data-testid={`cardio-start-${id}`}
+              >
+                <Timer aria-hidden="true" />
+                {startLabel}
+              </Button>
+            )
           ) : (
             <button
               type="button"

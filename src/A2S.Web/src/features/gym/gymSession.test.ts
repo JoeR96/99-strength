@@ -23,7 +23,7 @@ import {
   sideRows,
   toggleSide,
 } from './gymSession';
-import { chooseCardioEffort, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
+import { chooseCardioEffort, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
 import { cardioGymSession, planV3WithCardio, stairStage1Block, walkBlock, walkPendingBlock } from './gymFixtures';
 import { freshGymSession, GYM_CLIENT_SESSION, GYM_STARTED_AT, midGymSession, planV3GymSession, planV3UpperA, trackFinisherGymSession } from './gymFixtures';
 
@@ -415,6 +415,20 @@ describe('cardio exercises', () => {
     ]);
     expect(toFinishRequest(logged, ENDED_AT).performances.map((p) => p.exerciseId)).toEqual(['v3-walk']);
     expect(setHardCardioSkipped(state, false).cardio[0].skipped).toBe(false);
+  });
+
+  it('never skips a stair climber already logged', () => {
+    const logged = chooseCardioEffort(cardioGymSession(), 0, 'Easy');
+
+    expect(setHardCardioSkipped(logged, true).cardio[0].skipped ?? false).toBe(false);
+  });
+
+  it('Do it anyway keeps the stair climber even while readiness still says skip', () => {
+    const kept = keepHardCardio(setHardCardioSkipped(cardioGymSession(), true));
+
+    expect(kept.hardCardioKept).toBe(true);
+    expect(kept.cardio[0].skipped).toBe(false);
+    expect(setHardCardioSkipped(kept, true).cardio[0].skipped).toBe(false);
   });
 
   it('takes new settings from the refetched plan for items not done yet', () => {

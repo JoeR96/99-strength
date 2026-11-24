@@ -63,7 +63,7 @@ import { SetTrainingMaxDialog } from './SetTrainingMaxDialog';
 import { useRestTimer } from './useRestTimer';
 import { FinisherWizard } from './finisher/FinisherWizard';
 import { cardioLogFromSummary, finisherLogFromSummary, wizardTarget } from './finisher/gymFinisherPlan';
-import { chooseCardioEffort, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
+import { chooseCardioEffort, keepHardCardio, setHardCardioSkipped, syncCardioBlocks, tickCardio, updateCardio } from './gymCardio';
 import { clearEngine, loadEngine, saveEngine, scheduleOf, startEngine, type FinisherSummary, type ScheduledNudge } from './finisher/finisherEngine';
 import { finisherSessionsApi } from '@/api/finisherSessions';
 
@@ -178,7 +178,9 @@ export function GymModePage() {
       finisherTrack={finisherTrack}
       finisherFixed={finisherFixed}
       skipHardCardio={skipFinisher}
-      onKeepHardCardio={() => keepFinisher.mutate({ date, keep: true })}
+      onKeepHardCardio={() =>
+        keepFinisher.mutate({ date, keep: true }, { onError: () => toast.error('Kept on this phone. Could not tell the server; your readiness still says skip.') })
+      }
     />
   );
 }
@@ -378,7 +380,10 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
         onTickCardio={(i) => update((s) => tickCardio(s, i))}
         onStartCardio={wizard && wizard.cardioIndex !== null ? startFinisher : undefined}
         cardioStartLabel={loadEngine(state.clientSessionId) ? 'Resume' : 'Start'}
-        onKeepHardCardio={onKeepHardCardio}
+        onKeepHardCardio={() => {
+          update(keepHardCardio);
+          onKeepHardCardio();
+        }}
         onSetTrainingMax={setTmLift}
         onToggleLeft={(l, set) => update((s) => toggleSide(s, l, set, 'Left'))}
       />

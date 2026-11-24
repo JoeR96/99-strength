@@ -75,10 +75,19 @@ export function tickCardio(state: GymSessionState, index: number): GymSessionSta
   });
 }
 
-/** Red readiness skips the hard lane (the walk always shows); keeping it brings it back. */
-export function setHardCardioSkipped(state: GymSessionState, skipped: boolean): GymSessionState {
-  if (!state.cardio.some((c) => c.lane === 'Hard' && (c.skipped ?? false) !== skipped)) return state;
-  return { ...state, cardio: state.cardio.map((c) => (c.lane === 'Hard' ? { ...c, skipped } : c)) };
+/**
+ * Red readiness skips the hard lane (the walk always shows). Never skips an item already logged, nor
+ * one kept on this phone ("Do it anyway", `keepHardCardio`).
+ */
+export function setHardCardioSkipped(state: GymSessionState, skip: boolean): GymSessionState {
+  const target = (c: GymCardio) => skip && !state.hardCardioKept && !c.done;
+  if (!state.cardio.some((c) => c.lane === 'Hard' && (c.skipped ?? false) !== target(c))) return state;
+  return { ...state, cardio: state.cardio.map((c) => (c.lane === 'Hard' ? { ...c, skipped: target(c) } : c)) };
+}
+
+/** "Do it anyway": un-skips the hard lane and remembers it in the draft, so it works offline and after a reload. */
+export function keepHardCardio(state: GymSessionState): GymSessionState {
+  return setHardCardioSkipped({ ...state, hardCardioKept: true }, false);
 }
 
 /** After settings are saved the plan comes back with the new block: items not done yet take it. */

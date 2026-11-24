@@ -80,6 +80,13 @@ describe('GymCardioCard', () => {
     expect(screen.getByRole('button', { name: 'Stopped early' })).toHaveAttribute('aria-pressed', 'true');
   });
 
+  it('has no Start button when the stair climber has no wizard (a finisher owns it)', () => {
+    render(<Harness initial={cardioGymSession()} index={0} />);
+
+    expect(screen.queryByTestId('cardio-start-v3-stairs')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Solid/ })).toBeInTheDocument();
+  });
+
   it('shows a skipped stair climber with Do it anyway', () => {
     const onKeep = vi.fn();
     render(<Harness initial={setHardCardioSkipped(cardioGymSession(), true)} index={0} onStart={vi.fn()} onKeep={onKeep} />);
