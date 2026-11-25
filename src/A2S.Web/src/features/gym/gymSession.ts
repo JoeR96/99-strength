@@ -415,6 +415,32 @@ export function progressOf(state: GymSessionState): GymProgress {
   };
 }
 
+function anythingTicked(state: GymSessionState): boolean {
+  return state.drills.some((d) => d.done) || state.lifts.some((l) => l.sets.some((s) => s.done) || l.extraSet?.done === true);
+}
+
+/**
+ * The session starts at the first tick, not when gym mode was opened: a draft opened early (to look at
+ * the day) and resumed hours later would otherwise send that old start time.
+ */
+export function startClockOnFirstTick(before: GymSessionState, after: GymSessionState, now: string): GymSessionState {
+  return !anythingTicked(before) && anythingTicked(after) ? { ...after, startedAt: now } : after;
+}
+
+/** The server refuses sessions over 12 hours. */
+export const MAX_SESSION_MS = 12 * 60 * 60 * 1000;
+/** Used when a draft was started long before it was finished (opened one day, finished the next). */
+export const STALE_DRAFT_SESSION_MS = 2 * 60 * 60 * 1000;
+
+/** Start/end for the finish body: never ends before it starts, never longer than the server allows. */
+export function sessionTimes(startedAt: string, endedAt: string): { startedAt: string; endedAt: string } {
+  const start = Date.parse(startedAt);
+  const end = Date.parse(endedAt);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return { startedAt, endedAt: startedAt };
+  if (end - start > MAX_SESSION_MS) return { startedAt: new Date(end - STALE_DRAFT_SESSION_MS).toISOString(), endedAt };
+  return { startedAt, endedAt };
+}
+
 /** The server's finish body. Only confirmed sets go; a lift with none is left out, so its progression is untouched. */
 export function toFinishRequest(state: GymSessionState, endedAt: string): FinishGymSessionRequest {
   const unit = (lift: GymLift) => (lift.unit === 'lbs' ? WeightUnit.Pounds : WeightUnit.Kilograms);
@@ -423,8 +449,7 @@ export function toFinishRequest(state: GymSessionState, endedAt: string): Finish
     clientSessionId: state.clientSessionId,
     workoutId: state.workoutId,
     day: state.day,
-    startedAt: state.startedAt,
-    endedAt: endedAt < state.startedAt ? state.startedAt : endedAt,
+    ...sessionTimes(state.startedAt, endedAt),
     warmUpTicks: state.drills.length > 0 ? state.drills.map((d) => d.done) : null,
     performances: [
       ...state.lifts

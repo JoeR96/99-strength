@@ -48,6 +48,7 @@ import {
   loadGymSession,
   newClientSessionId,
   saveGymSession,
+  startClockOnFirstTick,
   tickDrill,
   toFinishRequest,
   toggleSet,
@@ -284,7 +285,7 @@ function GymSessionRunner({ workout, plan, day, title, label, warmUp, finisher, 
 
   const update = useCallback((next: (s: GymSessionState) => GymSessionState) => {
     setState((current) => {
-      const updated = next(current);
+      const updated = startClockOnFirstTick(current, next(current), new Date().toISOString());
       saveGymSession(updated);
       return updated;
     });
