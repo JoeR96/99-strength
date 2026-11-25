@@ -13,6 +13,8 @@ import {
   restSecondsFor,
   saveGymSession,
   toFinishRequest,
+  sessionTimes,
+  startClockOnFirstTick,
   toggleSet,
   updateFinisher,
   liftBlocks,
@@ -347,5 +349,39 @@ describe('unilateral lifts', () => {
     expect(state.lifts[2].sets[0]).toMatchObject({ leftDone: true, done: false });
     state = toggleSide(state, 2, 0, 'Right');
     expect(state.lifts[2].sets[0]).toMatchObject({ leftDone: true, done: true });
+  });
+});
+
+describe('sessionTimes', () => {
+  it('keeps a normal session as it is', () => {
+    expect(sessionTimes('2026-11-25T13:00:00.000Z', '2026-11-25T14:30:00.000Z')).toEqual({
+      startedAt: '2026-11-25T13:00:00.000Z',
+      endedAt: '2026-11-25T14:30:00.000Z',
+    });
+  });
+
+  it('never ends before it starts', () => {
+    expect(sessionTimes('2026-11-25T13:00:00.000Z', '2026-11-25T12:00:00.000Z').endedAt).toBe('2026-11-25T13:00:00.000Z');
+  });
+
+  it('gives a draft started over 12 hours ago a two-hour session ending at finish', () => {
+    expect(sessionTimes('2026-11-24T18:00:00.000Z', '2026-11-25T14:52:00.000Z')).toEqual({
+      startedAt: '2026-11-25T12:52:00.000Z',
+      endedAt: '2026-11-25T14:52:00.000Z',
+    });
+  });
+});
+
+describe('startClockOnFirstTick', () => {
+  const NOW = '2026-11-25T13:50:00.000Z';
+
+  it('moves the start to the first tick of a draft opened earlier', () => {
+    const opened = freshGymSession();
+    expect(startClockOnFirstTick(opened, toggleSet(opened, 0, 0), NOW).startedAt).toBe(NOW);
+  });
+
+  it('leaves the start alone once something was ticked', () => {
+    const mid = midGymSession();
+    expect(startClockOnFirstTick(mid, toggleSet(mid, 0, 1), NOW).startedAt).toBe(GYM_STARTED_AT);
   });
 });
