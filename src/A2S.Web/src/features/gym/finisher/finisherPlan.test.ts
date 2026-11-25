@@ -24,6 +24,26 @@ describe('buildFinisherPlan', () => {
     expect(phases[14]).toMatchObject({ kind: 'easy', round: 7 });
   });
 
+  it('skips the last easy phase when restAfterLastRound is false', () => {
+    const phases = buildFinisherPlan({
+      warmUp: { minutes: 3, level: 3, zone: null },
+      coolDown: { minutes: 2, level: 3, zone: null },
+      workMinutes: null,
+      level: 8,
+      intervals: { rounds: 4, workSeconds: 240, restSeconds: 180, restAfterLastRound: false },
+    });
+
+    expect(phases.map((p) => p.kind)).toEqual(['warmup', 'hard', 'easy', 'hard', 'easy', 'hard', 'easy', 'hard', 'cooldown']);
+    expect(phases.filter((p) => p.kind === 'easy')).toHaveLength(3);
+    expect(phases.reduce((total, p) => total + p.seconds, 0)).toBe(30 * 60);
+  });
+
+  it('uses the interval recovery level for easy rounds when given', () => {
+    const phases = buildFinisherPlan({ warmUp, coolDown, workMinutes: null, level: 8, intervals: { rounds: 2, workSeconds: 60, restSeconds: 60, easyLevel: 4 } });
+
+    expect(phases.filter((p) => p.kind === 'easy').map((p) => p.level)).toEqual([4, 4]);
+  });
+
   it('skips segments that are off', () => {
     expect(buildFinisherPlan({ warmUp: { minutes: 0, level: null, zone: null }, coolDown: null, workMinutes: 5, level: 6 }).map((p) => p.kind)).toEqual(['work']);
   });

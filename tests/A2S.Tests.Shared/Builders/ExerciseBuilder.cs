@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -34,6 +35,9 @@ public sealed class ExerciseBuilder
     private int _minSetsStartingSets = 3;
     private int _minimumSets = 2;
     private int _maximumSets = 10;
+
+    // CardioStage defaults
+    private CardioLane _cardioLane = CardioLane.Hard;
 
     public ExerciseBuilder WithName(string name) { _name = name; return this; }
     public ExerciseBuilder WithCategory(ExerciseCategory category) { _category = category; return this; }
@@ -79,6 +83,19 @@ public sealed class ExerciseBuilder
         return this;
     }
 
+    /// <summary>
+    /// A cardio exercise on the lane's ladder, named and templated like the shipped one
+    /// (hard = "Stair Machine (Floors)" 4377A52B, easy = "Treadmill" 243710DE). WithName/WithTemplateId after this override them.
+    /// </summary>
+    public ExerciseBuilder AsCardioStage(CardioLane lane)
+    {
+        _progressionType = ProgressionType.CardioStage;
+        _cardioLane = lane;
+        _name = lane == CardioLane.Hard ? "Stair Machine (Floors)" : "Treadmill";
+        _externalTemplateId = lane == CardioLane.Hard ? "4377A52B" : "243710DE";
+        return this;
+    }
+
     public Exercise Build()
     {
         return _progressionType switch
@@ -98,9 +115,12 @@ public sealed class ExerciseBuilder
                 _externalTemplateId, Weight.Create(_minSetsWeight, WeightUnit.Kilograms),
                 _targetTotalReps, _minSetsStartingSets, _minimumSets, _maximumSets),
 
+            ProgressionType.CardioStage => Exercise.CreateWithCardioStageProgression(
+                _name, _assignedDay, _orderInDay, _externalTemplateId, _cardioLane),
+
             _ => throw new ArgumentOutOfRangeException(nameof(_progressionType))
         };
     }
 
-    private enum ProgressionType { Linear, RepsPerSet, MinimalSets }
+    private enum ProgressionType { Linear, RepsPerSet, MinimalSets, CardioStage }
 }

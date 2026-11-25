@@ -23,6 +23,10 @@ export interface FinisherIntervals {
   rounds: number;
   workSeconds: number;
   restSeconds: number;
+  /** Default true (1:1 finisher rounds). False: recoveries only between rounds (the stair climber's intervals). */
+  restAfterLastRound?: boolean;
+  /** The easy rounds' level; default the warm-up's (or cool-down's). */
+  easyLevel?: number | null;
 }
 
 export interface FinisherPlanInput {
@@ -55,13 +59,14 @@ function segment(kind: 'warmup' | 'cooldown', seg: TrackSegmentDto | null | unde
 
 export function buildFinisherPlan(input: FinisherPlanInput): FinisherPhase[] {
   const phases: FinisherPhase[] = [...segment('warmup', input.warmUp)];
-  const easyLevel = input.warmUp?.level ?? input.coolDown?.level ?? null;
-  const easyZone = input.warmUp?.zone ?? input.coolDown?.zone ?? null;
   const iv = input.intervals;
+  const easyLevel = iv?.easyLevel ?? input.warmUp?.level ?? input.coolDown?.level ?? null;
+  const easyZone = input.warmUp?.zone ?? input.coolDown?.zone ?? null;
   if (iv && iv.rounds > 0 && iv.workSeconds > 0) {
     for (let round = 1; round <= iv.rounds; round++) {
       phases.push({ kind: 'hard', seconds: iv.workSeconds, level: input.level, zone: null, label: LABELS.hard, round, rounds: iv.rounds });
-      if (iv.restSeconds > 0) {
+      const last = round === iv.rounds;
+      if (iv.restSeconds > 0 && !(last && iv.restAfterLastRound === false)) {
         phases.push({ kind: 'easy', seconds: iv.restSeconds, level: easyLevel, zone: easyZone, label: LABELS.easy, round, rounds: iv.rounds });
       }
     }

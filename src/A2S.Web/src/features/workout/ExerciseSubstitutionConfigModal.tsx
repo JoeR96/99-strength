@@ -62,8 +62,9 @@ export function ExerciseSubstitutionConfigModal({
     : null;
 
   // Progression type state
+  // A cardio exercise has no lifting config to carry over: start from reps per set.
   const [progressionType, setProgressionType] = useState<ProgressionType>(
-    originalProgression.type
+    originalProgression.type === "CardioStage" ? "RepsPerSet" : originalProgression.type
   );
 
   // Linear (Hypertrophy) progression state

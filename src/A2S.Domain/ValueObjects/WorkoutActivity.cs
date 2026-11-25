@@ -66,6 +66,13 @@ public sealed class WorkoutActivity : ValueObject
         return new WorkoutActivity(Day, WeekNumber, BlockNumber, _performances, newSnapshots, CompletedAt);
     }
 
+    /// <summary>Adds a performance recorded after the day was completed (a retro-logged cardio session). Workout checks it first.</summary>
+    internal void AddPerformance(ExercisePerformance performance)
+    {
+        ArgumentNullException.ThrowIfNull(performance);
+        _performances.Add(performance);
+    }
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Day;

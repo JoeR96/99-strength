@@ -1,4 +1,5 @@
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.ValueObjects;
@@ -473,6 +474,68 @@ public class StrategyPolymorphismTests
     }
 
 
+
+    [Fact]
+    public void WhenCardioStageStrategy_HasNoWeightTrainingMaxOrUnilateral()
+    {
+        ExerciseProgression strategy = CardioStageStrategy.Create(CardioLanes.StairClimber());
+
+        strategy.GetCurrentWeight().Should().BeNull();
+        strategy.GetTrainingMax().Should().BeNull();
+        strategy.GetWeightIncrement().Value.Should().Be(0m);
+        strategy.GetWeightIncrement().Unit.Should().Be(WeightUnit.Kilograms);
+        strategy.SupportsUnilateral.Should().BeFalse();
+        strategy.IsUnilateral.Should().BeFalse();
+        strategy.IsWeightPending.Should().BeFalse();
+    }
+
+    [Fact]
+    public void WhenCardioStageStrategy_CalculateCardioBlockReturnsTheBlock()
+    {
+        ExerciseProgression strategy = CardioStageStrategy.Create(CardioLanes.StairClimber());
+
+        strategy.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+        strategy.IsCardioSettingsPending.Should().BeFalse();
+    }
+
+    [Fact]
+    public void WhenCardioStageStrategy_WithBlankIncline_SettingsArePending()
+    {
+        ExerciseProgression strategy = CardioStageStrategy.Create(CardioLanes.InclineWalk());
+
+        strategy.IsCardioSettingsPending.Should().BeTrue();
+    }
+
+    [Fact]
+    public void WhenLiftingStrategy_HasNoCardioBlock()
+    {
+        ExerciseProgression strategy = LinearProgressionStrategy.Create(_tm);
+
+        strategy.CalculateCardioBlock().Should().BeNull();
+        strategy.IsCardioSettingsPending.Should().BeFalse();
+    }
+
+    [Fact]
+    public void WhenCardioStageStrategy_GetSummaryNamesTheStage()
+    {
+        ExerciseProgression strategy = CardioStageStrategy.Create(CardioLanes.StairClimber());
+
+        var summary = strategy.GetSummary();
+
+        summary.Type.Should().Be("Cardio Stage");
+        summary.Details["Stage"].Should().Be("1 of 3: Continuous");
+        summary.Details["Prescription"].Should().Be("3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
+    }
+
+    [Fact]
+    public void WhenCardioStageStrategy_UpdateWeightThrows()
+    {
+        ExerciseProgression strategy = CardioStageStrategy.Create(CardioLanes.StairClimber());
+
+        var act = () => strategy.UpdateWeight(_weight);
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 
     private ExercisePerformance CreateLinearPerformance(int amrapDelta)
     {

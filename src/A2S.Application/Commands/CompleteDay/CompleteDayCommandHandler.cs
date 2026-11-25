@@ -66,6 +66,38 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                 return Result.Failure<CompleteDayResult>($"No exercises assigned to {request.Day}.");
             }
 
+            // A cardio exercise whose level/incline (or the walk's speed) is still blank cannot be finished:
+            // that is the person's input to give, so it is a validation error rather than a domain failure.
+            // Gym mode set up offline sends them with the result: then they are set first (audited), as the
+            // online settings dialog would have done.
+            foreach (var performanceRequest in request.Performances)
+            {
+                if (!dayExercises.TryGetValue(performanceRequest.ExerciseId, out var cardioEx) || !cardioEx.IsCardioSettingsPending)
+                {
+                    continue;
+                }
+
+                var planned = cardioEx.Progression.CalculateCardioBlock()!;
+                var intensity = planned.Intensity is null ? performanceRequest.Cardio?.Intensity : null;
+                var speed = planned.Speed is null ? performanceRequest.Cardio?.Speed : null;
+                if (!cardioEx.CardioSettingsCompleteWith(intensity, speed))
+                {
+                    return Result.Failure<CompleteDayResult>(
+                        $"Set the {cardioEx.Name} settings before finishing it.", ErrorCode.ValidationFailed);
+                }
+            }
+
+            foreach (var performanceRequest in request.Performances)
+            {
+                if (dayExercises.TryGetValue(performanceRequest.ExerciseId, out var cardioEx) && cardioEx.IsCardioSettingsPending)
+                {
+                    var planned = cardioEx.Progression.CalculateCardioBlock()!;
+                    workout.SetCardioSettings(cardioEx.Id,
+                        planned.Intensity is null ? performanceRequest.Cardio?.Intensity : null,
+                        planned.Speed is null ? performanceRequest.Cardio?.Speed : null);
+                }
+            }
+
             // A Cable/Machine weight raised by progression is confirmed implicitly by the
             // next session: whatever the user actually lifted becomes the working weight
             // (gym stacks vary, so the suggested weight is only a starting point). Must
@@ -113,7 +145,9 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
                     exercise.Id,
                     plannedSets,
                     completedSets,
-                    skipProgression: performanceRequest.WasTemporarySubstitution);
+                    skipProgression: performanceRequest.WasTemporarySubstitution,
+                    plannedCardio: performanceRequest.Cardio is null ? null : exercise.Progression.CalculateCardioBlock(),
+                    cardio: performanceRequest.Cardio?.ToCardioResult());
 
                 performances.Add(performance);
 
@@ -229,7 +263,8 @@ public sealed class CompleteDayCommandHandler : IRequestHandler<CompleteDayComma
         var templateWeek = workout.GetTemplateWeek(nextWeek);
         var blockType = workout.GetBlockType(nextWeek);
 
-        foreach (var exercise in dayExercises.OrderBy(e => e.OrderInDay))
+        // Cardio has no sets; its next prescription is on the exercise's own progression.
+        foreach (var exercise in dayExercises.Where(e => e.Progression is not CardioStageStrategy).OrderBy(e => e.OrderInDay))
         {
             var plannedSets = exercise.CalculatePlannedSets(templateWeek, blockType).ToList();
             if (plannedSets.Count == 0)

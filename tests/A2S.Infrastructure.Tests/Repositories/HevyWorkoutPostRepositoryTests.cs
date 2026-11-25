@@ -102,6 +102,22 @@ public class HevyWorkoutPostRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ListDue_IncludesAnUpdatePendingPost_AndTheStatusRoundTrips()
+    {
+        var update = Post(Joe, ClientSession, Mon16Nov);
+        update.MarkPosted("hevy-1", End);
+        update.RequestUpdate("{\"day\":1}", End);
+        _db.HevyWorkoutPosts.Add(update);
+        await _db.SaveChangesAsync();
+
+        var list = await new HevyWorkoutPostRepository(_db).ListDueAsync(End.AddMinutes(1), 10);
+
+        list.Should().ContainSingle().Which.Status.Should().Be(HevyPostStatus.UpdatePending);
+        var status = await _db.Database.SqlQueryRaw<string>("SELECT \"Status\" AS \"Value\" FROM \"HevyWorkoutPosts\"").SingleAsync();
+        status.Should().Be("UpdatePending");
+    }
+
+    [Fact]
     public async Task LiftWarmUpAndFinisher_SurviveTheScheduleColumn()
     {
         var warmUp = new MobilityRoutineId(Guid.Parse("0a0a0a0a-0000-0000-0000-000000000001"));

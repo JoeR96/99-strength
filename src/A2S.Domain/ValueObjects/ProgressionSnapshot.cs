@@ -1,5 +1,6 @@
 using System.Text.Json;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 
 namespace A2S.Domain.ValueObjects;
@@ -40,6 +41,9 @@ public sealed class ProgressionSnapshot : ValueObject
     public static ProgressionSnapshot FromState(ExerciseId exerciseId, string exerciseName, MinimalSetsProgressionState state) =>
         new(exerciseId, exerciseName, "MinimalSets", JsonSerializer.Serialize(state));
 
+    public static ProgressionSnapshot FromState(ExerciseId exerciseId, string exerciseName, CardioStageState state) =>
+        new(exerciseId, exerciseName, CardioStageStrategy.TypeName, JsonSerializer.Serialize(state));
+
     public LinearProgressionState? GetLinearState() =>
         ProgressionType == "Linear" ? JsonSerializer.Deserialize<LinearProgressionState>(ProgressionStateJson) : null;
 
@@ -48,6 +52,9 @@ public sealed class ProgressionSnapshot : ValueObject
 
     public MinimalSetsProgressionState? GetMinimalSetsState() =>
         ProgressionType == "MinimalSets" ? JsonSerializer.Deserialize<MinimalSetsProgressionState>(ProgressionStateJson) : null;
+
+    public CardioStageState? GetCardioStageState() =>
+        ProgressionType == CardioStageStrategy.TypeName ? JsonSerializer.Deserialize<CardioStageState>(ProgressionStateJson) : null;
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {

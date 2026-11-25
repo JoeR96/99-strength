@@ -1,6 +1,7 @@
 using A2S.Api.Contracts.Requests;
 using A2S.Api.Extensions;
 using A2S.Application.Commands.AddExercise;
+using A2S.Application.Commands.CardioSettings;
 using A2S.Application.Commands.ConfirmStartingWeight;
 using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Commands.ConfirmWorkingWeight;
@@ -10,6 +11,7 @@ using A2S.Application.Commands.SetTrainingMax;
 using A2S.Application.Commands.SubstituteExercise;
 using A2S.Application.Commands.UpdateExercises;
 using A2S.Application.Commands.UpdateWorkingWeight;
+using A2S.Application.DTOs;
 using A2S.Application.Queries.Suggestions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -189,6 +191,26 @@ public class ExercisesController : ControllerBase
             : Domain.Enums.WeightUnit.Kilograms;
         var result = await _mediator.Send(
             new SetTrainingMaxCommand(id, exerciseId, request.TrainingMax, request.RecentWeight, request.RecentReps, unit), cancellationToken);
+        return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Sets a cardio exercise's level/incline and/or speed (Clerk session only). The change goes in the
+    /// progression history and onto the other exercises on the same lane.
+    /// </summary>
+    [HttpPut("{id:guid}/exercises/{exerciseId:guid}/cardio-settings")]
+    [ProducesResponseType(typeof(ExerciseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> SetCardioSettings(
+        [FromRoute] Guid id,
+        [FromRoute] Guid exerciseId,
+        [FromBody] SetCardioSettingsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SetCardioSettingsCommand(id, exerciseId, request.Intensity, request.Speed), cancellationToken);
         return result.IsFailure ? result.ToProblemResult() : Ok(result.Value);
     }
 

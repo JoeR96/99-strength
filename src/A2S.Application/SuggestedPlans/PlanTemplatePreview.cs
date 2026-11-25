@@ -2,8 +2,11 @@ using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
+using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Enums;
 using A2S.Domain.Services;
+using A2S.Domain.ValueObjects;
 
 namespace A2S.Application.SuggestedPlans;
 
@@ -134,7 +137,8 @@ public static class PlanTemplatePreview
     private static SessionTimeEstimate Estimate(List<SlotExercise> exercises)
     {
         var mainLiftSets = A2SHypertrophyProgram.GetWeekData(1, ProgramTier.Primary).Sets;
-        return SessionTimeEstimator.Estimate(exercises.Select(x =>
+        // Cardio exercises are not timed by sets (a finisher was not counted either).
+        return SessionTimeEstimator.Estimate(exercises.Where(x => x.Request.ProgressionType != CardioStageStrategy.TypeName).Select(x =>
         {
             var e = x.Request;
             var sets = e.ProgressionType == "Linear" ? mainLiftSets : e.StartingSets ?? 3;
@@ -151,6 +155,11 @@ public static class PlanTemplatePreview
 
     private static string Prescription(CreateExerciseRequest e)
     {
+        if (e.ProgressionType == CardioStageStrategy.TypeName)
+        {
+            return StartingBlock(e.CardioLane ?? CardioLane.Hard).Text;
+        }
+
         if (e.ProgressionType == "Linear")
         {
             return $"{A2SHypertrophyProgram.GetWeekData(1, e.Tier ?? ProgramTier.Primary).Sets} sets, last set AMRAP";
@@ -166,8 +175,13 @@ public static class PlanTemplatePreview
     {
         "Linear" => e.Tier == ProgramTier.Auxiliary ? "A2S2 auxiliary scheme" : "A2S2 main lift",
         "MinimalSets" => "Minimal sets",
+        CardioStageStrategy.TypeName => $"Cardio ({(e.CardioLane ?? CardioLane.Hard).ToString().ToLowerInvariant()} lane)",
         _ => "Reps per set"
     };
+
+    /// <summary>The block a new cardio exercise on <paramref name="lane"/> starts at.</summary>
+    private static PlannedCardioBlock StartingBlock(CardioLane lane) =>
+        CardioStageStrategy.Create(lane == CardioLane.Easy ? CardioLanes.InclineWalk() : CardioLanes.StairClimber()).CalculateCardioBlock();
 
     private static string? FinisherText(FinisherSpec? finisher) => finisher switch
     {

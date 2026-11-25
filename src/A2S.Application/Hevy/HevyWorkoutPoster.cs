@@ -1,4 +1,6 @@
+using A2S.Application.Cardio;
 using System.Text.Json;
+using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Commands.GymSessions;
 using A2S.Application.Interfaces;
 using A2S.Application.Interfaces.Hevy;
@@ -6,6 +8,7 @@ using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
+using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -17,7 +20,8 @@ namespace A2S.Application.Hevy;
 /// <summary>
 /// Writes a finished gym session to Hevy as a completed workout (<c>POST /v1/workouts</c>) from the server,
 /// so the key never reaches the browser. Order in the workout (warm-up drills are not sent): the
-/// lifts as logged (normal sets, the AMRAP set as <c>failure</c>), then the finisher (Stair Machine (Floors)
+/// lifts as logged (normal sets, the AMRAP set as <c>failure</c>), then the day's cardio exercises (warm-up, work
+/// and cool-down duration sets), then the finisher (Stair Machine (Floors)
 /// for a stair finisher, otherwise the cardio kind's template). Real start and end times.
 /// <para>
 /// Never creates a second Hevy workout: once an attempt may have reached Hevy, the poster first looks for a
@@ -88,6 +92,11 @@ public sealed class HevyWorkoutPoster
         }
 
         var apiKey = await _keys.ForUserAsync(post.UserId, ct);
+        if (post.Status == HevyPostStatus.UpdatePending)
+        {
+            return await UpdateAsync(apiKey, post, ct);
+        }
+
         if (string.IsNullOrEmpty(apiKey))
         {
             post.MarkSkipped("no Hevy key");
@@ -130,6 +139,35 @@ public sealed class HevyWorkoutPoster
 
         await AdoptAsync(post, created.Value.Id, ct);
         _logger.LogInformation("Gym session posted to Hevy");
+        return await SaveAsync(post, ct);
+    }
+
+    /// <summary>
+    /// Replaces the post's Hevy workout in place (<c>PUT</c> to its stored id) with a draft built from the current
+    /// payload. Never posts and never adopts: the workout already exists. A failure keeps it pending with the usual backoff.
+    /// </summary>
+    private async Task<HevyPostStatus> UpdateAsync(string? apiKey, HevyWorkoutPost post, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            post.RecordFailure("no Hevy key", permanent: false, _clock.NowUtc());
+            return await SaveAsync(post, ct);
+        }
+
+        var draft = await BuildDraftAsync(apiKey, post, ct);
+        if (!draft.Ok)
+        {
+            return await FailAsync(post, draft.Error!, ct);
+        }
+
+        var updated = await _hevy.UpdateWorkoutAsync(apiKey, post.HevyWorkoutId!, draft.Value!, ct);
+        if (!updated.Ok)
+        {
+            return await FailAsync(post, updated.Error!, ct);
+        }
+
+        post.MarkUpdated();
+        _logger.LogInformation("Gym session updated in Hevy");
         return await SaveAsync(post, ct);
     }
 
@@ -255,6 +293,23 @@ public sealed class HevyWorkoutPoster
             });
         }
 
+        // 2. The day's cardio exercises, in the day's order, after the lifts.
+        if (program is not null)
+        {
+            foreach (var (exercise, logged) in program.GetExercisesForDay(payload.Day)
+                .Select(e => (Exercise: e, Cardio: payload.Performances.FirstOrDefault(p => p.ExerciseId == e.Id.Value)?.Cardio))
+                .Where(x => x.Exercise.Category == ExerciseCategory.Cardio && x.Cardio is not null))
+            {
+                var template = await _catalogue.ForExerciseAsync(apiKey, post.UserId, exercise, ct);
+                if (!template.Ok)
+                {
+                    return HevyResult<HevyWorkoutDraft>.Failure(template.Error!);
+                }
+
+                exercises.Add(CardioBlockExercise(template.Value!, PlannedBlock(program, payload.Day, payload.Week, exercise), logged!));
+            }
+        }
+
         // 3. The finisher. A fixed cool-down goes on Treadmill (or Walking) with its duration.
         if (payload.Finisher is { } cooldown && payload.FinisherFixedKind is { } fixedKind)
         {
@@ -263,7 +318,7 @@ public sealed class HevyWorkoutPoster
             {
                 ExerciseTemplateId = treadmill ? HevyTemplateCatalogue.Treadmill : HevyTemplateCatalogue.Walking,
                 Notes = payload.FinisherFixedNotes is { } fixedNotes ? $"Cool-down · {fixedNotes}" : "Cool-down",
-                Sets = [new HevyWorkoutSetDraft { DurationSeconds = cooldown.DurationSeconds, Rpe = HevyRpe.ForHevy(cooldown.Effort.ToRpe()) }]
+                Sets = [DurationSet(HevySetTypes.Normal, cooldown.DurationSeconds, cooldown.Effort, stairs: false, floors: null)]
             });
         }
         else if (payload.Finisher is { } finisher)
@@ -300,20 +355,90 @@ public sealed class HevyWorkoutPoster
                     + (payload.FinisherPrescription is { } parts && parts.Contains(" → ", StringComparison.Ordinal) ? $"{parts} · " : string.Empty)
                     + (finisher.WorkMinutes is { } work ? $"Work {DoubleProgressionStrategy.Number(work)} min · " : string.Empty)
                     + (finisher.Level is { } level ? $"Level {level} · {finisher.Effort}" : finisher.Effort.ToString()),
-                Sets =
-                [
-                    new HevyWorkoutSetDraft
-                    {
-                        DurationSeconds = finisher.DurationSeconds,
-                        CustomMetric = stairs ? finisher.Floors ?? 0 : null,
-                        Rpe = HevyRpe.ForHevy(finisher.Effort.ToRpe())
-                    }
-                ]
+                Sets = [DurationSet(HevySetTypes.Normal, finisher.DurationSeconds, finisher.Effort, stairs, finisher.Floors)]
             });
         }
 
         return HevyResult<HevyWorkoutDraft>.Success(Draft(post, exercises));
     }
+
+    /// <summary>
+    /// A cardio exercise as done: a <c>warmup</c> set for the warm-up, one <c>normal</c> work set carrying the effort
+    /// as Hevy's RPE (<see cref="HevyRpe.CardioExerciseRpe"/>) and the floors on the stair machine, a <c>warmup</c>-typed
+    /// set for the cool-down. Work = the logged work minutes, else the total less the warm-up and cool-down; with both
+    /// logged the cool-down is what is left of the total (so the sets add up to it); stopped before any work time, one
+    /// set of the total. Note = the work as done and the effort ("5 min @ level 6 · Easy", as history shows it).
+    /// </summary>
+    private static HevyWorkoutExerciseDraft CardioBlockExercise(string templateId, PlannedCardioBlock? block, CardioResultRequest cardio)
+    {
+        var stairs = templateId == HevyTemplateCatalogue.StairMachineFloors;
+        var warmUpSeconds = (block?.WarmUp?.Minutes ?? 0) * 60;
+        var coolDownSeconds = (block?.CoolDown?.Minutes ?? 0) * 60;
+        var workSeconds = cardio.WorkMinutes is { } minutes
+            ? (int)Math.Round(minutes * 60m)
+            : cardio.TotalSeconds - warmUpSeconds - coolDownSeconds;
+        if (cardio.WorkMinutes is not null && cardio.TotalSeconds - warmUpSeconds - workSeconds is >= 0 and var left)
+        {
+            coolDownSeconds = left;
+        }
+
+        var sets = new List<HevyWorkoutSetDraft>();
+        if (workSeconds <= 0)
+        {
+            // Stopped inside the warm-up or cool-down time: one set of what was actually done.
+            sets.Add(CardioWorkSet(Math.Max(1, cardio.TotalSeconds), cardio.Effort, stairs, cardio.Floors));
+        }
+        else
+        {
+            if (warmUpSeconds > 0)
+            {
+                sets.Add(DurationSet(HevySetTypes.Warmup, warmUpSeconds, effort: null, stairs, floors: null));
+            }
+
+            sets.Add(CardioWorkSet(workSeconds, cardio.Effort, stairs, cardio.Floors));
+            if (coolDownSeconds > 0)
+            {
+                sets.Add(DurationSet(HevySetTypes.Warmup, coolDownSeconds, effort: null, stairs, floors: null));
+            }
+        }
+
+        return new HevyWorkoutExerciseDraft
+        {
+            ExerciseTemplateId = templateId,
+            Notes = block is null
+                ? cardio.Effort.ToString()
+                : block.IsSettingsPending
+                    ? $"{CardioHevyNote.For(block)} · {cardio.Effort}"
+                    : CardioSummaryFormatter.Format(block, cardio.ToCardioResult()),
+            Sets = sets
+        };
+    }
+
+    private static HevyWorkoutSetDraft CardioWorkSet(int seconds, Effort effort, bool stairs, int? floors) =>
+        DurationSet(HevySetTypes.Normal, seconds, effort: null, stairs, floors) with { Rpe = HevyRpe.CardioExerciseRpe(effort) };
+
+    /// <summary>
+    /// The block the session was done against (kept on that week's completed day; any week when the payload has none),
+    /// else the exercise's current one.
+    /// </summary>
+    private static PlannedCardioBlock? PlannedBlock(Workout program, DayNumber day, int? week, Exercise exercise) =>
+        program.CompletedActivities
+            .Where(a => a.Day == day && (week is null || a.WeekNumber == week))
+            .SelectMany(a => a.Performances)
+            .LastOrDefault(p => p.ExerciseId == exercise.Id && p.PlannedCardio is not null)?.PlannedCardio
+        ?? exercise.Progression.CalculateCardioBlock();
+
+    /// <summary>
+    /// One timed cardio set: the stair machine always carries floors (0 when none were logged), and the effort
+    /// becomes an RPE only where Hevy accepts one (<see cref="HevyRpe.ForHevy"/>).
+    /// </summary>
+    private static HevyWorkoutSetDraft DurationSet(string type, int seconds, Effort? effort, bool stairs, int? floors) => new()
+    {
+        Type = type,
+        DurationSeconds = seconds,
+        CustomMetric = stairs ? floors ?? 0 : null,
+        Rpe = effort is { } e ? HevyRpe.ForHevy(e.ToRpe()) : null
+    };
 
     private static HevyWorkoutDraft Draft(HevyWorkoutPost post, List<HevyWorkoutExerciseDraft> exercises) => new()
     {

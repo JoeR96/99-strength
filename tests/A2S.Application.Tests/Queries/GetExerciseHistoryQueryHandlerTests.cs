@@ -1,10 +1,13 @@
 using A2S.Application.Common;
 using A2S.Application.Queries.GetExerciseHistory;
+using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.ValueObjects;
+using A2S.Tests.Shared.Builders;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -76,6 +79,35 @@ public class GetExerciseHistoryQueryHandlerTests
             new GetExerciseHistoryQuery("NonExistent"), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_CardioExercise_KeepsSessionsWithASummary()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).WithVariant(ProgramVariant.FourDay)
+            .WithExercise(e => e.WithName("Bench").WithDay(DayNumber.Day1).WithOrder(1).AsLinear())
+            .WithExercise(e => e.WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(CardioLane.Hard))
+            .Build();
+        workout.Start();
+        var stairs = workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio);
+        workout.CompleteDay(DayNumber.Day1,
+        [
+            new ExercisePerformance(stairs.Id, [], [], new DateTime(2026, 11, 23, 18, 0, 0, DateTimeKind.Utc),
+                plannedCardio: stairs.Progression.CalculateCardioBlock(),
+                cardio: new CardioResult(true, EffortRating.Easy, workMinutes: 7m))
+        ]);
+        _workoutRepository.GetAllAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>()).Returns(new List<Workout> { workout });
+
+        var result = await _handler.Handle(new GetExerciseHistoryQuery("Stair Machine (Floors)"), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        result.Value!.TotalSessions.Should().Be(1);
+        result.Value.TotalVolume.Should().Be(0);
+        result.Value.PersonalRecordWeight.Should().Be(0);
+        var session = result.Value.Sessions.Should().ContainSingle().Subject;
+        session.Sets.Should().BeEmpty();
+        session.CardioSummary.Should().Be("7 min @ level 6 · Easy");
     }
 
     private void SetupAuthenticatedUser(UserId userId)

@@ -4,7 +4,7 @@ namespace A2S.Application.Commands.AddExercise;
 
 public sealed class AddExerciseCommandValidator : AbstractValidator<AddExerciseCommand>
 {
-    private static readonly string[] ProgressionTypes = ["Linear", "RepsPerSet", "MinimalSets"];
+    private static readonly string[] ProgressionTypes = ["Linear", "RepsPerSet", "MinimalSets", "CardioStage"];
 
     public AddExerciseCommandValidator()
     {
@@ -17,7 +17,11 @@ public sealed class AddExerciseCommandValidator : AbstractValidator<AddExerciseC
             RuleFor(x => x.Exercise.AssignedDay).IsInEnum();
             RuleFor(x => x.Exercise.OrderInDay).GreaterThanOrEqualTo(1);
             RuleFor(x => x.Exercise.ProgressionType).Must(t => ProgressionTypes.Contains(t))
-                .WithMessage("ProgressionType must be Linear, RepsPerSet or MinimalSets.");
+                .WithMessage("ProgressionType must be Linear, RepsPerSet, MinimalSets or CardioStage.");
+            RuleFor(x => x.Exercise.CardioLane)
+                .NotNull().WithMessage("CardioLane (Hard or Easy) is required for a CardioStage exercise.")
+                .IsInEnum()
+                .When(x => x.Exercise.ProgressionType == "CardioStage");
             RuleFor(x => x.Exercise.StartingWeight).GreaterThanOrEqualTo(0).When(x => x.Exercise.StartingWeight.HasValue);
             RuleFor(x => x.Exercise.WeightUnit).NotNull().When(x => x.Exercise.StartingWeight.HasValue)
                 .WithMessage("WeightUnit is required with a starting weight.");

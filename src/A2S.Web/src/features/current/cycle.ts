@@ -4,6 +4,7 @@
  */
 
 import type { CycleDto, CycleSessionDto, PlannedExerciseDto, WeekPlanDto } from '@/api/workouts';
+import { cardioBlockLine } from '@/features/gym/gymCardio';
 
 function kg(value: number): string {
   return `${Number.isInteger(value) ? value : value.toFixed(1)} kg`;
@@ -11,6 +12,7 @@ function kg(value: number): string {
 
 /** "4 × 5, 1 × 10+ · 80 kg", "3 × 8–12 · 20 kg", "5 × 5 · set TM". */
 export function setSummary(exercise: PlannedExerciseDto): string {
+  if (exercise.cardioBlock) return cardioBlockLine(exercise.cardioBlock);
   const sets = exercise.plannedSets;
   if (sets.length === 0) return 'No sets this week';
   const groups: { count: number; reps: number; amrap: boolean }[] = [];
@@ -33,10 +35,11 @@ export function setSummary(exercise: PlannedExerciseDto): string {
   return `${reps} · ${min === max ? kg(max) : `${kg(min).replace(' kg', '')}–${kg(max)}`}`;
 }
 
-/** Work + rest per set (rest from the plan; about 40 s a set), plus the finisher and the warm-up. Whole minutes. */
+/** Work + rest per set (rest from the plan; about 40 s a set), plus cardio blocks, the finisher and the warm-up. Whole minutes. */
 export function estimateMinutes(plan: WeekPlanDto, warmUpMinutes = 0): number {
   const lifting = plan.exercises.reduce((total, e) => total + e.plannedSets.length * ((e.restSeconds || 90) + 40), 0);
-  return Math.round(lifting / 60 + (plan.cardio?.minutes ?? 0) + warmUpMinutes);
+  const cardioBlocks = plan.exercises.reduce((total, e) => total + (e.cardioBlock?.totalMinutes ?? 0), 0);
+  return Math.round(lifting / 60 + cardioBlocks + (plan.cardio?.minutes ?? 0) + warmUpMinutes);
 }
 
 /** True when any lift of the session has no training max yet. */

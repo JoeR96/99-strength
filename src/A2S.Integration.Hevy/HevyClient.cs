@@ -57,6 +57,9 @@ public sealed class HevyClient : IHevyClient
     public Task<HevyResult<HevyWorkout>> CreateWorkoutAsync(string apiKey, HevyWorkoutDraft workout, CancellationToken ct = default) =>
         SendAsync(apiKey, HttpMethod.Post, "workouts", new Dictionary<string, object> { ["workout"] = workout }, ReadWorkout, ct);
 
+    public Task<HevyResult<HevyWorkout>> UpdateWorkoutAsync(string apiKey, string workoutId, HevyWorkoutDraft workout, CancellationToken ct = default) =>
+        SendAsync(apiKey, HttpMethod.Put, $"workouts/{Uri.EscapeDataString(workoutId)}", new Dictionary<string, object> { ["workout"] = workout }, ReadWorkout, ct);
+
     public Task<HevyResult<HevyPage<HevyRoutine>>> GetRoutinesAsync(string apiKey, int page, CancellationToken ct = default) =>
         SendAsync(apiKey, HttpMethod.Get, $"routines?page={Math.Max(page, 1)}&pageSize=10", null, root => ReadPage<HevyRoutine>(root, "routines"), ct);
 

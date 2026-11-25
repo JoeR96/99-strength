@@ -127,4 +127,103 @@ public class HevyWorkoutPostTests
         post.Describes("Upper A", Start.AddMinutes(5)).Should().BeFalse();
         post.Describes("Lower A", Start).Should().BeFalse();
     }
+
+    private static HevyWorkoutPost Posted()
+    {
+        var post = Create();
+        post.MarkPosted("b632f498", End);
+        return post;
+    }
+
+    [Fact]
+    public void RequestUpdate_StoresThePayload_AndIsDueNow()
+    {
+        var post = Posted();
+        post.RecordFailure("ignored once posted", permanent: false, End);
+
+        post.RequestUpdate("{\"y\":2}", End.AddDays(1));
+
+        post.Status.Should().Be(HevyPostStatus.UpdatePending);
+        post.PayloadJson.Should().Be("{\"y\":2}");
+        post.HevyWorkoutId.Should().Be("b632f498");
+        post.Attempts.Should().Be(0);
+        post.IsDue(End.AddDays(1)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void RequestUpdate_BeforeThePostReachedHevy_Throws()
+    {
+        var act = () => Create().RequestUpdate("{}", End);
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
+    public void ReplacePayload_BeforeThePostReachedHevy_KeepsItsStatusAndSchedule()
+    {
+        var post = Create();
+        post.RecordFailure("Hevy unavailable", permanent: false, End);
+
+        post.ReplacePayload("{\"y\":2}");
+
+        post.PayloadJson.Should().Be("{\"y\":2}");
+        post.Status.Should().Be(HevyPostStatus.Pending);
+        post.Attempts.Should().Be(1);
+        post.NextAttemptAtUtc.Should().Be(End.AddMinutes(2));
+        post.HevyWorkoutId.Should().BeNull();
+    }
+
+    [Fact]
+    public void ReplacePayload_OnceInHevy_Throws()
+    {
+        var act = () => Posted().ReplacePayload("{}");
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
+    public void UpdateFailure_BacksOffAndStaysAnUpdate_AndGivingUpLeavesItPosted()
+    {
+        var post = Posted();
+        post.RequestUpdate("{\"y\":2}", End);
+
+        post.RecordFailure("Hevy unavailable", permanent: false, End);
+        post.Status.Should().Be(HevyPostStatus.UpdatePending);
+        post.NextAttemptAtUtc.Should().Be(End.AddMinutes(2));
+        post.RequeueNow(End);
+        post.MarkSkipped("no Hevy key");
+        post.Status.Should().Be(HevyPostStatus.UpdatePending, "an update is never turned into a new post");
+
+        post.RecordFailure("Hevy refused it", permanent: true, End);
+
+        post.Status.Should().Be(HevyPostStatus.Posted);
+        post.HevyWorkoutId.Should().Be("b632f498");
+        post.LastError.Should().Be("Hevy refused it");
+    }
+
+    [Fact]
+    public void MarkUpdated_IsPostedAgain()
+    {
+        var post = Posted();
+        post.RequestUpdate("{\"y\":2}", End);
+
+        post.MarkUpdated();
+
+        post.Status.Should().Be(HevyPostStatus.Posted);
+        post.IsDue(End.AddDays(1)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void MarkPosted_OnAPendingUpdate_KeepsTheUpdate_AndRefusesAnotherWorkout()
+    {
+        var post = Posted();
+        post.RequestUpdate("{\"y\":2}", End);
+
+        post.MarkPosted("b632f498", End.AddMinutes(5));
+        var other = () => post.MarkPosted("another", End);
+
+        post.Status.Should().Be(HevyPostStatus.UpdatePending);
+        post.IsDue(End).Should().BeTrue();
+        other.Should().Throw<BusinessRuleViolationException>();
+    }
 }

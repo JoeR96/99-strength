@@ -9,7 +9,13 @@ public enum HevyPostStatus
     Failed,
 
     /// <summary>Not sent: the person has no Hevy key. A retry after connecting Hevy sends it.</summary>
-    Skipped
+    Skipped,
+
+    /// <summary>
+    /// Already in Hevy, but the payload changed since: the workout is replaced in place (<c>PUT</c> to
+    /// <see cref="HevyWorkoutPost.HevyWorkoutId"/>), never posted again.
+    /// </summary>
+    UpdatePending
 }
 
 /// <summary>
@@ -126,7 +132,8 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
     }
 
     /// <summary>Whether the background retry should try this post now.</summary>
-    public bool IsDue(DateTimeOffset now) => Status == HevyPostStatus.Pending && NextAttemptAtUtc <= now.ToUniversalTime();
+    public bool IsDue(DateTimeOffset now) =>
+        (Status is HevyPostStatus.Pending or HevyPostStatus.UpdatePending) && NextAttemptAtUtc <= now.ToUniversalTime();
 
     /// <summary>Whether an earlier attempt may have reached Hevy, so the poster must look before posting again.</summary>
     public bool MayAlreadyExistInHevy => Attempts > 0;
@@ -144,8 +151,9 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
     {
         CheckRule(!string.IsNullOrWhiteSpace(hevyWorkoutId), "A Hevy workout id is required");
         var id = hevyWorkoutId.Trim();
-        if (Status == HevyPostStatus.Posted)
+        if (Status is HevyPostStatus.Posted or HevyPostStatus.UpdatePending)
         {
+            // Already this workout; a pending update stays pending.
             CheckRule(string.Equals(HevyWorkoutId, id, StringComparison.Ordinal), "This session is already in Hevy as another workout");
             return;
         }
@@ -173,7 +181,9 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
 
         if (permanent || Attempts >= MaxAttempts)
         {
-            Status = HevyPostStatus.Failed;
+            // An update that gives up leaves the workout in Hevy as it was: back to Posted, never to a state
+            // a retry would post again (a second workout).
+            Status = Status == HevyPostStatus.UpdatePending ? HevyPostStatus.Posted : HevyPostStatus.Failed;
             return;
         }
 
@@ -192,7 +202,7 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
     /// <summary>Nothing will be sent (no Hevy key). Kept so a replayed finish is still recognised.</summary>
     public void MarkSkipped(string reason)
     {
-        if (Status == HevyPostStatus.Posted)
+        if (Status is HevyPostStatus.Posted or HevyPostStatus.UpdatePending)
         {
             return;
         }
@@ -209,7 +219,49 @@ public sealed class HevyWorkoutPost : AggregateRoot<HevyWorkoutPostId>
             return;
         }
 
-        Status = HevyPostStatus.Pending;
+        if (Status != HevyPostStatus.UpdatePending)
+        {
+            Status = HevyPostStatus.Pending;
+        }
+
         NextAttemptAtUtc = now.ToUniversalTime();
+    }
+
+    /// <summary>
+    /// The logged session changed after it reached Hevy: stores the new payload and queues an in-place update of
+    /// <see cref="HevyWorkoutId"/>, due now, with a fresh retry count. Only a posted session can be updated.
+    /// </summary>
+    public void RequestUpdate(string payloadJson, DateTimeOffset now)
+    {
+        CheckRule((Status is HevyPostStatus.Posted or HevyPostStatus.UpdatePending) && HevyWorkoutId is not null,
+            "Only a session already in Hevy can be updated there");
+        CheckRule(!string.IsNullOrWhiteSpace(payloadJson), "A Hevy post needs a payload");
+
+        PayloadJson = payloadJson;
+        Status = HevyPostStatus.UpdatePending;
+        Attempts = 0;
+        LastError = null;
+        NextAttemptAtUtc = now.ToUniversalTime();
+    }
+
+    /// <summary>
+    /// The logged session changed before it reached Hevy: stores the new payload, which the next attempt posts. Status,
+    /// attempts and schedule stay as they are. A session already in Hevy uses <see cref="RequestUpdate"/>.
+    /// </summary>
+    public void ReplacePayload(string payloadJson)
+    {
+        CheckRule(Status is not (HevyPostStatus.Posted or HevyPostStatus.UpdatePending) && HevyWorkoutId is null,
+            "A session already in Hevy is updated there, not posted again");
+        CheckRule(!string.IsNullOrWhiteSpace(payloadJson), "A Hevy post needs a payload");
+
+        PayloadJson = payloadJson;
+    }
+
+    /// <summary>Hevy accepted the update: posted again, as the same workout.</summary>
+    public void MarkUpdated()
+    {
+        CheckRule(Status == HevyPostStatus.UpdatePending, "No Hevy update was pending");
+        Status = HevyPostStatus.Posted;
+        LastError = null;
     }
 }

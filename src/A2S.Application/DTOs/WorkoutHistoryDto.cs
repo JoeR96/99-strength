@@ -56,6 +56,9 @@ public sealed record ExercisePerformanceDto
     public Guid ExerciseId { get; init; }
     public DateTime CompletedAt { get; init; }
     public IReadOnlyList<CompletedSetDto> CompletedSets { get; init; } = Array.Empty<CompletedSetDto>();
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>
@@ -104,6 +107,24 @@ public sealed record ExerciseHistoryDto
     /// Audit entries for progression type changes on this exercise.
     /// </summary>
     public IReadOnlyList<ProgressionChangeDto> ProgressionChanges { get; init; } = Array.Empty<ProgressionChangeDto>();
+
+    /// <summary>
+    /// For a cardio exercise: its level/incline/speed edits (audit entries), oldest first.
+    /// </summary>
+    public IReadOnlyList<CardioSettingsChangeDto> SettingsChanges { get; init; } = Array.Empty<CardioSettingsChangeDto>();
+}
+
+/// <summary>
+/// A cardio exercise's settings edit: the prescription text before and after.
+/// </summary>
+public sealed record CardioSettingsChangeDto
+{
+    public DateTime OccurredAt { get; init; }
+    public int WeekNumber { get; init; }
+    public int DayNumber { get; init; }
+    public string OldText { get; init; } = string.Empty;
+    public string NewText { get; init; } = string.Empty;
+    public string? Reason { get; init; }
 }
 
 /// <summary>
@@ -170,6 +191,9 @@ public sealed record WeeklyPerformanceDto
     /// The progression type active for this exercise at this week (from ProgressionSnapshot).
     /// </summary>
     public string? ProgressionTypeAtWeek { get; init; }
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>
@@ -251,6 +275,9 @@ public sealed record ExerciseSessionDto
     /// Sets completed in this session.
     /// </summary>
     public IReadOnlyList<CompletedSetDto> Sets { get; init; } = Array.Empty<CompletedSetDto>();
+
+    /// <summary>A cardio exercise's session in one line, e.g. "7 min @ level 6 · Easy" (null for lifts, which have sets).</summary>
+    public string? CardioSummary { get; init; }
 }
 
 /// <summary>

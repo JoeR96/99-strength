@@ -1,10 +1,14 @@
+using System.Text.Json;
 using A2S.Application.Common;
+using A2S.Application.DTOs;
 using A2S.Application.Queries.GetWorkout;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.ValueObjects;
+using A2S.Tests.Shared.Builders;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -80,6 +84,37 @@ public class GetCurrentWorkoutQueryHandlerTests
         var exercise = result.Value!.Exercises.First();
         exercise.Name.Should().Be("Squat");
         exercise.Progression.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Handle_CardioExercise_MapsACardioStageProgression()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).WithVariant(ProgramVariant.FourDay)
+            .WithExercise(e => e.WithName("Bench").WithDay(DayNumber.Day1).WithOrder(1).AsLinear())
+            .WithExercise(e => e.WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(CardioLane.Hard))
+            .Build();
+        workout.Start();
+        _workoutRepository.GetActiveWorkoutAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>()).Returns(workout);
+
+        var result = await _handler.Handle(new GetCurrentWorkoutQuery(), CancellationToken.None);
+
+        var progression = result.Value!.Exercises.Single(e => e.Category == ExerciseCategory.Cardio).Progression;
+        progression.Should().BeEquivalentTo(new CardioStageProgressionDto
+        {
+            Type = "CardioStage",
+            Lane = "Hard",
+            StageNumber = 1,
+            StageName = "Continuous",
+            Prescription = "3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)",
+            IsSettingsPending = false,
+            IntensityUnit = "Level",
+            Intensity = 6m,
+            SuggestedIntensity = null,
+            Speed = null
+        }, "the current values prefill Change settings");
+        JsonSerializer.Serialize(progression, new JsonSerializerOptions(JsonSerializerDefaults.Web))
+            .Should().StartWith("""{"$type":"CardioStage",""");
     }
 
     private void SetupAuthenticatedUser(UserId userId)

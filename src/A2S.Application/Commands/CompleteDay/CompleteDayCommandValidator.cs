@@ -30,7 +30,12 @@ public sealed class CompleteDayCommandValidator : AbstractValidator<CompleteDayC
 
                 performance.RuleFor(p => p.CompletedSets)
                     .NotEmpty()
+                    .When(p => p.Cardio is null)
                     .WithMessage("At least one completed set is required.");
+
+                performance.RuleFor(p => p.Cardio!)
+                    .SetValidator(new CardioResultRequestValidator())
+                    .When(p => p.Cardio is not null);
 
                 performance.RuleForEach(p => p.CompletedSets)
                     .ChildRules(set =>

@@ -73,7 +73,7 @@ export interface LastPerformanceSetDto {
 }
 
 export interface ExerciseProgressionDto {
-  type: "Linear" | "RepsPerSet" | "MinimalSets";
+  type: "Linear" | "RepsPerSet" | "MinimalSets" | "CardioStage";
 }
 
 export interface LinearProgressionDto extends ExerciseProgressionDto {
@@ -107,6 +107,24 @@ export interface MinimalSetsProgressionDto extends ExerciseProgressionDto {
   currentSetCount: number;
   minimumSets: number;
   maximumSets: number;
+}
+
+/** A cardio exercise (stair climber = Hard lane, incline walk = Easy lane): its stage and today's prescription. */
+export interface CardioStageProgressionDto extends ExerciseProgressionDto {
+  type: "CardioStage";
+  lane: "Hard" | "Easy";
+  stageNumber: number;
+  stageName: string;
+  prescription: string;
+  /** The level/incline (or the walk's speed) is not set yet; gym mode asks for it. */
+  isSettingsPending: boolean;
+  /** What `intensity` is: the stair level or the walk's incline %. */
+  intensityUnit: "Level" | "InclinePercent";
+  intensity: number | null;
+  /** Offered for the hard level while it is not set. */
+  suggestedIntensity: number | null;
+  /** The walk's speed (km/h). */
+  speed: number | null;
 }
 
 // Hevy sync discrepancy types
@@ -202,9 +220,27 @@ export interface CompletedSetRequest {
   wasAmrap: boolean;
 }
 
+/** How a cardio exercise went: Easy / Solid / Brutal (RPE 4 / 7 / 9), stopped early, pain, and what was done. */
+export interface CardioResultRequest {
+  finished: boolean;
+  effort: "Easy" | "Solid" | "Brutal";
+  pain: "None" | "Niggle" | "Stop";
+  painArea?: string | null;
+  totalSeconds: number;
+  workMinutes?: number | null;
+  /** Level (stairs) or incline % (walk). */
+  intensity?: number | null;
+  /** km/h (walk). */
+  speed?: number | null;
+  floors?: number | null;
+}
+
 export interface ExercisePerformanceRequest {
   exerciseId: string;
-  completedSets: CompletedSetRequest[];
+  /** Absent (or empty) for a cardio exercise, which sends `cardio` instead. */
+  completedSets?: CompletedSetRequest[];
+  /** Cardio exercises only. */
+  cardio?: CardioResultRequest | null;
   /** The bonus set on one side (never part of completedSets, never affects progression). */
   extraSet?: CompletedSetRequest | null;
   /** When true, progression rules are skipped for this exercise (used for temporary substitutions) */
@@ -391,6 +427,8 @@ export interface ExercisePerformanceHistoryDto {
   exerciseId: string;
   completedAt: string;
   completedSets: CompletedSetHistoryDto[];
+  /** A cardio exercise's session in one line ("7 min @ level 6 · Easy"); null for lifts. */
+  cardioSummary?: string | null;
 }
 
 export interface CompletedSetHistoryDto {
@@ -399,6 +437,15 @@ export interface CompletedSetHistoryDto {
   weightUnit: string;
   actualReps: number;
   wasAmrap: boolean;
+}
+
+export interface CardioSettingsChangeDto {
+  occurredAt: string;
+  weekNumber: number;
+  dayNumber: number;
+  oldText: string;
+  newText: string;
+  reason?: string | null;
 }
 
 export interface ExerciseHistoryDto {
@@ -415,6 +462,8 @@ export interface ExerciseHistoryDto {
   trainingMax?: number;
   weeklyHistory: WeeklyPerformanceDto[];
   progressionChanges?: ProgressionChangeDto[]; // History of progression type changes with timestamps
+  /** Cardio exercises: level/incline/speed edits (old and new prescription text), oldest first. */
+  settingsChanges?: CardioSettingsChangeDto[];
 }
 
 export interface WeeklyPerformanceDto {
@@ -428,6 +477,8 @@ export interface WeeklyPerformanceDto {
   setsCompleted: number;
   amrapReps?: number;
   sets: CompletedSetHistoryDto[];
+  /** A cardio exercise's session in one line ("7 min @ level 6 · Easy"); null for lifts. */
+  cardioSummary?: string | null;
   // Progression state at this week (from ProgressionSnapshot)
   trainingMaxAtWeek?: number;
   trainingMaxUnitAtWeek?: string;

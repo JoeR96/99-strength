@@ -1,3 +1,6 @@
+using A2S.Domain.Aggregates.Cardio;
+using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.ValueObjects;
@@ -58,6 +61,97 @@ public class ExercisePerformanceTests
 
         act.Should().Throw<BusinessRuleViolationException>()
             .WithMessage("*At least one completed set is required*");
+    }
+
+    [Fact]
+    public void ExercisePerformance_WithCardio_NeedsNoSets()
+    {
+        var block = CardioStageStrategy.Create(CardioLanes.StairClimber()).CalculateCardioBlock();
+        var cardio = new CardioResult(true, EffortRating.Solid, totalSeconds: 660, workMinutes: 6m, intensity: 6m, floors: 40);
+
+        var performance = new ExercisePerformance(TestExerciseId, [], [], FixedDate, plannedCardio: block, cardio: cardio);
+
+        performance.PlannedSets.Should().BeEmpty();
+        performance.CompletedSets.Should().BeEmpty();
+        performance.PlannedCardio.Should().Be(block);
+        performance.Cardio.Should().Be(cardio);
+    }
+
+    [Fact]
+    public void ExercisePerformance_WithoutCardioOrSets_Throws()
+    {
+        Action act = () => new ExercisePerformance(TestExerciseId, [], [], FixedDate);
+
+        act.Should().Throw<BusinessRuleViolationException>()
+            .WithMessage("*At least one planned set is required*");
+    }
+
+    [Fact]
+    public void ExercisePerformance_WithSets_HasNoCardio()
+    {
+        var performance = new ExercisePerformance(
+            TestExerciseId, [new PlannedSet(1, TestWeight, 5)], [new CompletedSet(1, TestWeight, 5)], FixedDate);
+
+        performance.Cardio.Should().BeNull();
+        performance.PlannedCardio.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true, PainFlag.None, false)]
+    [InlineData(false, PainFlag.None, true)]
+    [InlineData(true, PainFlag.Niggle, true)]
+    [InlineData(true, PainFlag.Stop, true)]
+    public void CardioResult_IsMiss_WhenStoppedEarlyOrInPain(bool finished, PainFlag pain, bool expected)
+    {
+        new CardioResult(finished, EffortRating.Easy, pain).IsMiss.Should().Be(expected);
+    }
+
+    [Fact]
+    public void CardioResult_NegativeSeconds_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, totalSeconds: -1);
+
+        act.Should().Throw<BusinessRuleViolationException>();
+    }
+
+    [Fact]
+    public void CardioResult_NegativeWorkMinutes_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, workMinutes: -1m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Work minutes cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeIntensity_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, intensity: -1m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Intensity cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeSpeed_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, speed: -0.5m);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Speed cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_NegativeFloors_Throws()
+    {
+        Action act = () => new CardioResult(true, EffortRating.Easy, floors: -1);
+
+        act.Should().Throw<BusinessRuleViolationException>().WithMessage("Floors cannot be negative");
+    }
+
+    [Fact]
+    public void CardioResult_ZeroValues_AreAllowed()
+    {
+        var result = new CardioResult(true, EffortRating.Easy, workMinutes: 0m, intensity: 0m, speed: 0m, floors: 0);
+
+        result.Floors.Should().Be(0);
     }
 
     [Fact]

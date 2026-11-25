@@ -24,6 +24,12 @@ public sealed class ExercisePerformance : ValueObject
     /// </summary>
     public bool SkipProgression { get; private init; }
 
+    /// <summary>The cardio prescription the session was planned against (cardio exercises only).</summary>
+    public PlannedCardioBlock? PlannedCardio { get; private init; }
+
+    /// <summary>How the cardio session went (cardio exercises only). A cardio performance needs no sets.</summary>
+    public CardioResult? Cardio { get; private init; }
+
     // EF Core constructor for JSON deserialization
     private ExercisePerformance()
     {
@@ -35,13 +41,18 @@ public sealed class ExercisePerformance : ValueObject
         IEnumerable<PlannedSet> plannedSets,
         IEnumerable<CompletedSet> completedSets,
         DateTime? completedAt = null,
-        bool skipProgression = false)
+        bool skipProgression = false,
+        PlannedCardioBlock? plannedCardio = null,
+        CardioResult? cardio = null)
     {
         var plannedSetsList = plannedSets.ToList();
         var completedSetsList = completedSets.ToList();
 
-        CheckRule(plannedSetsList.Any(), "At least one planned set is required");
-        CheckRule(completedSetsList.Any(), "At least one completed set is required");
+        if (cardio is null)
+        {
+            CheckRule(plannedSetsList.Any(), "At least one planned set is required");
+            CheckRule(completedSetsList.Any(), "At least one completed set is required");
+        }
         // Note: We no longer enforce that completed sets must equal planned sets.
         // This allows flexibility when:
         // 1. User pulls data from Hevy with different set counts
@@ -54,6 +65,8 @@ public sealed class ExercisePerformance : ValueObject
         _completedSets = completedSetsList;
         CompletedAt = completedAt ?? DateTime.UtcNow;
         SkipProgression = skipProgression;
+        PlannedCardio = plannedCardio;
+        Cardio = cardio;
     }
 
     /// <summary>
@@ -113,5 +126,6 @@ public sealed class ExercisePerformance : ValueObject
         foreach (var set in CompletedSets)
             yield return set;
         yield return CompletedAt;
+        yield return Cardio;
     }
 }

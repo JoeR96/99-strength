@@ -56,7 +56,8 @@ Workout (AggregateRoot<WorkoutId>)
 │   └── ExerciseProgression (Entity<ExerciseProgressionId>) — 1:1, TPH
 │       ├── LinearProgressionStrategy
 │       ├── RepsPerSetStrategy
-│       └── MinimalSetsStrategy
+│       ├── MinimalSetsStrategy
+│       └── CardioStageStrategy — cardio as an exercise (stair climber / incline walk); no sets
 ├── WorkoutActivity (VO) — completed day records
 ├── ProgressionAuditEntry (VO) — audit trail
 └── BlockSequence (List<int>) — block ordering
@@ -103,7 +104,9 @@ Created from `CardioTrackTemplates` (walk-builder, walk-to-run, stair-finisher) 
 | `RepRange` | Min/max rep range for RPS exercises (e.g., 8–12). |
 | `PlannedSet` | Set number, weight, target reps, isAmrap flag. |
 | `CompletedSet` | Actual reps performed per set. Delta calculation. |
-| `ExercisePerformance` | Completed sets + metadata for a single exercise. |
+| `ExercisePerformance` | Completed sets + metadata for a single exercise; a cardio exercise carries a `CardioResult` instead of sets. |
+| `CardioResult` | How a cardio exercise went: finished or stopped early, effort (Easy/Solid/Brutal), pain flag and area, total seconds, work minutes, level/incline, speed, floors. `IsMiss` = pain or stopped early. |
+| `PlannedCardioBlock` | Today's cardio exercise session, derived from its lane state: lane, stage, warm-up / work (continuous or interval rounds) / cool-down, level or incline, speed, `IsSettingsPending`, total minutes and `Text` ("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)"). Replaces planned sets for a cardio exercise. |
 | `ProgressionSnapshot` | Serializable progression state for undo capability. |
 | `WorkoutActivity` | Completed day record with snapshots and performances. |
 | `CardioPrescription` | What a track asks for today ("7 min continuous @ level 9", "C25K wk 4 day 2"); derived from state. |
@@ -118,7 +121,8 @@ Created from `CardioTrackTemplates` (walk-builder, walk-to-run, stair-finisher) 
 | `ProgramTier` | Primary (T1), Auxiliary (T2) |
 | `DayNumber` | Day1–Day6 |
 | `WorkoutStatus` | NotStarted, Active, Paused, Completed |
-| `ExerciseCategory` | MainLift, Auxiliary, Accessory |
+| `ExerciseCategory` | MainLift, Auxiliary, Accessory, Cardio (= 4) |
+| `AuditEntryType` | … plus `CardioSettingsChanged` (a level/incline/speed edit on a cardio exercise: block text before → after) |
 | `EquipmentType` | Barbell, Dumbbell, Cable, Machine, Bodyweight |
 | `WeightUnit` | Kilograms, Pounds |
 | `CardioModality` | Walk, Run, StairClimber, Bike, Row, Other |
@@ -191,6 +195,22 @@ For bodyweight/assisted exercises. Target total reps in fewest sets.
 - Weight is user-controlled (not auto-adjusted)
 - Bounded by MinimumSets/MaximumSets
 
+### Cardio stage — `CardioStageStrategy` (`Aggregates/Workout/`)
+
+The fourth exercise strategy: cardio as an exercise on a lift day (Plan v3), last on its day, category `Cardio`, equipment `Machine`, no sets (`CalculatePlannedSets` is empty; the session is a `PlannedCardioBlock`). Library names `Stair Machine (Floors)` (Hevy `4377A52B`, **Hard** lane) and `Treadmill` (Hevy `243710DE`, **Easy** lane). Lifting and cardio-track strategies are untouched.
+
+- **Hard lane (stair climber)**: warm-up 3 min at level 3, cool-down 2 min at level 3. Stage 1 continuous 6 → 12 min at level 6, +1 min. Stage 2 intervals 4 × 2/2 → 4 × 3/3 → 4 × 4/3 (hard/easy min, easy at level 3; recoveries only between rounds, so sessions run 11 → 17, 19, 26, 30 min); the hard level is asked on entry, suggestion = continuous level + 2. Stage 3 4 × 4/3 with hard level +1 per step (cap 20).
+- **Easy lane (incline walk)**: no warm-up or cool-down. Stage 1 10 → 30 min, +2 min, at the starting incline (asked, 5 % suggested). Stage 2 30 min, incline +1 % to 12 %. Stage 3 30 min, speed +0.3 km/h and incline back to 8 %, then +1 % to 12 % again, repeating. Speed is asked on the first session (no cap).
+- **Hard rule**: Easy → step up now; Solid → bank one, 2 banked → step up; Brutal → hold (banked Solids kept); pain or stopped early → hold, 2 in a row → step back one. **Easy rule**: Easy → step up; Solid → hold; Brutal → step back one; pain/stopped early → hold, 2 in a row → step back one.
+- Stage changes are automatic (no accept prompt). "Step back one" returns to the exact previous prescription, across a stage boundary if needed.
+- **Starting values are blank** until gym mode asks (`IsSettingsPending`); while blank, sessions change nothing. They can be edited later ("Change settings" on the gym mode card and in the progression modal, prefilled with the current values; `CardioStageProgressionDto` carries `intensityUnit`, `intensity`, `suggestedIntensity`, `speed`); every edit is a `CardioSettingsChanged` audit entry ("progression history").
+- **Settings chosen offline**: with no signal the settings dialog keeps blank starting values in the gym draft (`GymCardio.settingsChosen`, `chooseCardioSettings`) and the finish sends them as the result's `intensity` / `speed`. `CompleteDay` then sets them first via `Workout.SetCardioSettings` (audited, lane synced) when they fill every blank value (`Exercise.CardioSettingsCompleteWith`); otherwise it still answers "Set the … settings before finishing it." A change to values already set needs a connection.
+- **Lane sharing**: a lane's exercises on different days share one progression. Each day keeps its own `Exercise`; `Workout` copies the lane's state to the other exercises with the same `CardioLane` after a completion, a settings edit and an undo, so the lane climbs once per session across both days.
+- **Red readiness** skips the Hard lane in gym mode by default ("Do it anyway" keeps it, also offline); the Easy lane always shows. **Hevy pull** completes a cardio exercise only when the Hevy set has an RPE (→ effort); otherwise it is left out and its progression is unchanged.
+- **Hevy RPE for cardio exercises** (Hevy refuses RPE below 6): posted Easy → 6, Solid → 7, Brutal → 9 (`HevyRpe.CardioExerciseRpe`); pulled ≤ 6 → Easy, 7–8 → Solid, ≥ 9 → Brutal (`HevyRpe.CardioExerciseEffort`), so a walk logged in Hevy can step up. Cardio tracks and finishers keep their mapping (Easy posted without RPE; `EffortRatings.FromRpe`). The posted work set's note is the work as done ("5 min @ level 6 · Easy", `CardioSummaryFormatter`); with total and work minutes logged the cool-down set is what is left of the total, so the sets add up to it. Warm-up and cool-down sets are `warmup`-typed in the posted workout and the routine.
+- **Weekly goals**: a done cardio exercise also records a plain cardio `SessionCompletion` (no protocol, no track, `CardioLog` from the result, no zone 4–5 minutes) in `FinishGymSession`, so it counts in `GetWeeklyGoals` / `GetToday` cardio done as the finisher it replaced did. It has no post of its own (it is inside the gym session's post) and the pull never completes it again.
+- **CardioExerciseBackfill** (`Infrastructure/SeedData`, startup after `MuscleGroupBackfill`, idempotent: a workout that already has a cardio exercise is left alone): matches a running Plan v3 ("Falador Fat Furnace" and its former names) by name, inserts the four cardio exercises, seeds the stair lane from the old stair track's last session (its work minutes, one step up if it would step up, clamped 6–12 min, level 6), retro-logs this week's stair / fixed cool-down finisher sessions into history (no progression applied), rewrites that day's Hevy post (one in Hevy is marked `UpdatePending`; one not sent yet just gets the new payload, `HevyWorkoutPost.ReplacePayload`), clears those finishers and pauses the old stair track (history kept). One save per plan; never stops startup.
+
 ### Cardio strategies — `Aggregates/Cardio/CardioStrategies.cs`
 
 Lifting strategies above are untouched. Cardio tracks use their own (pure, unit-tested) strategies; all decisions append an audit entry, and every change is undoable once.
@@ -257,6 +277,7 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 | `RemoveExercise` | Removes exercise from workout | |
 | `UpdateBlockSequence` | Changes block ordering (can restart completed program) | |
 | `UpdateWorkingWeight` | Direct weight override | |
+| `SetCardioSettings` | Sets a cardio exercise's level/incline and/or speed (asked before its first session, editable later); audited as `CardioSettingsChanged` and copied to the lane's other exercises | `PUT /api/v1/workouts/{id}/exercises/{exerciseId}/cardio-settings` `{ intensity?, speed? }` |
 | `ConfirmStartingWeight` | Confirms deferred starting weight for RPS | |
 | `ConfirmWorkingWeight` | Confirms Cable/Machine weight after progression | |
 | `RetrofixLinearTm` | Recalculates TM history from AMRAP data | |
@@ -296,12 +317,12 @@ Events are dispatched post-save via `MediatRDomainEventDispatcher`. Currently no
 |-------|---------|
 | `GetAllWorkouts` | List user's workouts (summary) |
 | `GetWorkout` | Full workout with exercises + progressions |
-| `GetWeekPlan` | Planned sets for a week/day, plus the plan slot's label, warm-up, paired routine and the finisher as a `PlannedCardioDto` (`cardio`) |
+| `GetWeekPlan` | Planned sets for a week/day, plus the plan slot's label, warm-up, paired routine and the finisher as a `PlannedCardioDto` (`cardio`); a cardio exercise has no sets and carries `cardioBlock` (`PlannedCardioBlockDto`) |
 | `GetCycle` (`GET /workouts/current/cycle`, `/workouts/{id}/cycle`) | The training cycle from the current session: current week/day, rest of this week, all of next week, each with its `WeekPlanDto` (Current workout page) |
 | `GetStartingNumbersSuggestions` (`GET /workouts/{id}/suggestions/starting-numbers`, Clerk only) | For each pending exercise (Linear `IsTrainingMaxPending`, RPS `IsWeightPending`) a suggestion or null with evidence (set date/weight/reps, e1RM, 90-day window, stale flag, one-line reason). History = `HevyStrengthHistory`: up to 20 pages of `GET /v1/workouts` (stops a year back) merged with `HevyWorkoutSnapshot` rows, cached per user 5 min (`IMemoryCache`, successes only). Match by Hevy template id, then exact title, then the `custom:` catalogue name. `hevyStatus` `ok`/`noKey`/`unavailable` — the UI falls back to manual input; never a 5xx for a Hevy failure |
 | `GetExerciseLibrary` | Paginated exercise definitions (search, filter) |
 | `GetExerciseHistory` | Historical performance for an exercise |
-| `GetWorkoutHistory` | Completed day history for a workout |
+| `GetWorkoutHistory` | Completed day history for a workout; a cardio performance carries `cardioSummary` ("7 min @ level 6 · Easy") instead of sets (also on `GetExerciseHistory` sessions); a cardio exercise's `settingsChanges` lists its settings edits |
 | `GetCurrentUser` / `GetUser` | User profile |
 | Plans: `GetToday`, `GetPlanCalendar`, `GetWeeklyGoals`, `GetDayBudget` | Today screen, month calendar, weekly rings, hard sets and time estimate |
 | `GetUpcomingDays` (`GET /plans/upcoming?from=&days=`, 1–31, default 14) | The next days' sessions, each lift with its planned sets from the current A2S2 week, its finisher and (additive) `cardio` planned item; Terran CC |
@@ -340,8 +361,25 @@ pre-filled (tap to confirm, pencil to edit, the AMRAP set asks for reps), the at
   may have reached Hevy, the poster first lists recent Hevy workouts and adopts one with the same title and
   a start within a minute. The pull does the same for a pending post before matching, so a pull that sees
   the workout before the post recorded its id never completes the session twice.
+  A posted session whose payload changed later (`HevyWorkoutPost.RequestUpdate`, status `UpdatePending`) is sent by
+  the same retry as `PUT /v1/workouts/{id}` to its stored Hevy id, never posted or adopted; giving up leaves it Posted.
+  `CardioExerciseBackfill` (startup, after `MuscleGroupBackfill`) moved a running Falador Fat Furnace onto cardio
+  exercises this way: seeded the stair climber from the old stair track, retro-logged this week's stair finisher /
+  fixed cool-down into history, queued the Hevy update, cleared those finishers and paused the stair track.
 - The browser never writes workouts to Hevy: the v1 Send to Hevy on the completion summary is gone and the
   `/hevy/workouts` proxy refuses POST (GET stays for Pull from Hevy).
+- **Cardio exercises (Plan v3).** Plan v3's stair climber and incline walk are exercises, not finishers: after the lifts each
+  appears as a cardio card (block text, "set level / speed first" when settings are blank, Easy / Solid / Brutal, stopped
+  early, pain), sent as `cardio` on the exercise performance; only items with an effort chosen are sent, so an untouched
+  one keeps its progression. They replace the stair/fixed finisher on Plan v3 (earlier plans keep finishers and the live
+  finisher wizard). The read-only preview (`GymPreview`), the cycle list and the Workout page's full plan list them with
+  their block text; history rows and the progression modal show `cardioSummary` / the session list, and the modal lists the
+  exercise's settings edits (`ExerciseHistoryDto.SettingsChanges`, from `CardioSettingsChanged` audit entries: date, old → new text). Frontend: `features/gym/gymCardio.ts` (`cardioBlockLine`),
+  `GymCardioCard`, `CardioSettingsDialog`.
+- **Drafts from an older app.** `syncCardioBlocks` adds the plan's cardio exercises a draft lacks (a v1 draft, or one made
+  before the backfill) and drops a draft finisher once the plan slot has none; the server also ignores a sent `finisher` when
+  the slot has none, so it is never logged or posted (never as Stair Machine). When the live wizard's target goes away
+  (stair climber skipped on a red day, finisher dropped) its clock is cleared and its phase-push schedule `DELETE`d.
 - Settings → Gym sessions sets each lift slot's warm-up and finisher (protocol, track, or a fixed cool-down).
 - **Supersets.** `Exercise.SupersetGroup` (per day, max two exercises; set by plan specs, editable via
   UpdateExercises) feeds `PlannedExerciseDto.supersetGroup`, gym mode (A1 → B1 → A2 …, no rest between A

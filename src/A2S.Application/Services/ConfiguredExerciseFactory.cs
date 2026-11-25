@@ -34,6 +34,7 @@ public static class ConfiguredExerciseFactory
             {
                 "Linear" => Linear(template, request),
                 "MinimalSets" => MinimalSets(template, request),
+                CardioStageStrategy.TypeName => CardioStage(template, request),
                 _ => RepsPerSet(template, request)
             });
         }
@@ -86,6 +87,16 @@ public static class ConfiguredExerciseFactory
             useAmrap: request.UseAmrap ?? true,
             baseSetsPerExercise: template.DefaultSets ?? 4,
             tier: request.Tier ?? ProgramTier.Primary);
+
+    /// <summary>Equipment is always Machine (the stair climber and the treadmill); the lane is required.</summary>
+    private static Exercise CardioStage(ExerciseTemplate template, CreateExerciseRequest request) =>
+        Exercise.CreateWithCardioStageProgression(
+            name: template.Name,
+            assignedDay: request.AssignedDay,
+            orderInDay: request.OrderInDay,
+            externalTemplateId: request.ExternalTemplateId,
+            lane: request.CardioLane
+                ?? throw new InvalidOperationException($"{template.Name}: a CardioStage exercise needs a CardioLane (Hard or Easy)."));
 
     private static Exercise MinimalSets(ExerciseTemplate template, CreateExerciseRequest request) =>
         Exercise.CreateWithMinimalSetsProgression(

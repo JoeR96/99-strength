@@ -1,3 +1,4 @@
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Enums;
 using A2S.Domain.ValueObjects;
 
@@ -30,4 +31,7 @@ public sealed record ProgressionConfig
     public int? TargetTotalReps { get; init; }
     public int? MinimumSets { get; init; }
     public int? MaximumSets { get; init; }
+
+    // CardioStage
+    public CardioLane? CardioLane { get; init; }
 }

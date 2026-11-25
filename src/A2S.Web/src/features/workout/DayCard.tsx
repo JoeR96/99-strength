@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto } from "@/types/workout";
+import { WeightUnit, type ExerciseDto, type LinearProgressionDto, type RepsPerSetProgressionDto, type MinimalSetsProgressionDto, type CardioStageProgressionDto } from "@/types/workout";
+import { CardioStageSummary } from "./CardioStageSummary";
 import { getWeekParameters, getTemplateWeek, roundToGymIncrement } from "@/utils/weekParameters";
 
 export interface DayCardProps {
@@ -23,6 +24,7 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
   const linearProg = isLinear ? (exercise.progression as LinearProgressionDto) : null;
   const repsPerSetProg = isRepsPerSet ? (exercise.progression as RepsPerSetProgressionDto) : null;
   const minimalSetsProg = isMinimalSets ? (exercise.progression as MinimalSetsProgressionDto) : null;
+  const cardioProg = exercise.progression.type === "CardioStage" ? (exercise.progression as CardioStageProgressionDto) : null;
 
   const templateWeek = getTemplateWeek(weekNumber, blockSequence);
   const weekParams = getWeekParameters(templateWeek);
@@ -42,6 +44,8 @@ export function ExerciseDetailCard({ exercise, weekNumber, blockSequence, onSubs
           </svg>
         </button>
       </div>
+
+      {cardioProg && <CardioStageSummary progression={cardioProg} />}
 
       {linearProg && (() => {
         const unitLabel = linearProg.trainingMax.unit === WeightUnit.Kilograms ? "kg" : "lbs";

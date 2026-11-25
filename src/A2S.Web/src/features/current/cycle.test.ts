@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { estimateMinutes, needsTrainingMax, previewHref, setSummary, splitCycle } from './cycle';
 import { cycleFixture, sessionPlan } from '@/mocks/fixtures/cycle';
+import { stairExercise, stairStage2PendingBlock, walkExercise, walkPendingBlock } from '@/features/gym/gymFixtures';
 
 describe('cycle helpers', () => {
   it('summarises A2S2 sets with the AMRAP and the weight', () => {
@@ -11,6 +12,18 @@ describe('cycle helpers', () => {
 
   it('summarises reps-per-set work as its rep range', () => {
     expect(setSummary(sessionPlan(1, 1).exercises[1])).toBe('3 × 8–12 · 50 kg');
+  });
+
+  it('summarises a cardio exercise as its block text, or what to set first', () => {
+    expect(setSummary(stairExercise())).toBe('3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)');
+    expect(setSummary(stairExercise(stairStage2PendingBlock))).toBe('Set the hard level first');
+    expect(setSummary(walkExercise(walkPendingBlock))).toBe('Set speed and incline first');
+  });
+
+  it("counts a cardio exercise's block minutes in the estimate", () => {
+    const plan = sessionPlan(1, 1);
+    const withStairs = { ...plan, exercises: [...plan.exercises, stairExercise()] };
+    expect(estimateMinutes(withStairs, 10)).toBe(estimateMinutes(plan, 10) + 11);
   });
 
   it('estimates the session from sets, rest, the finisher and the warm-up', () => {

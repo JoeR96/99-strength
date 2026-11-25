@@ -1,7 +1,7 @@
 import { stairTrack } from '@/mocks/fixtures/cardioTracks';
 /** Deterministic gym-mode data for tests and stories: Upper A with a bench AMRAP, a seal row, Mobility A and a stair finisher. */
 
-import type { WeekPlanDto } from '@/api/workouts';
+import type { PlannedCardioBlockDto, WeekPlanDto } from '@/api/workouts';
 import type { MobilityRoutineDto } from '@/types/mobility';
 import { DoseUnit, SideBias } from '@/types/mobility';
 import { CardioProtocolKind, type CardioProtocolDto } from '@/types/gym';
@@ -211,5 +211,110 @@ export function planV3GymSession(): GymSessionState {
     warmUp: null,
     finisher: null,
     finisherFixed: treadmillCoolDown,
+  });
+}
+
+type PlannedExercise = WeekPlanDto['exercises'][number];
+
+/** Stair climber, Stage 1: 3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3), 11 min. */
+export const stairStage1Block: PlannedCardioBlockDto = {
+  lane: 'Hard',
+  stageName: 'Continuous',
+  stageNumber: 1,
+  stageCount: 3,
+  warmUp: { minutes: 3, level: 3, zone: null },
+  coolDown: { minutes: 2, level: 3, zone: null },
+  kind: 'Continuous',
+  workMinutes: 6,
+  intervals: null,
+  recoveryLevel: null,
+  intensityUnit: 'Level',
+  intensity: 6,
+  suggestedIntensity: null,
+  speed: null,
+  isSettingsPending: false,
+  totalMinutes: 11,
+  text: '3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)',
+};
+
+/** Stair climber, Stage 2 at its top (4 × 4/3) with the hard level not chosen yet: level 8 suggested. */
+export const stairStage2PendingBlock: PlannedCardioBlockDto = {
+  ...stairStage1Block,
+  stageName: 'Intervals',
+  stageNumber: 2,
+  kind: 'Intervals',
+  workMinutes: 25,
+  intervals: { rounds: 4, hardMinutes: 4, easyMinutes: 3 },
+  recoveryLevel: 3,
+  intensity: null,
+  suggestedIntensity: 8,
+  isSettingsPending: true,
+  totalMinutes: 30,
+  text: '3 min easy (L3) → 4 × (4 min hard / 3 min easy @ L3) → 2 min easy (L3)',
+};
+
+/** Incline walk, Stage 1, before its first session: speed and incline still to set. */
+export const walkPendingBlock: PlannedCardioBlockDto = {
+  lane: 'Easy',
+  stageName: 'Build time',
+  stageNumber: 1,
+  stageCount: 3,
+  warmUp: null,
+  coolDown: null,
+  kind: 'Continuous',
+  workMinutes: 10,
+  intervals: null,
+  recoveryLevel: null,
+  intensityUnit: 'InclinePercent',
+  intensity: null,
+  suggestedIntensity: null,
+  speed: null,
+  isSettingsPending: true,
+  totalMinutes: 10,
+  text: '10 min walk',
+};
+
+export const walkBlock: PlannedCardioBlockDto = {
+  ...walkPendingBlock,
+  intensity: 5,
+  speed: 5.5,
+  isSettingsPending: false,
+  text: '10 min @ 5 % incline · 5.5 km/h',
+};
+
+function cardioExercise(exerciseId: string, name: string, hevyId: string, orderInDay: number, block: PlannedCardioBlockDto): PlannedExercise {
+  return {
+    exerciseId,
+    name,
+    category: 'Cardio',
+    equipment: 'Machine',
+    orderInDay,
+    hevyExerciseTemplateId: hevyId,
+    progressionType: 'CardioStage',
+    restSeconds: 0,
+    supersetGroup: null,
+    extraSetSide: 'None',
+    plannedSets: [],
+    metadata: { isCardioSettingsPending: block.isSettingsPending },
+    cardioBlock: block,
+  };
+}
+
+export const stairExercise = (block: PlannedCardioBlockDto = stairStage1Block) => cardioExercise('v3-stairs', 'Stair Machine (Floors)', '4377A52B', 7, block);
+export const walkExercise = (block: PlannedCardioBlockDto = walkBlock) => cardioExercise('v3-walk', 'Treadmill', '243710DE', 8, block);
+
+/** Plan v3 Upper A ending with its cardio exercises (the walk is here too, to test both lanes on one day). */
+export function planV3WithCardio(stairs: PlannedCardioBlockDto = stairStage1Block, walk: PlannedCardioBlockDto = walkBlock): WeekPlanDto {
+  return { ...planV3UpperA, exercises: [stairExercise(stairs), ...planV3UpperA.exercises, walkExercise(walk)] };
+}
+
+export function cardioGymSession(stairs?: PlannedCardioBlockDto, walk?: PlannedCardioBlockDto): GymSessionState {
+  return createGymSession({
+    clientSessionId: GYM_CLIENT_SESSION,
+    startedAt: GYM_STARTED_AT,
+    title: 'Plan v3 · W1 Upper A',
+    plan: planV3WithCardio(stairs, walk),
+    warmUp: null,
+    finisher: null,
   });
 }

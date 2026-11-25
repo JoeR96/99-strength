@@ -51,7 +51,7 @@ export function useRetryHevyPost() {
   return useMutation({
     mutationFn: (clientSessionId: string) => gymSessionsApi.retryHevy(clientSessionId),
     onSuccess: (status) => {
-      if (status.status === 'Posted') toast.success('In Hevy now');
+      if (status.status === 'Posted' || status.status === 'UpdatePending') toast.success('In Hevy now');
       else toast.error(status.lastError ? `Still not in Hevy: ${status.lastError}` : 'Still not in Hevy; it will keep trying');
       void queryClient.invalidateQueries({ queryKey: planKeys.all });
     },

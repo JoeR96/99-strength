@@ -1,5 +1,6 @@
 using A2S.Application.Commands.CompleteDay;
 using A2S.Application.Common;
+using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
@@ -67,6 +68,22 @@ public sealed class SimulateAndCompleteDayCommandHandler
 
         foreach (var exercise in workout.GetExercisesForDay(day))
         {
+            // Cardio is simulated as finished and Easy; one still waiting for its settings is left out
+            // (it keeps its progression), since only the person can enter those.
+            if (exercise.Progression.CalculateCardioBlock() is { } cardio)
+            {
+                if (!cardio.IsSettingsPending)
+                {
+                    performanceRequests.Add(new ExercisePerformanceRequest
+                    {
+                        ExerciseId = exercise.Id.Value,
+                        Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: cardio.TotalMinutes * 60, WorkMinutes: cardio.WorkMinutes)
+                    });
+                }
+
+                continue;
+            }
+
             var plannedSets = workout.GetPlannedSetsForExercise(exercise.Id).ToList();
             if (plannedSets.Count == 0) continue;
 

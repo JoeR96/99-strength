@@ -13,6 +13,7 @@ using A2S.Domain.Aggregates.HevySync;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -147,14 +148,18 @@ public class GymSessionTests
             DayNumber.Day1, 1, "79D0BB3A", TrainingMax.Create(100m, WeightUnit.Kilograms));
         var sealRow = Exercise.CreateWithRepsPerSetProgression("Seal Row (Barbell)", ExerciseCategory.Accessory, EquipmentType.Barbell,
             DayNumber.Day1, 2, "custom:seal-row-barbell", RepRange.Create(10, 10), 3, 5, false, Weight.Create(40m, WeightUnit.Kilograms));
+        var stairs = Exercise.CreateWithCardioStageProgression("Stair Machine (Floors)", DayNumber.Day1, 3, "4377A52B", CardioLane.Hard);
+        var walk = Exercise.CreateWithCardioStageProgression("Treadmill", DayNumber.Day1, 4, "243710DE", CardioLane.Easy);
         var workout = new WorkoutBuilder().WithUserId(Joe).WithName(CutTo85Nov2026.Name).WithVariant(ProgramVariant.FourDay)
-            .WithExercise(bench).WithExercise(sealRow).Build();
+            .WithExercise(bench).WithExercise(sealRow).WithExercise(stairs).WithExercise(walk).Build();
         workout.Start();
         return workout;
     }
 
     private Exercise Bench => _workout.Exercises.Single(e => e.Name.StartsWith("Bench", StringComparison.Ordinal));
     private Exercise SealRow => _workout.Exercises.Single(e => e.Name.StartsWith("Seal", StringComparison.Ordinal));
+    private Exercise Stairs => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio && e.Name.StartsWith("Stair", StringComparison.Ordinal));
+    private Exercise Walk => _workout.Exercises.Single(e => e.Category == ExerciseCategory.Cardio && e.Name == "Treadmill");
     private decimal BenchTm => ((LinearProgressionStrategy)Bench.Progression).TrainingMax.Value;
 
     private Queue<Func<HevyWorkoutDraft, HevyResult<HevyWorkout>>> CreateScript { get; } = new();
@@ -515,6 +520,209 @@ public class GymSessionTests
     }
 
     [Fact]
+    public async Task FinishGymSession_WithCardioPerformance_CompletesAndStagesPost()
+    {
+        var performances = AsPlanned(amrapReps: 10);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Stairs.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40)
+        });
+
+        var result = await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        result.Value.CompleteDay!.ProgressionChanges.Should().Contain(c => c.ExerciseId == Stairs.Id.Value && c.Change == "Step up: 7 min @ level 6");
+        Stairs.Progression.CalculateCardioBlock()!.Text.Should().Be("3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)");
+        _workout.CompletedActivities.Single().Performances.Should().Contain(p => p.ExerciseId == Stairs.Id && p.Cardio != null);
+        var post = _posts.All.Should().ContainSingle().Subject;
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        payload.Performances.Single(p => p.ExerciseId == Stairs.Id.Value).Cardio
+            .Should().Be(new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40));
+    }
+
+    [Fact]
+    public async Task Post_StairCardioExercise_IsOneDurationExerciseInTheWorkout()
+    {
+        var performances = AsPlanned(amrapReps: 14);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Stairs.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40)
+        });
+
+        var result = await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        result.Value.HevyStatus.Should().Be("Posted");
+        _posts.All.Should().ContainSingle("the cardio exercise is not a separate post");
+        var draft = _posted.Should().ContainSingle().Subject;
+        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("79D0BB3A", "T-seal-row", "4377A52B");
+        var stairs = draft.Exercises[^1];
+        stairs.Notes.Should().Be("6 min @ level 6 · Solid", "the work as done, like the history line");
+        stairs.Sets.Should().Equal(
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Warmup, DurationSeconds = 180, CustomMetric = 0 },
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Normal, DurationSeconds = 360, CustomMetric = 40, Rpe = 7 },
+            new HevyWorkoutSetDraft { Type = HevySetTypes.Warmup, DurationSeconds = 120, CustomMetric = 0 });
+    }
+
+    [Fact]
+    public async Task Post_WalkCardioExercise_UsesTreadmill()
+    {
+        _workout.SetCardioSettings(Walk.Id, 5m, 5.5m);
+        var performances = AsPlanned(amrapReps: 14);
+        performances.Add(new ExercisePerformanceRequest
+        {
+            ExerciseId = Walk.Id.Value,
+            Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 615, Intensity: 5m, Speed: 5.5m)
+        });
+
+        await _finish.Handle(Finish(performances), CancellationToken.None);
+
+        Walk.Progression.CalculateCardioBlock()!.Text.Should().Be("12 min @ 5 % incline, 5.5 km/h", "the walk stepped up before the post");
+        var walk = _posted.Should().ContainSingle().Subject.Exercises[^1];
+        walk.ExerciseTemplateId.Should().Be("243710DE");
+        walk.Notes.Should().Be("10 min @ 5 % incline, 5.5 km/h · Easy", "the note is the block as it was done");
+        walk.Sets.Should().Equal(new[] { new HevyWorkoutSetDraft { Type = HevySetTypes.Normal, DurationSeconds = 615, Rpe = 6 } },
+            "Hevy refuses RPE below 6, so a cardio exercise's Easy goes up as 6");
+    }
+
+    private List<ExercisePerformanceRequest> WithStairs(CardioResultRequest cardio)
+    {
+        var performances = AsPlanned(amrapReps: 14);
+        performances.Add(new ExercisePerformanceRequest { ExerciseId = Stairs.Id.Value, Cardio = cardio });
+        return performances;
+    }
+
+    [Fact]
+    public async Task Post_StairsStoppedBeforeAnyWorkTime_IsOneSetOfTheTotal()
+    {
+        await _finish.Handle(Finish(WithStairs(new CardioResultRequest(false, Effort.Brutal, TotalSeconds: 240, Floors: 12))), CancellationToken.None);
+
+        var stairs = _posted.Should().ContainSingle().Subject.Exercises[^1];
+        stairs.Sets.Should().Equal(new HevyWorkoutSetDraft { Type = HevySetTypes.Normal, DurationSeconds = 240, CustomMetric = 12, Rpe = 9 });
+    }
+
+    private readonly List<(string Id, HevyWorkoutDraft Draft)> _updated = new();
+
+    private void HevyAcceptsUpdates(HevyResult<HevyWorkout>? answer = null) =>
+        _hevy.UpdateWorkoutAsync(Key, Arg.Any<string>(), Arg.Any<HevyWorkoutDraft>(), Arg.Any<CancellationToken>())
+            .Returns(call =>
+            {
+                _updated.Add((call.ArgAt<string>(1), call.Arg<HevyWorkoutDraft>()));
+                return answer ?? HevyResult<HevyWorkout>.Success(new HevyWorkout { Id = call.ArgAt<string>(1) });
+            });
+
+    [Fact]
+    public async Task UpdatePendingPost_IsSentWithPut_ToTheSameHevyWorkoutId()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+        var post = _posts.All.Single();
+        var stored = post.HevyWorkoutId;
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        var retroLogged = payload with
+        {
+            Performances = [.. payload.Performances, new ExercisePerformanceRequest
+            {
+                ExerciseId = Stairs.Id.Value,
+                Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, WorkMinutes: 5m, Intensity: 6m, Floors: 33)
+            }]
+        };
+        post.RequestUpdate(System.Text.Json.JsonSerializer.Serialize(retroLogged, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)), Now);
+        HevyAcceptsUpdates();
+        _hevy.ClearReceivedCalls();
+
+        (await _retry.RunOnceAsync()).Should().Be(1);
+
+        post.Status.Should().Be(HevyPostStatus.Posted);
+        post.HevyWorkoutId.Should().Be(stored);
+        var (id, draft) = _updated.Should().ContainSingle().Subject;
+        id.Should().Be(stored);
+        draft.Title.Should().Be(Title);
+        draft.Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("79D0BB3A", "T-seal-row", "4377A52B");
+        draft.Exercises[^1].Sets.Select(x => (x.Type, x.DurationSeconds, x.CustomMetric)).Should().Equal(
+            (HevySetTypes.Warmup, 180, 0m), (HevySetTypes.Normal, 300, 33m), (HevySetTypes.Warmup, 180, 0m));
+        draft.Exercises[^1].Sets.Sum(x => x.DurationSeconds).Should().Be(660, "the sets add up to the logged total");
+        draft.Exercises[^1].Notes.Should().Be("5 min @ level 6 · Easy");
+        await _hevy.DidNotReceiveWithAnyArgs().CreateWorkoutAsync(default!, default!, default);
+        await _hevy.DidNotReceiveWithAnyArgs().GetWorkoutsAsync(default!, default, default);
+    }
+
+    [Fact]
+    public async Task Post_PendingWalkBlock_HasNoQuestionMarkInTheNote()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+        var post = _posts.All.Single();
+        var json = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, json)!;
+        var withWalk = payload with
+        {
+            Performances = [.. payload.Performances, new ExercisePerformanceRequest
+            {
+                ExerciseId = Walk.Id.Value,
+                Cardio = new CardioResultRequest(true, Effort.Easy, TotalSeconds: 600)
+            }]
+        };
+        post.RequestUpdate(System.Text.Json.JsonSerializer.Serialize(withWalk, json), Now);
+        HevyAcceptsUpdates();
+
+        await _retry.RunOnceAsync();
+
+        Walk.IsCardioSettingsPending.Should().BeTrue();
+        var walk = _updated.Single().Draft.Exercises[^1];
+        walk.ExerciseTemplateId.Should().Be("243710DE");
+        walk.Notes.Should().Be("10 min incline walk · Easy");
+    }
+
+    [Fact]
+    public async Task UpdatePendingPost_WhenHevyFails_BacksOffAndNeverPosts()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+        var post = _posts.All.Single();
+        post.RequestUpdate(post.PayloadJson, Now);
+        HevyAcceptsUpdates(HevyResult<HevyWorkout>.Failure(HevyError.Unavailable()));
+        _hevy.ClearReceivedCalls();
+
+        await _retry.RunOnceAsync();
+
+        post.Status.Should().Be(HevyPostStatus.UpdatePending);
+        post.Attempts.Should().Be(1);
+        post.NextAttemptAtUtc.Should().Be(Now.AddMinutes(2));
+        await _hevy.DidNotReceiveWithAnyArgs().CreateWorkoutAsync(default!, default!, default);
+    }
+
+    [Fact]
+    public async Task PlannedBlock_IsTheCompletedDayOfThePayloadsWeek()
+    {
+        await _finish.Handle(Finish(WithStairs(new CardioResultRequest(true, Effort.Easy, TotalSeconds: 660, Intensity: 6m, Floors: 40))),
+            CancellationToken.None);
+        var post = _posts.All.Single();
+        var json = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(post.PayloadJson, json)!;
+        payload.Week.Should().Be(1);
+        HevyAcceptsUpdates();
+
+        post.RequestUpdate(System.Text.Json.JsonSerializer.Serialize(payload with { Week = 2 }, json), Now);
+        await _retry.RunOnceAsync();
+
+        _posted.Single().Exercises[^1].Notes.Should().Be("6 min @ level 6 · Easy", "week 1's block, as done");
+        _updated.Single().Draft.Exercises[^1].Notes.Should().Be("7 min @ level 6 · Easy",
+            "week 2 has no completed Day 1, so the current block, never week 1's");
+    }
+
+    [Fact]
+    public void FinishValidator_CardioWithoutSets_IsValid_AndOutOfBoundsIsNot()
+    {
+        var validator = new FinishGymSessionCommandValidator();
+        List<ExercisePerformanceRequest> With(CardioResultRequest cardio) =>
+            [new ExercisePerformanceRequest { ExerciseId = Stairs.Id.Value, Cardio = cardio }];
+
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Floors: 40)))).IsValid.Should().BeTrue();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 0)))).IsValid.Should().BeFalse();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Floors: 2001)))).IsValid.Should().BeFalse();
+        validator.Validate(Finish(With(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, Speed: 26m)))).IsValid.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task NoHevyKey_CompletesTheSession_AndSkipsThePost()
     {
         _keys.ForUserAsync(Joe, Arg.Any<CancellationToken>()).Returns((string?)null);
@@ -525,6 +733,85 @@ public class GymSessionTests
         _workout.CompletedActivities.Should().ContainSingle();
         _posted.Should().BeEmpty();
         (await _retry.RunOnceAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Finisher_SentForASlotThatNoLongerHasOne_IsIgnored_AndNeverPostedAsStairs()
+    {
+        _plan.ReplaceSchedule([ScheduledSession.Lift(DayOfWeek.Monday, DayNumber.Day1, "Upper A"), ScheduledSession.Rest(DayOfWeek.Sunday)]);
+
+        var result = await _finish.Handle(Finish(finisher: new FinisherLogRequest(600, Effort.Easy)), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        result.Value.FinisherCompletionId.Should().BeNull();
+        result.Value.FinisherOutcome.Should().BeNull();
+        _plan.Completions.Should().ContainSingle().Which.Kind.Should().Be(SessionKind.Lift);
+        var payload = System.Text.Json.JsonSerializer.Deserialize<GymSessionPayload>(_posts.All.Single().PayloadJson,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        payload.Finisher.Should().BeNull("an old phone's draft still carried the finisher the slot no longer has");
+        _posted.Single().Exercises.Select(e => e.ExerciseTemplateId).Should().Equal("79D0BB3A", "T-seal-row");
+    }
+
+    [Theory]
+    [InlineData(Effort.Easy, 6)]
+    [InlineData(Effort.Solid, 7)]
+    [InlineData(Effort.Brutal, 9)]
+    public async Task Post_CardioExerciseEffort_IsAnRpeHevyAccepts(Effort effort, int rpe)
+    {
+        await _finish.Handle(Finish(WithStairs(new CardioResultRequest(true, effort, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40))),
+            CancellationToken.None);
+
+        _posted.Single().Exercises[^1].Sets.Single(s => s.Type == HevySetTypes.Normal).Rpe.Should().Be(rpe);
+    }
+
+    [Fact]
+    public async Task Post_CardioExerciseStoppedDuringTheCoolDown_SetsAddUpToTheLoggedTotal()
+    {
+        await _finish.Handle(Finish(WithStairs(new CardioResultRequest(false, Effort.Solid, TotalSeconds: 600, WorkMinutes: 6m, Intensity: 6m, Floors: 38))),
+            CancellationToken.None);
+
+        var stairs = _posted.Single().Exercises[^1];
+        stairs.Sets.Select(x => (x.Type, x.DurationSeconds)).Should().Equal(
+            (HevySetTypes.Warmup, (int?)180), (HevySetTypes.Normal, (int?)360), (HevySetTypes.Warmup, (int?)60));
+        stairs.Notes.Should().Be("6 min @ level 6 · Solid · stopped early");
+    }
+
+    [Fact]
+    public async Task CardioExercise_RecordsAPlainCardioCompletion_ThatCountsForTheWeek_WithoutASecondPostOrCompletionOnPull()
+    {
+        var result = await _finish.Handle(Finish(WithStairs(new CardioResultRequest(true, Effort.Solid, TotalSeconds: 660, WorkMinutes: 6m, Intensity: 6m, Floors: 40))),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.Error);
+        var cardio = _plan.Completions.Should().ContainSingle(c => c.Kind == SessionKind.Cardio).Subject;
+        cardio.Date.Should().Be(Mon16Nov);
+        cardio.CardioProtocolId.Should().BeNull();
+        cardio.CardioTrackId.Should().BeNull();
+        cardio.Cardio!.DurationSeconds.Should().Be(660);
+        cardio.Cardio.WorkMinutes.Should().Be(6m);
+        cardio.Cardio.Effort.Should().Be(EffortRating.Solid);
+        cardio.Cardio.Rpe.Should().Be(7);
+        cardio.Cardio.IntensityUnit.Should().Be(IntensityUnit.Level);
+        cardio.Cardio.IntensityValue.Should().Be(6m);
+        cardio.Cardio.Floors.Should().Be(40);
+        cardio.Cardio.HighIntensityMinutes.Should().BeNull("the finisher it replaces never logged zone minutes either");
+        new A2S.Domain.Services.PlanCalendarService(_clock).ForWeek(_plan, Mon16Nov, _workout.CompletedActivities).CardioDone.Should().Be(1);
+        _posts.All.Should().ContainSingle("the cardio is inside the gym session's post");
+        _posted.Should().ContainSingle();
+
+        _time.Advance(TimeSpan.FromMinutes(15));
+        (await _pull.PullAsync(Joe, force: false)).IsSuccess.Should().BeTrue();
+
+        _plan.Completions.Should().HaveCount(2, "one lift and one cardio completion, never a second from the pull");
+        _workout.CompletedActivities.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task CardioExercise_NotDone_RecordsNoCardioCompletion()
+    {
+        await _finish.Handle(Finish(), CancellationToken.None);
+
+        _plan.Completions.Should().NotContain(c => c.Kind == SessionKind.Cardio);
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using A2S.Application.Commands.CreateWorkout;
 using A2S.Application.Common;
 using A2S.Application.Services;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -28,6 +29,7 @@ public class AddExerciseCommandHandlerTests
     {
         _handler = new AddExerciseCommandHandler(_workoutRepository, _unitOfWork, _currentUserService, _library);
         _library.GetByName("Bicep Curl (Dumbbell)").Returns(new ExerciseTemplate("Bicep Curl (Dumbbell)", EquipmentType.Dumbbell));
+        _library.GetByName("Stair Machine (Floors)").Returns(new ExerciseTemplate("Stair Machine (Floors)", EquipmentType.Machine));
     }
 
     private static CreateExerciseRequest Curl(int order = 3, decimal? weight = 14m) => new()
@@ -111,6 +113,43 @@ public class AddExerciseCommandHandlerTests
         validator.Validate(new AddExerciseCommand(TestWorkoutGuid, Curl())).IsValid.Should().BeTrue();
         validator.Validate(new AddExerciseCommand(TestWorkoutGuid, Curl() with { RepRangeMinimum = 13 })).IsValid.Should().BeFalse();
         validator.Validate(new AddExerciseCommand(TestWorkoutGuid, Curl() with { WeightUnit = null })).IsValid.Should().BeFalse();
+    }
+
+    private static CreateExerciseRequest Stairs(CardioLane? lane = CardioLane.Hard) => new()
+    {
+        TemplateName = "Stair Machine (Floors)",
+        ExternalTemplateId = "4377A52B",
+        Category = ExerciseCategory.Cardio,
+        ProgressionType = "CardioStage",
+        AssignedDay = DayNumber.Day1,
+        OrderInDay = 4,
+        CardioLane = lane
+    };
+
+    [Fact]
+    public async Task AddExercise_CardioStage_IsAccepted()
+    {
+        _currentUserService.UserId.Returns(TestUserId.Value.ToString());
+        var workout = UpperA(TestUserId);
+        _workoutRepository.GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>()).Returns(workout);
+
+        new AddExerciseCommandValidator().Validate(new AddExerciseCommand(TestWorkoutGuid, Stairs())).IsValid.Should().BeTrue();
+        var result = await _handler.Handle(new AddExerciseCommand(TestWorkoutGuid, Stairs()), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        var stairs = workout.Exercises.Single(e => e.Name == "Stair Machine (Floors)");
+        stairs.Category.Should().Be(ExerciseCategory.Cardio);
+        stairs.Equipment.Should().Be(EquipmentType.Machine);
+        stairs.OrderInDay.Should().Be(4);
+        stairs.ExternalTemplateId.Should().Be("4377A52B");
+        stairs.Progression.Should().BeOfType<CardioStageStrategy>().Which.Lane.Should().Be(CardioLane.Hard);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Validator_RejectsCardioStageWithoutALane()
+    {
+        new AddExerciseCommandValidator().Validate(new AddExerciseCommand(TestWorkoutGuid, Stairs(lane: null))).IsValid.Should().BeFalse();
     }
 
     private static Workout UpperA(UserId userId) => Workout.Create(userId, "Test", ProgramVariant.FourDay,

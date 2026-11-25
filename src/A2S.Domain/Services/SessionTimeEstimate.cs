@@ -25,11 +25,12 @@ public static class RestDefaults
     public const int AccessorySeconds = 90;
     public const int SupersetSeconds = 60;
 
-    /// <summary>Main lifts 180 s; superset members 60 s (one rest after the B exercise); everything else 90 s.</summary>
+    /// <summary>Main lifts 180 s; superset members 60 s (one rest after the B exercise); cardio none; everything else 90 s.</summary>
     public static int For(A2S.Domain.Aggregates.Workout.Exercise exercise)
     {
         ArgumentNullException.ThrowIfNull(exercise);
-        return exercise.Category == Enums.ExerciseCategory.MainLift ? MainLiftSeconds
+        return exercise.Category == Enums.ExerciseCategory.Cardio ? 0
+            : exercise.Category == Enums.ExerciseCategory.MainLift ? MainLiftSeconds
             : exercise.SupersetGroup is null ? AccessorySeconds
             : SupersetSeconds;
     }

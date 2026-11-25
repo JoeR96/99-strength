@@ -91,5 +91,6 @@ export function buildExerciseEntries(
   currentWeek: number,
   weekPlan: WeekPlanDto | null | undefined
 ): ExerciseEntry[] {
-  return dayExercises.map((exercise) => (weekPlan && fromWeekPlan(exercise, weekPlan)) || fromLocalCalculators(exercise, currentWeek));
+  // Cardio exercises are logged in gym mode; this page has no sets for them.
+  return dayExercises.filter((e) => e.progression.type !== 'CardioStage').map((exercise) => (weekPlan && fromWeekPlan(exercise, weekPlan)) || fromLocalCalculators(exercise, currentWeek));
 }

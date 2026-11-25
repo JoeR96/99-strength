@@ -1,4 +1,5 @@
 using System.Text.Json;
+using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Aggregates.Workout;
@@ -93,7 +94,8 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
                         WeightUnit = s.Weight?.Unit.ToString() ?? "Kilograms",
                         ActualReps = s.ActualReps,
                         WasAmrap = s.WasAmrap
-                    }).ToList() ?? new List<CompletedSetDto>()
+                    }).ToList() ?? new List<CompletedSetDto>(),
+                    CardioSummary = CardioSummaryFormatter.For(p)
                 }).ToList() ?? new List<ExercisePerformanceDto>()
             })
             .ToList();
@@ -148,11 +150,31 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
                 TargetSets = data.TargetSets ?? data.BaseSetsPerExercise ?? data.MinimumSets ?? 0,
                 TrainingMax = tm?.Value,
                 WeeklyHistory = weeklyHistory,
-                ProgressionChanges = progressionChanges
+                ProgressionChanges = progressionChanges,
+                SettingsChanges = BuildSettingsChanges(exercise, workout.AuditEntries)
             });
         }
 
         return histories;
+    }
+
+    private static List<CardioSettingsChangeDto> BuildSettingsChanges(
+        Exercise exercise,
+        IReadOnlyCollection<ProgressionAuditEntry> auditEntries)
+    {
+        return auditEntries
+            .Where(a => a.ExerciseId == exercise.Id && a.Type == AuditEntryType.CardioSettingsChanged)
+            .OrderBy(a => a.OccurredAt)
+            .Select(a => new CardioSettingsChangeDto
+            {
+                OccurredAt = a.OccurredAt,
+                WeekNumber = a.WeekNumber,
+                DayNumber = a.DayNumber,
+                OldText = a.OldValue ?? string.Empty,
+                NewText = a.NewValue ?? string.Empty,
+                Reason = a.Reason
+            })
+            .ToList();
     }
 
     private static List<ProgressionChangeDto> BuildProgressionChanges(
@@ -207,10 +229,10 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
             var performance = activity.Performances
                 ?.FirstOrDefault(p => p.ExerciseId == exercise.Id);
 
-            if (performance == null || performance.CompletedSets == null || performance.CompletedSets.Count == 0)
+            if (performance == null || ((performance.CompletedSets == null || performance.CompletedSets.Count == 0) && performance.Cardio is null))
                 continue;
 
-            var sets = performance.CompletedSets.Select(s => new CompletedSetDto
+            var sets = (performance.CompletedSets ?? []).Select(s => new CompletedSetDto
             {
                 SetNumber = s.SetNumber,
                 Weight = s.Weight?.Value ?? 0,
@@ -276,7 +298,8 @@ public sealed class GetWorkoutHistoryQueryHandler : IRequestHandler<GetWorkoutHi
                 TrainingMaxUnitAtWeek = tmUnitAtWeek,
                 WeightAtWeek = weightAtWeek,
                 SetCountAtWeek = setCountAtWeek,
-                ProgressionTypeAtWeek = snapshot?.ProgressionType
+                ProgressionTypeAtWeek = snapshot?.ProgressionType,
+                CardioSummary = CardioSummaryFormatter.For(performance)
             });
         }
 

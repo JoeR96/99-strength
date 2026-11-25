@@ -20,6 +20,9 @@ public interface IHevyClient
     /// </summary>
     Task<HevyResult<HevyWorkout>> CreateWorkoutAsync(string apiKey, HevyWorkoutDraft workout, CancellationToken ct = default);
 
+    /// <summary><c>PUT /v1/workouts/{id}</c>: replaces a workout in place with the same draft shape as create. Not retried.</summary>
+    Task<HevyResult<HevyWorkout>> UpdateWorkoutAsync(string apiKey, string workoutId, HevyWorkoutDraft workout, CancellationToken ct = default);
+
     Task<HevyResult<HevyPage<HevyRoutine>>> GetRoutinesAsync(string apiKey, int page, CancellationToken ct = default);
 
     /// <summary><c>POST /v1/routines</c> (201). Not retried: a timeout may still have created it.</summary>

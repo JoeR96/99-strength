@@ -21,5 +21,10 @@ public enum ExerciseCategory
     /// Accessory exercises (e.g., Rows, Curls, Lateral Raises).
     /// Uses Reps Per Set progression.
     /// </summary>
-    Accessory = 3
+    Accessory = 3,
+
+    /// <summary>
+    /// Cardio done as an exercise (stair climber, incline walk). Uses cardio stage progression; no rest after it.
+    /// </summary>
+    Cardio = 4
 }

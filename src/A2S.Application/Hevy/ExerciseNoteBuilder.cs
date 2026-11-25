@@ -17,6 +17,12 @@ public static class ExerciseNoteBuilder
         ArgumentNullException.ThrowIfNull(weekParams);
         ArgumentNullException.ThrowIfNull(plannedSets);
 
+        // Cardio exercise: the whole session, e.g. "3 min easy (L3) → 7 min @ level 6 → 2 min easy (L3)".
+        if (exercise.Progression.CalculateCardioBlock() is { } cardio)
+        {
+            return cardio.Text;
+        }
+
         var data = exercise.Progression.GetProgressionData();
         var trainingMax = exercise.Progression.GetTrainingMax();
         var noteParts = new List<string>();

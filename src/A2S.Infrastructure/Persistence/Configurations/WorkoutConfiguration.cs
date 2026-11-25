@@ -2,6 +2,7 @@ using System.Text.Json;
 using A2S.Domain.Aggregates.Workout;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
+using A2S.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -119,6 +120,7 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                         id => id.Value,
                         value => new ExerciseId(value));
                 perf.Property(p => p.CompletedAt);
+                MapCardio(perf);
                 perf.OwnsMany(p => p.CompletedSets, set =>
                 {
                     set.Property(s => s.SetNumber);
@@ -174,6 +176,7 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
                         id => id.Value,
                         value => new ExerciseId(value));
                 perf.Property(p => p.CompletedAt);
+                MapCardio(perf);
                 perf.OwnsMany(p => p.CompletedSets, set =>
                 {
                     set.Property(s => s.SetNumber);
@@ -215,5 +218,23 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
 
         builder.HasIndex(w => w.UserId);
         builder.HasIndex(w => new { w.UserId, w.Status });
+    }
+
+    private static void MapCardio(OwnedNavigationBuilder<WorkoutActivity, ExercisePerformance> perf)
+    {
+        perf.OwnsOne(p => p.PlannedCardio, block =>
+        {
+            block.Property(b => b.Lane).HasConversion<string>();
+            block.Property(b => b.Kind).HasConversion<string>();
+            block.Property(b => b.IntensityUnit).HasConversion<string>();
+            block.OwnsOne(b => b.WarmUp);
+            block.OwnsOne(b => b.CoolDown);
+            block.OwnsOne(b => b.Intervals);
+        });
+        perf.OwnsOne(p => p.Cardio, result =>
+        {
+            result.Property(r => r.Effort).HasConversion<string>();
+            result.Property(r => r.Pain).HasConversion<string>();
+        });
     }
 }

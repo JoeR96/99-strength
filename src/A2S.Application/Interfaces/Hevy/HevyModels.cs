@@ -24,6 +24,25 @@ public static class HevyRpe
         var half = Math.Min(10m, Math.Round(value * 2m, MidpointRounding.AwayFromZero) / 2m);
         return half == 6.5m ? 7m : half;
     }
+
+    /// <summary>
+    /// A cardio exercise's effort as a Hevy RPE: Easy 6 (Hevy's lowest), Solid 7, Brutal 9. Only cardio exercises use
+    /// this, so a session logged or edited in Hevy can come back as Easy (<see cref="CardioExerciseEffort"/>).
+    /// </summary>
+    public static decimal CardioExerciseRpe(A2S.Domain.Aggregates.Plan.Effort effort) => effort switch
+    {
+        A2S.Domain.Aggregates.Plan.Effort.Easy => 6m,
+        A2S.Domain.Aggregates.Plan.Effort.Solid => 7m,
+        _ => 9m
+    };
+
+    /// <summary>A Hevy RPE on a cardio exercise as an effort: 6 or less Easy, 7 to 8 Solid, 9 or more Brutal.</summary>
+    public static A2S.Domain.Aggregates.Plan.Effort CardioExerciseEffort(decimal rpe) => rpe switch
+    {
+        <= 6m => A2S.Domain.Aggregates.Plan.Effort.Easy,
+        < 9m => A2S.Domain.Aggregates.Plan.Effort.Solid,
+        _ => A2S.Domain.Aggregates.Plan.Effort.Brutal
+    };
 }
 
 public static class HevySetTypes

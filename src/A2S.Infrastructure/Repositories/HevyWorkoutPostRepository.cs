@@ -20,7 +20,7 @@ public class HevyWorkoutPostRepository : Repository<HevyWorkoutPost, HevyWorkout
     {
         var utc = now.ToUniversalTime();
         return await Context.HevyWorkoutPosts
-            .Where(p => p.Status == HevyPostStatus.Pending && p.NextAttemptAtUtc <= utc)
+            .Where(p => (p.Status == HevyPostStatus.Pending || p.Status == HevyPostStatus.UpdatePending) && p.NextAttemptAtUtc <= utc)
             .OrderBy(p => p.NextAttemptAtUtc)
             .Take(Math.Max(take, 1))
             .ToListAsync(ct);

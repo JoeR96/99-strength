@@ -82,6 +82,9 @@ export function getPrescribedSetsAndReps(
     };
   }
 
+  // A cardio exercise has no sets or reps: its block comes from the week plan.
+  if (prog.type === 'CardioStage') return { sets: 0, reps: 0 };
+
   // Default fallback
   return { sets: 3, reps: 10 };
 }

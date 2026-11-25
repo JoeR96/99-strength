@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CardioSessionList, CardioSettingsChanges } from "./CardioSessionList";
+import { CardioSettingsDialog } from "@/features/gym/CardioSettingsDialog";
 import { useWorkoutHistory } from "@/hooks/useWorkouts";
 import { EditExerciseConfigModal, type ExerciseConfigUpdate } from "./EditExerciseConfigModal";
 import {
@@ -11,6 +13,7 @@ import {
   SegmentTable,
 } from "./ExerciseProgressionTables";
 import type {
+  CardioStageProgressionDto,
   ExerciseDto,
   ProgressionConfigRequest,
 } from "@/types/workout";
@@ -40,6 +43,7 @@ export function ExerciseProgressionModal({
     isOpen
   );
   const [showEditConfig, setShowEditConfig] = useState(false);
+  const [showCardioSettings, setShowCardioSettings] = useState(false);
 
   if (!isOpen) return null;
 
@@ -49,6 +53,7 @@ export function ExerciseProgressionModal({
   const weeklyHistory = exerciseHistory?.weeklyHistory ?? [];
   const progressionChanges = exerciseHistory?.progressionChanges ?? [];
 
+  const isCardio = exercise.progression.type === "CardioStage";
   const progressionLabel = getProgressionLabel(exercise.progression.type);
 
   // Group weekly history by progression type segments
@@ -87,6 +92,17 @@ export function ExerciseProgressionModal({
                 Loading history...
               </p>
             </div>
+          ) : isCardio ? (
+            <>
+              {(exerciseHistory?.settingsChanges?.length ?? 0) > 0 && (
+                <>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Settings changes</h3>
+                  <div className="mb-4"><CardioSettingsChanges changes={exerciseHistory?.settingsChanges ?? []} /></div>
+                </>
+              )}
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Sessions</h3>
+              <CardioSessionList sessions={weeklyHistory} />
+            </>
           ) : weeklyHistory.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
@@ -149,7 +165,12 @@ export function ExerciseProgressionModal({
         {/* Footer */}
         <div className="p-4 border-t flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            {onChangeProgression && (
+            {isCardio && !(exercise.progression as CardioStageProgressionDto).isSettingsPending && (
+              <Button variant="outline" size="sm" onClick={() => setShowCardioSettings(true)} className="text-sm w-full sm:w-auto">
+                Change settings
+              </Button>
+            )}
+            {onChangeProgression && !isCardio && (
               <Button
                 variant="outline"
                 size="sm"
@@ -168,6 +189,20 @@ export function ExerciseProgressionModal({
           </Button>
         </div>
       </Card>
+
+      {showCardioSettings && isCardio && (
+        <CardioSettingsDialog
+          open
+          workoutId={workoutId}
+          exerciseId={exercise.id}
+          name={exercise.name}
+          block={cardioSettingsBlock(exercise.progression as CardioStageProgressionDto)}
+          onClose={() => {
+            setShowCardioSettings(false);
+            onWorkoutUpdated?.();
+          }}
+        />
+      )}
 
       {/* Edit Exercise Config Modal (stacked above) */}
       {showEditConfig && onSave && onChangeProgression && (
@@ -194,4 +229,17 @@ export function ExerciseProgressionModal({
       )}
     </div>
   );
+}
+
+/** The dialog's view of a cardio exercise: its current values; the stair climber's stages after the first are intervals. */
+function cardioSettingsBlock(p: CardioStageProgressionDto) {
+  return {
+    intensityUnit: p.intensityUnit,
+    intensity: p.intensity,
+    suggestedIntensity: p.suggestedIntensity,
+    speed: p.speed,
+    isSettingsPending: p.isSettingsPending,
+    stageName: p.stageName,
+    kind: p.lane === "Hard" && p.stageNumber > 1 ? ("Intervals" as const) : ("Continuous" as const),
+  };
 }

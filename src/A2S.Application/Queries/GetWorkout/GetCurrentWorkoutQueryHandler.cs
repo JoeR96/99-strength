@@ -110,7 +110,8 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
         };
     }
 
-    private static ExerciseDto MapExerciseToDto(Exercise exercise, Workout workout)
+    /// <summary>The exercise as the workout DTO shows it (also returned by single-exercise edits).</summary>
+    internal static ExerciseDto MapExerciseToDto(Exercise exercise, Workout workout)
     {
         var progression = exercise.Progression;
         var data = progression.GetProgressionData();
@@ -157,6 +158,19 @@ public sealed class GetCurrentWorkoutQueryHandler : IRequestHandler<GetCurrentWo
                 CurrentSetCount = data.CurrentSetCount ?? 0,
                 MinimumSets = data.MinimumSets ?? 2,
                 MaximumSets = data.MaximumSets ?? 10
+            },
+            "CardioStage" => new CardioStageProgressionDto
+            {
+                Type = "CardioStage",
+                Lane = data.CardioLane?.ToString() ?? string.Empty,
+                StageNumber = data.CardioStageNumber ?? 0,
+                StageName = data.CardioStageName ?? string.Empty,
+                Prescription = data.CardioPrescription ?? string.Empty,
+                IsSettingsPending = progression.IsCardioSettingsPending,
+                IntensityUnit = progression.CalculateCardioBlock()?.IntensityUnit.ToString() ?? string.Empty,
+                Intensity = progression.CalculateCardioBlock()?.Intensity,
+                SuggestedIntensity = progression.CalculateCardioBlock()?.SuggestedIntensity,
+                Speed = progression.CalculateCardioBlock()?.Speed
             },
             _ => new ExerciseProgressionDto { Type = progression.ProgressionType }
         };

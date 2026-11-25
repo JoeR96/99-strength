@@ -112,6 +112,10 @@ using (var scope = app.Services.CreateScope())
 
     // Tag the exercise library with Hevy primary/secondary muscle groups for the volume budget. Idempotent.
     await MuscleGroupBackfill.RunAsync(dbContext, logger);
+
+    // Move a running Falador Fat Furnace from stair / cool-down finishers onto cardio exercises. Idempotent; any
+    // Hevy update it queues is sent later by the Hevy retry service, never during startup.
+    await CardioExerciseBackfill.RunAsync(dbContext, logger);
 }
 
 if (app.Environment.IsDevelopment())

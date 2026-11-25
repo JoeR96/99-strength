@@ -31,19 +31,20 @@ public sealed class HevyCardioTrackLogger
     /// <param name="skipTrack">A track the session completion already evaluated (a cardio slot pointing at it).</param>
     /// <returns>How many track sessions were newly recorded.</returns>
     public Task<int> LogAsync(UserId userId, HevyWorkout workout, DateOnly date, CardioTrackId? skipTrack, CancellationToken ct) =>
-        LogAsync(userId, workout, date, skipTrack is { } one ? [one] : [], ct);
+        LogAsync(userId, workout, date, skipTrack is { } one ? [one] : [], [], ct);
 
     /// <summary>
     /// The built-in cardio exercises of <paramref name="workout"/> that belong to one of <paramref name="slotTracks"/>
     /// (a lift's finisher track, or a cardio slot's track that day), each with its log. Used to complete those
     /// plan slots so Today shows them done.
     /// </summary>
+    /// <param name="skipTemplates">Templates of the matched lift day's cardio exercises: never a track's.</param>
     public async Task<IReadOnlyList<(CardioTrackId Track, int ExerciseIndex, CardioLog Log)>> MatchSlotsAsync(
-        HevyWorkout workout, IReadOnlyList<CardioTrackId> slotTracks, CancellationToken ct)
+        HevyWorkout workout, IReadOnlyList<CardioTrackId> slotTracks, IReadOnlyCollection<string> skipTemplates, CancellationToken ct)
     {
         var matches = new List<(CardioTrackId, int, CardioLog)>();
         var used = new HashSet<CardioTrackId>();
-        foreach (var exercise in workout.Exercises.Where(e => HevyTemplateCatalogue.IsBuiltInCardio(e.ExerciseTemplateId)))
+        foreach (var exercise in TrackCardio(workout, skipTemplates))
         {
             var modalities = HevyTemplateCatalogue.ModalitiesForTemplate(exercise.ExerciseTemplateId);
             foreach (var id in slotTracks.Where(t => !used.Contains(t)))
@@ -61,10 +62,16 @@ public sealed class HevyCardioTrackLogger
         return matches;
     }
 
-    public async Task<int> LogAsync(UserId userId, HevyWorkout workout, DateOnly date, IReadOnlyCollection<CardioTrackId> skipTracks, CancellationToken ct)
+    /// <param name="skipTemplates">
+    /// Templates of the matched lift day's cardio exercises (<c>Category == Cardio</c>): those sets were the lift day's,
+    /// so a stair machine on a lift day is never logged to an old stair track as well.
+    /// </param>
+    public async Task<int> LogAsync(
+        UserId userId, HevyWorkout workout, DateOnly date, IReadOnlyCollection<CardioTrackId> skipTracks,
+        IReadOnlyCollection<string> skipTemplates, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(workout);
-        var cardio = workout.Exercises.Where(e => HevyTemplateCatalogue.IsBuiltInCardio(e.ExerciseTemplateId)).ToList();
+        var cardio = TrackCardio(workout, skipTemplates).ToList();
         if (cardio.Count == 0)
         {
             return 0;
@@ -98,6 +105,10 @@ public sealed class HevyCardioTrackLogger
 
         return recorded;
     }
+
+    private static IEnumerable<HevyWorkoutExercise> TrackCardio(HevyWorkout workout, IReadOnlyCollection<string> skipTemplates) =>
+        workout.Exercises.Where(e => HevyTemplateCatalogue.IsBuiltInCardio(e.ExerciseTemplateId)
+            && !skipTemplates.Contains(e.ExerciseTemplateId));
 
     /// <summary>Duration, distance, floors (stair floors) or steps, and the hardest RPE from one exercise's sets.</summary>
     public static CardioLog? LogFrom(HevyWorkoutExercise exercise)

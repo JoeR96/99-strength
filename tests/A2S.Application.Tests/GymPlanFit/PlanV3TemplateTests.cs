@@ -6,6 +6,7 @@ using A2S.Domain.Aggregates.Cardio;
 using A2S.Domain.Aggregates.Mobility;
 using A2S.Domain.Aggregates.Plan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
@@ -73,12 +74,51 @@ public class PlanV3TemplateTests
 
         spec.Exercises.Should().OnlyContain(e => e.SupersetGroup == null);
         spec.Supersets.Should().BeEmpty();
-        spec.CardioTracks.Should().Equal(CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
+        spec.CardioTracks.Should().Equal(CardioTrackTemplates.WalkToRun);
         spec.Schedule.Should().NotContain(s => s.Kind == SessionKind.Cardio);
         spec.Schedule.Where(s => s.Day is DayOfWeek.Wednesday or DayOfWeek.Saturday).Select(s => (s.Kind, s.MobilityRoutine, s.Label)).Should().Equal(
             (SessionKind.Mobility, PlanV3BaseBuildTransition.FullBodyFlow, "Full-body flow (20 min)"),
             (SessionKind.Mobility, PlanV3BaseBuildTransition.FullBodyFlow, "Full-body flow (20 min), or a follow-along video"));
         spec.TrackGates![CardioTrackTemplates.WalkToRun].Should().BeEquivalentTo(StartGate.WeightAndPainRunningGate(), o => o.WithStrictOrdering());
+    }
+
+    [Fact]
+    public void PlanV3_EachLiftDay_EndsWithItsCardioExercise()
+    {
+        var spec = Spec();
+
+        var last = new[] { DayNumber.Day1, DayNumber.Day2, DayNumber.Day3, DayNumber.Day4 }
+            .Select(day => spec.Exercises.Where(e => e.AssignedDay == day).MaxBy(e => e.OrderInDay)!)
+            .Select(e => (e.AssignedDay, e.TemplateName, e.ExternalTemplateId, e.ProgressionType, e.Category, e.CardioLane))
+            .ToList();
+
+        last.Should().Equal(
+            (DayNumber.Day1, "Stair Machine (Floors)", "4377A52B", CardioStageStrategy.TypeName, ExerciseCategory.Cardio, (CardioLane?)CardioLane.Hard),
+            (DayNumber.Day2, "Treadmill", "243710DE", CardioStageStrategy.TypeName, ExerciseCategory.Cardio, (CardioLane?)CardioLane.Easy),
+            (DayNumber.Day3, "Stair Machine (Floors)", "4377A52B", CardioStageStrategy.TypeName, ExerciseCategory.Cardio, (CardioLane?)CardioLane.Hard),
+            (DayNumber.Day4, "Treadmill", "243710DE", CardioStageStrategy.TypeName, ExerciseCategory.Cardio, (CardioLane?)CardioLane.Easy));
+        spec.Exercises.Where(e => e.Category == ExerciseCategory.Cardio).Should().HaveCount(4);
+        spec.Exercises.GroupBy(e => e.AssignedDay).Should().OnlyContain(day =>
+            day.Select(e => e.OrderInDay).OrderBy(o => o).SequenceEqual(Enumerable.Range(1, day.Count())));
+    }
+
+    [Fact]
+    public void PlanV3_LiftSlots_HaveNoFinishers()
+    {
+        var spec = Spec();
+
+        spec.Schedule.Where(s => s.Kind == SessionKind.Lift).Should().HaveCount(4).And.OnlyContain(s => s.Finisher == null);
+        spec.CardioTracks.Should().NotContain(CardioTrackTemplates.StairFinisher);
+    }
+
+    [Fact]
+    public void PlanV3_BuildPhaseNote_SaysIntervalsAreAutomatic()
+    {
+        var phases = Spec().Phases;
+
+        phases[0].Note.Should().Contain("stairs and incline walk progress on their own each workout");
+        phases[1].Changes.Should().Contain("Stair climber moves to 4 × 4 intervals on its own once continuous work reaches 12 min")
+            .And.NotContain(c => c.Contains("finisher", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -91,7 +131,7 @@ public class PlanV3TemplateTests
     }
 
     [Fact]
-    public void Preview_numbers_supersets_and_lists_finishers_warm_ups_routines_tracks_and_what_to_fill_in()
+    public void Preview_numbers_supersets_and_lists_cardio_warm_ups_routines_tracks_and_what_to_fill_in()
     {
         var preview = PlanTemplatePreview.Build(Template, Mon23Nov2026, alreadyStarted: false);
 
@@ -103,17 +143,22 @@ public class PlanV3TemplateTests
             "4 Single Arm Cable Row 2 × 10–12 each side, left first",
             "5 Skullcrusher (Dumbbell) 2 × 10–12",
             "6 Bicep Curl (Dumbbell) 2 × 10–12",
-            "7 Cable Core Palloff Press 2 × 10 each side, left first");
+            "7 Cable Core Palloff Press 2 × 10 each side, left first",
+            "8 Stair Machine (Floors) 3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)");
         preview.Sessions.Single(s => s.Label == "Lower A").Exercises[0].Should().BeEquivalentTo(new
         {
             Slot = "1", Name = "Pause Squat (Barbell)", Prescription = "4 × 4–6", Progression = "Reps per set"
         });
         upperA.WarmUp.Should().Be(PlanV3BaseBuildTransition.WarmUpUpper);
-        upperA.Finisher.Should().Be("Stair finisher");
-        preview.Sessions.Single(s => s.Label == "Lower B").Finisher.Should().Be("Treadmill, 10 min · Easy incline");
+        upperA.Exercises[^1].Progression.Should().Be("Cardio (hard lane)");
+        preview.Sessions.Should().OnlyContain(s => s.Finisher == null);
+        preview.Sessions.Single(s => s.Label == "Lower B").Exercises[^1].Should().BeEquivalentTo(new
+        {
+            Name = "Treadmill", Prescription = "10 min @ ? % incline", Progression = "Cardio (easy lane)"
+        });
         preview.Sessions.Single(s => s.Label == "Upper B").Exercises[0].Progression.Should().Be("A2S2 auxiliary scheme");
         preview.Routines.Select(r => r.Name).Should().Equal("Warm-up (upper)", "Warm-up (lower)", "Hips & lower back", "Upper back & chest", "Full-body flow");
-        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.StairFinisher, CardioTrackTemplates.WalkToRun);
+        preview.CardioTracks.Select(t => t.Key).Should().Equal(CardioTrackTemplates.WalkToRun);
         preview.ToFillIn.Should().HaveCount(4).And.Contain(i => i.StartsWith("Starting weights for 20 accessories"));
         preview.ProgramWeeks.Should().Be(26);
         preview.Slots.Should().HaveCount(11);
@@ -167,15 +212,14 @@ public class PlanTemplateApplierTests
         new(PlanV3BaseBuildTransition.TemplateKey, new DateOnly(2026, 11, 25), new Dictionary<string, decimal?>(), null, confirm);
 
     [Fact]
-    public async Task Applies_plan_v3_with_pending_tms_cool_downs_and_tracks_without_supersets()
+    public async Task Applies_plan_v3_with_pending_tms_cardio_exercises_and_tracks_without_supersets()
     {
         var result = await _handler.Handle(Apply(), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
         var plan = _added.Single();
         plan.StartDate.Should().Be(new DateOnly(2026, 11, 30));
-        plan.Schedule.Single(s => s.Label == "Lower A").Finisher!.Fixed!.Minutes.Should().Be(10);
-        plan.Schedule.Single(s => s.Label == "Upper A").Finisher!.CardioTrackId.Should().NotBeNull();
+        plan.Schedule.Where(s => s.Kind == SessionKind.Lift).Should().OnlyContain(s => s.Finisher == null);
         plan.Schedule.Single(s => s.Label == "Upper A").WarmUpRoutineId.Should().NotBeNull();
         plan.Schedule.Should().NotContain(s => s.Kind == SessionKind.Cardio);
         var workout = _addedWorkouts.Single();
@@ -185,7 +229,13 @@ public class PlanTemplateApplierTests
         pause.Category.Should().Be(ExerciseCategory.MainLift);
         workout.Exercises.Should().OnlyContain(e => e.SupersetGroup == null);
         workout.BlockSequence.Should().Equal(1, 2, 3);
-        await _tracks.Received(2).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
+        workout.Exercises.Where(e => e.Category == ExerciseCategory.Cardio)
+            .Select(e => (e.AssignedDay, e.Name, ((CardioStageStrategy)e.Progression).Lane)).Should().BeEquivalentTo(new[]
+            {
+                (DayNumber.Day1, "Stair Machine (Floors)", CardioLane.Hard), (DayNumber.Day2, "Treadmill", CardioLane.Easy),
+                (DayNumber.Day3, "Stair Machine (Floors)", CardioLane.Hard), (DayNumber.Day4, "Treadmill", CardioLane.Easy)
+            });
+        await _tracks.Received(1).AddAsync(Arg.Any<CardioTrack>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

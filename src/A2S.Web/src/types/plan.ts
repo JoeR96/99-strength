@@ -180,7 +180,8 @@ export interface TodaySessionDto {
 }
 
 /** A gym session's Hevy post: Skipped means no Hevy key is stored. */
-export type HevyPostStatus = 'Pending' | 'Posted' | 'Failed' | 'Skipped';
+/** UpdatePending: posted, and a later change (a cardio exercise's settings) is still to be sent; shown as Posted. */
+export type HevyPostStatus = 'Pending' | 'Posted' | 'Failed' | 'Skipped' | 'UpdatePending';
 
 export interface WeeklyGoalsDto {
   weekStart: LocalDate;

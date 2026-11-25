@@ -1,11 +1,14 @@
 using A2S.Application.Common;
+using A2S.Application.DTOs;
 using A2S.Application.Queries.GetWeekPlan;
 using A2S.Domain.Aggregates.Workout;
+using A2S.Domain.Aggregates.Workout.Cardio;
 using A2S.Domain.Common;
 using A2S.Domain.Enums;
 using A2S.Domain.Repositories;
 using A2S.Domain.Services;
 using A2S.Domain.ValueObjects;
+using A2S.Tests.Shared.Builders;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
@@ -115,6 +118,68 @@ public class GetWeekPlanQueryHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         await _workoutRepository.Received(1).GetByIdAsync(Arg.Any<WorkoutId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task WeekPlan_CardioExercise_HasBlockAndNoSets()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).WithVariant(ProgramVariant.FourDay)
+            .WithExercise(e => e.WithName("Bench").WithDay(DayNumber.Day1).WithOrder(1).AsLinear())
+            .WithExercise(e => e.WithDay(DayNumber.Day1).WithOrder(2).AsCardioStage(CardioLane.Hard))
+            .Build();
+        workout.Start();
+        _workoutRepository.GetActiveWorkoutAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>()).Returns(workout);
+
+        var result = await _handler.Handle(new GetWeekPlanQuery(null, 1, 1), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue(result.IsFailure ? result.Error : null);
+        result.Value.Exercises[0].CardioBlock.Should().BeNull();
+        var stairs = result.Value.Exercises[1];
+        stairs.Name.Should().Be("Stair Machine (Floors)");
+        stairs.Category.Should().Be("Cardio");
+        stairs.ProgressionType.Should().Be("CardioStage");
+        stairs.PlannedSets.Should().BeEmpty();
+        stairs.RestSeconds.Should().Be(0);
+        stairs.Metadata.IsCardioSettingsPending.Should().BeFalse();
+        stairs.CardioBlock.Should().BeEquivalentTo(new PlannedCardioBlockDto(
+            Lane: "Hard",
+            StageName: "Continuous",
+            StageNumber: 1,
+            StageCount: 3,
+            WarmUp: new TrackSegmentDto(3, 3m, null),
+            CoolDown: new TrackSegmentDto(2, 3m, null),
+            Kind: "Continuous",
+            WorkMinutes: 6,
+            Intervals: null,
+            RecoveryLevel: null,
+            IntensityUnit: "Level",
+            Intensity: 6m,
+            SuggestedIntensity: null,
+            Speed: null,
+            IsSettingsPending: false,
+            TotalMinutes: 11,
+            Text: "3 min easy (L3) → 6 min @ level 6 → 2 min easy (L3)"));
+    }
+
+    [Fact]
+    public async Task WeekPlan_WalkWithoutIncline_IsSettingsPending()
+    {
+        SetupAuthenticatedUser(TestUserId);
+        var workout = new WorkoutBuilder().WithUserId(TestUserId).WithVariant(ProgramVariant.FourDay)
+            .WithExercise(e => e.WithName("Squat").WithDay(DayNumber.Day2).WithOrder(1).AsLinear())
+            .WithExercise(e => e.WithDay(DayNumber.Day2).WithOrder(2).AsCardioStage(CardioLane.Easy))
+            .Build();
+        workout.Start();
+        _workoutRepository.GetActiveWorkoutAsync(Arg.Any<UserId>(), Arg.Any<CancellationToken>()).Returns(workout);
+
+        var result = await _handler.Handle(new GetWeekPlanQuery(null, 1, 2), CancellationToken.None);
+
+        var walk = result.Value.Exercises[1];
+        walk.Metadata.IsCardioSettingsPending.Should().BeTrue();
+        walk.CardioBlock!.IsSettingsPending.Should().BeTrue();
+        walk.CardioBlock.WarmUp.Should().BeNull();
+        walk.CardioBlock.IntensityUnit.Should().Be("InclinePercent");
     }
 
     private void SetupAuthenticatedUser(UserId userId)

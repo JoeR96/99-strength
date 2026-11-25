@@ -1,3 +1,4 @@
+using A2S.Application.Cardio;
 using A2S.Application.Common;
 using A2S.Application.DTOs;
 using A2S.Domain.Repositories;
@@ -58,7 +59,7 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
                     foreach (var activity in workout.CompletedActivities)
                     {
                         var performance = activity.Performances?.FirstOrDefault(p => p.ExerciseId == exercise.Id);
-                        if (performance != null && performance.CompletedSets.Count > 0)
+                        if (performance != null && (performance.CompletedSets.Count > 0 || performance.Cardio is not null))
                         {
                             var sets = performance.CompletedSets
                                 .Select(s => new CompletedSetDto
@@ -82,7 +83,8 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
                                 CompletedAt = performance.CompletedAt,
                                 ProgressionType = exercise.Progression?.ProgressionType ?? "Unknown",
                                 SessionVolume = sessionVolume,
-                                Sets = sets
+                                Sets = sets,
+                                CardioSummary = CardioSummaryFormatter.For(performance)
                             });
                         }
                     }
@@ -100,8 +102,9 @@ public sealed class GetExerciseHistoryQueryHandler : IRequestHandler<GetExercise
             var totalVolume = sessions.Sum(s => s.SessionVolume);
             var totalSets = allSets.Count;
             var totalReps = allSets.Sum(s => s.ActualReps);
-            var prWeight = allSets.Max(s => s.Weight);
-            var prVolume = allSets.Max(s => s.Weight * s.ActualReps);
+            // A cardio exercise's sessions have no sets: no PR, no volume.
+            var prWeight = allSets.Count > 0 ? allSets.Max(s => s.Weight) : 0;
+            var prVolume = allSets.Count > 0 ? allSets.Max(s => s.Weight * s.ActualReps) : 0;
             var weightUnit = allSets.FirstOrDefault()?.WeightUnit ?? "Kilograms";
 
             return Result.Success<AggregatedExerciseHistoryDto?>(new AggregatedExerciseHistoryDto

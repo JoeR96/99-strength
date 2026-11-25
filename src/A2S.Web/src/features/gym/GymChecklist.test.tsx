@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { GymChecklist } from './GymChecklist';
-import { freshGymSession, midGymSession } from './gymFixtures';
+import { cardioGymSession, freshGymSession, midGymSession } from './gymFixtures';
 import { allDrillsDone, editSet, tickDrill, toggleSet, updateFinisher, type GymSessionState } from './gymSession';
 
 const rest = { remaining: 0, total: 0, running: false, onAdjust: vi.fn(), onSkip: vi.fn() };
@@ -83,5 +83,17 @@ describe('GymChecklist', () => {
     fireEvent.click(screen.getByRole('button', { name: /Solid/ }));
 
     expect(screen.getByTestId('gym-finish')).toBeEnabled();
+  });
+
+  it('lists the cardio exercises after the last lift block', () => {
+    render(<Harness initial={cardioGymSession()} onFinish={vi.fn()} />);
+
+    const stairs = screen.getByTestId('cardio-v3-stairs');
+    const walk = screen.getByTestId('cardio-v3-walk');
+    const lastLift = screen.getByTestId('set-5-0');
+
+    expect(lastLift.compareDocumentPosition(stairs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(stairs.compareDocumentPosition(walk) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId('gym-progress')).toHaveTextContent('0 of 16 sets done');
   });
 });

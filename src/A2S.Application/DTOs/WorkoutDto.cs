@@ -138,6 +138,7 @@ public sealed record LastPerformanceSetDto
 [JsonDerivedType(typeof(LinearProgressionDto), typeDiscriminator: "Linear")]
 [JsonDerivedType(typeof(RepsPerSetProgressionDto), typeDiscriminator: "RepsPerSet")]
 [JsonDerivedType(typeof(MinimalSetsProgressionDto), typeDiscriminator: "MinimalSets")]
+[JsonDerivedType(typeof(CardioStageProgressionDto), typeDiscriminator: "CardioStage")]
 public record ExerciseProgressionDto
 {
     public string Type { get; init; } = string.Empty;
@@ -201,4 +202,29 @@ public sealed record MinimalSetsProgressionDto : ExerciseProgressionDto
     public int CurrentSetCount { get; init; }
     public int MinimumSets { get; init; }
     public int MaximumSets { get; init; }
+}
+
+/// <summary>
+/// Data Transfer Object for a cardio exercise's progression: its lane (Hard = stair climber, Easy = incline walk),
+/// where it sits on the stage ladder and today's prescription text.
+/// </summary>
+public sealed record CardioStageProgressionDto : ExerciseProgressionDto
+{
+    public string Lane { get; init; } = string.Empty;
+    public int StageNumber { get; init; }
+    public string StageName { get; init; } = string.Empty;
+    public string Prescription { get; init; } = string.Empty;
+    public bool IsSettingsPending { get; init; }
+
+    /// <summary>Level, InclinePercent or SpeedKmh: what <see cref="Intensity"/> is.</summary>
+    public string IntensityUnit { get; init; } = string.Empty;
+
+    /// <summary>The current level (stairs) or incline % (walk); null while not set.</summary>
+    public decimal? Intensity { get; init; }
+
+    /// <summary>The hard level suggested on entering the intervals, while it is not set.</summary>
+    public decimal? SuggestedIntensity { get; init; }
+
+    /// <summary>The walk's speed (km/h); null for the stairs or while not set.</summary>
+    public decimal? Speed { get; init; }
 }
