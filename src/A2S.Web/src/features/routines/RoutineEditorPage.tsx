@@ -189,7 +189,7 @@ function RoutineForm({ routine }: { routine: MobilityRoutineDto | undefined }) {
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           Routines
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">{editing ? `Edit ${routine?.name}` : 'New routine'}</h1>
+        <h1 className="text-hero">{editing ? `Edit ${routine?.name}` : 'New routine'}</h1>
         <UnsavedChangesGuard
           when={() => unsaved.isDirty && !saved.current}
           detail="Your changes stay on this phone, and you can restore them next time you open this routine."

@@ -189,10 +189,10 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">This Week's Training</h2>
-        <div className="flex items-center gap-3">
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
+        <h2 className="text-xl font-semibold tracking-tight whitespace-nowrap">This Week's Training</h2>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <div className="text-sm text-muted-foreground">
             Week {workout.currentWeek} of {workout.totalWeeks}
             {workout.isWeekComplete && (
@@ -205,7 +205,7 @@ export function WeekOverview({ workout, onWorkoutUpdated }: WeekOverviewProps) {
               variant="outline"
               size="sm"
               onClick={() => setShowUndoModal(true)}
-              className="flex items-center gap-2 text-destructive border-destructive hover:bg-destructive/10"
+              className="flex items-center gap-2 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />

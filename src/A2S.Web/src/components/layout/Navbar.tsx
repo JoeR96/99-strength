@@ -14,15 +14,15 @@ export function Navbar() {
   const pending = usePendingSyncCount();
 
   return (
-    <nav className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <nav className="sticky top-0 z-30 border-b border-border surface-bar" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="container-page">
-        <div className="flex h-14 items-center justify-between lg:h-16">
+        <div className="flex h-12 items-center justify-between lg:h-14">
           <div className="flex items-center gap-8">
-            <Link to="/today" className="flex items-center gap-3" aria-label="99 Strength home">
-              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
-                <span className="text-lg font-bold font-display text-primary-foreground">99</span>
+            <Link to="/today" className="flex min-h-11 min-w-11 items-center gap-2.5" aria-label="99 Strength home">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary">
+                <span className="text-base font-bold font-display text-primary-foreground">99</span>
               </div>
-              <span className="hidden text-xl font-bold text-foreground sm:block">Strength</span>
+              <span className="hidden text-lg font-semibold tracking-tight text-foreground sm:block">Strength</span>
             </Link>
 
             <div className="hidden items-center gap-1 lg:flex">
@@ -33,10 +33,10 @@ export function Navbar() {
                     key={tab.to}
                     to={tab.to}
                     aria-current={active ? 'page' : undefined}
-                    className={`rounded px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                       active
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        ? 'bg-foreground/10 text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <span className="relative">
@@ -55,7 +55,7 @@ export function Navbar() {
             </span>
             <UserButton
               afterSignOutUrl="/sign-in"
-              appearance={{ elements: { avatarBox: 'h-11 w-11 rounded-md border border-border' } }}
+              appearance={{ elements: { avatarBox: 'h-9 w-9 rounded-full' } }}
             />
           </div>
         </div>

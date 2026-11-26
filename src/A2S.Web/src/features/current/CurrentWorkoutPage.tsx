@@ -94,15 +94,15 @@ export function CurrentWorkoutPage({ pendingSyncCount }: CurrentWorkoutPageProps
         <header className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm text-muted-foreground">{cycle?.workoutName ?? 'Workout'}</p>
-            <h1 className="text-2xl font-bold text-foreground">Current workout</h1>
+            <h1 className="text-hero">Current workout</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <PendingSyncBadge count={pendingCount} />
             {habitsQuery.data && <StreakChip streak={habitsQuery.data.streak} />}
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-11 w-11 shrink-0"
+              className="h-11 w-11 shrink-0 rounded-full"
               onClick={refresh}
               disabled={refreshing}
               aria-label={hevyConfigured ? 'Refresh and pull from Hevy' : 'Refresh'}
@@ -169,17 +169,19 @@ export function CurrentWorkoutPage({ pendingSyncCount }: CurrentWorkoutPageProps
           </section>
         )}
 
+        <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0">
+          <div className="space-y-4">
         {current && cycle && <CurrentSessionCard session={current} daysPerWeek={cycle.daysPerWeek} warmUp={warmUp} />}
 
         {paired && (
-          <section className="flex items-center gap-3 rounded-lg border border-border bg-card p-4" data-testid="paired-routine">
+          <section className="flex items-center gap-3 rounded-xl border border-border bg-card p-4" data-testid="paired-routine">
             <div className="min-w-0 flex-1">
               <p className="text-sm text-muted-foreground">After this workout</p>
               <p className="truncate font-semibold text-foreground">
                 {paired.name} ({paired.targetMinutes} min)
               </p>
             </div>
-            <Button asChild className="h-11" aria-label={`Play ${paired.name}`}>
+            <Button asChild variant="tinted" className="h-11" aria-label={`Play ${paired.name}`}>
               <Link to={`/routines/${paired.id}/play`}>
                 <Play aria-hidden="true" />
                 Play
@@ -191,7 +193,9 @@ export function CurrentWorkoutPage({ pendingSyncCount }: CurrentWorkoutPageProps
         <TodayPhaseHeadsUp date={date} />
 
         {split && <CycleList thisWeek={split.thisWeek} nextWeek={split.nextWeek} />}
+          </div>
 
+          <div className="space-y-4">
         <TodayHabits date={date} />
 
         {cycle && (
@@ -199,6 +203,8 @@ export function CurrentWorkoutPage({ pendingSyncCount }: CurrentWorkoutPageProps
             Full plan and history
           </Link>
         )}
+          </div>
+        </div>
       </main>
     </div>
   );

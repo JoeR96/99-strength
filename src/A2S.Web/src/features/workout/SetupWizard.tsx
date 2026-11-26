@@ -513,7 +513,7 @@ export function SetupWizard() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Setup Wizard</h1>
+          <h1 className="text-hero">Setup Wizard</h1>
           <p className="text-muted-foreground mt-1">Configure your training program</p>
         </div>
 

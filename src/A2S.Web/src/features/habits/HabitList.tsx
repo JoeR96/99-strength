@@ -74,7 +74,7 @@ export function HabitList({ habits, onTap, onSetValue, onEdit }: HabitListProps)
         return (
           <li
             key={habit.id}
-            className={cn('flex items-center gap-3 rounded-lg border bg-card p-3', habit.metTarget ? 'border-success/60' : 'border-border')}
+            className={cn('flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors', habit.metTarget ? 'border-success/40' : 'border-border')}
             data-testid={`habit-row-${habit.id}`}
           >
             <HabitIcon icon={habit.icon} type={habit.type} className="h-6 w-6 shrink-0 text-muted-foreground" />
@@ -101,7 +101,7 @@ export function HabitList({ habits, onTap, onSetValue, onEdit }: HabitListProps)
                   onClick={() => onTap(habit.id, -1)}
                   disabled={habit.value <= 0}
                   aria-label={`One less ${habit.name}`}
-                  className="flex h-11 w-11 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-40"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-[background-color,scale] hover:bg-foreground/10 active:scale-90 disabled:opacity-30"
                 >
                   <Minus className="h-5 w-5" aria-hidden="true" />
                 </button>
@@ -109,7 +109,7 @@ export function HabitList({ habits, onTap, onSetValue, onEdit }: HabitListProps)
                   type="button"
                   onClick={() => onTap(habit.id, 1)}
                   aria-label={`Add one ${habit.name}`}
-                  className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/15 text-primary transition-[background-color,scale] hover:bg-primary/25 active:scale-90"
                 >
                   <Plus className="h-5 w-5" aria-hidden="true" />
                 </button>
@@ -125,7 +125,7 @@ export function HabitList({ habits, onTap, onSetValue, onEdit }: HabitListProps)
                 onClick={() => onSetValue(habit.id, done ? 0 : 1)}
                 className={cn(
                   'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2',
-                  done ? 'border-success bg-success text-success-foreground' : 'border-border text-transparent'
+                  done ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40 text-transparent'
                 )}
               >
                 <Check className="h-6 w-6" strokeWidth={3} aria-hidden="true" />

@@ -24,6 +24,8 @@ export interface GymBlockCardProps {
   onSetTrainingMax?: (lift: number) => void;
   /** Unilateral lifts: ticks the left side of a set (done first). */
   onToggleLeft?: (lift: number, set: number) => void;
+  /** The block being worked on: its first unticked row is marked as the next set. */
+  active?: boolean;
 }
 
 function formatWeight(weight: number, unit: string): string {
@@ -50,7 +52,7 @@ function TickCircle({ done }: { done: boolean }) {
     <span
       className={cn(
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2',
-        done ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
+        done ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
       )}
       aria-hidden="true"
     >
@@ -69,24 +71,31 @@ interface SetRowProps {
   reps: number;
   editLabel: string;
   testId: string;
+  /** The next set to do: the one row on the screen that stands out. */
+  next?: boolean;
   onTap: () => void;
   onEdit: (change: { weight?: number; reps?: number }) => void;
 }
 
-function SetRow({ id, caption, summary, done, unit, weight, reps, editLabel, testId, onTap, onEdit }: SetRowProps) {
+function SetRow({ id, caption, summary, done, unit, weight, reps, editLabel, testId, next = false, onTap, onEdit }: SetRowProps) {
   const [editing, setEditing] = useState(false);
   return (
     <li className="space-y-2">
-      <div className="flex items-stretch gap-2">
+      <div className="flex items-stretch gap-1">
         <button
           type="button"
           className={cn(
-            'flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md border px-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            done ? 'border-success/60 bg-success/15 text-foreground' : 'border-border bg-muted/40 text-foreground'
+            'flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md border px-3 text-left transition-[background-color,border-color,scale] duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            done
+              ? 'border-transparent bg-foreground/[0.03] text-muted-foreground'
+              : next
+                ? 'border-primary/50 bg-primary/10 text-foreground'
+                : 'border-transparent bg-foreground/[0.06] text-foreground'
           )}
           aria-pressed={done}
           onClick={onTap}
           data-testid={testId}
+          data-next={next || undefined}
         >
           <TickCircle done={done} />
           <span className="min-w-0 flex-1">
@@ -96,9 +105,9 @@ function SetRow({ id, caption, summary, done, unit, weight, reps, editLabel, tes
         </button>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-14 w-12 shrink-0"
+          className="h-14 w-11 shrink-0"
           aria-label={editLabel}
           aria-expanded={editing}
           onClick={() => setEditing(!editing)}
@@ -108,7 +117,7 @@ function SetRow({ id, caption, summary, done, unit, weight, reps, editLabel, tes
       </div>
 
       {editing && (
-        <div className="grid grid-cols-2 gap-2 rounded-md border border-border p-3">
+        <div className="grid animate-rise grid-cols-2 gap-2 rounded-md bg-foreground/[0.04] p-3">
           <div>
             <Label htmlFor={`w-${id}`}>Weight ({unit})</Label>
             <Input id={`w-${id}`} type="number" inputMode="decimal" step="0.5" min={0} className="mt-1 h-12" value={weight} onChange={(e) => onEdit({ weight: Number(e.target.value) })} />
@@ -126,16 +135,24 @@ function SetRow({ id, caption, summary, done, unit, weight, reps, editLabel, tes
   );
 }
 
-export function GymBlockCard({ block, lifts, onToggleSet, onAmrap, onEditSet, onToggleExtraSet, onSetTrainingMax, onToggleLeft }: GymBlockCardProps) {
+export function GymBlockCard({ block, lifts, onToggleSet, onAmrap, onEditSet, onToggleExtraSet, onSetTrainingMax, onToggleLeft, active = false }: GymBlockCardProps) {
   const first = block.lifts[0];
   const superset = block.lifts.length > 1;
   const headingId = `lift-${first}-heading`;
   const labelOf = (lift: number) => block.labels[block.lifts.indexOf(lift)];
   const total = block.lifts.reduce((n, l) => n + lifts[l].sets.length, 0);
   const done = block.lifts.reduce((n, l) => n + lifts[l].sets.filter((s) => s.done).length, 0);
+  // Rows in the order they are done; the first unticked one in the active block is "next".
+  const rowKeys = block.order.flatMap(({ lift: li, set: si }) =>
+    sideRows(lifts[li]).map((side) => ({
+      key: side === 'Left' ? `${li}-${si}-left` : `${li}-${si}`,
+      done: side === 'Left' ? lifts[li].sets[si].leftDone === true : lifts[li].sets[si].done,
+    }))
+  );
+  const nextKey = active ? rowKeys.find((r) => !r.done)?.key : undefined;
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby={headingId} data-testid={superset ? `gym-superset-${first}` : `gym-lift-${first}`}>
+    <section className="rounded-xl border border-border bg-card p-4" aria-labelledby={headingId} data-testid={superset ? `gym-superset-${first}` : `gym-lift-${first}`}>
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <h3 id={headingId} className="min-w-0 text-lg font-semibold text-foreground">
           {superset ? (
@@ -151,7 +168,7 @@ export function GymBlockCard({ block, lifts, onToggleSet, onAmrap, onEditSet, on
             <span className="block truncate">{lifts[first].name}</span>
           )}
         </h3>
-        <span className="shrink-0 text-sm text-muted-foreground">
+        <span className={cn('shrink-0 text-sm', done === total ? 'font-medium text-success' : 'text-muted-foreground')}>
           {done}/{total} sets
         </span>
       </div>
@@ -188,6 +205,7 @@ export function GymBlockCard({ block, lifts, onToggleSet, onAmrap, onEditSet, on
               reps={set.reps}
               editLabel={`Change weight or reps for set ${set.setNumber} left of ${lift.name}`}
               testId={`set-${li}-${si}-left`}
+              next={nextKey === `${li}-${si}-left`}
               onTap={() => onToggleLeft?.(li, si)}
               onEdit={(change) => onEditSet(li, si, change)}
             />
@@ -209,6 +227,7 @@ export function GymBlockCard({ block, lifts, onToggleSet, onAmrap, onEditSet, on
               reps={set.reps}
               editLabel={`Change weight or reps for set ${set.setNumber} of ${lift.name}`}
               testId={`set-${li}-${si}`}
+              next={nextKey === `${li}-${si}`}
               onTap={() => (set.isAmrap && !set.done ? onAmrap(li, si) : onToggleSet(li, si))}
               onEdit={(change) => onEditSet(li, si, change)}
             />

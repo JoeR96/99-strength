@@ -54,12 +54,12 @@ export function CurrentSessionCard({ session, daysPerWeek, warmUp }: CurrentSess
   };
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="current-session-heading" data-testid="current-session">
+    <section className="rounded-xl border border-border bg-card p-4 sm:p-6" aria-labelledby="current-session-heading" data-testid="current-session">
       <p className="text-sm text-muted-foreground" data-testid="cycle-position">
         Week {session.week} · Session {session.position} of {daysPerWeek}
         {session.isDeloadWeek && <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-xs font-medium text-foreground">Deload</span>}
       </p>
-      <h2 id="current-session-heading" className="text-2xl font-bold text-foreground">
+      <h2 id="current-session-heading" className="mt-0.5 text-[1.75rem] font-bold leading-tight tracking-tight text-foreground">
         {session.label}
       </h2>
       <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -75,9 +75,9 @@ export function CurrentSessionCard({ session, daysPerWeek, warmUp }: CurrentSess
         )}
       </p>
 
-      <ul className="mt-3 space-y-2" aria-label="Exercises">
+      <ul className="mt-4 divide-y divide-border border-y border-border" aria-label="Exercises">
         {plan.exercises.map((exercise) => (
-          <li key={exercise.exerciseId} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
+          <li key={exercise.exerciseId} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2.5 text-[0.9375rem]">
             <span className="min-w-0 truncate font-medium text-foreground">{exercise.name}</span>
             {exercise.metadata.isTrainingMaxPending ? (
               <Button
@@ -108,7 +108,7 @@ export function CurrentSessionCard({ session, daysPerWeek, warmUp }: CurrentSess
         </Button>
       )}
       {reviewing && (
-        <div className="mt-3 space-y-2 rounded-md border border-border bg-muted/40 p-3" role="group" aria-label="Review suggested training maxes" data-testid="suggestions-review">
+        <div className="mt-3 animate-rise space-y-2 rounded-md bg-foreground/[0.05] p-3" role="group" aria-label="Review suggested training maxes" data-testid="suggestions-review">
           <p className="text-sm font-medium text-foreground">Set these training maxes?</p>
           <ul className="space-y-1 text-sm">
             {suggested.map(({ exercise, suggestion }) => (
@@ -133,7 +133,7 @@ export function CurrentSessionCard({ session, daysPerWeek, warmUp }: CurrentSess
       )}
       {plan.cardio?.stepUpNote && <p className="mt-1 text-xs text-muted-foreground">{plan.cardio.progressionType} · {plan.cardio.stepUpNote}</p>}
 
-      <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+      <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
         <Button asChild size="lg" className="h-14 text-lg" data-testid="start-workout">
           <Link to={`/gym/${session.day}`}>
             <Play aria-hidden="true" />

@@ -57,8 +57,8 @@ export function HabitCounter({ habit, onTap, pending = false }: HabitCounterProp
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-lg border border-border bg-card p-3',
-        habit.metTarget && 'border-success/60'
+        'flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors',
+        habit.metTarget && 'border-success/40'
       )}
       data-testid={`habit-counter-${habit.id}`}
     >
@@ -89,7 +89,7 @@ export function HabitCounter({ habit, onTap, pending = false }: HabitCounterProp
           onClick={() => canDecrement && onTap(habit.id, -1)}
           disabled={!canDecrement}
           aria-label={`One less ${habit.name}`}
-          className="flex h-11 w-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-40"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-[background-color,scale] hover:bg-foreground/10 active:scale-90 disabled:opacity-30"
         >
           <Minus className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -103,9 +103,9 @@ export function HabitCounter({ habit, onTap, pending = false }: HabitCounterProp
           onClick={onClick}
           aria-label={`Add one ${habit.name}`}
           title="Hold to take one off"
-          className="flex h-16 w-16 select-none items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform active:scale-95 [touch-action:manipulation]"
+          className="flex h-16 w-16 select-none items-center justify-center rounded-full bg-primary/15 text-primary transition-[background-color,scale] hover:bg-primary/25 active:scale-90 [touch-action:manipulation]"
         >
-          <Plus className="h-8 w-8" strokeWidth={2.5} aria-hidden="true" />
+          <Plus className="h-8 w-8" strokeWidth={2.25} aria-hidden="true" />
         </button>
       </div>
     </div>

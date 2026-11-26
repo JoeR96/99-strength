@@ -81,7 +81,7 @@ export function TracksPage() {
       <Navbar />
       <main className="container-page space-y-4 py-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground">Cardio</h1>
+          <h1 className="text-hero">Cardio</h1>
           <p className="text-sm text-muted-foreground">
             Walks, runs and finishers. Each track steps up on its own when you log good sessions. A finisher attached to a lift is
             also on the Current workout page.

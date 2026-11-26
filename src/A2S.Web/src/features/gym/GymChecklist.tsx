@@ -86,6 +86,8 @@ export function GymChecklist({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [confirmEarly, setConfirmEarly] = useState(initialConfirmEarly);
   const progress = progressOf(state);
+  const blocks = liftBlocks(state);
+  const activeBlock = blocks.findIndex((b) => b.lifts.some((l) => state.lifts[l].sets.some((s) => !s.done)));
   const promptLift = prompt ? state.lifts[prompt.lift] : null;
   const promptSet = prompt && promptLift ? promptLift.sets[prompt.set] : null;
   const skipped = [
@@ -100,14 +102,20 @@ export function GymChecklist({
       <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
         <header>
           <p className="text-sm text-muted-foreground">Gym mode · Week {state.week}</p>
-          <h1 className="text-2xl font-semibold text-foreground">{state.title}</h1>
+          <h1 className="text-hero">{state.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground" aria-live="polite" data-testid="gym-progress">
             {progress.setsDone} of {progress.setsTotal} sets done
           </p>
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-foreground/10" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
+              style={{ width: `${progress.setsTotal > 0 ? Math.round((progress.setsDone / progress.setsTotal) * 100) : 0}%` }}
+            />
+          </div>
         </header>
 
         {!online && (
-          <p className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm text-foreground" data-testid="gym-offline">
+          <p className="flex items-center gap-2 rounded-md bg-foreground/[0.06] p-3 text-sm text-foreground" data-testid="gym-offline">
             <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
             Offline. Every set is saved on this phone; Finish waits until you are back online.
           </p>
@@ -115,10 +123,11 @@ export function GymChecklist({
 
         {state.drills.length > 0 && <WarmUpSection drills={state.drills} onTick={onTickDrill} onAllDone={onAllDrillsDone} />}
 
-        {liftBlocks(state).map((block) => (
+        {blocks.map((block, blockIndex) => (
           <GymBlockCard
             key={state.lifts[block.lifts[0]].exerciseId}
             block={block}
+            active={blockIndex === activeBlock}
             lifts={state.lifts}
             onToggleSet={(l, s) => onToggleSet(l, s)}
             onAmrap={(l, s) => setPrompt({ lift: l, set: s })}
@@ -160,7 +169,7 @@ export function GymChecklist({
             <Button
               type="button"
               size="lg"
-              variant={progress.canFinish ? 'default' : 'outline'}
+              variant="outline"
               className="w-full"
               onClick={() => setConfirmEarly(true)}
               disabled={!progress.canFinish || finishing}

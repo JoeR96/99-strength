@@ -15,7 +15,7 @@ import type { SetTrainingMaxResult, StartingNumberSuggestion } from '@/api/worko
 import { hevyFallbackNote, itemFor } from '@/features/suggestions/startingNumbers';
 import { SuggestionEvidence } from '@/features/suggestions/SuggestionEvidence';
 
-const SHEET = 'bottom-0 top-auto max-h-[92dvh] translate-y-0 overflow-y-auto rounded-t-lg p-6 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2';
+const SHEET = 'sheet-surface bottom-0 top-auto w-full translate-y-0 overflow-y-auto rounded-b-none rounded-t-2xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:top-1/2 sm:w-[calc(100%-2rem)] sm:-translate-y-1/2 sm:rounded-2xl sm:pb-6 max-h-[92dvh]';
 
 export interface SetTrainingMaxDialogProps {
   open: boolean;
@@ -140,7 +140,7 @@ export function SetTrainingMaxDialog({
                 aria-pressed={mode === value}
                 className={cn(
                   'min-h-12 rounded-md border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  mode === value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                  mode === value ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
                 )}
                 onClick={() => {
                   setMode(value);

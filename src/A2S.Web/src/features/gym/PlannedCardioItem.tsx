@@ -10,7 +10,7 @@ import { FinisherParts, hasSegments } from '@/features/cardio/FinisherParts';
 export function PlannedCardioItem({ cardio, compact = false }: { cardio: PlannedCardioDto; compact?: boolean }) {
   if (compact) {
     return (
-      <li className="flex items-baseline justify-between gap-3 text-sm" data-testid="planned-cardio">
+      <li className="flex items-baseline justify-between gap-3 py-2.5 text-[0.9375rem]" data-testid="planned-cardio">
         <span className="flex min-w-0 items-center gap-1.5 truncate font-medium text-foreground">
           <HeartPulse className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           {cardio.name}

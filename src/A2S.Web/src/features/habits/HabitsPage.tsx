@@ -104,12 +104,12 @@ export function HabitsPage() {
       <Navbar />
       <main className="container-page space-y-4 py-4">
         <header className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-foreground">Habits</h1>
+          <h1 className="text-hero">Habits</h1>
           {todayQuery.data && <StreakChip streak={todayQuery.data.streak} />}
         </header>
 
         <section aria-labelledby="habits-today-heading" className="space-y-2">
-          <h2 id="habits-today-heading" className="text-sm font-medium text-muted-foreground">
+          <h2 id="habits-today-heading" className="text-section">
             Today
           </h2>
           {todayQuery.isLoading && <div className="h-40 animate-pulse rounded-lg bg-muted" aria-hidden="true" />}
@@ -130,7 +130,7 @@ export function HabitsPage() {
 
         {active.length > 0 && (
           <section aria-labelledby="habits-history-heading" className="space-y-2">
-            <h2 id="habits-history-heading" className="text-sm font-medium text-muted-foreground">
+            <h2 id="habits-history-heading" className="text-section">
               Last 12 weeks
             </h2>
             <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Choose a habit">
