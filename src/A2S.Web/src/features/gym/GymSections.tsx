@@ -22,7 +22,7 @@ export function WarmUpSection({
 }) {
   const done = drills.filter((d) => d.done).length;
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="warm-up-heading">
+    <section className="rounded-xl border border-border bg-card p-4" aria-labelledby="warm-up-heading">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 id="warm-up-heading" className="text-lg font-semibold text-foreground">
           Warm-up
@@ -38,7 +38,7 @@ export function WarmUpSection({
               type="button"
               className={cn(
                 'flex min-h-12 w-full items-center gap-3 rounded-md border px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                drill.done ? 'border-success/60 bg-success/15' : 'border-border bg-muted/40'
+                drill.done ? 'border-transparent bg-foreground/[0.03]' : 'border-transparent bg-foreground/[0.06]'
               )}
               aria-pressed={drill.done}
               onClick={() => onTick(i)}
@@ -47,7 +47,7 @@ export function WarmUpSection({
               <span
                 className={cn(
                   'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2',
-                  drill.done ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
+                  drill.done ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
                 )}
                 aria-hidden="true"
               >
@@ -84,7 +84,7 @@ export function FinisherCard({
 }) {
   const segmented = hasSegments(finisher.warmUp, finisher.coolDown);
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
+    <section className="rounded-xl border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
       <h2 id="finisher-heading" className="text-lg font-semibold text-foreground">
         Finisher: {finisher.name}
       </h2>
@@ -143,7 +143,7 @@ export function FinisherCard({
               type="button"
               className={cn(
                 'min-h-14 rounded-md border px-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                finisher.effort === e.value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                finisher.effort === e.value ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
               )}
               aria-pressed={finisher.effort === e.value}
               onClick={() => onChange({ effort: e.value })}
@@ -165,7 +165,7 @@ export function FinisherCard({
                 type="button"
                 className={cn(
                   'min-h-12 rounded-md border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  (finisher.pain ?? 'None') === value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                  (finisher.pain ?? 'None') === value ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
                 )}
                 aria-pressed={(finisher.pain ?? 'None') === value}
                 onClick={() => onChange({ pain: value })}
@@ -184,7 +184,7 @@ export function FinisherCard({
 export function FixedFinisherCard({ finisher, onToggle }: { finisher: GymFinisher; onToggle: () => void }) {
   const done = finisher.done === true;
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
+    <section className="rounded-xl border border-border bg-card p-4" aria-labelledby="finisher-heading" data-testid="gym-finisher">
       <h2 id="finisher-heading" className="mb-3 text-lg font-semibold text-foreground">
         Cool-down
       </h2>
@@ -192,7 +192,7 @@ export function FixedFinisherCard({ finisher, onToggle }: { finisher: GymFinishe
         type="button"
         className={cn(
           'flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          done ? 'border-success/60 bg-success/15' : 'border-border bg-muted/40'
+          done ? 'border-transparent bg-foreground/[0.03]' : 'border-transparent bg-foreground/[0.06]'
         )}
         aria-pressed={done}
         onClick={onToggle}
@@ -201,7 +201,7 @@ export function FixedFinisherCard({ finisher, onToggle }: { finisher: GymFinishe
         <span
           className={cn(
             'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2',
-            done ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
+            done ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
           )}
           aria-hidden="true"
         >
@@ -228,7 +228,7 @@ export function RestTimerBar({
 }) {
   const percent = total > 0 ? Math.round((remaining / total) * 100) : 0;
   return (
-    <div className="sticky top-0 z-20 border-b border-border bg-card/95 px-4 py-2 backdrop-blur" role="region" aria-label="Rest timer" data-testid="rest-timer">
+    <div className="sticky top-0 z-20 animate-rise border-b border-border surface-bar px-4 py-2" role="region" aria-label="Rest timer" data-testid="rest-timer">
       <div className="mx-auto flex max-w-2xl items-center gap-2">
         <Timer className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
         <span className="min-w-0 flex-1 text-2xl font-semibold tabular-nums text-foreground" role="timer" aria-label={`Rest: ${formatClock(remaining)} left`}>
@@ -244,8 +244,8 @@ export function RestTimerBar({
           Skip
         </Button>
       </div>
-      <div className="mx-auto mt-2 h-1 max-w-2xl overflow-hidden rounded bg-muted" aria-hidden="true">
-        <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+      <div className="mx-auto mt-2 h-1 max-w-2xl overflow-hidden rounded-full bg-foreground/10" aria-hidden="true">
+        <div className="h-full rounded-full bg-primary transition-[width] duration-1000 ease-linear" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );

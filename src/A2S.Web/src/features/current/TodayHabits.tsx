@@ -47,7 +47,7 @@ export function TodayHabits({ date }: { date: LocalDate }) {
 
   return (
     <section aria-labelledby="habits-heading" className="space-y-2">
-      <h2 id="habits-heading" className="text-sm font-medium text-muted-foreground">
+      <h2 id="habits-heading" className="text-section">
         Habits · {formatDayLabel(date)}
       </h2>
       {habitsQuery.isLoading && <div className="h-24 animate-pulse rounded-lg bg-muted" aria-hidden="true" />}

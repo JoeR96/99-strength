@@ -34,17 +34,17 @@ export function CompletionSummary({
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-6 animate-rise">
         {/* Completion Header */}
-        <Card className="p-6 mb-6 text-center border-success bg-success/10">
+        <Card className="p-6 mb-4 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-success rounded-full flex items-center justify-center animate-tick">
               <svg className="w-10 h-10 text-success-foreground" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-success" data-testid="completion-title">
+          <h1 className="text-hero" data-testid="completion-title">
             {result.programComplete ? "Program Complete!" : "Workout Complete!"}
           </h1>
           <p className="text-muted-foreground mt-2">

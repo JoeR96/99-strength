@@ -77,7 +77,7 @@ export function HevyInboxPage() {
           </Link>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Hevy inbox</h1>
+              <h1 className="text-hero">Hevy inbox</h1>
               <p className="text-sm text-muted-foreground">Workouts pulled from Hevy that didn't fit a planned session.</p>
             </div>
             {isConfigured && (

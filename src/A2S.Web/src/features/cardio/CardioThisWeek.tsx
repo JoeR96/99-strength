@@ -42,7 +42,7 @@ export function CardioThisWeek() {
   return (
     <section aria-labelledby="cardio-tracks-heading" className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="cardio-tracks-heading" className="text-sm font-medium text-muted-foreground">
+        <h2 id="cardio-tracks-heading" className="text-section">
           This week
         </h2>
       </div>

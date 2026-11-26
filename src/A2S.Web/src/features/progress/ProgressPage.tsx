@@ -37,7 +37,7 @@ export function ProgressPage() {
       <Navbar />
       <main className="container-page space-y-4 py-4">
         <header>
-          <h1 className="text-2xl font-bold text-foreground">Progress</h1>
+          <h1 className="text-hero">Progress</h1>
           {plan && <PlanNameWithRename planId={plan.id} name={plan.name} />}
         </header>
 

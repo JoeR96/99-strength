@@ -79,7 +79,7 @@ export function RoutinePreviewPage() {
               <p className="text-sm text-muted-foreground">
                 {routineKindLabel[routine.kind ?? MobilityRoutineKind.Stretch]} · about {routine.kind === MobilityRoutineKind.FollowAlong ? routine.targetMinutes : estimateMinutes(routine)} min
               </p>
-              <h1 className="text-2xl font-bold text-foreground">{routine.name}</h1>
+              <h1 className="text-hero">{routine.name}</h1>
             </header>
             {routine.followAlongUrl && (
               <a

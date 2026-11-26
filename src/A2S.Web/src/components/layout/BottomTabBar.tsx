@@ -15,7 +15,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border surface-bar lg:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="grid grid-cols-5">
@@ -27,12 +27,12 @@ export function BottomTabBar() {
               <Link
                 to={tab.to}
                 aria-current={active ? 'page' : undefined}
-                className={`flex h-14 min-w-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors ${
+                className={`flex h-14 min-w-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-[color,scale] duration-150 active:scale-95 ${
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <span className="relative">
-                  <Icon className="h-6 w-6" aria-hidden="true" strokeWidth={active ? 2.5 : 2} />
+                  <Icon className="h-6 w-6" aria-hidden="true" strokeWidth={active ? 2.25 : 1.75} />
                   {tab.badge === 'pendingSync' && <TabBadge count={pending} />}
                 </span>
                 <span>{tab.label}</span>

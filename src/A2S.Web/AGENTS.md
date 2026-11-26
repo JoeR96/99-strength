@@ -96,7 +96,7 @@ src/
 
 ### Theming
 
-**One theme: "Arcade Minimal"** — Apple-style minimal design language with the Retro Arcade palette (near-black background, burnt-orange primary, neon-yellow accent, system fonts). All tokens live in `src/index.css` (`@theme`). There is no theme switcher.
+**One theme: "Arcade Minimal"** — Apple-style minimal design language with the Retro Arcade palette (near-black background, burnt-orange primary, amber accent, system fonts; depth from stepped surface fills, not outlines). All tokens live in `src/index.css` (`@theme`). There is no theme switcher.
 
 > ⚠️ The colour CSS variables are named `--color-*` (Tailwind v4 `@theme`) and **already contain a full `hsl(...)` value**. Reference them as `var(--color-primary)` (or the `bg-primary` / `text-foreground` utilities) — **never** `hsl(var(--primary))`, which resolves to `hsl(undefined)` and renders black/illegible. Charts use `src/lib/chartTheme.ts`. See **`src/AGENTS.md`** for the full styling contract — read it before touching any colour.
 

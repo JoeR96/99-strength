@@ -64,7 +64,7 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="container-page py-4 sm:py-6">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <p className="mt-4 text-muted-foreground">Loading your workout...</p>
@@ -78,7 +78,7 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="container-page py-4 sm:py-6">
           <Card className="p-8 text-center">
             <p className="text-destructive">Failed to load workout</p>
             <Button className="mt-4" onClick={() => window.location.reload()}>
@@ -94,7 +94,7 @@ export function WorkoutDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="container-page py-4 sm:py-6">
           <Card className="p-8 text-center">
             <h2 className="text-2xl font-bold mb-2">No Active Workout</h2>
             <p className="text-muted-foreground mb-6">
@@ -119,41 +119,43 @@ export function WorkoutDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="container-page py-4 sm:py-6">
         <Link
           to="/routines"
-          className="mb-6 flex min-h-11 items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:border-primary/50"
+          className="mb-6 flex min-h-11 items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-foreground/[0.04]"
           data-testid="routines-link"
         >
           <span>Mobility, stretching &amp; yoga routines</span>
           <span aria-hidden="true" className="text-muted-foreground">›</span>
         </Link>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{workout.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>
-              Week {workout.currentWeek} of {workout.totalWeeks}
-            </span>
-            <span>-</span>
-            <span>
-              Block {blockIndex + 1}/{blockSequence.length} (Type {currentBlockType}), Week {weekInBlock}
-            </span>
-            <span>-</span>
-            <span>{formatVariantDays(workout.variant)}-Day Program</span>
+        <div className="mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h1 className="text-hero min-w-0 flex-1 basis-56">{workout.name}</h1>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-xs px-3 py-1 min-h-11"
+              className="shrink-0 rounded-full"
               onClick={() => setShowBlockEditor(true)}
             >
               Manage Blocks
             </Button>
           </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+            <span className="whitespace-nowrap">
+              Week {workout.currentWeek} of {workout.totalWeeks}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span className="whitespace-nowrap">
+              Block {blockIndex + 1}/{blockSequence.length} (Type {currentBlockType}), Week {weekInBlock}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span className="whitespace-nowrap">{formatVariantDays(workout.variant)}-Day Program</span>
+          </div>
         </div>
 
         {/* Block Sequence Visual */}
-        <Card className="p-4 mb-6">
+        <Card className="p-4 mb-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-muted-foreground mr-2">Blocks:</span>
             {blockSequence.map((blockType, idx) => {
@@ -163,7 +165,7 @@ export function WorkoutDashboard() {
                   key={idx}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                     isCurrentBlock
-                      ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
+                      ? "bg-primary text-primary-foreground"
                       : idx < blockIndex
                       ? "bg-success/10 text-success"
                       : "bg-muted text-muted-foreground"
@@ -180,7 +182,7 @@ export function WorkoutDashboard() {
         </Card>
 
         {/* Progress bar */}
-        <Card className="p-6 mb-6">
+        <Card className="p-4 sm:p-6 mb-4">
           {(() => {
             const completedDays = (workout.currentWeek - 1) * workout.daysPerWeek + workout.completedDaysInCurrentWeek.length;
             const totalDays = workout.totalWeeks * workout.daysPerWeek;
@@ -195,7 +197,7 @@ export function WorkoutDashboard() {
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary transition-all duration-300"
+                    className="h-full rounded-full bg-primary transition-all duration-300"
                     style={{ width: `${pct}%` }}
                   />
                 </div>

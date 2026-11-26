@@ -18,7 +18,7 @@ function Row({ session }: { session: CycleSessionDto }) {
     <li>
       <Link
         to={previewHref(session)}
-        className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 hover:bg-muted/60"
+        className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
         data-testid={`cycle-row-${session.week}-${session.day}`}
       >
         <span className="w-14 shrink-0 text-xs text-muted-foreground">W{session.week} · {session.position}</span>
@@ -37,8 +37,8 @@ export function CycleList({ thisWeek, nextWeek }: { thisWeek: CycleSessionDto[];
   const [showNextWeek, setShowNextWeek] = useState(thisWeek.length === 0);
   if (thisWeek.length === 0 && nextWeek.length === 0) return null;
   return (
-    <section className="rounded-lg border border-border bg-card p-2" aria-labelledby="cycle-heading" data-testid="cycle-list">
-      <h2 id="cycle-heading" className="px-3 pt-2 text-sm font-medium text-muted-foreground">
+    <section className="rounded-xl border border-border bg-card p-2" aria-labelledby="cycle-heading" data-testid="cycle-list">
+      <h2 id="cycle-heading" className="px-3 pt-2 text-section">
         Up next in the cycle
       </h2>
       {thisWeek.length > 0 && <ul>{thisWeek.map((s) => <Row key={`${s.week}-${s.day}`} session={s} />)}</ul>}

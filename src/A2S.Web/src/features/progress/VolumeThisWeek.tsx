@@ -17,7 +17,7 @@ export function VolumeThisWeek({ budget, loading = false, error = false }: Volum
   return (
     <section aria-labelledby="volume-heading" className="rounded-lg border border-border bg-card p-4" data-testid="volume-this-week">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 id="volume-heading" className="text-sm font-medium text-muted-foreground">
+        <h2 id="volume-heading" className="text-section">
           Hard sets this week
         </h2>
         {budget && (

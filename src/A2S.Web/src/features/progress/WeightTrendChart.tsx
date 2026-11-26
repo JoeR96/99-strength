@@ -50,7 +50,7 @@ export function WeightTrendChart({ trend, checkpoints = [], startDate, startKg, 
     <section aria-labelledby="weight-trend-heading" className="rounded-lg border border-border bg-card p-4" data-testid="weight-trend">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h2 id="weight-trend-heading" className="text-sm font-medium text-muted-foreground">
+          <h2 id="weight-trend-heading" className="text-section">
             Weight trend
           </h2>
           <p className="text-2xl font-semibold tabular-nums text-foreground">

@@ -16,26 +16,28 @@ import { estimateMinutes } from './routinePlayer';
 function RoutineCard({ routine }: { routine: MobilityRoutineDto }) {
   const isVideo = routine.kind === MobilityRoutineKind.FollowAlong;
   return (
-    <article className="rounded-lg border border-border bg-card p-4" aria-label={routine.name}>
-      <h3 className="text-lg font-semibold text-foreground">{routine.name}</h3>
+    <article className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-card p-4" aria-label={routine.name}>
+      <div className="min-w-0 flex-1 basis-40">
+      <h3 className="truncate text-lg font-semibold text-foreground">{routine.name}</h3>
       <p className="text-sm text-muted-foreground">
         {isVideo
           ? `Follow-along video · ${routine.targetMinutes} min`
           : `${routine.drills.length} ${routine.drills.length === 1 ? 'drill' : 'drills'} · about ${estimateMinutes(routine)} min`}
       </p>
-      <div className="mt-3 grid grid-cols-[1fr_auto_auto] gap-2">
-        <Button asChild size="lg" className="w-full">
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        <Button asChild variant="tinted" className="h-11 rounded-full px-5">
           <Link to={`/routines/${routine.id}/play`} aria-label={`Play ${routine.name}`}>
             <Play aria-hidden="true" />
             Play
           </Link>
         </Button>
-        <Button asChild size="lg" variant="outline" className="min-w-11">
+        <Button asChild size="icon" variant="ghost" className="h-11 w-11 rounded-full">
           <Link to={`/routines/${routine.id}`} aria-label={`Preview ${routine.name}`}>
             <Eye aria-hidden="true" />
           </Link>
         </Button>
-        <Button asChild size="lg" variant="outline" className="min-w-11">
+        <Button asChild size="icon" variant="ghost" className="h-11 w-11 rounded-full">
           <Link to={`/routines/${routine.id}/edit`} aria-label={`Edit ${routine.name}`}>
             <Pencil aria-hidden="true" />
           </Link>
@@ -53,7 +55,7 @@ export function RoutinesPage() {
       <Navbar />
       <main className="container-page space-y-4 py-4">
         <header className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-foreground">Mobility</h1>
+          <h1 className="text-hero">Mobility</h1>
           <Button asChild className="h-11" data-testid="new-routine">
             <Link to="/routines/new">
               <Plus aria-hidden="true" />
@@ -84,7 +86,7 @@ export function RoutinesPage() {
         {routines &&
           groupRoutines(routines).map((group) => (
             <section key={group.kind} aria-labelledby={`routine-group-${group.kind}`} className="space-y-2" data-testid={`routine-group-${group.kind}`}>
-              <h2 id={`routine-group-${group.kind}`} className="text-sm font-medium text-muted-foreground">
+              <h2 id={`routine-group-${group.kind}`} className="text-section">
                 {group.heading}
               </h2>
               <ul className="space-y-3">

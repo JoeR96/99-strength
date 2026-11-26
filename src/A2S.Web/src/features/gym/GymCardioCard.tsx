@@ -36,7 +36,7 @@ export interface GymCardioCardProps {
 const toggleClass = (on: boolean) =>
   cn(
     'min-h-12 rounded-md border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-    on ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+    on ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
   );
 
 export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onStart, startLabel = 'Start', onKeep, onSettingsChosen }: GymCardioCardProps) {
@@ -51,7 +51,7 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
   const minutes = item.totalSeconds ? Math.round((item.totalSeconds / 60) * 10) / 10 : '';
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4" aria-labelledby={headingId} data-testid={`cardio-${id}`}>
+    <section className="rounded-xl border border-border bg-card p-4" aria-labelledby={headingId} data-testid={`cardio-${id}`}>
       <div className="flex items-baseline justify-between gap-2">
         <h2 id={headingId} className="text-lg font-semibold text-foreground">
           {item.name}
@@ -98,7 +98,7 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
               type="button"
               className={cn(
                 'mt-3 flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                ticked ? 'border-success/60 bg-success/15' : 'border-border bg-muted/40'
+                ticked ? 'border-transparent bg-foreground/[0.03]' : 'border-transparent bg-foreground/[0.06]'
               )}
               aria-pressed={ticked}
               onClick={() => (pending ? setSettingsOpen(true) : onTick?.())}
@@ -107,7 +107,7 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
               <span
                 className={cn(
                   'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2',
-                  ticked ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
+                  ticked ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40'
                 )}
                 aria-hidden="true"
               >
@@ -157,7 +157,7 @@ export function GymCardioCard({ item, workoutId, onChange, onEffort, onTick, onS
                       type="button"
                       className={cn(
                         'min-h-14 rounded-md border px-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        item.effort === e.value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                        item.effort === e.value ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
                       )}
                       aria-pressed={item.effort === e.value}
                       onClick={() => onEffort(e.value)}

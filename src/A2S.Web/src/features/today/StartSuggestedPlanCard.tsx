@@ -166,7 +166,7 @@ export function StartSuggestedPlanCard({ onStarted, today, initialValues, initia
                 onClick={() => setSelectedKey(p.key)}
                 className={cn(
                   'min-h-12 rounded-md border px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  selectedKey === p.key ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-muted/40 text-foreground'
+                  selectedKey === p.key ? 'border-primary bg-primary text-primary-foreground' : 'border-transparent bg-foreground/[0.06] text-foreground'
                 )}
               >
                 {p.name}

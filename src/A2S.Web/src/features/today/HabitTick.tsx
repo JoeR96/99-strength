@@ -31,7 +31,7 @@ export function HabitTick({ habit, onToggle, pending = false }: HabitTickProps) 
       <span
         className={cn(
           'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2',
-          done ? 'border-success bg-success text-success-foreground' : 'border-border text-transparent'
+          done ? 'animate-tick border-success bg-success text-success-foreground' : 'border-muted-foreground/40 text-transparent'
         )}
         aria-hidden="true"
       >
